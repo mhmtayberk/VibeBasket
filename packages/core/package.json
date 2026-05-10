@@ -1,0 +1,18 @@
+{
+  "name": "@vibebasket/core",
+  "version": "0.1.0",
+  "description": "Core types, schemas and logic for VibeBasket",
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.5"
+  }
+}
