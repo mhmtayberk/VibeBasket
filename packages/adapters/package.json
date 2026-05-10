@@ -1,0 +1,20 @@
+{
+  "name": "@vibebasket/adapters",
+  "version": "0.1.0",
+  "description": "IDE adapters for VibeBasket",
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@vibebasket/core": "workspace:*",
+    "fast-check": "^3.23.2"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.2",
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.5"
+  }
+}
