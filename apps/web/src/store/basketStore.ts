@@ -1,6 +1,9 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { McpEntry } from "@vibebasket/core";
+import { McpEntrySchema } from "@vibebasket/core";
+import { z } from "zod";
+
+type McpEntry = z.infer<typeof McpEntrySchema>;
 
 export interface BasketItem {
   type: "mcp" | "skill" | "rule" | "workflow";

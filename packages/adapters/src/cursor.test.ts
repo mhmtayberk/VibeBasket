@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CursorAdapter } from "./cursor";
+import { CursorAdapter } from "./cursor.js";
 import type { McpEntry } from "@vibebasket/core";
 
 describe("CursorAdapter", () => {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { Bundle, SCHEMA_VERSION } from "./manifest";
+import { BundleSchema, SCHEMA_VERSION } from "./manifest";
 
 describe("manifest", () => {
   it("should validate a valid bundle", () => {
@@ -19,7 +19,7 @@ describe("manifest", () => {
       ],
     };
 
-    const result = Bundle.safeParse(validBundle);
+    const result = BundleSchema.safeParse(validBundle);
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.data.mcps[0]?.id).toBe("test-mcp");
@@ -33,7 +33,7 @@ describe("manifest", () => {
       targets: ["cursor"],
     };
 
-    const result = Bundle.safeParse(invalidBundle);
+    const result = BundleSchema.safeParse(invalidBundle);
     expect(result.success).toBe(false);
   });
 
@@ -44,7 +44,7 @@ describe("manifest", () => {
       targets: [],
     };
 
-    const result = Bundle.safeParse(noTargetsBundle);
+    const result = BundleSchema.safeParse(noTargetsBundle);
     expect(result.success).toBe(false);
   });
 
@@ -75,7 +75,7 @@ describe("manifest", () => {
       ],
     };
 
-    const result = Bundle.safeParse(bundleWithPack);
+    const result = BundleSchema.safeParse(bundleWithPack);
     expect(result.success).toBe(true);
   });
 });

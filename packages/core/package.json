@@ -2,16 +2,24 @@
   "name": "@vibebasket/core",
   "version": "0.1.0",
   "description": "Core types, schemas and logic for VibeBasket",
-  "main": "src/index.ts",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
   "scripts": {
-    "build": "tsc",
+    "build": "tsup",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@libsql/client": "^0.17.3",
+    "drizzle-orm": "^0.45.2",
+    "nanoid": "^5.1.11",
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "drizzle-kit": "^0.31.10",
+    "tsup": "^8.5.1",
     "typescript": "^5.7.3",
     "vitest": "^3.0.5"
   }

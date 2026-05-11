@@ -1,14 +1,45 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ItemCard } from "./ItemCard";
-import { mockCatalog } from "@/data/mockCatalog";
 import type { BasketItem } from "@/store/basketStore";
 
 export function CatalogGrid() {
-  const mcps = mockCatalog.mcps.map(m => ({ ...m, type: "mcp" as const }));
-  const skills = mockCatalog.skills.map(s => ({ ...s, type: "skill" as const }));
-  const rules = mockCatalog.rules.map(r => ({ ...r, type: "rule" as const }));
+  const [items, setItems] = useState<BasketItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/catalog")
+      .then(res => res.json())
+      .then(data => {
+        setItems(data.map((item: any) => ({
+          id: item.id,
+          type: item.type,
+          name: item.displayName,
+          description: item.description,
+          icon: item.icon,
+          mcpData: item.data
+        })));
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Failed to fetch catalog:", err);
+        setLoading(false);
+      });
+  }, []);
+
+  const mcps = items.filter(i => i.type === "mcp");
+  const skills = items.filter(i => i.type === "skill");
+  const rules = items.filter(i => i.type === "rule");
+
+  if (loading) {
+    return (
+      <div className="w-full max-w-6xl mx-auto py-12 px-4 text-center text-muted-foreground animate-pulse">
+        Loading catalog...
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-6xl mx-auto py-12 px-4 sm:px-8">

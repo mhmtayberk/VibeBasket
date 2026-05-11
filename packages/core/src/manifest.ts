@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const SCHEMA_VERSION = "0.1" as const;
 
-export const IdeId = z.enum([
+export const IdeIdSchema = z.enum([
   "cursor",
   "windsurf",
   "claude-code",
@@ -13,19 +13,19 @@ export const IdeId = z.enum([
   "gemini-cli",
   "zed",
 ]);
-export type IdeId = z.infer<typeof IdeId>;
+export type IdeId = z.infer<typeof IdeIdSchema>;
 
-export const Scope = z.enum(["user", "project"]);
-export type Scope = z.infer<typeof Scope>;
+export const ScopeSchema = z.enum(["user", "project"]);
+export type Scope = z.infer<typeof ScopeSchema>;
 
-export const Runtime = z.enum(["npx", "uvx", "docker", "remote", "node", "python"]);
-export type Runtime = z.infer<typeof Runtime>;
+export const RuntimeSchema = z.enum(["npx", "uvx", "docker", "remote", "node", "python"]);
+export type Runtime = z.infer<typeof RuntimeSchema>;
 
-export const McpEntry = z.object({
+export const McpEntrySchema = z.object({
   id: z.string().regex(/^[a-z0-9-]+$/), // unique within bundle
   catalogRef: z.string().optional(), // "official-registry:io.github.org/x"
   displayName: z.string(),
-  runtime: Runtime,
+  runtime: RuntimeSchema,
   command: z.string().optional(), // e.g. "npx"
   args: z.array(z.string()).default([]),
   url: z.string().url().optional(), // for runtime=remote
@@ -33,9 +33,9 @@ export const McpEntry = z.object({
   requiredSecrets: z.array(z.string()).default([]),
   verified: z.boolean().default(false),
 });
-export type McpEntry = z.infer<typeof McpEntry>;
+export type McpEntry = z.infer<typeof McpEntrySchema>;
 
-export const SkillEntry = z.object({
+export const SkillEntrySchema = z.object({
   id: z.string(),
   displayName: z.string(),
   source: z.discriminatedUnion("type", [
@@ -57,43 +57,43 @@ export const SkillEntry = z.object({
   ]),
   verified: z.boolean().default(false),
 });
-export type SkillEntry = z.infer<typeof SkillEntry>;
+export type SkillEntry = z.infer<typeof SkillEntrySchema>;
 
-export const RuleEntry = z.object({
+export const RuleEntrySchema = z.object({
   id: z.string(),
   displayName: z.string(),
   content: z.string(), // markdown body
   verified: z.boolean().default(false),
 });
-export type RuleEntry = z.infer<typeof RuleEntry>;
+export type RuleEntry = z.infer<typeof RuleEntrySchema>;
 
-export const FileEntry = z.object({
+export const FileEntrySchema = z.object({
   path: z.string(), // relative to project root or ${WORKSPACE}
   content: z.string(),
   ifExists: z.enum(["skip", "overwrite", "merge"]).default("skip"),
 });
-export type FileEntry = z.infer<typeof FileEntry>;
+export type FileEntry = z.infer<typeof FileEntrySchema>;
 
-export const WorkflowPackEntry = z.object({
+export const WorkflowPackEntrySchema = z.object({
   id: z.string(), // e.g. "cline-memory-bank"
   displayName: z.string(),
-  files: z.array(FileEntry).default([]),
-  rules: z.array(RuleEntry).default([]),
-  mcps: z.array(McpEntry).default([]),
-  skills: z.array(SkillEntry).default([]),
+  files: z.array(FileEntrySchema).default([]),
+  rules: z.array(RuleEntrySchema).default([]),
+  mcps: z.array(McpEntrySchema).default([]),
+  skills: z.array(SkillEntrySchema).default([]),
 });
-export type WorkflowPackEntry = z.infer<typeof WorkflowPackEntry>;
+export type WorkflowPackEntry = z.infer<typeof WorkflowPackEntrySchema>;
 
-export const Bundle = z.object({
+export const BundleSchema = z.object({
   schemaVersion: z.literal(SCHEMA_VERSION),
   name: z.string().optional(),
   description: z.string().optional(),
   author: z.string().optional(), // free-text, not authenticated
-  scope: Scope, // applies to all selections in this bundle
-  targets: z.array(IdeId).min(1),
-  mcps: z.array(McpEntry).default([]),
-  skills: z.array(SkillEntry).default([]),
-  rules: z.array(RuleEntry).default([]),
-  workflowPacks: z.array(WorkflowPackEntry).default([]),
+  scope: ScopeSchema, // applies to all selections in this bundle
+  targets: z.array(IdeIdSchema).min(1),
+  mcps: z.array(McpEntrySchema).default([]),
+  skills: z.array(SkillEntrySchema).default([]),
+  rules: z.array(RuleEntrySchema).default([]),
+  workflowPacks: z.array(WorkflowPackEntrySchema).default([]),
 });
-export type Bundle = z.infer<typeof Bundle>;
+export type Bundle = z.infer<typeof BundleSchema>;

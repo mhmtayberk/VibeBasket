@@ -1,0 +1,44 @@
+#!/usr/bin/env node
+
+import { Command } from "commander";
+import chalk from "chalk";
+import { applyBundle } from "./apply.js";
+
+const program = new Command();
+
+program
+  .name("vibebasket")
+  .description("The Ninite for vibe coding. Bundle and apply AI dev setups.")
+  .version("0.1.0");
+
+program
+  .command("apply")
+  .description("Apply a VibeBasket bundle to your IDEs")
+  .argument("<url|file>", "Bundle URL or local JSON file")
+  .option("-s, --scope <scope>", "Override scope (user or project)")
+  .option("-f, --force", "Apply without trust prompt")
+  .option("-d, --dry-run", "Preview changes without applying")
+  .action(async (input, options) => {
+    try {
+      await applyBundle(input, options);
+    } catch (err: any) {
+      console.error(chalk.red(`\n❌ Error: ${err.message}`));
+      process.exit(1);
+    }
+  });
+
+program
+  .command("init")
+  .description("Interactively create a new VibeBasket bundle")
+  .action(() => {
+    console.log(chalk.blue("🧺 VibeBasket: Interactive init mode...\n"));
+  });
+
+program
+  .command("doctor")
+  .description("Check your IDE installations and common issues")
+  .action(() => {
+    console.log(chalk.cyan("🧺 VibeBasket: Running diagnostics...\n"));
+  });
+
+program.parse();
