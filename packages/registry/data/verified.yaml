@@ -1,0 +1,42 @@
+# VibeBasket Verified Catalog
+
+mcps:
+  - id: mcp-puppeteer
+    displayName: Puppeteer (Browser)
+    runtime: npx
+    args: ["-y", "@modelcontextprotocol/server-puppeteer"]
+    verified: true
+  - id: mcp-postgres
+    displayName: PostgreSQL
+    runtime: npx
+    args: ["-y", "@modelcontextprotocol/server-postgres", "${secret:POSTGRES_URL}"]
+    requiredSecrets: ["POSTGRES_URL"]
+    verified: true
+  - id: mcp-github
+    displayName: GitHub
+    runtime: npx
+    args: ["-y", "@modelcontextprotocol/server-github"]
+    env:
+      GITHUB_PERSONAL_ACCESS_TOKEN: "${secret:GITHUB_PAT}"
+    requiredSecrets: ["GITHUB_PAT"]
+    verified: true
+
+skills:
+  - id: skill-nextjs-best-practices
+    displayName: Next.js Best Practices
+    source:
+      type: github
+      repo: vercel-labs/agent-skills
+      path: skills/nextjs
+    verified: true
+
+workflowPacks:
+  - id: cline-memory-bank
+    displayName: Cline Memory Bank
+    rules:
+      - id: rule-memory-bank
+        displayName: Memory Bank Standard
+        content: |
+          # Memory Bank Rules
+          Always maintain activeContext.md, progress.md, and projectbrief.md.
+    verified: true

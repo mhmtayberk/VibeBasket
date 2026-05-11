@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { AntigravityAdapter } from "./antigravity";
+import { AntigravityAdapter } from "./antigravity.js";
 import os from "node:os";
 import path from "node:path";
 import type { McpEntry } from "@vibebasket/core";
@@ -28,10 +28,12 @@ describe("AntigravityAdapter", () => {
     const mcps: McpEntry[] = [
       {
         id: "test-mcp",
-        name: "Test MCP",
+        displayName: "Test MCP",
         runtime: "node",
         args: ["index.js"],
-        env: { API_KEY: "secret" }
+        env: { API_KEY: "secret" },
+        requiredSecrets: [],
+        verified: true
       }
     ];
 
@@ -46,10 +48,12 @@ describe("AntigravityAdapter", () => {
     const mcps: McpEntry[] = [
       {
         id: "sec-mcp",
-        name: "Sec",
+        displayName: "Sec",
         runtime: "node",
         args: [],
-        env: { KEY: "${secret:MY_KEY}", OTHER: "plain" }
+        env: { KEY: "${secret:MY_KEY}", OTHER: "plain" },
+        requiredSecrets: ["MY_KEY"],
+        verified: true
       }
     ];
 

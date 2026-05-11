@@ -11,15 +11,37 @@ import { cn } from "@/lib/utils";
 export function FloatingBasket() {
   const { items } = useBasketStore();
   const [isOpen, setIsOpen] = useState(false);
+  const [isBuilding, setIsBuilding] = useState(false);
+  const [bundleUrl, setBundleUrl] = useState<string | null>(null);
 
   if (items.length === 0) return null;
 
-  const handleBuild = () => {
-    // Fake the URL generation for now
-    const url = "npx vibebasket apply https://vibebasket.dev/b/1a2b3c";
-    navigator.clipboard.writeText(url);
-    toast.success("Command copied to clipboard!");
-    setIsOpen(false);
+  const handleBuild = async () => {
+    setIsBuilding(true);
+    try {
+      const response = await fetch("/api/bundle", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          targets: ["cursor", "vscode", "windsurf", "antigravity"], // Default targets for now
+          scope: "user", // Default scope for now
+          itemIds: items.map(i => i.id),
+        }),
+      });
+
+      if (!response.ok) throw new Error("Failed to build bundle");
+
+      const data = await response.json();
+      const command = `npx vibebasket apply https://vibebasket.dev/api/bundle/${data.id}`;
+      setBundleUrl(command);
+      navigator.clipboard.writeText(command);
+      toast.success("Command copied to clipboard!");
+    } catch (error) {
+      console.error("Build failed:", error);
+      toast.error("Failed to generate bundle command.");
+    } finally {
+      setIsBuilding(false);
+    }
   };
 
   return (
@@ -50,7 +72,7 @@ export function FloatingBasket() {
               <DialogTitle className="text-2xl">Your VibeBasket</DialogTitle>
             </DialogHeader>
             <div className="py-4">
-              <div className="space-y-4 mb-6">
+              <div className="space-y-4 mb-6 max-h-[300px] overflow-y-auto">
                 {items.map(item => (
                   <div key={item.id} className="flex justify-between items-center py-2 border-b border-border/50 last:border-0">
                     <span className="font-medium text-foreground">{item.name}</span>
@@ -58,11 +80,19 @@ export function FloatingBasket() {
                   </div>
                 ))}
               </div>
+              
+              {bundleUrl ? (
+                <div className="bg-secondary/50 p-4 rounded-xl mb-4 font-mono text-xs break-all border border-border/50">
+                  {bundleUrl}
+                </div>
+              ) : null}
+
               <Button 
                 onClick={handleBuild} 
+                disabled={isBuilding}
                 className="w-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-[0_0_20px_rgba(34,197,94,0.2)] h-12 text-lg rounded-xl"
               >
-                Generate Command
+                {isBuilding ? "Building..." : (bundleUrl ? "Regenerate" : "Generate Command")}
               </Button>
             </div>
           </DialogContent>

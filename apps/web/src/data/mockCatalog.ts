@@ -1,4 +1,7 @@
-import type { McpEntry } from "@vibebasket/core";
+import { McpEntrySchema } from "@vibebasket/core";
+import { z } from "zod";
+
+type McpEntry = z.infer<typeof McpEntrySchema>;
 
 export const mockCatalog = {
   mcps: [
