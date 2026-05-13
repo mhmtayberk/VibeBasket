@@ -10,6 +10,7 @@ import {
 import { confirm } from "@inquirer/prompts";
 import chalk from "chalk";
 import { resolveSecrets } from "./secrets.js";
+import { createBackup } from "./backup.js";
 
 const ADAPTERS = {
   cursor: new CursorAdapter(),
@@ -76,6 +77,9 @@ export async function applyBundle(
         const diff = await adapter.diff(scope, pendingConfig);
         console.log(chalk.gray(`Dry run diff for ${targetId}:\n${diff}`));
       } else {
+        const backupPath = await createBackup(targetId, scope, config);
+        console.log(chalk.gray(`  - Created backup: ${backupPath}`));
+        
         await adapter.writeConfig(scope, pendingConfig);
         console.log(chalk.green(`✅ Successfully applied to ${adapter.displayName}`));
         console.log(chalk.cyan(`💡 ${adapter.postInstallHint()}`));

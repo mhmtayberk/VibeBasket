@@ -5,7 +5,7 @@ import { FloatingBasket } from "@/components/basket/FloatingBasket";
 
 export default function Home() {
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center p-8 sm:p-20 bg-background text-foreground relative overflow-hidden">
+    <main className="min-h-screen flex flex-col items-center justify-center p-6 sm:p-20 bg-background text-foreground relative overflow-hidden">
       {/* Subtle background glow effect */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-accent/5 rounded-full blur-[100px] pointer-events-none" />
 
@@ -18,30 +18,29 @@ export default function Home() {
             <span>Ninite for Vibe Coding</span>
           </div>
           
-          <h1 className="text-5xl sm:text-7xl font-bold tracking-tight text-white drop-shadow-sm">
-            Bundle your AI dev setup.<br />
-            <span className="text-muted-foreground">One link. All IDEs.</span>
+          <h1 className="text-3xl sm:text-5xl lg:text-7xl font-bold tracking-tight mb-6 bg-gradient-to-r from-foreground via-foreground/90 to-foreground/70 bg-clip-text text-transparent px-2">
+            Bundle your AI dev setup.
           </h1>
         </div>
 
         {/* 2. Short Description */}
-        <p className="text-xl text-muted-foreground max-w-xl leading-relaxed">
+        <p className="text-base sm:text-lg lg:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto px-4">
           Select MCP servers, Claude Skills, Rules files, and Workflow Packs. 
           Get a single command to configure Cursor, Windsurf, VS Code and more.
         </p>
 
         {/* 4. CTA */}
-        <div className="flex flex-col sm:flex-row gap-4 items-center pt-4">
-          <Button size="lg" className="h-14 px-8 text-lg bg-accent text-accent-foreground hover:bg-accent/90 rounded-xl transition-all shadow-[0_0_15px_rgba(34,197,94,0.3)]">
+        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center px-4">
+          <Button size="lg" className="w-full sm:w-auto rounded-full bg-accent text-accent-foreground hover:bg-accent/90 px-8 h-12 text-base font-medium shadow-[0_0_20px_rgba(34,197,94,0.2)]">
             Build your basket
           </Button>
-          <a href="#catalog" className="inline-flex items-center justify-center whitespace-nowrap outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 border h-14 px-8 text-lg rounded-xl border-border bg-background hover:bg-secondary/50 text-white font-medium transition-all">
+          <Button size="lg" variant="outline" className="w-full sm:w-auto rounded-full border-border/50 hover:bg-secondary/50 px-8 h-12 text-base font-medium">
             Browse catalog
-          </a>
+          </Button>
         </div>
 
         {/* 3. Benefit bullets */}
-        <div className="grid sm:grid-cols-3 gap-8 pt-16 mt-8 border-t border-border/30 w-full text-left">
+        <div className="grid md:grid-cols-3 gap-8 pt-16 mt-8 border-t border-border/30 w-full text-left">
           <div className="flex flex-col items-start gap-3">
             <div className="w-10 h-10 rounded-lg bg-secondary/50 flex items-center justify-center border border-border/50">
               <BadgeCheck className="w-5 h-5 text-accent" />
