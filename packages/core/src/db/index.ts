@@ -1,5 +1,6 @@
 import { drizzle } from "drizzle-orm/libsql";
 import { createClient } from "@libsql/client";
+import { like, or, and, eq } from "drizzle-orm";
 import * as schema from "./schema";
 import path from "node:path";
 
@@ -9,3 +10,4 @@ export const client = createClient({
 
 export const db = drizzle(client, { schema });
 export * from "./schema";
+export { like, or, and, eq };

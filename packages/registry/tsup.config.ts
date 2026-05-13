@@ -5,6 +5,9 @@ export default defineConfig({
   format: ["esm"],
   dts: false,
   clean: true,
-  shims: true,
-  minify: true,
+  minify: false,
+  sourcemap: true,
+  splitting: false,
+  bundle: true,
+  external: ["@vibebasket/core"],
 });
