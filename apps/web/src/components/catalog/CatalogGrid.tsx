@@ -1,12 +1,15 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { useDebounce } from "@/hooks/use-debounce";
-import { ItemCard } from "./ItemCard";
 import type { BasketItem } from "@/store/basketStore";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { BasketPanel } from "@/components/basket/BasketPanel";
+import { ItemCard } from "./ItemCard";
+import { cn } from "@/lib/utils";
 
 type TabKey = "mcps" | "skills" | "rules";
+
 const REQUEST_TIMEOUT_MS = 8000;
 const PAGE_SIZE = 24;
 const TAB_TO_TYPE: Record<TabKey, "mcp" | "skill" | "rule"> = {
@@ -48,6 +51,7 @@ async function fetchCatalog(query: string, activeTab: TabKey, page: number): Pro
     }
 
     const payload = await res.json();
+
     return {
       items: (payload.items as any[]).map((item) => ({
         id: item.id,
@@ -94,7 +98,6 @@ export function CatalogGrid() {
 
     fetchCatalog(debouncedSearch, activeTab, page)
       .then((response) => {
-        // Only apply if this is still the latest request
         if (id !== fetchIdRef.current) return;
         setItems(response.items);
         setPagination(response.pagination);
@@ -112,151 +115,197 @@ export function CatalogGrid() {
     setPage(1);
   }, [activeTab, debouncedSearch]);
 
-  const tabMap: Record<TabKey, { label: string; items: BasketItem[]; empty: string }> = {
-    mcps: { label: "MCP Servers", items, empty: "No MCP servers found." },
-    skills: { label: "Skills", items, empty: "No Skills found." },
-    rules: { label: "Rules", items, empty: "No Rules found." },
+  const tabMap: Record<TabKey, { label: string; eyebrow: string; empty: string }> = {
+    mcps: {
+      label: "MCP Servers",
+      eyebrow: "Trusted runtime connectors",
+      empty: "No MCP servers match this search yet.",
+    },
+    skills: {
+      label: "Skills",
+      eyebrow: "Reusable agent capabilities",
+      empty: "No skills match this search yet.",
+    },
+    rules: {
+      label: "Rules",
+      eyebrow: "Portable working conventions",
+      empty: "No rules match this search yet.",
+    },
   };
 
   const currentTab = tabMap[activeTab];
   const pageStart = pagination.total === 0 ? 0 : (pagination.page - 1) * pagination.limit + 1;
-  const pageEnd = pagination.total === 0
-    ? 0
-    : Math.min(pagination.total, pagination.page * pagination.limit);
+  const pageEnd = pagination.total === 0 ? 0 : Math.min(pagination.total, pagination.page * pagination.limit);
 
   return (
-    <div className="w-full max-w-4xl mx-auto py-12 px-4 sm:px-8">
-      {/* Search */}
-      <div className="relative max-w-md mx-auto mb-10">
-        <svg
-          className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground"
-          xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-          stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-        >
-          <circle cx="11" cy="11" r="8"/>
-          <path d="m21 21-4.3-4.3"/>
-        </svg>
-        <input
-          type="text"
-          placeholder="Search MCPs, Skills, Rules..."
-          value={searchQuery}
-          onChange={(e) => {
-            setSearchQuery(e.target.value);
-            setPage(1);
-          }}
-          className="w-full pl-11 h-12 rounded-2xl bg-secondary/20 border border-border/50 text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-accent/50 focus:ring-2 focus:ring-accent/20 transition-all text-sm"
-        />
-      </div>
+    <div className="border-t border-border/80">
+      <div className="mx-auto max-w-[1440px] px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+        <div className="max-w-3xl">
+          <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-accent">
+            The Builder
+          </p>
+          <h2 className="mt-5 text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
+            Build your stack without reconfiguring everything by hand.
+          </h2>
+          <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground">
+            Browse trusted components, assemble your basket, and generate a single install command
+            for the editors your team actually uses.
+          </p>
+        </div>
 
-      {/* Tabs */}
-      <div className="flex justify-center mb-8">
-        <div className="inline-flex bg-secondary/20 border border-border/50 p-1.5 rounded-2xl w-full sm:w-auto">
-          {(Object.keys(tabMap) as TabKey[]).map((key) => (
-            <button
-              key={key}
-              type="button"
-              onClick={() => {
-                setActiveTab(key);
-                setPage(1);
-              }}
-              className={`flex-1 sm:flex-initial rounded-xl px-4 sm:px-6 py-2.5 text-sm font-medium transition-all whitespace-nowrap ${
-                activeTab === key
-                  ? "bg-primary text-foreground shadow-md"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
+        <div className="mt-8 flex flex-wrap gap-2">
+          {["Trusted sources", "Verified-first ordering", `${PAGE_SIZE} items per page`].map((chip) => (
+            <span
+              key={chip}
+              className="inline-flex border border-border/70 bg-background/40 px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground"
             >
-              {tabMap[key].label}
-            </button>
+              {chip}
+            </span>
           ))}
         </div>
-      </div>
 
-      {/* Content */}
-      <div className="min-h-[300px]">
-        {!loading && !error ? (
-          <div className="mb-4 flex flex-col gap-2 rounded-2xl border border-border/40 bg-secondary/10 px-4 py-3 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              Showing <span className="font-medium text-foreground">{pageStart}-{pageEnd}</span> of{" "}
-              <span className="font-medium text-foreground">{pagination.total}</span> {currentTab.label.toLowerCase()}
-            </div>
-            <div>
-              Page <span className="font-medium text-foreground">{pagination.page}</span>
-              {pagination.totalPages > 0 ? ` / ${pagination.totalPages}` : ""}
-            </div>
-          </div>
-        ) : null}
-        {loading ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-3">
-            <svg className="w-8 h-8 text-accent animate-spin" viewBox="0 0 24 24" fill="none">
-              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="60" strokeDashoffset="15" strokeLinecap="round"/>
-            </svg>
-            <p className="text-xs text-muted-foreground">Loading catalog...</p>
-          </div>
-        ) : error ? (
-          <div className="text-center py-20">
-            <p className="text-destructive text-sm">Error: {error}</p>
-            <button
-              type="button"
-              onClick={() => {
-                setError(null);
-                setLoading(true);
-                fetchIdRef.current++;
-                fetchCatalog(debouncedSearch, activeTab, page)
-                  .then((response) => {
-                    setItems(response.items);
-                    setPagination(response.pagination);
-                    setLoading(false);
-                  })
-                  .catch((retryError) => {
-                    setError(retryError instanceof Error ? retryError.message : "Retry failed");
-                    setLoading(false);
-                  });
-              }}
-              className="mt-4 text-accent underline text-sm"
-            >
-              Retry
-            </button>
-          </div>
-        ) : currentTab.items.length > 0 ? (
-          <>
-            <div className="flex flex-col gap-3">
-              {currentTab.items.map((item) => (
-                <ItemCard key={item.id} item={item} />
-              ))}
-            </div>
-
-            <div className="mt-8 flex flex-col gap-3 rounded-2xl border border-border/40 bg-secondary/10 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="text-sm text-muted-foreground">
-                Large catalogs stay fast by loading {pagination.limit} items at a time.
+        <div className="mt-10 grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
+          <div className="space-y-5">
+            <div className="border border-border/80 bg-card/60">
+              <div className="border-b border-border/70 px-4 py-4">
+                <div className="flex flex-wrap gap-2">
+                  {(Object.keys(tabMap) as TabKey[]).map((key) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => {
+                        setActiveTab(key);
+                        setPage(1);
+                      }}
+                      className={cn(
+                        "border px-3 py-2 font-mono text-[11px] uppercase tracking-[0.18em] transition-colors",
+                        activeTab === key
+                          ? "border-accent bg-accent/10 text-accent"
+                          : "border-transparent text-muted-foreground hover:border-border/70 hover:text-foreground"
+                      )}
+                    >
+                      {tabMap[key].label}
+                    </button>
+                  ))}
+                </div>
               </div>
 
-              <div className="flex items-center justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setPage((current) => Math.max(1, current - 1))}
-                  disabled={!pagination.hasPreviousPage}
-                  className="inline-flex h-10 items-center gap-2 rounded-xl border border-border/50 px-3 text-sm font-medium text-foreground transition-colors hover:bg-secondary/50 disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                  Previous
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setPage((current) => current + 1)}
-                  disabled={!pagination.hasNextPage}
-                  className="inline-flex h-10 items-center gap-2 rounded-xl border border-border/50 px-3 text-sm font-medium text-foreground transition-colors hover:bg-secondary/50 disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  Next
-                  <ChevronRight className="h-4 w-4" />
-                </button>
+              <div className="border-b border-border/70 px-4 py-4 sm:px-5">
+                <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-end">
+                  <div>
+                    <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+                      {currentTab.eyebrow}
+                    </p>
+                    <div className="relative mt-3">
+                      <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                      <input
+                        type="text"
+                        aria-label={`Search ${currentTab.label.toLowerCase()}`}
+                        placeholder={`Search ${currentTab.label.toLowerCase()}...`}
+                        value={searchQuery}
+                        onChange={(e) => {
+                          setSearchQuery(e.target.value);
+                          setPage(1);
+                        }}
+                        className="h-12 w-full border border-border/70 bg-background/50 pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-accent focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid gap-1 text-sm text-muted-foreground sm:text-right">
+                    <span>
+                      Showing <span className="font-medium text-foreground">{pageStart}-{pageEnd}</span> of{" "}
+                      <span className="font-medium text-foreground">{pagination.total}</span>
+                    </span>
+                    <span className="font-mono text-[11px] uppercase tracking-[0.18em]">
+                      Page {pagination.page}{pagination.totalPages > 0 ? ` / ${pagination.totalPages}` : ""}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-4 sm:p-5">
+                {loading ? (
+                  <div className="flex min-h-[420px] flex-col items-center justify-center gap-4 border border-dashed border-border/70 bg-background/20">
+                    <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-accent" />
+                    <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+                      Loading catalog
+                    </p>
+                  </div>
+                ) : error ? (
+                  <div className="flex min-h-[420px] flex-col items-center justify-center gap-4 border border-dashed border-border/70 bg-background/20 px-6 text-center">
+                    <p className="text-sm text-destructive">Error: {error}</p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setError(null);
+                        setLoading(true);
+                        fetchIdRef.current++;
+                        fetchCatalog(debouncedSearch, activeTab, page)
+                          .then((response) => {
+                            setItems(response.items);
+                            setPagination(response.pagination);
+                            setLoading(false);
+                          })
+                          .catch((retryError) => {
+                            setError(retryError instanceof Error ? retryError.message : "Retry failed");
+                            setLoading(false);
+                          });
+                      }}
+                      className="border border-border/70 px-4 py-2 font-mono text-[11px] uppercase tracking-[0.18em] text-foreground transition-colors hover:border-accent/50 hover:text-accent"
+                    >
+                      Retry request
+                    </button>
+                  </div>
+                ) : items.length > 0 ? (
+                  <div className="space-y-3">
+                    {items.map((item) => (
+                      <ItemCard key={item.id} item={item} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex min-h-[420px] flex-col items-center justify-center gap-3 border border-dashed border-border/70 bg-background/20 px-6 text-center">
+                    <p className="text-base font-medium text-foreground">{currentTab.empty}</p>
+                    <p className="max-w-md text-sm text-muted-foreground">
+                      Try a broader search term or switch to another catalog category.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div className="border-t border-border/70 px-4 py-4 sm:px-5">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <p className="text-sm text-muted-foreground">
+                    Large catalogs stay fast by loading only the current page and active category.
+                  </p>
+
+                  <div className="flex items-center justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setPage((current) => Math.max(1, current - 1))}
+                      disabled={!pagination.hasPreviousPage}
+                      className="inline-flex h-10 items-center gap-2 border border-border/70 px-3 font-mono text-[11px] uppercase tracking-[0.18em] text-foreground transition-colors hover:border-accent/40 hover:text-accent disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                      Previous
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPage((current) => current + 1)}
+                      disabled={!pagination.hasNextPage}
+                      className="inline-flex h-10 items-center gap-2 border border-border/70 px-3 font-mono text-[11px] uppercase tracking-[0.18em] text-foreground transition-colors hover:border-accent/40 hover:text-accent disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      Next
+                      <ChevronRight className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
-          </>
-        ) : (
-          <div className="text-center py-20 bg-secondary/10 rounded-3xl border border-dashed border-border/50">
-            <p className="text-muted-foreground text-sm">{currentTab.empty}</p>
           </div>
-        )}
+
+          <BasketPanel className="hidden lg:block" />
+        </div>
       </div>
     </div>
   );

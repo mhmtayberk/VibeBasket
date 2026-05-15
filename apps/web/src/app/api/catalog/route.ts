@@ -42,16 +42,28 @@ export async function GET(request: Request) {
     const shouldSync = refresh || latestCreatedAt === 0 || Date.now() - latestCreatedAt >= SYNC_INTERVAL_MS;
 
     if (shouldSync) {
-      try {
-        const summary = await syncCatalogOnce();
-        if (summary.sourceErrors.length > 0) {
-          console.warn("Catalog sync completed with source errors:", summary.sourceErrors);
+      if (refresh || latestCreatedAt === 0) {
+        try {
+          const summary = await syncCatalogOnce();
+          if (summary.sourceErrors.length > 0) {
+            console.warn("Catalog sync completed with source errors:", summary.sourceErrors);
+          }
+        } catch (syncError) {
+          if (latestCreatedAt === 0) {
+            throw syncError;
+          }
+          console.warn("Catalog sync failed, serving cached catalog instead:", syncError);
         }
-      } catch (syncError) {
-        if (latestCreatedAt === 0) {
-          throw syncError;
-        }
-        console.warn("Catalog sync failed, serving cached catalog instead:", syncError);
+      } else {
+        void syncCatalogOnce()
+          .then((summary) => {
+            if (summary.sourceErrors.length > 0) {
+              console.warn("Background catalog sync completed with source errors:", summary.sourceErrors);
+            }
+          })
+          .catch((syncError) => {
+            console.warn("Background catalog sync failed:", syncError);
+          });
       }
     }
 

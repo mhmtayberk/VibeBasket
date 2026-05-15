@@ -712,7 +712,7 @@ export class RegistrySyncService {
       return;
     }
 
-    const loadCore = new Function("return import('../../core/src/index.ts')") as () => Promise<{
+    const loadCore = new Function("return import('@vibebasket/core')") as () => Promise<{
       db: any;
       catalogItems: any;
     }>;
