@@ -1,10 +1,21 @@
 "use client";
 
+import { Check, FileText, Server, Sparkles } from "lucide-react";
 import { useBasketStore, type BasketItem } from "@/store/basketStore";
 import { cn } from "@/lib/utils";
 
 interface ItemCardProps {
   item: BasketItem;
+}
+
+function ItemIcon({ type }: Pick<BasketItem, "type">) {
+  if (type === "mcp") {
+    return <Server className="h-4 w-4" />;
+  }
+  if (type === "skill") {
+    return <Sparkles className="h-4 w-4" />;
+  }
+  return <FileText className="h-4 w-4" />;
 }
 
 export function ItemCard({ item }: ItemCardProps) {
@@ -17,43 +28,64 @@ export function ItemCard({ item }: ItemCardProps) {
       onClick={() => toggleItem(item)}
       aria-pressed={selected}
       className={cn(
-        "w-full flex items-center justify-between p-4 rounded-xl border text-left transition-all duration-200 cursor-pointer group shadow-sm",
-        "border-border/40 hover:border-accent/40 hover:bg-secondary/10",
-        selected && "border-accent bg-accent/10 shadow-[0_0_0_1px_rgba(74,222,128,0.45)]"
+        "group relative w-full border border-border/80 bg-card/80 px-4 py-4 text-left transition-colors duration-200",
+        "hover:border-accent/40 hover:bg-card",
+        selected && "border-accent bg-accent/5"
       )}
     >
-      <div className="flex flex-col gap-0.5 pr-4 min-w-0">
-        <span className={cn(
-          "text-sm font-semibold truncate transition-colors",
-          selected ? "text-accent" : "text-foreground/90"
-        )}>
-          {item.name}
-        </span>
-        <span className="text-xs text-muted-foreground truncate">
-          {item.description}
-        </span>
-        {selected ? (
-          <span className="mt-2 inline-flex w-fit rounded-md border border-accent/40 bg-accent/10 px-2 py-0.5 text-[11px] font-medium text-accent">
-            Selected
-          </span>
-        ) : null}
-      </div>
+      <div
+        className={cn(
+          "absolute inset-y-0 left-0 w-0.5 bg-transparent transition-colors",
+          selected && "bg-accent"
+        )}
+      />
 
-      <div className="shrink-0 flex items-center gap-3">
-        <span className="hidden sm:inline-block text-[10px] font-medium uppercase text-muted-foreground/50 tracking-wider">
-          {item.type}
-        </span>
-        <div className={cn(
-          "w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all",
-          selected
-            ? "bg-accent border-accent text-white"
-            : "border-border/50 bg-transparent"
-        )}>
-          {selected && (
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-              <path d="M2.5 6L5 8.5L9.5 3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex min-w-0 items-start gap-3">
+          <div
+            className={cn(
+              "mt-0.5 inline-flex h-10 w-10 shrink-0 items-center justify-center border border-border/70 bg-background/60 text-muted-foreground transition-colors",
+              selected && "border-accent/60 bg-accent/10 text-accent"
+            )}
+          >
+            <ItemIcon type={item.type} />
+          </div>
+
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h3
+                className={cn(
+                  "truncate text-base font-semibold transition-colors",
+                  selected ? "text-foreground" : "text-foreground/95"
+                )}
+              >
+                {item.name}
+              </h3>
+              <span className="inline-flex border border-border/70 bg-background/50 px-2 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                {item.type}
+              </span>
+              {selected ? (
+                <span className="inline-flex border border-accent/60 bg-accent/10 px-2 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-accent">
+                  Selected
+                </span>
+              ) : null}
+            </div>
+
+            <p className="mt-2 line-clamp-2 max-w-3xl text-sm leading-6 text-muted-foreground">
+              {item.description || "Trusted catalog component ready to bundle into your AI dev setup."}
+            </p>
+          </div>
+        </div>
+
+        <div
+          className={cn(
+            "inline-flex h-9 w-9 shrink-0 items-center justify-center border transition-colors",
+            selected
+              ? "border-accent bg-accent text-accent-foreground"
+              : "border-border/70 bg-background/40 text-muted-foreground group-hover:border-accent/40"
           )}
+        >
+          {selected ? <Check className="h-4 w-4" /> : <span className="h-4 w-4" />}
         </div>
       </div>
     </button>

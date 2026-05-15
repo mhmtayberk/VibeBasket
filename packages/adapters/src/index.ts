@@ -3,4 +3,10 @@ export * from "./cursor";
 export * from "./vscode";
 export * from "./windsurf";
 export * from "./antigravity";
-// TODO: Claude Code, Claude Desktop, etc.
+export * from "./claude-code";
+export * from "./gemini-cli";
+export * from "./kiro";
+export * from "./junie";
+export * from "./cline-cli";
+export * from "./zed";
+export * from "./codex";

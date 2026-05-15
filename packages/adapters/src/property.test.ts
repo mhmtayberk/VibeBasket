@@ -4,13 +4,26 @@ import { CursorAdapter } from "./cursor.js";
 import { VSCodeAdapter } from "./vscode.js";
 import { WindsurfAdapter } from "./windsurf.js";
 import { AntigravityAdapter } from "./antigravity.js";
-import type { McpEntry } from "@vibebasket/core";
+import { ClaudeCodeAdapter } from "./claude-code.js";
+import { GeminiCliAdapter } from "./gemini-cli.js";
+import { KiroAdapter } from "./kiro.js";
+import { JunieAdapter } from "./junie.js";
+import { ClineCliAdapter } from "./cline-cli.js";
+import { ZedAdapter } from "./zed.js";
+import { CodexAdapter } from "./codex.js";
 
 const adapters = [
   new CursorAdapter(),
   new VSCodeAdapter(),
   new WindsurfAdapter(),
   new AntigravityAdapter(),
+  new ClaudeCodeAdapter(),
+  new GeminiCliAdapter(),
+  new KiroAdapter(),
+  new JunieAdapter(),
+  new ClineCliAdapter(),
+  new ZedAdapter(),
+  new CodexAdapter(),
 ];
 
 describe("Adapter Idempotency Law", () => {
