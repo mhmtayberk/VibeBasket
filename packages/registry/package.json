@@ -1,10 +1,24 @@
 {
   "name": "@vibebasket/registry",
   "version": "0.1.0",
-  "private": true,
-  "license": "CC0-1.0",
-  "files": [
-    "data",
-    "templates"
-  ]
+  "description": "Catalog registry and sync logic for VibeBasket",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@vibebasket/core": "workspace:*",
+    "js-yaml": "^4.1.1",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "tsup": "^8.5.1",
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.5"
+  }
 }

@@ -1,103 +1,56 @@
 "use client";
 
-import { useBasketStore } from "@/store/basketStore";
-import { Button } from "@/components/ui/button";
-import { ShoppingBasket, Wand2 } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useState } from "react";
-import { toast } from "sonner";
-import { cn } from "@/lib/utils";
+import { Layers3 } from "lucide-react";
+import { useBasketStore } from "@/store/basketStore";
+import { BasketPanel } from "./BasketPanel";
 
 export function FloatingBasket() {
-  const { items } = useBasketStore();
+  const items = useBasketStore((s) => s.items);
   const [isOpen, setIsOpen] = useState(false);
-  const [isBuilding, setIsBuilding] = useState(false);
-  const [bundleUrl, setBundleUrl] = useState<string | null>(null);
 
-  if (items.length === 0) return null;
-
-  const handleBuild = async () => {
-    setIsBuilding(true);
-    try {
-      const response = await fetch("/api/bundle", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          targets: ["cursor", "vscode", "windsurf", "antigravity"], // Default targets for now
-          scope: "user", // Default scope for now
-          itemIds: items.map(i => i.id),
-        }),
-      });
-
-      if (!response.ok) throw new Error("Failed to build bundle");
-
-      const data = await response.json();
-      const command = `npx vibebasket apply https://vibebasket.dev/api/bundle/${data.id}`;
-      setBundleUrl(command);
-      navigator.clipboard.writeText(command);
-      toast.success("Command copied to clipboard!");
-    } catch (error) {
-      console.error("Build failed:", error);
-      toast.error("Failed to generate bundle command.");
-    } finally {
-      setIsBuilding(false);
-    }
-  };
+  if (items.length === 0) {
+    return null;
+  }
 
   return (
-    <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-10 fade-in duration-500">
-      <div className="bg-background/40 backdrop-blur-xl border border-border/50 shadow-2xl shadow-background/50 rounded-full p-2 pr-3 flex items-center gap-4">
-        <div className="flex items-center justify-center w-12 h-12 rounded-full bg-accent text-accent-foreground ml-1 shadow-[0_0_20px_rgba(34,197,94,0.3)]">
-          <ShoppingBasket className="w-6 h-6" />
-        </div>
-        
-        <div className="flex flex-col mr-2">
-          <span className="text-sm font-medium text-foreground">
-            {items.length} {items.length === 1 ? "Item" : "Items"} Selected
-          </span>
-          <span className="text-xs text-muted-foreground">
-            Ready to bundle
-          </span>
-        </div>
-
-        <div className="h-8 w-px bg-border/50 mx-2" />
-
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
-          <DialogTrigger render={<Button className="rounded-full bg-white text-black hover:bg-white/90 hover:scale-105 transition-all shadow-xl font-medium px-6" />}>
-            <Wand2 className="w-4 h-4 mr-2" />
-            Build Bundle
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px] border-border bg-background/95 backdrop-blur-xl">
-            <DialogHeader>
-              <DialogTitle className="text-2xl">Your VibeBasket</DialogTitle>
-            </DialogHeader>
-            <div className="py-4">
-              <div className="space-y-4 mb-6 max-h-[300px] overflow-y-auto">
-                {items.map(item => (
-                  <div key={item.id} className="flex justify-between items-center py-2 border-b border-border/50 last:border-0">
-                    <span className="font-medium text-foreground">{item.name}</span>
-                    <span className="text-xs text-muted-foreground uppercase bg-secondary px-2 py-1 rounded-md">{item.type}</span>
-                  </div>
-                ))}
-              </div>
-              
-              {bundleUrl ? (
-                <div className="bg-secondary/50 p-4 rounded-xl mb-4 font-mono text-xs break-all border border-border/50">
-                  {bundleUrl}
-                </div>
-              ) : null}
-
-              <Button 
-                onClick={handleBuild} 
-                disabled={isBuilding}
-                className="w-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-[0_0_20px_rgba(34,197,94,0.2)] h-12 text-lg rounded-xl"
-              >
-                {isBuilding ? "Building..." : (bundleUrl ? "Regenerate" : "Generate Command")}
-              </Button>
+    <>
+      <div className="fixed bottom-4 left-1/2 z-50 w-[calc(100%-1.5rem)] -translate-x-1/2 lg:hidden">
+        <button
+          type="button"
+          onClick={() => setIsOpen(true)}
+          className="flex w-full items-center justify-between border border-border/80 bg-card/95 px-4 py-3 backdrop-blur-md transition-colors hover:border-accent/50"
+        >
+          <div className="flex items-center gap-3">
+            <div className="inline-flex h-10 w-10 items-center justify-center border border-accent/60 bg-accent/10 text-accent">
+              <Layers3 className="h-4 w-4" />
             </div>
-          </DialogContent>
-        </Dialog>
+            <div className="text-left">
+              <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+                Basket
+              </p>
+              <p className="text-sm font-medium text-foreground">
+                {items.length} selected component{items.length === 1 ? "" : "s"}
+              </p>
+            </div>
+          </div>
+
+          <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-accent">
+            Open
+          </span>
+        </button>
       </div>
-    </div>
+
+      {isOpen ? (
+        <div
+          className="fixed inset-0 z-[60] flex items-end justify-center bg-black/50 p-3 backdrop-blur-sm lg:hidden"
+          onClick={() => setIsOpen(false)}
+        >
+          <div className="w-full max-w-xl" onClick={(event) => event.stopPropagation()}>
+            <BasketPanel variant="modal" onClose={() => setIsOpen(false)} />
+          </div>
+        </div>
+      ) : null}
+    </>
   );
 }

@@ -5,17 +5,32 @@ import {
   CursorAdapter, 
   AntigravityAdapter, 
   WindsurfAdapter, 
-  VSCodeAdapter 
+  VSCodeAdapter,
+  ClaudeCodeAdapter,
+  GeminiCliAdapter,
+  KiroAdapter,
+  JunieAdapter,
+  ClineCliAdapter,
+  ZedAdapter,
+  CodexAdapter,
 } from "@vibebasket/adapters";
 import { confirm } from "@inquirer/prompts";
 import chalk from "chalk";
 import { resolveSecrets } from "./secrets.js";
+import { createBackup } from "./backup.js";
 
 const ADAPTERS = {
   cursor: new CursorAdapter(),
   antigravity: new AntigravityAdapter(),
   windsurf: new WindsurfAdapter(),
   vscode: new VSCodeAdapter(),
+  "claude-code": new ClaudeCodeAdapter(),
+  "gemini-cli": new GeminiCliAdapter(),
+  kiro: new KiroAdapter(),
+  junie: new JunieAdapter(),
+  "cline-cli": new ClineCliAdapter(),
+  zed: new ZedAdapter(),
+  codex: new CodexAdapter(),
 } as const;
 
 export async function applyBundle(
@@ -37,6 +52,7 @@ export async function applyBundle(
   // 2. Validate
   const bundle = BundleSchema.parse(manifest);
   const scope = (options.scope || bundle.scope) as any;
+  const projectRoot = scope === "project" ? process.cwd() : undefined;
 
   // 3. Trust Prompt
   console.log(chalk.bold("\n📦 Bundle Summary:"));
@@ -66,17 +82,25 @@ export async function applyBundle(
       continue;
     }
 
+    if (!adapter.supportedScopes.includes(scope)) {
+      console.warn(chalk.yellow(`\n⚠️  ${adapter.displayName} does not support ${scope} scope. Skipping.`));
+      continue;
+    }
+
     console.log(chalk.blue(`\nApplying to ${adapter.displayName}...`));
 
     try {
-      const config = await adapter.readConfig(scope);
+      const config = await adapter.readConfig(scope, projectRoot);
       const pendingConfig = adapter.applyMcps(config, bundle.mcps, secrets, { force: options.force || false });
 
       if (options.dryRun) {
-        const diff = await adapter.diff(scope, pendingConfig);
+        const diff = await adapter.diff(scope, pendingConfig, projectRoot);
         console.log(chalk.gray(`Dry run diff for ${targetId}:\n${diff}`));
       } else {
-        await adapter.writeConfig(scope, pendingConfig);
+        const backupPath = await createBackup(targetId, scope, config);
+        console.log(chalk.gray(`  - Created backup: ${backupPath}`));
+        
+        await adapter.writeConfig(scope, pendingConfig, projectRoot);
         console.log(chalk.green(`✅ Successfully applied to ${adapter.displayName}`));
         console.log(chalk.cyan(`💡 ${adapter.postInstallHint()}`));
       }

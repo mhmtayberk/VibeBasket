@@ -3,6 +3,9 @@
 import { Command } from "commander";
 import chalk from "chalk";
 import { applyBundle } from "./apply.js";
+import { initProject } from "./init.js";
+import { runDoctor } from "./doctor.js";
+import { runRollback } from "./rollback.js";
 
 const program = new Command();
 
@@ -29,16 +32,38 @@ program
 
 program
   .command("init")
-  .description("Interactively create a new VibeBasket bundle")
-  .action(() => {
-    console.log(chalk.blue("🧺 VibeBasket: Interactive init mode...\n"));
+  .description("Initialize a new VibeBasket project structure")
+  .action(async () => {
+    try {
+      await initProject();
+    } catch (err: any) {
+      console.error(chalk.red(`\n❌ Error: ${err.message}`));
+      process.exit(1);
+    }
   });
 
 program
   .command("doctor")
   .description("Check your IDE installations and common issues")
-  .action(() => {
-    console.log(chalk.cyan("🧺 VibeBasket: Running diagnostics...\n"));
+  .action(async () => {
+    try {
+      await runDoctor();
+    } catch (err: any) {
+      console.error(chalk.red(`\n❌ Error: ${err.message}`));
+      process.exit(1);
+    }
+  });
+
+program
+  .command("rollback")
+  .description("Restore a previous IDE configuration backup")
+  .action(async () => {
+    try {
+      await runRollback();
+    } catch (err: any) {
+      console.error(chalk.red(`\n❌ Error: ${err.message}`));
+      process.exit(1);
+    }
   });
 
 program.parse();
