@@ -3,6 +3,7 @@ import { db, bundles, catalogItems, BundleSchema, SCHEMA_VERSION } from "@vibeba
 import { nanoid } from "nanoid";
 import { inArray } from "drizzle-orm";
 import { z } from "zod";
+import { SUPPORTED_TARGET_IDS } from "@/lib/targets";
 
 type Bundle = z.infer<typeof BundleSchema>;
 
@@ -19,6 +20,14 @@ export async function POST(req: Request) {
 
     if (!targets || !scope || !itemIds || !Array.isArray(itemIds)) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    }
+
+    const unsupportedTargets = targets.filter((target: string) => !SUPPORTED_TARGET_IDS.includes(target));
+    if (unsupportedTargets.length > 0) {
+      return NextResponse.json(
+        { error: `Unsupported bundle targets: ${unsupportedTargets.join(", ")}` },
+        { status: 400 }
+      );
     }
 
     // Fetch items from DB
@@ -45,7 +54,8 @@ export async function POST(req: Request) {
       manifest: validated,
     });
 
-    return NextResponse.json({ id, url: `https://vibebasket.dev/b/${id}` });
+    const origin = new URL(req.url).origin;
+    return NextResponse.json({ id, url: `${origin}/api/bundle/${id}` });
   } catch (error: any) {
     console.error("Failed to create bundle:", error);
     return NextResponse.json({ error: error.message || "Internal Server Error" }, { status: 500 });

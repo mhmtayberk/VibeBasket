@@ -12,6 +12,9 @@ export const IdeIdSchema = z.enum([
   "codex",
   "gemini-cli",
   "zed",
+  "junie",
+  "kiro",
+  "cline-cli",
 ]);
 export type IdeId = z.infer<typeof IdeIdSchema>;
 

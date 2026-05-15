@@ -19,7 +19,9 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@vibebasket/registry": ["../../packages/registry/src"],
+      "@vibebasket/core": ["../../packages/core/src"]
     }
   },
   "include": [
