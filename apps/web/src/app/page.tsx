@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import { BadgeCheck, Zap, Lock } from "lucide-react";
 import { CatalogGrid } from "@/components/catalog/CatalogGrid";
 import { FloatingBasket } from "@/components/basket/FloatingBasket";
@@ -31,12 +31,18 @@ export default function Home() {
 
         {/* 4. CTA */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center px-4">
-          <Button size="lg" className="w-full sm:w-auto rounded-full bg-accent text-accent-foreground hover:bg-accent/90 px-8 h-12 text-base font-medium shadow-[0_0_20px_rgba(34,197,94,0.2)]">
+          <Link
+            href="#catalog"
+            className="inline-flex h-12 w-full items-center justify-center rounded-full bg-accent px-8 text-base font-medium text-accent-foreground shadow-[0_0_20px_rgba(34,197,94,0.2)] transition-colors hover:bg-accent/90 sm:w-auto"
+          >
             Build your basket
-          </Button>
-          <Button size="lg" variant="outline" className="w-full sm:w-auto rounded-full border-border/50 hover:bg-secondary/50 px-8 h-12 text-base font-medium">
+          </Link>
+          <Link
+            href="#catalog"
+            className="inline-flex h-12 w-full items-center justify-center rounded-full border border-border/50 bg-transparent px-8 text-base font-medium text-foreground transition-colors hover:bg-secondary/50 sm:w-auto"
+          >
             Browse catalog
-          </Button>
+          </Link>
         </div>
 
         {/* 3. Benefit bullets */}

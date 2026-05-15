@@ -45,7 +45,8 @@ export async function POST(req: Request) {
       manifest: validated,
     });
 
-    return NextResponse.json({ id, url: `https://vibebasket.dev/b/${id}` });
+    const origin = new URL(req.url).origin;
+    return NextResponse.json({ id, url: `${origin}/api/bundle/${id}` });
   } catch (error: any) {
     console.error("Failed to create bundle:", error);
     return NextResponse.json({ error: error.message || "Internal Server Error" }, { status: 500 });

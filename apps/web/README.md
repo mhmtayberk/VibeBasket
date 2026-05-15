@@ -1,36 +1,72 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# VibeBasket Web
 
-## Getting Started
+The web app is the discovery and bundle-building surface for VibeBasket. It lets users browse trusted MCP servers, skills, and rules, add them to a basket, and generate a bundle that the CLI can apply to local IDE configurations.
 
-First, run the development server:
+## What the catalog does
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+The catalog is backed by the shared `catalog_items` SQLite table and is filled by the registry sync service in `packages/registry`.
+
+Trusted upstream sources currently include:
+
+- VibeBasket curated `verified.yaml`
+- Official MCP Registry
+- Official skills.sh catalog page
+
+The sync layer normalizes upstream records, deduplicates them by canonical identity, and prefers curated verified records when the same item exists in multiple sources.
+
+## Pagination and performance
+
+Large catalogs can easily reach tens of thousands of items, so the web app intentionally does not render or fetch the entire list at once.
+
+- The catalog API defaults to `24` items per page
+- The API caps page size at `100`
+- The UI fetches only the active tab and current page
+- Search resets pagination to page `1`
+- Catalog sync is guarded by a single-flight lock so concurrent requests do not start duplicate sync jobs
+- SQLite indexes are created automatically for the catalog query paths used by the app
+
+This keeps the browsing experience predictable while limiting unnecessary database work and upstream sync churn.
+
+## Catalog API
+
+`GET /api/catalog`
+
+Query params:
+
+- `type`: `mcp`, `skill`, or `rule`
+- `q`: search query
+- `page`: 1-based page number
+- `limit`: requested page size
+- `refresh=1`: force a sync attempt before reading cached items
+
+Response shape:
+
+```json
+{
+  "items": [],
+  "pagination": {
+    "page": 1,
+    "limit": 24,
+    "total": 0,
+    "totalPages": 0,
+    "hasNextPage": false,
+    "hasPreviousPage": false
+  }
+}
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Development
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+From the repo root:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+pnpm dev
+```
 
-## Learn More
+Then open [http://localhost:3000](http://localhost:3000).
 
-To learn more about Next.js, take a look at the following resources:
+When debugging catalog freshness, use:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+curl 'http://localhost:3000/api/catalog?type=mcp&page=1&limit=24&refresh=1'
+```
