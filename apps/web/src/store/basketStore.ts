@@ -19,6 +19,8 @@ interface BasketState {
   addItem: (item: BasketItem) => void;
   removeItem: (id: string) => void;
   hasItem: (id: string) => boolean;
+  isSelected: (id: string) => boolean;
+  toggleItem: (item: BasketItem) => void;
   clearBasket: () => void;
 }
 
@@ -34,6 +36,15 @@ export const useBasketStore = create<BasketState>()(
         items: state.items.filter((item) => item.id !== id)
       })),
       hasItem: (id) => get().items.some((item) => item.id === id),
+      isSelected: (id) => get().items.some((item) => item.id === id),
+      toggleItem: (item) => set((state) => {
+        if (state.items.some((existing) => existing.id === item.id)) {
+          return {
+            items: state.items.filter((existing) => existing.id !== item.id),
+          };
+        }
+        return { items: [...state.items, item] };
+      }),
       clearBasket: () => set({ items: [] }),
     }),
     {

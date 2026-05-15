@@ -1,77 +1,61 @@
 "use client";
 
 import { useBasketStore, type BasketItem } from "@/store/basketStore";
-import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
-import { Box, Globe, Database, GitBranch, BrainCircuit, Code2, Palette, FileCode2 } from "lucide-react";
-
-const iconMap: Record<string, React.ElementType> = {
-  Globe, Database, Github: GitBranch, BrainCircuit, Code2, Palette, FileCode2
-};
 
 interface ItemCardProps {
   item: BasketItem;
 }
 
 export function ItemCard({ item }: ItemCardProps) {
-  const { hasItem, addItem, removeItem } = useBasketStore();
-  const selected = hasItem(item.id);
-
-  const toggleSelection = () => {
-    if (selected) {
-      removeItem(item.id);
-    } else {
-      addItem(item);
-    }
-  };
-
-  const IconComponent = item.icon ? iconMap[item.icon] || Box : Box;
+  const toggleItem = useBasketStore((s) => s.toggleItem);
+  const selected = useBasketStore((s) => s.items.some((existing) => existing.id === item.id));
 
   return (
-    <Card 
-      onClick={toggleSelection}
+    <button
+      type="button"
+      onClick={() => toggleItem(item)}
+      aria-pressed={selected}
       className={cn(
-        "relative overflow-hidden cursor-pointer group transition-all duration-300 ease-out border-border/50",
-        "hover:border-accent/50 hover:bg-secondary/20 hover:-translate-y-1 hover:shadow-lg hover:shadow-accent/5",
-        selected && "border-accent bg-accent/5 shadow-[0_0_15px_rgba(34,197,94,0.15)]"
+        "w-full flex items-center justify-between p-4 rounded-xl border text-left transition-all duration-200 cursor-pointer group shadow-sm",
+        "border-border/40 hover:border-accent/40 hover:bg-secondary/10",
+        selected && "border-accent bg-accent/10 shadow-[0_0_0_1px_rgba(74,222,128,0.45)]"
       )}
     >
-      <div className="absolute top-4 right-4 z-10">
-        <Checkbox 
-          checked={selected} 
-          onCheckedChange={toggleSelection} 
-          className={cn(
-            "data-[state=checked]:bg-accent data-[state=checked]:text-accent-foreground data-[state=checked]:border-accent",
-            "transition-all duration-200"
-          )}
-        />
+      <div className="flex flex-col gap-0.5 pr-4 min-w-0">
+        <span className={cn(
+          "text-sm font-semibold truncate transition-colors",
+          selected ? "text-accent" : "text-foreground/90"
+        )}>
+          {item.name}
+        </span>
+        <span className="text-xs text-muted-foreground truncate">
+          {item.description}
+        </span>
+        {selected ? (
+          <span className="mt-2 inline-flex w-fit rounded-md border border-accent/40 bg-accent/10 px-2 py-0.5 text-[11px] font-medium text-accent">
+            Selected
+          </span>
+        ) : null}
       </div>
 
-      <CardHeader className="p-6 relative z-0">
-        <div className="flex items-center gap-4 mb-3">
-          <div className={cn(
-            "p-2.5 rounded-xl border flex items-center justify-center transition-colors duration-300",
-            selected 
-              ? "bg-accent text-accent-foreground border-accent" 
-              : "bg-secondary/50 border-border/50 text-muted-foreground group-hover:text-foreground"
-          )}>
-            <IconComponent className="w-5 h-5" />
-          </div>
-          <CardTitle className="text-lg font-semibold tracking-tight leading-none text-foreground/90 group-hover:text-foreground transition-colors">
-            {item.name}
-          </CardTitle>
+      <div className="shrink-0 flex items-center gap-3">
+        <span className="hidden sm:inline-block text-[10px] font-medium uppercase text-muted-foreground/50 tracking-wider">
+          {item.type}
+        </span>
+        <div className={cn(
+          "w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all",
+          selected
+            ? "bg-accent border-accent text-white"
+            : "border-border/50 bg-transparent"
+        )}>
+          {selected && (
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path d="M2.5 6L5 8.5L9.5 3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          )}
         </div>
-        
-        <CardDescription className="text-sm text-muted-foreground leading-relaxed">
-          {item.description}
-        </CardDescription>
-      </CardHeader>
-      
-      {/* Subtle bottom glow effect when selected */}
-      {selected && (
-        <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-accent/10 to-transparent pointer-events-none" />
-      )}
-    </Card>
+      </div>
+    </button>
   );
 }
