@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
 import { db, catalogItems, like, or, and, eq, ensureDatabaseIndexes } from "@vibebasket/core";
-import { asc, desc, sql } from "drizzle-orm";
+import { asc, desc, gte, inArray, isNull, lt, notInArray, sql } from "drizzle-orm";
 import { RegistrySyncService } from "@vibebasket/registry";
+import {
+  DAY_MS,
+  OFFICIAL_SOURCE_NAMES,
+  normalizeCatalogDiscoveryInput,
+} from "@/lib/catalog-discovery";
 
 const SYNC_INTERVAL_MS = 60 * 60 * 1000;
 const DEFAULT_LIMIT = 24;
@@ -77,6 +82,19 @@ export async function GET(request: Request) {
   const limit = Math.min(MAX_LIMIT, Math.max(1, requestedLimit));
   const offset = (page - 1) * limit;
   let shouldScheduleBackgroundSync = false;
+  const discovery = normalizeCatalogDiscoveryInput({
+    trust: searchParams.get("trust"),
+    freshness: searchParams.get("freshness"),
+    sort: searchParams.get("sort"),
+  });
+  const freshCutoff = new Date(Date.now() - DAY_MS);
+  const recentCutoff = new Date(Date.now() - 7 * DAY_MS);
+  const officialSourcePriority = sql<number>`
+    case
+      when ${catalogItems.sourceName} in ('official-mcp-registry', 'skills-sh-official') then 1
+      else 0
+    end
+  `;
 
   try {
     await ensureDatabaseIndexes();
@@ -136,15 +154,73 @@ export async function GET(request: Request) {
     if (type) {
       conditions.push(eq(catalogItems.type, type));
     }
+    if (discovery.trust === "verified") {
+      conditions.push(eq(catalogItems.verified, true));
+    } else if (discovery.trust === "official") {
+      conditions.push(
+        and(
+          eq(catalogItems.verified, false),
+          inArray(catalogItems.sourceName, [...OFFICIAL_SOURCE_NAMES])
+        )
+      );
+    } else if (discovery.trust === "community") {
+      conditions.push(
+        and(
+          eq(catalogItems.verified, false),
+          or(
+            notInArray(catalogItems.sourceName, [...OFFICIAL_SOURCE_NAMES]),
+            isNull(catalogItems.sourceName)
+          )
+        )
+      );
+    }
+    if (discovery.freshness === "fresh") {
+      conditions.push(gte(catalogItems.lastSyncedAt, freshCutoff));
+    } else if (discovery.freshness === "recent") {
+      conditions.push(
+        and(
+          lt(catalogItems.lastSyncedAt, freshCutoff),
+          gte(catalogItems.lastSyncedAt, recentCutoff)
+        )
+      );
+    } else if (discovery.freshness === "aging") {
+      conditions.push(
+        or(
+          lt(catalogItems.lastSyncedAt, recentCutoff),
+          isNull(catalogItems.lastSyncedAt)
+        )
+      );
+    }
 
     const whereClause = conditions.length > 0 ? and(...(conditions as any)) : undefined;
+    const orderByClause =
+      discovery.sort === "freshest"
+        ? [
+            desc(catalogItems.lastSyncedAt),
+            desc(catalogItems.verified),
+            asc(catalogItems.displayName),
+            asc(catalogItems.id),
+          ]
+        : discovery.sort === "name"
+          ? [
+              asc(catalogItems.displayName),
+              desc(catalogItems.verified),
+              asc(catalogItems.id),
+            ]
+          : [
+              desc(catalogItems.verified),
+              desc(officialSourcePriority),
+              desc(catalogItems.lastSyncedAt),
+              asc(catalogItems.displayName),
+              asc(catalogItems.id),
+            ];
 
     const [items, totalResult] = await Promise.all([
       db
       .select()
       .from(catalogItems)
       .where(whereClause)
-      .orderBy(desc(catalogItems.verified), asc(catalogItems.displayName), asc(catalogItems.id))
+      .orderBy(...orderByClause)
       .limit(limit)
       .offset(offset),
       db

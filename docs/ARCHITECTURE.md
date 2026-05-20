@@ -43,6 +43,7 @@ To keep the catalog fresh without relying on mostly manual entry, VibeBasket imp
 - **Page-Based Pagination**: `/api/catalog` returns `items + pagination` and the web UI only fetches the active tab and current page.
 - **Server-Rendered Initial Catalog**: the homepage reads the first MCP page from SQLite on the server and passes it into the catalog client component, so first paint is not dependent on client hydration or an initial `/api/catalog` fetch.
 - **Derived Trust Signals**: catalog cards render trust badges and freshness labels from item metadata without needing a second scoring table.
+- **Trust-Aware Discovery**: trust and freshness metadata now participate in filtering and sorting, so recommended results prefer verified, official, and recently synced entries without breaking pagination.
 - **Reasonable Limits**: API defaults to `24` items per page and caps page size at `100`.
 - **Debounced Input**: Frontend uses a 300ms debounce to minimize API pressure while maintaining a responsive feel.
 - **Single-Flight Sync Guard**: when the catalog is stale, concurrent requests share one sync job instead of starting duplicates.
@@ -58,6 +59,9 @@ Query params:
 - `q`: search term
 - `page`: 1-based page number
 - `limit`: page size, capped server-side
+- `trust`: `all`, `verified`, `official`, `community`
+- `freshness`: `all`, `fresh`, `recent`, `aging`
+- `sort`: `recommended`, `freshest`, `name`
 - `refresh=1`: force sync attempt before serving results; in production this requires `x-vibebasket-refresh-token` to match `CATALOG_REFRESH_TOKEN`
 
 Response shape:
@@ -87,7 +91,9 @@ Returns current catalog counts, freshness derived from the newest catalog row, a
 - public catalog reads can schedule stale background sync, but forced refresh is protected in production to avoid unauthenticated expensive sync DoS
 - manual syncs can be run with `pnpm catalog:sync`, which now records audit rows in `catalog_sync_runs`
 - item-level freshness now lives on `catalog_items` itself, so future UI trust/freshness badges do not need a second storage model
+- the web package now participates in workspace `test` and `typecheck` runs, so catalog discovery logic is covered by the same verification path as the packages
 - catalog selection state in the web app is driven directly from the basket store state
+- basket persistence falls back to an in-memory adapter outside the browser so tests and SSR contexts do not emit noisy missing-`localStorage` warnings
 - the installer side still lags behind the manifest surface for some non-MCP entry types
 - the target picker now mirrors the real adapter-backed set instead of keeping a visible roadmap/watchlist tier
 - `project` scope apply now forwards the working directory as `projectRoot`, which closes an earlier bug where project-scoped adapters had the right path logic but were never given the project path at runtime

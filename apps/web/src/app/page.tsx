@@ -16,6 +16,9 @@ import {
   ToyBrick,
   Workflow,
 } from "lucide-react";
+import { auth, getEnabledAuthProviders } from "@/auth";
+import { AuthMenu } from "@/components/auth/AuthMenu";
+import { SignInDialog } from "@/components/auth/SignInDialog";
 import { CatalogGrid } from "@/components/catalog/CatalogGrid";
 import { FloatingBasket } from "@/components/basket/FloatingBasket";
 import { getInitialCatalogSnapshot } from "@/lib/catalog-snapshot";
@@ -24,7 +27,8 @@ import { TARGET_OPTIONS } from "@/lib/targets";
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const initialCatalog = await getInitialCatalogSnapshot();
+  const [initialCatalog, session] = await Promise.all([getInitialCatalogSnapshot(), auth()]);
+  const enabledProviders = getEnabledAuthProviders();
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
@@ -97,12 +101,16 @@ export default async function Home() {
           </div>
 
           <div className="flex items-center gap-3">
-            <a
-              href="#catalog"
-              className="hidden border border-border/80 px-4 py-2 font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:border-accent/50 hover:text-foreground sm:inline-flex"
-            >
-              Browse Catalog
-            </a>
+            {session?.user ? (
+              <AuthMenu session={session} />
+            ) : enabledProviders.length > 0 ? (
+              <SignInDialog
+                providers={enabledProviders}
+                callbackUrl="/"
+                triggerLabel="Login"
+                triggerClassName="inline-flex items-center gap-2 border border-border/80 px-4 py-2 font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:border-accent/50 hover:text-foreground"
+              />
+            ) : null}
             <a
               href="#catalog"
               className="inline-flex items-center gap-2 border border-accent bg-accent/10 px-4 py-2 font-mono text-[11px] uppercase tracking-[0.18em] text-accent transition-colors hover:bg-accent hover:text-accent-foreground"
@@ -303,7 +311,11 @@ export default async function Home() {
       </section>
 
       <section id="catalog">
-        <CatalogGrid initialCatalog={initialCatalog} />
+        <CatalogGrid
+          initialCatalog={initialCatalog}
+          isSignedIn={Boolean(session?.user)}
+          enabledProviders={enabledProviders}
+        />
       </section>
 
       <section id="command" className="border-y border-border/80">
@@ -345,7 +357,10 @@ export default async function Home() {
         </div>
       </footer>
 
-      <FloatingBasket />
+      <FloatingBasket
+        isSignedIn={Boolean(session?.user)}
+        enabledProviders={enabledProviders}
+      />
     </main>
   );
 }

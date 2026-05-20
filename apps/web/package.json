@@ -6,11 +6,14 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
     "lint": "biome check",
     "format": "biome format --write"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",
+    "@auth/drizzle-adapter": "^1.10.0",
     "@vibebasket/core": "workspace:^",
     "@vibebasket/registry": "workspace:^",
     "class-variance-authority": "^0.7.1",
@@ -20,6 +23,7 @@
     "nanoid": "^5.1.11",
     "next": "16.2.6",
     "next-intl": "^4.11.1",
+    "next-auth": "5.0.0-beta.29",
     "next-themes": "^0.4.6",
     "react": "19.2.4",
     "react-dom": "19.2.4",

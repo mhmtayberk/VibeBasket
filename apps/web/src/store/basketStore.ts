@@ -1,7 +1,8 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { createJSONStorage, persist, type StateStorage } from "zustand/middleware";
 import { McpEntrySchema } from "@vibebasket/core";
 import { z } from "zod";
+import { DEFAULT_TARGET_IDS, SUPPORTED_TARGET_IDS } from "../lib/targets";
 
 type McpEntry = z.infer<typeof McpEntrySchema>;
 
@@ -10,8 +11,6 @@ export interface BasketItemTrust {
   score: number;
   label: string;
   detail: string;
-  freshness: "fresh" | "recent" | "aging";
-  freshnessLabel: string;
   sourceLabel: string;
   lastSyncedAt?: string;
 }
@@ -28,18 +27,43 @@ export interface BasketItem {
 
 interface BasketState {
   items: BasketItem[];
+  targetIds: string[];
   addItem: (item: BasketItem) => void;
   removeItem: (id: string) => void;
   hasItem: (id: string) => boolean;
   isSelected: (id: string) => boolean;
   toggleItem: (item: BasketItem) => void;
+  setTargetIds: (targetIds: string[]) => void;
+  toggleTargetId: (targetId: string) => void;
+  loadStack: (items: BasketItem[], targetIds: string[]) => void;
   clearBasket: () => void;
+}
+
+const fallbackStorageData = new Map<string, string>();
+
+const fallbackStorage: StateStorage = {
+  getItem: (name) => fallbackStorageData.get(name) ?? null,
+  setItem: (name, value) => {
+    fallbackStorageData.set(name, value);
+  },
+  removeItem: (name) => {
+    fallbackStorageData.delete(name);
+  },
+};
+
+function getBasketStorage(): StateStorage {
+  if (typeof window !== "undefined" && window.localStorage) {
+    return window.localStorage;
+  }
+
+  return fallbackStorage;
 }
 
 export const useBasketStore = create<BasketState>()(
   persist(
     (set, get) => ({
       items: [],
+      targetIds: [...DEFAULT_TARGET_IDS],
       addItem: (item) => set((state) => {
         if (state.items.find((i) => i.id === item.id)) return state;
         return { items: [...state.items, item] };
@@ -57,10 +81,38 @@ export const useBasketStore = create<BasketState>()(
         }
         return { items: [...state.items, item] };
       }),
-      clearBasket: () => set({ items: [] }),
+      setTargetIds: (targetIds) =>
+        set({
+          targetIds: Array.from(new Set(targetIds)).filter((targetId) =>
+            SUPPORTED_TARGET_IDS.includes(targetId)
+          ),
+        }),
+      toggleTargetId: (targetId) =>
+        set((state) => {
+          if (!SUPPORTED_TARGET_IDS.includes(targetId)) {
+            return state;
+          }
+
+          return state.targetIds.includes(targetId)
+            ? { targetIds: state.targetIds.filter((id) => id !== targetId) }
+            : { targetIds: [...state.targetIds, targetId] };
+        }),
+      loadStack: (items, targetIds) =>
+        set(() => {
+          const nextTargetIds = Array.from(new Set(targetIds)).filter((targetId) =>
+            SUPPORTED_TARGET_IDS.includes(targetId)
+          );
+
+          return {
+            items,
+            targetIds: nextTargetIds.length > 0 ? nextTargetIds : [...DEFAULT_TARGET_IDS],
+          };
+        }),
+      clearBasket: () => set({ items: [], targetIds: [...DEFAULT_TARGET_IDS] }),
     }),
     {
       name: "vibebasket-storage",
+      storage: createJSONStorage(getBasketStorage),
     }
   )
 );
