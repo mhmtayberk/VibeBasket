@@ -10,7 +10,7 @@ const sampleItem: BasketItem = {
 
 describe("basketStore", () => {
   beforeEach(() => {
-    useBasketStore.setState({ items: [] });
+    useBasketStore.setState({ items: [], targetIds: ["claude-code"] });
   });
 
   it("toggles a selected item off on the second toggle", () => {
@@ -25,5 +25,15 @@ describe("basketStore", () => {
     expect(useBasketStore.getState().isSelected(sampleItem.id)).toBe(false);
     useBasketStore.getState().addItem(sampleItem);
     expect(useBasketStore.getState().isSelected(sampleItem.id)).toBe(true);
+  });
+
+  it("loads a saved stack and restores supported targets", () => {
+    useBasketStore.getState().loadStack(
+      [sampleItem],
+      ["cursor", "unknown-target", "claude-code"]
+    );
+
+    expect(useBasketStore.getState().items).toEqual([sampleItem]);
+    expect(useBasketStore.getState().targetIds).toEqual(["cursor", "claude-code"]);
   });
 });

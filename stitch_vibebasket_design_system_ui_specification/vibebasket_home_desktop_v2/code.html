@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>VibeBasket</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&amp;family=Geist:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "background": "#101412",
+                        "on-primary-container": "#00644c",
+                        "surface-bright": "#353a38",
+                        "on-background": "#dfe4df",
+                        "surface-container-low": "#181d1a",
+                        "secondary-container": "#4a3d7c",
+                        "surface": "#101412",
+                        "tertiary-fixed": "#ffdcc1",
+                        "primary": "#a0fdda",
+                        "surface-container": "#1c211e",
+                        "on-tertiary-container": "#7a4e25",
+                        "on-error": "#690005",
+                        "inverse-primary": "#006c52",
+                        "on-tertiary-fixed": "#2e1500",
+                        "on-secondary-fixed-variant": "#4a3d7c",
+                        "on-primary": "#003829",
+                        "primary-container": "#84e0be",
+                        "on-primary-fixed-variant": "#00513d",
+                        "outline-variant": "#3e4944",
+                        "on-error-container": "#ffdad6",
+                        "primary-fixed": "#98f4d2",
+                        "on-tertiary": "#4b2702",
+                        "on-secondary-container": "#baabf3",
+                        "inverse-surface": "#dfe4df",
+                        "error": "#ffb4ab",
+                        "on-tertiary-fixed-variant": "#663d15",
+                        "inverse-on-surface": "#2d312f",
+                        "primary-fixed-dim": "#7cd8b6",
+                        "on-primary-fixed": "#002117",
+                        "on-surface": "#dfe4df",
+                        "outline": "#88938d",
+                        "tertiary": "#ffe6d4",
+                        "error-container": "#93000a",
+                        "tertiary-fixed-dim": "#f6ba88",
+                        "on-secondary-fixed": "#1e0e4e",
+                        "secondary-fixed-dim": "#ccbeff",
+                        "secondary": "#ccbeff",
+                        "surface-container-lowest": "#0a0f0d",
+                        "secondary-fixed": "#e7deff",
+                        "surface-tint": "#7cd8b6",
+                        "surface-dim": "#101412",
+                        "tertiary-container": "#ffc28f",
+                        "surface-container-highest": "#313633",
+                        "on-secondary": "#332664",
+                        "surface-container-high": "#262b28",
+                        "on-surface-variant": "#bdc9c2",
+                        "surface-variant": "#313633"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "margin-desktop": "24px",
+                        "margin-mobile": "16px",
+                        "unit": "4px",
+                        "container-max": "1440px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "headline-lg-mobile": ["Geist"],
+                        "code-snippet": ["Geist Mono"],
+                        "headline-lg": ["Geist"],
+                        "title-md": ["Geist"],
+                        "display-xl": ["Geist"],
+                        "body-base": ["Geist"],
+                        "body-sm": ["Geist"],
+                        "label-mono": ["Geist Mono"]
+                    },
+                    "fontSize": {
+                        "headline-lg-mobile": ["2rem", { "lineHeight": "1.2", "fontWeight": "600" }],
+                        "code-snippet": ["0.875rem", { "lineHeight": "1.7", "fontWeight": "400" }],
+                        "headline-lg": ["3rem", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+                        "title-md": ["1.5rem", { "lineHeight": "1.4", "fontWeight": "500" }],
+                        "display-xl": ["5.5rem", { "lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "700" }],
+                        "body-base": ["1rem", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "body-sm": ["0.875rem", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "label-mono": ["0.75rem", { "lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "500" }]
+                    },
+                    "animation": {
+                        "marquee": "marquee 30s linear infinite"
+                    },
+                    "keyframes": {
+                        "marquee": {
+                            "0%": { transform: "translateX(0%)" },
+                            "100%": { transform: "translateX(-100%)" }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .noise {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 50;
+            opacity: 0.04;
+            background: url('data:image/svg+xml;utf8,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noiseFilter"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noiseFilter)"/%3E%3C/svg%3E');
+        }
+        
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-base text-body-base min-h-screen relative selection:bg-primary/30 selection:text-primary">
+<div class="noise"></div>
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-md border-b border-outline-variant transition-all duration-200">
+<div class="flex items-center justify-between px-margin-desktop py-4 max-w-container-max mx-auto">
+<div class="flex items-center gap-8">
+<a class="font-headline-lg text-headline-lg font-bold text-on-background tracking-tighter text-2xl" href="/">
+                    VibeBasket
+                </a>
+<nav class="hidden md:flex items-center gap-6">
+<a class="text-on-surface-variant hover:text-primary transition-colors duration-200 font-label-mono text-label-mono" href="#how">How it works</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors duration-200 font-label-mono text-label-mono" href="#catalog">Catalog</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors duration-200 font-label-mono text-label-mono" href="#docs">Docs</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<a class="hidden md:flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors duration-200 border border-outline-variant px-3 py-1.5 rounded-sm" href="#">
+<span class="material-symbols-outlined" style="font-size: 16px;">terminal</span>
+<span class="font-label-mono text-label-mono">GitHub Star</span>
+</a>
+<button class="bg-surface-container-high border border-outline-variant hover:border-primary text-primary px-4 py-2 rounded-sm transition-colors duration-200 font-label-mono text-label-mono flex items-center gap-2 group">
+                    Build your basket
+                    <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform" style="font-size: 16px;">arrow_forward</span>
+</button>
+</div>
+</div>
+</header>
+<main class="pt-24">
+<!-- Hero Section -->
+<section class="px-margin-desktop max-w-container-max mx-auto min-h-[819px] flex items-center relative overflow-hidden">
+<div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/10 via-background to-background -z-10"></div>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-16 w-full items-center">
+<div class="flex flex-col gap-6">
+<div class="inline-flex items-center gap-2 border border-outline-variant bg-surface/50 rounded-full px-3 py-1 w-fit">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+<span class="font-label-mono text-label-mono text-primary">v0.1 Public Beta</span>
+</div>
+<h1 class="font-display-xl text-display-xl text-on-background max-w-2xl leading-tight">
+                        Bundle your AI dev setup. Share it with one link.
+                    </h1>
+<p class="font-body-base text-body-base text-on-surface-variant max-w-xl text-lg">
+                        Curate Model Context Protocols (MCPs), custom instructions, and IDE settings. Generate a single install command. works instantly across Cursor, Windsurf, and Copilot.
+                    </p>
+<div class="flex flex-wrap gap-4 pt-4 mb-8">
+<button class="bg-surface-container-high border border-outline-variant hover:border-primary text-primary px-6 py-3 rounded-sm transition-colors duration-200 font-label-mono text-label-mono flex items-center gap-2">
+                            Start Building Free
+                        </button>
+<button class="border border-outline-variant hover:bg-surface-container-high text-on-surface px-6 py-3 rounded-sm transition-colors duration-200 font-label-mono text-label-mono flex items-center gap-2">
+<span class="material-symbols-outlined" style="font-size: 18px;">terminal</span>
+                            View Catalog
+                        </button>
+</div>
+<div class="w-full overflow-hidden border-t border-b border-outline-variant/50 py-4 opacity-50 relative before:absolute before:inset-y-0 before:left-0 before:w-16 before:bg-gradient-to-r before:from-background before:to-transparent before:z-10 after:absolute after:inset-y-0 after:right-0 after:w-16 after:bg-gradient-to-l after:from-background after:to-transparent after:z-10">
+<div class="flex whitespace-nowrap animate-marquee items-center">
+<div class="flex items-center gap-12 pr-12">
+<span class="font-code-snippet text-code-snippet">Cursor</span>
+<span class="font-code-snippet text-code-snippet">Claude Code</span>
+<span class="font-code-snippet text-code-snippet">Windsurf</span>
+<span class="font-code-snippet text-code-snippet">VS Code</span>
+<span class="font-code-snippet text-code-snippet">GitHub Copilot</span>
+<span class="font-code-snippet text-code-snippet">JetBrains AI</span>
+<span class="font-code-snippet text-code-snippet">Cursor</span>
+<span class="font-code-snippet text-code-snippet">Claude Code</span>
+<span class="font-code-snippet text-code-snippet">Windsurf</span>
+<span class="font-code-snippet text-code-snippet">VS Code</span>
+<span class="font-code-snippet text-code-snippet">GitHub Copilot</span>
+<span class="font-code-snippet text-code-snippet">JetBrains AI</span>
+</div>
+<div class="flex items-center gap-12 pr-12">
+<span class="font-code-snippet text-code-snippet">Cursor</span>
+<span class="font-code-snippet text-code-snippet">Claude Code</span>
+<span class="font-code-snippet text-code-snippet">Windsurf</span>
+<span class="font-code-snippet text-code-snippet">VS Code</span>
+<span class="font-code-snippet text-code-snippet">GitHub Copilot</span>
+<span class="font-code-snippet text-code-snippet">JetBrains AI</span>
+<span class="font-code-snippet text-code-snippet">Cursor</span>
+<span class="font-code-snippet text-code-snippet">Claude Code</span>
+<span class="font-code-snippet text-code-snippet">Windsurf</span>
+<span class="font-code-snippet text-code-snippet">VS Code</span>
+<span class="font-code-snippet text-code-snippet">GitHub Copilot</span>
+<span class="font-code-snippet text-code-snippet">JetBrains AI</span>
+</div>
+</div>
+</div>
+</div>
+<div class="relative w-full h-[500px] border border-outline-variant rounded-sm bg-surface/50 backdrop-blur-sm overflow-hidden flex flex-col">
+<div class="flex items-center justify-between border-b border-outline-variant px-4 py-3 bg-surface-container-low">
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-outline-variant/50"></div>
+<div class="w-3 h-3 rounded-full bg-outline-variant/50"></div>
+<div class="w-3 h-3 rounded-full bg-outline-variant/50"></div>
+</div>
+<span class="font-label-mono text-label-mono text-on-surface-variant">Live Preview</span>
+</div>
+<div class="p-6 flex-1 flex flex-col gap-6 font-code-snippet text-code-snippet">
+<div class="grid grid-cols-2 gap-4">
+<div class="border border-primary bg-primary/5 p-3 rounded-sm flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">check_box</span>
+<span>github-mcp</span>
+</div>
+<div class="border border-outline-variant p-3 rounded-sm flex items-center gap-3 text-on-surface-variant">
+<span class="material-symbols-outlined">check_box_outline_blank</span>
+<span>postgres-mcp</span>
+</div>
+</div>
+<div class="mt-auto border border-outline-variant rounded-sm bg-surface-container-lowest p-4 relative group">
+<div class="flex items-center justify-between">
+<span class="text-primary">$ npx vibebasket apply cj2k9x</span>
+<span class="material-symbols-outlined text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">content_copy</span>
+</div>
+<div class="mt-4 text-on-surface-variant space-y-1 text-sm">
+<p>&gt; Fetching basket configuration...</p>
+<p>&gt; Installing 3 MCP servers...</p>
+<p class="text-primary">&gt; Success! Context ready in Cursor.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Builder Grid Section -->
+<section class="px-margin-desktop max-w-container-max mx-auto py-24 border-t border-outline-variant" id="catalog">
+<div class="mb-8">
+<h2 class="font-headline-lg text-headline-lg text-on-background mb-4">The Builder</h2>
+<p class="font-body-base text-body-base text-on-surface-variant max-w-2xl">Construct your ideal AI context. Mix and match community-verified MCPs and custom rules.</p>
+</div>
+<!-- Top Tabbed Navigation -->
+<div class="flex border-b border-outline-variant mb-6 overflow-x-auto no-scrollbar">
+<button class="px-6 py-3 border-b-2 border-primary text-primary font-label-mono text-label-mono whitespace-nowrap">MCP Servers</button>
+<button class="px-6 py-3 border-b-2 border-transparent text-on-surface-variant hover:text-on-surface font-label-mono text-label-mono whitespace-nowrap">AI Skills</button>
+<button class="px-6 py-3 border-b-2 border-transparent text-on-surface-variant hover:text-on-surface font-label-mono text-label-mono whitespace-nowrap">Custom Rules</button>
+<button class="px-6 py-3 border-b-2 border-transparent text-on-surface-variant hover:text-on-surface font-label-mono text-label-mono whitespace-nowrap">Workflow Packs</button>
+</div>
+<div class="grid grid-cols-12 gap-gutter">
+<!-- Main Canvas -->
+<div class="col-span-12 md:col-span-8 flex flex-col gap-6">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="w-full bg-surface border border-outline-variant rounded-sm py-2 pl-10 pr-4 text-on-surface placeholder:text-outline-variant focus:border-primary focus:ring-1 focus:ring-primary outline-none font-code-snippet text-code-snippet transition-colors" placeholder="Search catalog... (⌘K)" type="text"/>
+</div>
+<div class="flex gap-2 overflow-x-auto pb-2 no-scrollbar border-b border-outline-variant">
+<span class="px-3 py-1 border border-primary bg-primary/10 text-primary rounded-sm font-label-mono text-label-mono whitespace-nowrap">All</span>
+<span class="px-3 py-1 border border-outline-variant text-on-surface-variant rounded-sm font-label-mono text-label-mono whitespace-nowrap">Databases</span>
+<span class="px-3 py-1 border border-outline-variant text-on-surface-variant rounded-sm font-label-mono text-label-mono whitespace-nowrap">Web APIs</span>
+<span class="px-3 py-1 border border-outline-variant text-on-surface-variant rounded-sm font-label-mono text-label-mono whitespace-nowrap">DevTools</span>
+</div>
+<div class="flex flex-col gap-2">
+<!-- List Item 1 Selected -->
+<div class="border border-primary bg-surface-container-low p-3 rounded-sm flex items-center justify-between gap-4 relative hover:bg-surface-container-high transition-colors cursor-pointer">
+<div class="flex items-center gap-4 flex-1">
+<div class="w-10 h-10 border border-outline-variant rounded-sm flex shrink-0 items-center justify-center bg-surface">
+<span class="material-symbols-outlined text-primary">terminal</span>
+</div>
+<div>
+<h3 class="font-title-md text-title-md text-on-background text-base">GitHub</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-1">Official GitHub MCP. Manage PRs, issues, and repos.</p>
+</div>
+</div>
+<div class="shrink-0 w-6 h-6 border border-primary bg-primary rounded-sm flex items-center justify-center">
+<span class="material-symbols-outlined text-[16px] text-background">check</span>
+</div>
+</div>
+<!-- List Item 2 -->
+<div class="border border-outline-variant bg-surface p-3 rounded-sm flex items-center justify-between gap-4 relative hover:border-outline hover:bg-surface-container-low transition-colors cursor-pointer">
+<div class="flex items-center gap-4 flex-1">
+<div class="w-10 h-10 border border-outline-variant rounded-sm flex shrink-0 items-center justify-center bg-surface-container-low">
+<span class="material-symbols-outlined text-on-surface-variant">database</span>
+</div>
+<div>
+<h3 class="font-title-md text-title-md text-on-background text-base">Postgres</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-1">Direct database access and schema introspection.</p>
+</div>
+</div>
+<div class="shrink-0 w-6 h-6 border border-outline-variant rounded-sm flex items-center justify-center">
+<span class="material-symbols-outlined text-[16px] text-transparent">add</span>
+</div>
+</div>
+<!-- List Item 3 -->
+<div class="border border-outline-variant bg-surface p-3 rounded-sm flex items-center justify-between gap-4 relative hover:border-outline hover:bg-surface-container-low transition-colors cursor-pointer">
+<div class="flex items-center gap-4 flex-1">
+<div class="w-10 h-10 border border-outline-variant rounded-sm flex shrink-0 items-center justify-center bg-surface-container-low">
+<span class="material-symbols-outlined text-on-surface-variant">public</span>
+</div>
+<div>
+<h3 class="font-title-md text-title-md text-on-background text-base">Brave Search</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-1">Web search capabilities for LLM context grounding.</p>
+</div>
+</div>
+<div class="shrink-0 w-6 h-6 border border-outline-variant rounded-sm flex items-center justify-center">
+<span class="material-symbols-outlined text-[16px] text-transparent">add</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Sidebar -->
+<div class="col-span-12 md:col-span-4 border border-outline-variant bg-surface-container-low p-6 rounded-sm sticky top-24 h-fit">
+<div class="flex items-center justify-between mb-6 border-b border-outline-variant pb-4">
+<h3 class="font-title-md text-title-md text-on-background">Your Basket</h3>
+<span class="font-label-mono text-label-mono bg-surface border border-outline-variant px-2 py-0.5 rounded-sm">7 items</span>
+</div>
+<div class="space-y-3 mb-8">
+<div class="flex items-center justify-between text-sm">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[16px]">check_circle</span>
+<span class="font-code-snippet text-code-snippet">github-mcp</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant hover:text-error cursor-pointer text-[16px]">close</span>
+</div>
+<div class="flex items-center justify-between text-sm">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[16px]">check_circle</span>
+<span class="font-code-snippet text-code-snippet">puppeteer-mcp</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant hover:text-error cursor-pointer text-[16px]">close</span>
+</div>
+<div class="flex items-center justify-between text-sm">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-outline-variant text-[16px]">rule</span>
+<span class="font-code-snippet text-code-snippet text-on-surface-variant">typescript-strict</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant hover:text-error cursor-pointer text-[16px]">close</span>
+</div>
+</div>
+<div class="mb-6">
+<p class="font-label-mono text-label-mono text-on-surface-variant mb-3">Target IDEs</p>
+<div class="grid grid-cols-3 gap-2">
+<div class="border border-primary bg-primary/5 p-2 rounded-sm text-center font-label-mono text-label-mono text-primary text-xs cursor-pointer">Cursor</div>
+<div class="border border-outline-variant bg-surface p-2 rounded-sm text-center font-label-mono text-label-mono text-on-surface-variant text-xs cursor-pointer">Windsurf</div>
+<div class="border border-outline-variant bg-surface p-2 rounded-sm text-center font-label-mono text-label-mono text-on-surface-variant text-xs cursor-pointer">VS Code</div>
+</div>
+</div>
+<button class="w-full bg-primary text-background font-label-mono text-label-mono py-3 rounded-sm hover:bg-primary-fixed transition-colors">
+                        Generate Install Command
+                    </button>
+</div>
+</div>
+</section>
+<!-- Final CTA -->
+<section class="px-margin-desktop max-w-container-max mx-auto py-32 border-t border-outline-variant text-center">
+<h2 class="font-display-xl text-display-xl text-on-background mb-8">Stop reconfiguring.<br/>Start coding.</h2>
+<div class="flex justify-center">
+<div class="border border-outline-variant bg-surface-container-low p-4 rounded-sm flex items-center gap-4">
+<span class="font-code-snippet text-code-snippet text-on-surface-variant">$</span>
+<code class="font-code-snippet text-code-snippet text-primary">docker compose up -d</code>
+<span class="material-symbols-outlined text-on-surface-variant hover:text-on-surface cursor-pointer ml-4">content_copy</span>
+</div>
+</div>
+<p class="font-label-mono text-label-mono text-on-surface-variant mt-6">Open source. MIT. No telemetry.</p>
+</section>
+</main>
+<!-- Footer -->
+<footer class="w-full py-12 mt-24 border-t border-outline-variant bg-background">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8 px-margin-desktop max-w-container-max mx-auto">
+<div class="flex flex-col gap-4">
+<span class="font-headline-lg text-headline-lg text-on-surface text-xl">VibeBasket</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">© 2024 VibeBasket. AI-Engineered Infrastructure. Built by @hilmi.</span>
+</div>
+<div class="flex flex-wrap gap-x-8 gap-y-4 md:justify-end items-start">
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Documentation</a>
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Changelog</a>
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#">GitHub</a>
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Discord</a>
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Privacy</a>
+</div>
+</div>
+</footer>
+</body></html>

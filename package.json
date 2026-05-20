@@ -8,6 +8,8 @@
   },
   "scripts": {
     "build": "pnpm -r run build",
+    "catalog:sync": "pnpm --filter @vibebasket/core build && pnpm --filter @vibebasket/registry build && node scripts/catalog-sync.mjs",
+    "catalog:sync:dry": "pnpm --filter @vibebasket/core build && pnpm --filter @vibebasket/registry build && node scripts/catalog-sync.mjs --dry-run",
     "dev": "pnpm -r run dev",
     "test": "pnpm -r run test",
     "lint": "biome check .",

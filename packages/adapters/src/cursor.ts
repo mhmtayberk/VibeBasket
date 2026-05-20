@@ -3,6 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import type { IdeAdapter } from "./types";
 import type { IdeId, McpEntry, Scope } from "@vibebasket/core";
+import { resolveMcpEnv } from "./mcp-utils";
 
 export interface CursorMcpConfig {
   mcpServers: Record<
@@ -29,13 +30,6 @@ export class CursorAdapter implements IdeAdapter {
       return path.join(projectRoot, ".cursor", "mcp.json");
     }
 
-    const platform = os.platform();
-    if (platform === "win32") {
-      return path.join(os.homedir(), "AppData", "Roaming", "Cursor", "User", "globalStorage", "saoudrizwan.claude-dev", "settings", "cline_mcp_settings.json");
-      // Wait, is it cline_mcp_settings.json? No, Cursor's native MCP uses ~/.cursor/mcp.json or similar.
-      // The prompt specified:
-      // macOS: ~/.cursor/mcp.json | Linux: ~/.cursor/mcp.json | Windows: %USERPROFILE%\.cursor\mcp.json
-    }
     return path.join(os.homedir(), ".cursor", "mcp.json");
   }
 
@@ -71,14 +65,7 @@ export class CursorAdapter implements IdeAdapter {
       }
 
       // Resolve secrets
-      const resolvedEnv: Record<string, string> = {};
-      for (const [k, v] of Object.entries(mcp.env)) {
-        let val = v;
-        for (const [secName, secVal] of Object.entries(secrets)) {
-          val = val.replace(`\${secret:${secName}}`, secVal);
-        }
-        resolvedEnv[k] = val;
-      }
+      const resolvedEnv = resolveMcpEnv(mcp.env, secrets);
 
       const nextMcp: NonNullable<CursorMcpConfig["mcpServers"][string]> = {
         command: mcp.command || mcp.runtime,

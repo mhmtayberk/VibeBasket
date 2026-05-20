@@ -7,18 +7,44 @@
 - The web catalog now supports explicit pagination and visible toggle selection.
 - The homepage and builder UI are being shifted toward a Stitch-inspired technical-editorial design system.
 - The newest UI pass is focused on micro-polish rather than large structural changes: tighter headline scale, marquee-style target motion, softer fragmented background texture, and less runaway basket height.
-- The target picker now has a second concern beyond adapter support: it should represent the popular AI IDE landscape accurately while keeping unsupported targets visibly non-installable.
 - The supported adapter set is no longer limited to the original four editors; it now covers Claude Code, Zed, Gemini CLI, Junie, Kiro, and Cline CLI as well.
-- Codex CLI is now adapter-backed too; Trae remains the only visible target still waiting on a verifiable official config surface.
+- Codex CLI is now adapter-backed too, and the visible target list has been narrowed back to the real supported set.
 - The current local DB contains thousands of MCP and skill records rather than only a tiny seed set.
+- Full workspace verification is green again after fixing package manifest gaps, Tailwind plugin resolution, and a few exact-optional TypeScript errors.
+- The catalog API no longer blocks the first empty-state request on a full upstream sync; it now seeds verified items first and lets the heavier registry refresh continue in the background.
+- The background sync is now scheduled after the request path rather than started inline before the response query, which reduces SQLite lock contention during first load.
+- The homepage now server-renders the first MCP catalog page from SQLite and passes it to `CatalogGrid`; this is the primary guard against the recurring infinite `Loading catalog` state when browser-side hydration or the first API fetch misbehaves.
+- Live-source audit found and fixed an ID-collision bug where official MCP variants overwrote each other in SQLite; the current DB has `24534` rows and `24534` distinct IDs after full sync.
+- Production force-refresh is now token-gated to avoid exposing an unauthenticated expensive registry sync endpoint.
+- The system now records sync audit rows and exposes them through `/api/catalog/status`; manual `pnpm catalog:sync` is the intended operator path for cron-style refreshes.
+- Surface testing now covers three layers: live dev-server E2E smoke, API edge-case smoke, and registry chaos/timeout behavior.
+- Batched persistence is now in place for registry writes, and catalog rows now store source/freshness metadata directly.
+- Trust scoring is now derived in the web layer from provenance only (`verified` and source family), and the visible UI keeps only `Verified`, `Official`, `Community`, source provenance, and the score itself.
+- The current skills ingestion is intentionally narrower than full `skills.sh` search: we sync the `skills.sh` official surface, not every community result on `skills.sh/?q=...`.
+- That old limitation is now partially lifted: base sync parses the public `skills.sh` directory surface, and skill searches can enrich results live from `skills.sh/?q=...` to cover long-tail community skills without exploding sync cost.
+- Trust metadata is now consumable in catalog browsing through trust filters plus recommended/name sorting; the raw sync-recency surface was intentionally removed from the UI.
+- The catalog filter controls are now collapsed by default and reopen on demand, while active filters remain visible as summary pills next to the trigger.
+- The basket target picker now defaults to `Claude Code` only, and supported targets are rendered alphabetically.
+- A full auth + saved stacks architecture spec now exists under `docs/superpowers/specs/2026-05-20-auth-and-saved-stacks-design.md`; the chosen direction is Auth.js + DB sessions + provider toggles + user-owned saved stacks.
+- The matching implementation plan now exists under `docs/superpowers/plans/2026-05-20-auth-and-saved-stacks-implementation.md`.
+- Auth.js foundation is now wired into `apps/web` with DB-backed sessions, provider gating for GitHub/Google/Apple, a live `/api/auth/[...nextauth]` route, and session helpers for authenticated APIs.
+- The homepage header now exposes a real sign-in surface and signed-in account state, while `/stacks` exists as the first authenticated destination for saved-stack flows.
+- Saved-stack CRUD APIs now exist under `/api/stacks` and `/api/stacks/[id]`, backed by the new `saved_stacks`, `saved_stack_items`, and `saved_stack_targets` tables.
 
 ## Next Steps
 - Optimize registry persistence with batch/transaction-based writes; full sync is functionally correct but still heavier than ideal.
 - Revisit catalog search strategy once `LIKE` stops being enough.
 - Continue product audit across responsive polish, SEO, and installer feature parity for non-MCP item types.
-- Add real adapters for roadmap targets before moving them from "coming soon" to installable bundle targets.
-- Keep the target watchlist current against the fast-moving AI editor ecosystem; visible names should be sourced from official docs/sites and re-checked periodically.
+- Keep the target list current against the fast-moving AI editor ecosystem, but do not expose a target in the UI until there is a real adapter-backed apply path.
 - Verify the redesigned homepage across more real browser/device combinations once a reliable automated screenshot path is available.
+- Keep full-workspace verification green after dependency or registry-ingestion changes; lockfile drift is now a concrete operational risk to watch.
+- If we later want to publish packages outside the monorepo, we should revisit declaration emission instead of relying on source-entry `types` fields.
+- If catalog scale keeps growing, the next backend improvement should be batched persistence rather than one-row-at-a-time upserts.
+- Partial upstream failures should never shrink the catalog surface; prune-on-sync is now tied to fully healthy collector runs only.
+- The next registry performance fix should target persistence speed: full live sync is correct but still takes about a minute because rows are upserted one at a time.
+- The next likely catalog discovery improvement after this is stronger search relevance, because trust/freshness-aware sorting and filtering are now in place.
+- Finish the authenticated UI flow so basket contents can be saved, listed, loaded, renamed, and deleted from the browser rather than only through the new APIs.
+- Add integration/E2E coverage for auth-protected stack routes and the sign-in surface once provider mocking is in place.
 
 ## Considerations
 - **Immutability:** Bundles are stored as full manifests, ensuring they don't break if the catalog changes.
@@ -38,8 +64,41 @@
 - Changed stale catalog sync behavior so normal catalog reads no longer block on a full upstream refresh.
 - Reduced the hero headline scale and converted the target row into a marquee-like motion surface.
 - Added a slightly more fragmented global noise treatment without introducing heavy visual effects.
-- Made target visibility more honest by listing supported and roadmap AI IDEs while the bundle API still rejects unsupported targets.
 - Prevented the basket panel from turning into an endless wall by summarizing counts and collapsing long selections behind an explicit expand control.
-- Split the target surface into "works today" and a scrollable ecosystem watchlist so more popular AI IDEs fit without bloating the basket panel.
 - Removed target abbreviations from the basket UI and switched the supported target grid to full product names.
 - Fixed the CLI apply flow so `project` scope adapters finally receive `projectRoot` at runtime instead of throwing on missing path context.
+- Removed `Trae` from the visible target surface and returned the homepage target rail to a sliding icon marquee.
+- Refreshed the lockfile and restored the ability to run workspace-wide verification after the registry package dependency change.
+- Fixed missing workspace dependencies and package metadata issues that had broken `pnpm -r run build` and `pnpm -r run typecheck`.
+- Hardened the first-load catalog experience by switching from blocking full sync to verified bootstrap + background sync.
+- Added canonical metadata and JSON-LD to the homepage so the public marketing surface is in better SEO shape.
+- Added upstream fetch timeouts and changed partial-failure persistence rules so flaky sources do not stall or shrink the catalog.
+- Added a server-side initial catalog snapshot and confirmed Firefox renders the first page (`Showing 1-24 of 8344`) after reload.
+- Fixed official MCP and skills.sh duplicate-ID handling, then verified live sync persisted `19607` MCP rows and `4925` skill rows with zero canonical duplicates.
+- Added production protection for forced catalog refresh requests.
+- Added batched upserts plus per-item freshness/source metadata, then verified a later live sync persisted `25725` rows with stable source attribution and status telemetry still healthy.
+- Added derived trust badges in the catalog UI, later removed visible sync-recency badges, and simplified freshness ordering in the API routes to avoid intermittent raw-SQL dev errors.
+- Added trust-aware discovery controls to the catalog API/UI, brought `apps/web` into the workspace test/typecheck path, and replaced noisy non-browser basket persistence with a quiet fallback adapter.
+- Added successful-sync cleanup for legacy null-source rows and verified the live catalog now has zero `source_name is null` entries.
+- Added Auth.js dependencies plus provider-gating helpers, then verified provider config behavior with dedicated unit tests.
+- Added auth-aware header UI, a sign-in dialog, a signed-in account surface, and an authenticated `/stacks` entry point.
+- Added saved-stack validation helpers and authenticated stack CRUD routes, then re-ran workspace-wide typecheck and tests successfully.
+- Removed the visible `Auth disabled` fallback from the homepage header; login UI now appears only when at least one provider is actually configured.
+- Fixed the SQLite build-time lock issue by moving auth-table schema ensure work out of `auth.ts` module import time and into the auth route handler request path.
+- Added route-level edge-case coverage for saved-stack APIs: unauthorized access, unsupported targets, empty item selection, and empty update payloads.
+- The basket UI is now being connected to authenticated saved-stack flows instead of stopping at header-level auth. Basket state now carries selected target IDs, supports stack restore, and can save/load/delete named stacks from the UI.
+- The `/stacks` page is no longer a placeholder; it now renders the same saved-stack management surface used inside the basket.
+- Dev auth now uses a local-only fallback secret when `AUTH_SECRET` is absent, which removes noisy `MissingSecret` console errors without relaxing the production requirement for a real secret.
+- Registry dedupe was audited again after the catalog started showing many same-named skills. The current finding: most visible "duplicates" are distinct upstream skills that share the same display title, not exact duplicate source records.
+- Tightened skill canonical identity so GitHub-backed skills now dedupe by `repo + full path + ref` instead of `repo + basename(path)`, closing a real false-merge edge case for nested skill paths.
+- Added ingest-time text normalization for catalog display names/descriptions to strip control and zero-width characters, normalize Unicode, and collapse whitespace before persistence/UI rendering.
+- Added source-provenance hints on catalog cards so same-named skills are easier to distinguish without unsafe title-based deduplication.
+- Added a safer mirror-dedupe rule for official `skills.sh` entries: same-owner, same-path skill mirrors such as `financial-services` vs `financial-services-plugins` now collapse to one canonical record instead of appearing twice.
+- Added a one-shot catalog hygiene cleanup on the web API path so already-persisted mirror duplicates are removed from SQLite even before the next successful full sync.
+- Relaxed the official MCP registry timeout budget and stopped noisy background partial-sync warnings from being emitted on normal catalog requests; source errors still remain inspectable through sync summaries/status.
+- Simplified trust scoring to provenance-only tiers so the product no longer implies recent sync time is a safety signal.
+- Added flatter real-brand target icons to the hero marquee, plus a bottom-right back-to-top button that matches the current UI system.
+- Hardened the CLI apply path so bundles that contain unsupported non-MCP content now fail fast instead of pretending skills, rules, or workflow files were installed locally.
+- Corrected Cursor's user-scope config target to `~/.cursor/mcp.json`, which closes a target-specific install-location accuracy bug.
+- Switched the hero marquee to downloaded public agent SVGs for the targets where the generic icon pack was missing or visually weak, including Codex and Kiro.
+- Broadened skills ingestion from `skills.sh` official-only to the public directory surface, and added live search-query enrichment so specific skill searches can pull in far more community entries on demand.

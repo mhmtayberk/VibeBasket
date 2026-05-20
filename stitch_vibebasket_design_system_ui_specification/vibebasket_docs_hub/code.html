@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>VibeBasket Docs Hub</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&amp;family=Geist:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "background": "#101412",
+                    "on-primary-container": "#00644c",
+                    "surface-bright": "#353a38",
+                    "on-background": "#dfe4df",
+                    "surface-container-low": "#181d1a",
+                    "secondary-container": "#4a3d7c",
+                    "surface": "#101412",
+                    "tertiary-fixed": "#ffdcc1",
+                    "primary": "#a0fdda",
+                    "surface-container": "#1c211e",
+                    "on-tertiary-container": "#7a4e25",
+                    "on-error": "#690005",
+                    "inverse-primary": "#006c52",
+                    "on-tertiary-fixed": "#2e1500",
+                    "on-secondary-fixed-variant": "#4a3d7c",
+                    "on-primary": "#003829",
+                    "primary-container": "#84e0be",
+                    "on-primary-fixed-variant": "#00513d",
+                    "outline-variant": "#3e4944",
+                    "on-error-container": "#ffdad6",
+                    "primary-fixed": "#98f4d2",
+                    "on-tertiary": "#4b2702",
+                    "on-secondary-container": "#baabf3",
+                    "inverse-surface": "#dfe4df",
+                    "error": "#ffb4ab",
+                    "on-tertiary-fixed-variant": "#663d15",
+                    "inverse-on-surface": "#2d312f",
+                    "primary-fixed-dim": "#7cd8b6",
+                    "on-primary-fixed": "#002117",
+                    "on-surface": "#dfe4df",
+                    "outline": "#88938d",
+                    "tertiary": "#ffe6d4",
+                    "error-container": "#93000a",
+                    "tertiary-fixed-dim": "#f6ba88",
+                    "on-secondary-fixed": "#1e0e4e",
+                    "secondary-fixed-dim": "#ccbeff",
+                    "secondary": "#ccbeff",
+                    "surface-container-lowest": "#0a0f0d",
+                    "secondary-fixed": "#e7deff",
+                    "surface-tint": "#7cd8b6",
+                    "surface-dim": "#101412",
+                    "tertiary-container": "#ffc28f",
+                    "surface-container-highest": "#313633",
+                    "on-secondary": "#332664",
+                    "surface-container-high": "#262b28",
+                    "on-surface-variant": "#bdc9c2",
+                    "surface-variant": "#313633"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "margin-desktop": "24px",
+                    "margin-mobile": "16px",
+                    "unit": "4px",
+                    "container-max": "1440px",
+                    "gutter": "16px"
+            },
+            "fontFamily": {
+                    "headline-lg-mobile": [
+                            "Geist"
+                    ],
+                    "code-snippet": [
+                            "Geist Mono"
+                    ],
+                    "headline-lg": [
+                            "Geist"
+                    ],
+                    "title-md": [
+                            "Geist"
+                    ],
+                    "display-xl": [
+                            "Geist"
+                    ],
+                    "body-base": [
+                            "Geist"
+                    ],
+                    "body-sm": [
+                            "Geist"
+                    ],
+                    "label-mono": [
+                            "Geist Mono"
+                    ]
+            },
+            "fontSize": {
+                    "headline-lg-mobile": [
+                            "2rem",
+                            {
+                                    "lineHeight": "1.2",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "code-snippet": [
+                            "0.875rem",
+                            {
+                                    "lineHeight": "1.7",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "headline-lg": [
+                            "3rem",
+                            {
+                                    "lineHeight": "1.2",
+                                    "letterSpacing": "-0.02em",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "title-md": [
+                            "1.5rem",
+                            {
+                                    "lineHeight": "1.4",
+                                    "fontWeight": "500"
+                            }
+                    ],
+                    "display-xl": [
+                            "5.5rem",
+                            {
+                                    "lineHeight": "1.1",
+                                    "letterSpacing": "-0.04em",
+                                    "fontWeight": "700"
+                            }
+                    ],
+                    "body-base": [
+                            "1rem",
+                            {
+                                    "lineHeight": "1.6",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "body-sm": [
+                            "0.875rem",
+                            {
+                                    "lineHeight": "1.5",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "label-mono": [
+                            "0.75rem",
+                            {
+                                    "lineHeight": "1",
+                                    "letterSpacing": "0.05em",
+                                    "fontWeight": "500"
+                            }
+                    ]
+            }
+    },
+        },
+      }
+    </script>
+<style>
+        /* Add a subtle grain texture */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
+            z-index: 9999;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen flex flex-col font-body-base antialiased">
+<!-- TopAppBar -->
+<header class="bg-background/80 backdrop-blur-md fixed top-0 w-full z-50 border-b border-outline-variant flat no shadows">
+<div class="flex items-center justify-between px-margin-desktop py-4 max-w-container-max mx-auto">
+<div class="flex items-center gap-4">
+<span class="font-headline-lg text-headline-lg font-bold text-on-background tracking-tighter">VibeBasket</span>
+<nav class="hidden md:flex items-center gap-6 ml-8">
+<!-- Nav items based on context, suppressing if not destination -->
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="hidden md:flex items-center border border-outline-variant rounded px-3 py-1.5 focus-within:border-primary transition-colors duration-200">
+<span class="material-symbols-outlined text-on-surface-variant mr-2" style="font-size: 18px;">search</span>
+<input class="bg-transparent border-none p-0 focus:ring-0 text-body-sm font-body-sm text-on-background placeholder-on-surface-variant outline-none" placeholder="Search docs..." type="text"/>
+<span class="text-on-surface-variant font-label-mono text-label-mono ml-2 border border-outline-variant rounded px-1">/</span>
+</div>
+<button class="font-label-mono text-label-mono flex items-center gap-2 border border-outline-variant bg-surface-container-low px-4 py-2 hover:border-primary transition-colors duration-200 text-on-surface">
+                    GitHub Star
+                </button>
+<button class="text-on-surface-variant hover:text-primary transition-colors duration-200 flex items-center justify-center w-8 h-8">
+<span class="material-symbols-outlined">terminal</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-colors duration-200 flex items-center justify-center w-8 h-8">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</div>
+</div>
+</header>
+<div class="flex flex-1 pt-[73px]"> <!-- pt offsets fixed header -->
+<!-- SideNavBar -->
+<aside class="hidden md:flex bg-surface-container-low fixed left-0 top-[73px] h-[calc(100vh-73px)] w-64 border-r border-outline-variant flat no shadows flex-col justify-between overflow-y-auto">
+<div class="p-4 border-b border-outline-variant">
+<div class="flex items-center gap-3 mb-2">
+<div class="w-8 h-8 bg-surface-container-highest rounded border border-outline-variant flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" style="font-size: 16px;">category</span>
+</div>
+<div>
+<h2 class="font-title-md text-title-md text-on-background">Setup Builder</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">0 items selected</p>
+</div>
+</div>
+<button class="w-full mt-4 font-label-mono text-label-mono border border-outline-variant bg-surface-container-high px-4 py-2 hover:border-primary text-on-surface transition-colors duration-200">
+                    Generate Bundle
+                </button>
+</div>
+<nav class="flex-1 py-4">
+<div class="px-4 mb-2">
+<span class="font-label-mono text-label-mono text-on-surface-variant uppercase tracking-wider">Navigation</span>
+</div>
+<ul class="space-y-1">
+<li>
+<a class="text-on-surface-variant py-3 px-4 font-label-mono text-label-mono flex items-center gap-3 hover:bg-surface-container-high hover:text-on-surface transition-all" href="#">
+<span class="material-symbols-outlined" style="font-size: 18px;">construction</span>
+                            Builder
+                        </a>
+</li>
+<li>
+<a class="text-on-surface-variant py-3 px-4 font-label-mono text-label-mono flex items-center gap-3 hover:bg-surface-container-high hover:text-on-surface transition-all" href="#">
+<span class="material-symbols-outlined" style="font-size: 18px;">layers</span>
+                            Templates
+                        </a>
+</li>
+<li>
+<a class="text-on-surface-variant py-3 px-4 font-label-mono text-label-mono flex items-center gap-3 hover:bg-surface-container-high hover:text-on-surface transition-all" href="#">
+<span class="material-symbols-outlined" style="font-size: 18px;">extension</span>
+                            MCP Catalog
+                        </a>
+</li>
+<li>
+<a class="text-on-surface-variant py-3 px-4 font-label-mono text-label-mono flex items-center gap-3 hover:bg-surface-container-high hover:text-on-surface transition-all" href="#">
+<span class="material-symbols-outlined" style="font-size: 18px;">account_tree</span>
+                            Workflows
+                        </a>
+</li>
+<li>
+<a class="bg-primary/10 text-primary border-l-2 border-primary py-3 px-4 font-label-mono text-label-mono flex items-center gap-3 Active: scale-[0.99] transition-all" href="#">
+<span class="material-symbols-outlined" data-weight="fill" style="font-variation-settings: 'FILL' 1;">description</span>
+                            Documentation
+                        </a>
+</li>
+</ul>
+<div class="px-4 mt-8 mb-2">
+<span class="font-label-mono text-label-mono text-on-surface-variant uppercase tracking-wider">Resources</span>
+</div>
+<ul class="space-y-1">
+<li>
+<a class="text-on-surface-variant py-3 px-4 font-label-mono text-label-mono flex items-center gap-3 hover:bg-surface-container-high hover:text-on-surface transition-all" href="#">
+<span class="material-symbols-outlined" style="font-size: 18px;">rocket_launch</span>
+                            Get Started
+                        </a>
+</li>
+<li>
+<a class="text-on-surface-variant py-3 px-4 font-label-mono text-label-mono flex items-center gap-3 hover:bg-surface-container-high hover:text-on-surface transition-all" href="#">
+<span class="material-symbols-outlined" style="font-size: 18px;">lightbulb</span>
+                            Concepts
+                        </a>
+</li>
+<li>
+<a class="text-on-surface-variant py-3 px-4 font-label-mono text-label-mono flex items-center gap-3 hover:bg-surface-container-high hover:text-on-surface transition-all" href="#">
+<span class="material-symbols-outlined" style="font-size: 18px;">dns</span>
+                            Self-hosting
+                        </a>
+</li>
+<li>
+<a class="text-on-surface-variant py-3 px-4 font-label-mono text-label-mono flex items-center gap-3 hover:bg-surface-container-high hover:text-on-surface transition-all" href="#">
+<span class="material-symbols-outlined" style="font-size: 18px;">terminal</span>
+                            CLI
+                        </a>
+</li>
+<li>
+<a class="text-on-surface-variant py-3 px-4 font-label-mono text-label-mono flex items-center gap-3 hover:bg-surface-container-high hover:text-on-surface transition-all" href="#">
+<span class="material-symbols-outlined" style="font-size: 18px;">group</span>
+                            Contributing
+                        </a>
+</li>
+<li>
+<a class="text-on-surface-variant py-3 px-4 font-label-mono text-label-mono flex items-center gap-3 hover:bg-surface-container-high hover:text-on-surface transition-all" href="#">
+<span class="material-symbols-outlined" style="font-size: 18px;">security</span>
+                            Security
+                        </a>
+</li>
+</ul>
+</nav>
+<div class="border-t border-outline-variant p-4">
+<ul class="space-y-1">
+<li>
+<a class="text-on-surface-variant py-3 px-4 font-label-mono text-label-mono flex items-center gap-3 hover:bg-surface-container-high hover:text-on-surface transition-all" href="#">
+<span class="material-symbols-outlined" style="font-size: 18px;">vpn_key</span>
+                            API Keys
+                        </a>
+</li>
+<li>
+<a class="text-on-surface-variant py-3 px-4 font-label-mono text-label-mono flex items-center gap-3 hover:bg-surface-container-high hover:text-on-surface transition-all" href="#">
+<span class="material-symbols-outlined" style="font-size: 18px;">terminal</span>
+                            Logs
+                        </a>
+</li>
+</ul>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 md:ml-64 bg-background min-h-screen">
+<div class="max-w-5xl mx-auto px-margin-desktop py-12">
+<!-- Hero Section -->
+<div class="mb-16">
+<span class="font-label-mono text-label-mono text-primary border border-primary/20 bg-primary/10 px-2 py-1 rounded inline-block mb-4">VibeBasket Docs</span>
+<h1 class="font-display-xl text-display-xl text-on-background mb-6">Documentation</h1>
+<p class="font-title-md text-title-md text-on-surface-variant max-w-2xl">
+                        Everything you need to build, deploy, and scale with VibeBasket's AI-engineered infrastructure. Explore guides, API references, and architectural concepts.
+                    </p>
+</div>
+<!-- 3x2 Grid of Starter Cards (Bento style) -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- Card 1: Quick Start -->
+<a class="group relative bg-surface-container-low border border-outline-variant rounded p-6 hover:border-primary transition-colors duration-250 flex flex-col h-full overflow-hidden" href="#">
+<div class="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-250 pointer-events-none"></div>
+<div class="mb-4 w-10 h-10 rounded border border-outline-variant bg-surface-container-highest flex items-center justify-center group-hover:border-primary/50 transition-colors">
+<span class="material-symbols-outlined text-primary">rocket_launch</span>
+</div>
+<h3 class="font-title-md text-title-md text-on-background mb-2">Quick Start</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant flex-1">
+                            Get up and running in under 5 minutes. Learn how to initialize your first basket and run local workflows.
+                        </p>
+<div class="mt-4 flex items-center text-primary font-label-mono text-label-mono opacity-0 group-hover:opacity-100 transition-opacity transform translate-x-[-10px] group-hover:translate-x-0 duration-250">
+                            Read guide <span class="material-symbols-outlined ml-1" style="font-size: 14px;">arrow_forward</span>
+</div>
+</a>
+<!-- Card 2: Self-hosting -->
+<a class="group relative bg-surface-container-low border border-outline-variant rounded p-6 hover:border-primary transition-colors duration-250 flex flex-col h-full overflow-hidden" href="#">
+<div class="absolute inset-0 bg-gradient-to-br from-secondary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-250 pointer-events-none"></div>
+<div class="mb-4 w-10 h-10 rounded border border-outline-variant bg-surface-container-highest flex items-center justify-center group-hover:border-secondary/50 transition-colors">
+<span class="material-symbols-outlined text-secondary">dns</span>
+</div>
+<h3 class="font-title-md text-title-md text-on-background mb-2">Self-hosting</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant flex-1">
+                            Deploy VibeBasket on your own infrastructure. Detailed guides for Kubernetes, Docker Compose, and bare metal.
+                        </p>
+<div class="mt-4 flex items-center text-secondary font-label-mono text-label-mono opacity-0 group-hover:opacity-100 transition-opacity transform translate-x-[-10px] group-hover:translate-x-0 duration-250">
+                            Deployment options <span class="material-symbols-outlined ml-1" style="font-size: 14px;">arrow_forward</span>
+</div>
+</a>
+<!-- Card 3: CLI Reference -->
+<a class="group relative bg-surface-container-low border border-outline-variant rounded p-6 hover:border-primary transition-colors duration-250 flex flex-col h-full overflow-hidden" href="#">
+<div class="absolute inset-0 bg-gradient-to-br from-tertiary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-250 pointer-events-none"></div>
+<div class="mb-4 w-10 h-10 rounded border border-outline-variant bg-surface-container-highest flex items-center justify-center group-hover:border-tertiary/50 transition-colors">
+<span class="material-symbols-outlined text-tertiary">terminal</span>
+</div>
+<h3 class="font-title-md text-title-md text-on-background mb-2">CLI Reference</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant flex-1">
+                            Complete documentation for the `vb` command-line tool. Commands, flags, and advanced scripting examples.
+                        </p>
+<div class="mt-4 flex items-center text-tertiary font-label-mono text-label-mono opacity-0 group-hover:opacity-100 transition-opacity transform translate-x-[-10px] group-hover:translate-x-0 duration-250">
+                            View commands <span class="material-symbols-outlined ml-1" style="font-size: 14px;">arrow_forward</span>
+</div>
+</a>
+<!-- Card 4: Adapters -->
+<a class="group relative bg-surface-container-low border border-outline-variant rounded p-6 hover:border-primary transition-colors duration-250 flex flex-col h-full overflow-hidden" href="#">
+<div class="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-250 pointer-events-none"></div>
+<div class="mb-4 w-10 h-10 rounded border border-outline-variant bg-surface-container-highest flex items-center justify-center group-hover:border-primary/50 transition-colors">
+<span class="material-symbols-outlined text-primary">power</span>
+</div>
+<h3 class="font-title-md text-title-md text-on-background mb-2">Adapters</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant flex-1">
+                            Connect VibeBasket to external data sources. Learn how to configure and build custom MCP adapters.
+                        </p>
+<div class="mt-4 flex items-center text-primary font-label-mono text-label-mono opacity-0 group-hover:opacity-100 transition-opacity transform translate-x-[-10px] group-hover:translate-x-0 duration-250">
+                            Explore adapters <span class="material-symbols-outlined ml-1" style="font-size: 14px;">arrow_forward</span>
+</div>
+</a>
+<!-- Card 5: Security -->
+<a class="group relative bg-surface-container-low border border-outline-variant rounded p-6 hover:border-primary transition-colors duration-250 flex flex-col h-full overflow-hidden" href="#">
+<div class="absolute inset-0 bg-gradient-to-br from-secondary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-250 pointer-events-none"></div>
+<div class="mb-4 w-10 h-10 rounded border border-outline-variant bg-surface-container-highest flex items-center justify-center group-hover:border-secondary/50 transition-colors">
+<span class="material-symbols-outlined text-secondary">security</span>
+</div>
+<h3 class="font-title-md text-title-md text-on-background mb-2">Security</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant flex-1">
+                            Best practices for securing your infrastructure. Authentication, RBAC, and data encryption at rest.
+                        </p>
+<div class="mt-4 flex items-center text-secondary font-label-mono text-label-mono opacity-0 group-hover:opacity-100 transition-opacity transform translate-x-[-10px] group-hover:translate-x-0 duration-250">
+                            Security policies <span class="material-symbols-outlined ml-1" style="font-size: 14px;">arrow_forward</span>
+</div>
+</a>
+<!-- Card 6: Workflow Packs -->
+<a class="group relative bg-surface-container-low border border-outline-variant rounded p-6 hover:border-primary transition-colors duration-250 flex flex-col h-full overflow-hidden" href="#">
+<div class="absolute inset-0 bg-gradient-to-br from-tertiary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-250 pointer-events-none"></div>
+<div class="mb-4 w-10 h-10 rounded border border-outline-variant bg-surface-container-highest flex items-center justify-center group-hover:border-tertiary/50 transition-colors">
+<span class="material-symbols-outlined text-tertiary">account_tree</span>
+</div>
+<h3 class="font-title-md text-title-md text-on-background mb-2">Workflow Packs</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant flex-1">
+                            Pre-configured automation templates. Browse and install community-driven workflow packs for common use cases.
+                        </p>
+<div class="mt-4 flex items-center text-tertiary font-label-mono text-label-mono opacity-0 group-hover:opacity-100 transition-opacity transform translate-x-[-10px] group-hover:translate-x-0 duration-250">
+                            Browse packs <span class="material-symbols-outlined ml-1" style="font-size: 14px;">arrow_forward</span>
+</div>
+</a>
+</div>
+</div>
+<!-- Footer -->
+<footer class="bg-background w-full py-12 mt-24 border-t border-outline-variant flat no shadows">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8 px-margin-desktop max-w-container-max mx-auto">
+<div>
+<span class="font-headline-lg text-headline-lg text-on-surface block mb-4">VibeBasket</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+                            © 2024 VibeBasket. AI-Engineered Infrastructure.
+                        </p>
+</div>
+<div class="flex flex-wrap gap-x-8 gap-y-4 md:justify-end items-center">
+<a class="font-body-sm text-body-sm text-primary hover:text-primary transition-colors Active: opacity-70" href="#">Documentation</a>
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Changelog</a>
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#">GitHub</a>
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Discord</a>
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Privacy</a>
+</div>
+</div>
+</footer>
+</main>
+</div>
+</body></html>

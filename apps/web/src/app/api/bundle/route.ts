@@ -32,6 +32,15 @@ export async function POST(req: Request) {
 
     // Fetch items from DB
     const selectedItems = await db.select().from(catalogItems).where(inArray(catalogItems.id, itemIds));
+    const selectedItemIds = new Set(selectedItems.map((item) => item.id));
+    const missingItemIds = itemIds.filter((itemId: string) => !selectedItemIds.has(itemId));
+
+    if (missingItemIds.length > 0) {
+      return NextResponse.json(
+        { error: `Catalog items not found: ${missingItemIds.join(", ")}` },
+        { status: 400 }
+      );
+    }
 
     // Construct manifest
     const manifest: Bundle = {

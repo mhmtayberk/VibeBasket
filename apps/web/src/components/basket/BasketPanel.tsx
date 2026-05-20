@@ -3,6 +3,10 @@
 import { useState } from "react";
 import { CheckCircle2, ChevronsDown, ChevronsUp, Copy, Loader2, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
+import type { EnabledAuthProvider } from "@/auth.config";
+import { SignInDialog } from "@/components/auth/SignInDialog";
+import { SaveStackDialog } from "@/components/stacks/SaveStackDialog";
+import { SavedStacksPanel } from "@/components/stacks/SavedStacksPanel";
 import { useBasketStore } from "@/store/basketStore";
 import { cn } from "@/lib/utils";
 import { SUPPORTED_TARGET_IDS, TARGET_OPTIONS } from "@/lib/targets";
@@ -11,24 +15,31 @@ interface BasketPanelProps {
   className?: string;
   variant?: "desktop" | "modal";
   onClose?: () => void;
+  isSignedIn?: boolean;
+  enabledProviders?: EnabledAuthProvider[];
 }
 
 export function BasketPanel({
   className,
   variant = "desktop",
   onClose,
+  isSignedIn = false,
+  enabledProviders = [],
 }: BasketPanelProps) {
   const items = useBasketStore((s) => s.items);
+  const targets = useBasketStore((s) => s.targetIds);
   const clearBasket = useBasketStore((s) => s.clearBasket);
   const removeItem = useBasketStore((s) => s.removeItem);
-  const [targets, setTargets] = useState<string[]>(SUPPORTED_TARGET_IDS);
+  const toggleTargetId = useBasketStore((s) => s.toggleTargetId);
   const [isBuilding, setIsBuilding] = useState(false);
   const [bundleCommand, setBundleCommand] = useState<string | null>(null);
   const [showAllItems, setShowAllItems] = useState(false);
+  const [savedStacksVersion, setSavedStacksVersion] = useState(0);
 
   const visibleItems = showAllItems ? items : items.slice(0, 6);
   const supportedTargets = TARGET_OPTIONS.filter((target) => target.status === "supported");
   const roadmapTargets = TARGET_OPTIONS.filter((target) => target.status === "coming-soon");
+  const hasNonMcpItems = items.some((item) => item.type !== "mcp");
   const itemCounts = items.reduce(
     (acc, item) => {
       acc[item.type] = (acc[item.type] ?? 0) + 1;
@@ -76,11 +87,7 @@ export function BasketPanel({
       return;
     }
 
-    setTargets((current) => (
-      current.includes(targetId)
-        ? current.filter((id) => id !== targetId)
-        : [...current, targetId]
-    ));
+    toggleTargetId(targetId);
   };
 
   return (
@@ -241,41 +248,71 @@ export function BasketPanel({
               </div>
             </div>
 
-            <div>
-              <div className="mb-2 flex items-center justify-between">
-                <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-                  Ecosystem watchlist
-                </p>
-                <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground/80">
-                  {roadmapTargets.length} soon
-                </span>
-              </div>
+            {roadmapTargets.length > 0 ? (
+              <div>
+                <div className="mb-2 flex items-center justify-between">
+                  <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+                    Ecosystem watchlist
+                  </p>
+                  <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground/80">
+                    {roadmapTargets.length} soon
+                  </span>
+                </div>
 
-              <div className="grid max-h-56 grid-cols-2 gap-2 overflow-y-auto pr-1">
-                {roadmapTargets.map((target) => (
-                  <button
-                    key={target.id}
-                    type="button"
-                    onClick={() => toggleTarget(target.id)}
-                    aria-disabled
-                    className="min-h-14 border border-border/50 bg-background/25 px-3 py-2 text-left text-muted-foreground/60"
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-sm font-medium">{target.label}</span>
-                    </div>
-                    <div className="mt-1 text-[10px] text-muted-foreground/85">
-                      {target.vendor}
-                    </div>
-                  </button>
-                ))}
+                <div className="grid max-h-56 grid-cols-2 gap-2 overflow-y-auto pr-1">
+                  {roadmapTargets.map((target) => (
+                    <button
+                      key={target.id}
+                      type="button"
+                      onClick={() => toggleTarget(target.id)}
+                      aria-disabled
+                      className="min-h-14 border border-border/50 bg-background/25 px-3 py-2 text-left text-muted-foreground/60"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-sm font-medium">{target.label}</span>
+                      </div>
+                      <div className="mt-1 text-[10px] text-muted-foreground/85">
+                        {target.vendor}
+                      </div>
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            ) : null}
           </div>
 
           <p className="text-xs leading-6 text-muted-foreground">
-            Installed targets stay clickable only when the adapter exists. The rest are visible on purpose
-            so the catalog reflects the real AI IDE landscape without pretending we already support every apply path.
+            Installed targets stay clickable only when the adapter exists, and the bundle API validates
+            the same supported set before generating install commands.
           </p>
+          {hasNonMcpItems ? (
+            <p className="text-xs leading-6 text-amber-300/90">
+              Today&apos;s apply engine writes MCP configuration files. Skills, rules, and workflow files
+              stay inside the shared bundle manifest until target-specific installers land.
+            </p>
+          ) : null}
+        </div>
+
+        <div className="space-y-3 border-t border-border/70 pt-5">
+          <div className="flex flex-wrap items-center gap-3">
+            {isSignedIn ? (
+              <SaveStackDialog
+                disabled={items.length === 0 || targets.length === 0}
+                items={items}
+                targetIds={targets}
+                onSaved={() => setSavedStacksVersion((current) => current + 1)}
+              />
+            ) : enabledProviders.length > 0 ? (
+              <SignInDialog providers={enabledProviders} callbackUrl="/stacks" />
+            ) : null}
+            {!isSignedIn ? (
+              <p className="text-xs leading-6 text-muted-foreground">
+                Sign in to save reusable stacks to your profile.
+              </p>
+            ) : null}
+          </div>
+
+          <SavedStacksPanel enabled={isSignedIn} refreshToken={savedStacksVersion} />
         </div>
 
         <div className="space-y-3 border-t border-border/70 pt-5">
@@ -291,7 +328,7 @@ export function BasketPanel({
                 </div>
                 <div className="space-y-1 text-[11px]">
                   <p>&gt; Fetching basket configuration...</p>
-                  <p>&gt; Resolving trusted components...</p>
+                  <p>&gt; Resolving trusted MCP components...</p>
                   <p className="text-accent">&gt; Ready to apply across your selected IDEs.</p>
                 </div>
               </div>
