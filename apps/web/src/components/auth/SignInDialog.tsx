@@ -23,10 +23,6 @@ export function SignInDialog({
   triggerLabel = "Sign in",
   triggerClassName,
 }: SignInDialogProps) {
-  if (providers.length === 0) {
-    return null;
-  }
-
   return (
     <Dialog>
       <DialogTrigger
@@ -52,10 +48,22 @@ export function SignInDialog({
         </DialogHeader>
 
         <div className="space-y-4 px-5 py-5">
-          <AuthButtons providers={providers} callbackUrl={callbackUrl} />
-          <p className="text-xs leading-5 text-muted-foreground">
-            Only enabled providers are shown. Self-hosted deployments can turn each one on or off independently.
-          </p>
+          {providers.length > 0 ? (
+            <>
+              <AuthButtons providers={providers} callbackUrl={callbackUrl} />
+              <p className="text-xs leading-5 text-muted-foreground">
+                Only enabled providers are shown. Self-hosted deployments can turn each one on or off independently.
+              </p>
+            </>
+          ) : (
+            <div className="space-y-3 border border-border/60 bg-background/30 p-4">
+              <p className="text-sm font-medium text-foreground">Login is not configured yet.</p>
+              <p className="text-xs leading-6 text-muted-foreground">
+                No social auth provider is enabled in this environment right now. Add provider credentials and an
+                `AUTH_SECRET` to turn sign-in on.
+              </p>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>

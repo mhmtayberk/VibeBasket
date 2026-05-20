@@ -46,6 +46,30 @@ interface CatalogGridProps {
   enabledProviders?: EnabledAuthProvider[];
 }
 
+function deriveSourceHint(item: any) {
+  const source = item?.data?.source;
+
+  if (source?.type === "github" && source.repo) {
+    return source.path ? `${source.repo} · ${source.path}` : source.repo;
+  }
+
+  if (source?.type === "npm" && source.package) {
+    return source.version ? `${source.package}@${source.version}` : source.package;
+  }
+
+  if (item?.type === "mcp") {
+    if (item?.data?.catalogRef) {
+      return item.data.catalogRef.replace(/^mcp-registry:/, "");
+    }
+
+    if (item?.data?.url) {
+      return item.data.url;
+    }
+  }
+
+  return undefined;
+}
+
 async function fetchCatalog(
   query: string,
   activeTab: TabKey,
@@ -87,6 +111,9 @@ async function fetchCatalog(
           description: item.description ?? "",
           icon: item.icon,
           mcpData: item.data,
+          sourceMeta: {
+            hint: deriveSourceHint(item),
+          },
         }, item),
       })),
       pagination: payload.pagination,

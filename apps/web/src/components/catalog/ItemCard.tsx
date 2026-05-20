@@ -95,6 +95,9 @@ export function ItemCard({ item }: ItemCardProps) {
             {item.trust ? (
               <div className="mt-3 flex flex-wrap items-center gap-3 text-xs">
                 <span className="text-muted-foreground">{item.trust.sourceLabel}</span>
+                {item.sourceMeta?.hint ? (
+                  <span className="truncate text-muted-foreground/90">{item.sourceMeta.hint}</span>
+                ) : null}
                 <span className="text-muted-foreground">Trust score {item.trust.score}</span>
               </div>
             ) : null}

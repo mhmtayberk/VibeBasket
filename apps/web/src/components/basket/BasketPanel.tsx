@@ -39,6 +39,7 @@ export function BasketPanel({
   const visibleItems = showAllItems ? items : items.slice(0, 6);
   const supportedTargets = TARGET_OPTIONS.filter((target) => target.status === "supported");
   const roadmapTargets = TARGET_OPTIONS.filter((target) => target.status === "coming-soon");
+  const hasNonMcpItems = items.some((item) => item.type !== "mcp");
   const itemCounts = items.reduce(
     (acc, item) => {
       acc[item.type] = (acc[item.type] ?? 0) + 1;
@@ -284,6 +285,12 @@ export function BasketPanel({
             Installed targets stay clickable only when the adapter exists, and the bundle API validates
             the same supported set before generating install commands.
           </p>
+          {hasNonMcpItems ? (
+            <p className="text-xs leading-6 text-amber-300/90">
+              Today&apos;s apply engine writes MCP configuration files. Skills, rules, and workflow files
+              stay inside the shared bundle manifest until target-specific installers land.
+            </p>
+          ) : null}
         </div>
 
         <div className="space-y-3 border-t border-border/70 pt-5">
@@ -321,7 +328,7 @@ export function BasketPanel({
                 </div>
                 <div className="space-y-1 text-[11px]">
                   <p>&gt; Fetching basket configuration...</p>
-                  <p>&gt; Resolving trusted components...</p>
+                  <p>&gt; Resolving trusted MCP components...</p>
                   <p className="text-accent">&gt; Ready to apply across your selected IDEs.</p>
                 </div>
               </div>

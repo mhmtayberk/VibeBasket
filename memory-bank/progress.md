@@ -84,6 +84,20 @@
 - Re-verified the web app after the UI wiring with `next typegen`, `pnpm --filter web test`, `pnpm --filter web exec tsc --noEmit`, and `pnpm --filter web build`.
 - Removed the dev `MissingSecret` Auth.js console error by introducing a development-only auth secret fallback while keeping production strict.
 - Replaced the old secondary header CTA with `Login`, keeping `Build your basket` as the primary action and updating the button order accordingly.
+- Audited visible skill duplicates and confirmed the current live DB has `0` exact duplicate GitHub skill sources (`repo + path + ref`) and `0` catalog names with obvious mojibake/control-character corruption; the remaining repeated names are mostly distinct upstream official/community entries sharing generic titles like `Skill Creator`.
+- Hardened registry skill dedupe by switching the GitHub canonical key from `repo + basename(path)` to `repo + full path + ref`, preventing false merges for nested skills with the same basename.
+- Added catalog text normalization for display names/descriptions plus registry tests covering zero-width/control-character cleanup and the nested-path dedupe edge case.
+- Added source provenance hints to catalog cards so same-name skills surface as distinguishable entries instead of looking like accidental duplicates.
+- Added official-skills mirror dedupe for same-owner/same-path repo families (for example `*-plugins` mirrors), and manually cleaned `50` persisted duplicate skill rows from the local SQLite catalog using that same rule.
+- Verified the previous user-facing example now resolves to a single `3 Statement Model` record in SQLite.
+- Changed background catalog sync so partial upstream source errors no longer spam the normal request path logs; registry/source health still surfaces through explicit sync summaries and status inspection.
+- Increased the official MCP registry request budget from the generic timeout to a dedicated longer timeout window because the live upstream can legitimately take longer than skills.sh.
+- Simplified trust scoring so it now reflects source provenance only instead of blending in sync timing.
+- Added hero target brand icons without the old circular badge treatment and introduced a fixed back-to-top button for long catalog browsing sessions.
+- Added CLI apply preflight logic that flattens workflow-pack content and blocks installs when targets cannot yet apply bundled skills, rules, or workflow files.
+- Fixed the Cursor user-scope MCP config path so auto-apply now writes to `~/.cursor/mcp.json`.
+- Broadened `skills.sh` coverage in two steps: base sync now parses the public directory surface, and live `/api/catalog` skill searches query `skills.sh/?q=...` so long-tail searches can surface many more community skills without a full expensive crawl.
+- Downloaded public agent SVG assets for the marquee so supported targets like Codex and Kiro no longer fall back to plain text.
 
 ## In Progress
 - Improving registry persistence performance for very large sync runs.
@@ -91,6 +105,10 @@
 - Verifying the redesigned surface across more browsers and viewports once a stable screenshot workflow is available.
 - Wiring the basket UI to the new authenticated stack APIs so users can save, reopen, rename, and delete stacks end-to-end from the browser.
 - Adding integration and E2E coverage for auth and saved-stack flows, including mocked-provider edge cases and unauthorized-access checks.
+- Deciding whether same-title skills from different upstream repos should stay separate forever or gain an optional UI-level grouping mode; correctness currently favors keeping them separate.
+- The official MCP Registry still timed out from this environment even after a longer request window, which suggests upstream latency/availability rather than local parsing; if it persists in real use, the next step is request-shape tuning (for example smaller page sizes or incremental `updated_since` syncs).
+- Deciding whether we should broaden skills ingestion beyond `skills.sh` official into a larger trusted-community set without weakening catalog correctness or dedupe quality.
+- Measuring whether the public `skills.sh` directory surface plus live query enrichment is enough, or whether we still need a deeper trusted-community crawl/indexing strategy for fully offline local search completeness.
 
 ## Blockers
 - None at the moment.

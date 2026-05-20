@@ -7,7 +7,6 @@ describe("deriveCatalogTrust", () => {
     const trust = deriveCatalogTrust({
       verified: true,
       sourceName: "verified-catalog",
-      lastSyncedAt: "2026-05-16T12:00:00.000Z",
     });
 
     expect(trust.tier).toBe("verified");
@@ -21,12 +20,10 @@ describe("deriveCatalogTrust", () => {
     const official = deriveCatalogTrust({
       verified: false,
       sourceName: "official-mcp-registry",
-      lastSyncedAt: "2026-05-10T00:00:00.000Z",
     });
     const community = deriveCatalogTrust({
       verified: false,
       sourceName: "some-community-source",
-      lastSyncedAt: "2026-05-01T00:00:00.000Z",
     });
 
     expect(official.tier).toBe("official");

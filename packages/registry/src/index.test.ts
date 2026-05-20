@@ -72,26 +72,13 @@ workflowPacks:
         ],
         metadata: {},
       }],
-      ["https://www.skills.sh/official", `
+      ["https://www.skills.sh/", `
         <html>
           <body>
-            <a href="/vercel-labs/agent-skills">Vercel Labs</a>
-            <a href="/copycat/skills">Copycat</a>
-          </body>
-        </html>
-      `],
-      ["https://www.skills.sh/vercel-labs/agent-skills", `
-        <html>
-          <body>
-            <a href="/vercel-labs/agent-skills/next-js-development">Next.js Development</a>
-            <a href="/vercel-labs/agent-skills/next-js-development">Next.js Development</a>
-          </body>
-        </html>
-      `],
-      ["https://www.skills.sh/copycat/skills", `
-        <html>
-          <body>
-            <a href="/copycat/skills/next-js-development">Next.js Development</a>
+            <script>
+              self.__next_f.push([1,"{\\"source\\":\\"vercel-labs/agent-skills\\",\\"skillId\\":\\"next-js-development\\",\\"name\\":\\"next-js-development\\",\\"installs\\":99,\\"isOfficial\\":true}"]);
+              self.__next_f.push([1,"{\\"source\\":\\"copycat/skills\\",\\"skillId\\":\\"next-js-development\\",\\"name\\":\\"next-js-development\\",\\"installs\\":10}"]);
+            </script>
           </body>
         </html>
       `],
@@ -153,6 +140,12 @@ workflowPacks: []
       if (url === "https://registry.modelcontextprotocol.io/v0.1/servers?limit=100") {
         return new Response(JSON.stringify({ servers: [], metadata: {} }), { status: 200 });
       }
+      if (url === "https://www.skills.sh/") {
+        return new Response("<html><body></body></html>", {
+          status: 200,
+          headers: { "Content-Type": "text/html" },
+        });
+      }
       if (url === "https://www.skills.sh/official") {
         return new Response("<html><body></body></html>", {
           status: 200,
@@ -166,6 +159,8 @@ workflowPacks: []
       fetchImpl,
       persist: false,
       verifiedPath,
+      mcpRegistryTimeoutMs: 10,
+      fetchRetries: 0,
     }).syncAll();
 
     expect(summary.totalItems).toBe(0);
@@ -198,7 +193,7 @@ workflowPacks: []
         }), { status: 200 });
       }
 
-      if (url === "https://www.skills.sh/official") {
+      if (url === "https://www.skills.sh/") {
         return new Response("unavailable", { status: 503 });
       }
 
@@ -209,13 +204,15 @@ workflowPacks: []
       fetchImpl,
       persist: false,
       verifiedPath,
+      mcpRegistryTimeoutMs: 10,
+      fetchRetries: 0,
     }).syncAll();
 
     expect(summary.mcps.added).toBe(1);
     expect(summary.skills.added).toBe(0);
     expect(summary.totalItems).toBe(1);
     expect(summary.sourceErrors).toEqual([
-      expect.objectContaining({ source: "skills-sh-official" }),
+      expect.objectContaining({ source: "skills-sh-directory" }),
     ]);
   });
 
@@ -259,7 +256,7 @@ workflowPacks: []
           metadata: {},
         }), { status: 200 });
       }
-      if (url === "https://www.skills.sh/official") {
+      if (url === "https://www.skills.sh/") {
         return new Response("<html><body></body></html>", {
           status: 200,
           headers: { "Content-Type": "text/html" },
@@ -299,24 +296,13 @@ workflowPacks: []
         });
       }
 
-      if (url === "https://www.skills.sh/official") {
+      if (url === "https://www.skills.sh/") {
         return new Response(`
           <html>
             <body>
-              <a href="/copycat/skills">Copycat</a>
-            </body>
-          </html>
-        `, {
-          status: 200,
-          headers: { "Content-Type": "text/html" },
-        });
-      }
-
-      if (url === "https://www.skills.sh/copycat/skills") {
-        return new Response(`
-          <html>
-            <body>
-              <a href="/copycat/skills/next-js-development">Next.js Development</a>
+              <script>
+                self.__next_f.push([1,"{\\"source\\":\\"copycat/skills\\",\\"skillId\\":\\"next-js-development\\",\\"name\\":\\"next-js-development\\",\\"installs\\":10}"]);
+              </script>
             </body>
           </html>
         `, {
@@ -332,6 +318,8 @@ workflowPacks: []
       fetchImpl,
       persist: false,
       verifiedPath,
+      mcpRegistryTimeoutMs: 10,
+      fetchRetries: 0,
     }).syncAll();
 
     expect(summary.skills.added).toBe(1);
@@ -343,4 +331,141 @@ workflowPacks: []
       }),
     ]);
   }, 10000);
+
+  it("keeps distinct github skills when the same repo contains nested skill paths with the same basename", async () => {
+    const verifiedPath = await createVerifiedCatalog(`
+mcps: []
+skills:
+  - id: nested-skill-a
+    displayName: Platform Skill Creator
+    source:
+      type: github
+      repo: acme/skills
+      path: platform/skill-creator
+      ref: main
+    verified: true
+  - id: nested-skill-b
+    displayName: Product Skill Creator
+    source:
+      type: github
+      repo: acme/skills
+      path: product/skill-creator
+      ref: main
+    verified: true
+workflowPacks: []
+`);
+
+    const fetchImpl: typeof fetch = async (input) => {
+      const url = typeof input === "string" ? input : input.toString();
+      if (url === "https://registry.modelcontextprotocol.io/v0.1/servers?limit=100") {
+        return new Response(JSON.stringify({ servers: [], metadata: {} }), { status: 200 });
+      }
+      if (url === "https://www.skills.sh/") {
+        return new Response("<html><body></body></html>", {
+          status: 200,
+          headers: { "Content-Type": "text/html" },
+        });
+      }
+      throw new Error(`Unexpected URL ${url}`);
+    };
+
+    const items = await new RegistrySyncService({
+      fetchImpl,
+      persist: false,
+      verifiedPath,
+    }).collectCatalogItems();
+
+    const skills = items.filter((item) => item.type === "skill");
+    expect(skills).toHaveLength(2);
+    expect(new Set(skills.map((item) => item.id)).size).toBe(2);
+  });
+
+  it("collapses official skills.sh mirror repos that expose the same owner/path skill", async () => {
+    const verifiedPath = await createVerifiedCatalog(`
+mcps: []
+skills: []
+workflowPacks: []
+`);
+
+    const fetchImpl: typeof fetch = async (input) => {
+      const url = typeof input === "string" ? input : input.toString();
+      if (url === "https://registry.modelcontextprotocol.io/v0.1/servers?limit=100") {
+        return new Response(JSON.stringify({ servers: [], metadata: {} }), { status: 200 });
+      }
+      if (url === "https://www.skills.sh/") {
+        return new Response(`
+          <html>
+            <body>
+              <script>
+                self.__next_f.push([1,"{\\"source\\":\\"anthropics/financial-services\\",\\"skillId\\":\\"3-statement-model\\",\\"name\\":\\"3-statement-model\\",\\"installs\\":100,\\"isOfficial\\":true}"]);
+                self.__next_f.push([1,"{\\"source\\":\\"anthropics/financial-services-plugins\\",\\"skillId\\":\\"3-statement-model\\",\\"name\\":\\"3-statement-model\\",\\"installs\\":90,\\"isOfficial\\":true}"]);
+              </script>
+            </body>
+          </html>
+        `, {
+          status: 200,
+          headers: { "Content-Type": "text/html" },
+        });
+      }
+      throw new Error(`Unexpected URL ${url}`);
+    };
+
+    const items = await new RegistrySyncService({
+      fetchImpl,
+      persist: false,
+      verifiedPath,
+    }).collectCatalogItems();
+
+    const matchingSkills = items.filter((item) => item.type === "skill" && item.displayName === "3 Statement Model");
+    expect(matchingSkills).toHaveLength(1);
+    expect(matchingSkills[0]?.id).toBe("skill-anthropics-financial-services-3-statement-model");
+  });
+
+  it("normalizes display names by removing control and zero-width characters", async () => {
+    const verifiedPath = await createVerifiedCatalog(`
+mcps:
+skills: []
+workflowPacks: []
+`);
+
+    const fetchImpl: typeof fetch = async (input) => {
+      const url = typeof input === "string" ? input : input.toString();
+      if (url === "https://registry.modelcontextprotocol.io/v0.1/servers?limit=100") {
+        return new Response(JSON.stringify({
+          servers: [
+            {
+              name: "io.github.example/strange-mcp",
+              title: "  Strange\u200b MCP  ",
+              remotes: [{ url: "https://example.com/mcp" }],
+            },
+          ],
+          metadata: {},
+        }), { status: 200 });
+      }
+      if (url === "https://www.skills.sh/") {
+        return new Response(`
+          <html>
+            <body>
+              <script>
+                self.__next_f.push([1,"{\\"source\\":\\"acme/skills\\",\\"skillId\\":\\"skill-creator\\",\\"name\\":\\"Skill\\u0007 Creator\\",\\"installs\\":3}"]);
+              </script>
+            </body>
+          </html>
+        `, {
+          status: 200,
+          headers: { "Content-Type": "text/html" },
+        });
+      }
+      throw new Error(`Unexpected URL ${url}`);
+    };
+
+    const items = await new RegistrySyncService({
+      fetchImpl,
+      persist: false,
+      verifiedPath,
+    }).collectCatalogItems();
+
+    expect(items.find((item) => item.type === "mcp")?.displayName).toBe("Strange MCP");
+    expect(items.find((item) => item.type === "skill")?.displayName).toBe("Skill Creator");
+  });
 });
