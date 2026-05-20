@@ -15,6 +15,10 @@ export interface BasketItemTrust {
   lastSyncedAt?: string;
 }
 
+export interface BasketItemSourceMeta {
+  hint?: string;
+}
+
 export interface BasketItem {
   type: "mcp" | "skill" | "rule" | "workflow";
   id: string;
@@ -23,6 +27,7 @@ export interface BasketItem {
   icon?: string;
   mcpData?: McpEntry; // Populated if type === "mcp"
   trust?: BasketItemTrust;
+  sourceMeta?: BasketItemSourceMeta;
 }
 
 interface BasketState {

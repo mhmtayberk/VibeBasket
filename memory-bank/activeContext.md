@@ -19,7 +19,9 @@
 - The system now records sync audit rows and exposes them through `/api/catalog/status`; manual `pnpm catalog:sync` is the intended operator path for cron-style refreshes.
 - Surface testing now covers three layers: live dev-server E2E smoke, API edge-case smoke, and registry chaos/timeout behavior.
 - Batched persistence is now in place for registry writes, and catalog rows now store source/freshness metadata directly.
-- Trust scoring is now derived in the web layer from `verified + source + freshness`, but the visible UI now keeps only `Verified`, `Official`, `Community`, source provenance, and the score itself.
+- Trust scoring is now derived in the web layer from provenance only (`verified` and source family), and the visible UI keeps only `Verified`, `Official`, `Community`, source provenance, and the score itself.
+- The current skills ingestion is intentionally narrower than full `skills.sh` search: we sync the `skills.sh` official surface, not every community result on `skills.sh/?q=...`.
+- That old limitation is now partially lifted: base sync parses the public `skills.sh` directory surface, and skill searches can enrich results live from `skills.sh/?q=...` to cover long-tail community skills without exploding sync cost.
 - Trust metadata is now consumable in catalog browsing through trust filters plus recommended/name sorting; the raw sync-recency surface was intentionally removed from the UI.
 - The catalog filter controls are now collapsed by default and reopen on demand, while active filters remain visible as summary pills next to the trigger.
 - The basket target picker now defaults to `Claude Code` only, and supported targets are rendered alphabetically.
@@ -87,3 +89,16 @@
 - The basket UI is now being connected to authenticated saved-stack flows instead of stopping at header-level auth. Basket state now carries selected target IDs, supports stack restore, and can save/load/delete named stacks from the UI.
 - The `/stacks` page is no longer a placeholder; it now renders the same saved-stack management surface used inside the basket.
 - Dev auth now uses a local-only fallback secret when `AUTH_SECRET` is absent, which removes noisy `MissingSecret` console errors without relaxing the production requirement for a real secret.
+- Registry dedupe was audited again after the catalog started showing many same-named skills. The current finding: most visible "duplicates" are distinct upstream skills that share the same display title, not exact duplicate source records.
+- Tightened skill canonical identity so GitHub-backed skills now dedupe by `repo + full path + ref` instead of `repo + basename(path)`, closing a real false-merge edge case for nested skill paths.
+- Added ingest-time text normalization for catalog display names/descriptions to strip control and zero-width characters, normalize Unicode, and collapse whitespace before persistence/UI rendering.
+- Added source-provenance hints on catalog cards so same-named skills are easier to distinguish without unsafe title-based deduplication.
+- Added a safer mirror-dedupe rule for official `skills.sh` entries: same-owner, same-path skill mirrors such as `financial-services` vs `financial-services-plugins` now collapse to one canonical record instead of appearing twice.
+- Added a one-shot catalog hygiene cleanup on the web API path so already-persisted mirror duplicates are removed from SQLite even before the next successful full sync.
+- Relaxed the official MCP registry timeout budget and stopped noisy background partial-sync warnings from being emitted on normal catalog requests; source errors still remain inspectable through sync summaries/status.
+- Simplified trust scoring to provenance-only tiers so the product no longer implies recent sync time is a safety signal.
+- Added flatter real-brand target icons to the hero marquee, plus a bottom-right back-to-top button that matches the current UI system.
+- Hardened the CLI apply path so bundles that contain unsupported non-MCP content now fail fast instead of pretending skills, rules, or workflow files were installed locally.
+- Corrected Cursor's user-scope config target to `~/.cursor/mcp.json`, which closes a target-specific install-location accuracy bug.
+- Switched the hero marquee to downloaded public agent SVGs for the targets where the generic icon pack was missing or visually weak, including Codex and Kiro.
+- Broadened skills ingestion from `skills.sh` official-only to the public directory surface, and added live search-query enrichment so specific skill searches can pull in far more community entries on demand.

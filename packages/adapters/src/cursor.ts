@@ -30,13 +30,6 @@ export class CursorAdapter implements IdeAdapter {
       return path.join(projectRoot, ".cursor", "mcp.json");
     }
 
-    const platform = os.platform();
-    if (platform === "win32") {
-      return path.join(os.homedir(), "AppData", "Roaming", "Cursor", "User", "globalStorage", "saoudrizwan.claude-dev", "settings", "cline_mcp_settings.json");
-      // Wait, is it cline_mcp_settings.json? No, Cursor's native MCP uses ~/.cursor/mcp.json or similar.
-      // The prompt specified:
-      // macOS: ~/.cursor/mcp.json | Linux: ~/.cursor/mcp.json | Windows: %USERPROFILE%\.cursor\mcp.json
-    }
     return path.join(os.homedir(), ".cursor", "mcp.json");
   }
 

@@ -87,3 +87,17 @@ All notable changes to this project will be documented in this file.
 - Removed the visible `Auth disabled` fallback from the homepage header so the auth surface now disappears cleanly when no provider is configured.
 - Fixed production-build SQLite lock contention by ensuring auth-table bootstrap writes happen in the auth route path instead of at module import time.
 - Wired the basket UI into saved-stack flows with save/load/delete/rename controls and a shared saved-stack panel on both the basket and `/stacks` page.
+- Audited the catalog for duplicate skills and character corruption: the live DB currently shows `0` exact duplicate GitHub skill sources (`repo + path + ref`) and `0` obvious mojibake/control-character display-name issues.
+- Tightened GitHub skill canonical identity from `repo + basename(path)` to `repo + full path + ref`, closing a false-merge edge case for nested skill paths.
+- Normalized catalog display text on ingest by stripping control/zero-width characters, normalizing Unicode, and collapsing whitespace before catalog items are stored or rendered.
+- Added source provenance hints to catalog cards so same-named skills are easier to distinguish without unsafe title-based deduplication.
+- Added mirror-aware official skill dedupe so repo-family variants like `*-plugins` no longer appear twice when they expose the same owner/path skill.
+- Added a one-shot catalog hygiene cleanup on the web API path to remove already-persisted official skill mirror duplicates from SQLite before the next healthy full sync.
+- Tuned MCP registry fetch behavior to use a longer dedicated timeout window than the generic source fetch path, and stopped logging background partial-sync source errors on normal catalog requests.
+- Simplified trust scoring so it now reflects source provenance only instead of blending sync timing into the score.
+- Added flatter brand-style target icons to the hero marquee, plus a fixed back-to-top button for long catalog sessions.
+- Hardened CLI apply honesty by flattening workflow-pack content before apply and aborting when selected targets cannot actually install bundled skills, rules, or workflow files yet.
+- Corrected Cursor's user-scope MCP config target to `~/.cursor/mcp.json`.
+- Broadened `skills.sh` ingestion beyond the official page by parsing the public directory surface, while preserving official/community provenance and mirror-aware dedupe.
+- Added live `skills.sh` query enrichment for skill searches in `/api/catalog`, so long-tail searches such as `postgresql` can surface far more community skills without requiring a full-corpus crawl on every sync.
+- Replaced missing/faint marquee icons with downloaded public agent SVGs for supported targets like Cursor, Windsurf, VS Code, Antigravity, Claude Code, Codex, Gemini, Cline, and Kiro.

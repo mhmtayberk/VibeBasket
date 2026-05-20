@@ -1,4 +1,3 @@
-import { redirect } from "next/navigation";
 import { ArrowLeft, Layers3, ShieldCheck } from "lucide-react";
 import { auth, getEnabledAuthProviders } from "@/auth";
 import { SignInDialog } from "@/components/auth/SignInDialog";
@@ -9,10 +8,6 @@ export const dynamic = "force-dynamic";
 export default async function StacksPage() {
   const session = await auth();
   const enabledProviders = getEnabledAuthProviders();
-
-  if (!session?.user && enabledProviders.length === 0) {
-    redirect("/");
-  }
 
   if (!session?.user) {
     return (

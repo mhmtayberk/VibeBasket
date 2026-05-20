@@ -4,23 +4,20 @@ import {
   BadgeCheck,
   Lock,
   Command,
-  Bot,
-  Braces,
-  Compass,
-  GalleryVerticalEnd,
-  Gem,
-  Hexagon,
-  Orbit,
   Sparkles,
   TerminalSquare,
-  ToyBrick,
   Workflow,
 } from "lucide-react";
+import {
+  siJetbrains,
+  siZedindustries,
+} from "simple-icons";
 import { auth, getEnabledAuthProviders } from "@/auth";
 import { AuthMenu } from "@/components/auth/AuthMenu";
 import { SignInDialog } from "@/components/auth/SignInDialog";
 import { CatalogGrid } from "@/components/catalog/CatalogGrid";
 import { FloatingBasket } from "@/components/basket/FloatingBasket";
+import { TopToTopButton } from "@/components/layout/TopToTopButton";
 import { getInitialCatalogSnapshot } from "@/lib/catalog-snapshot";
 import { TARGET_OPTIONS } from "@/lib/targets";
 
@@ -49,30 +46,50 @@ export default async function Home() {
     ...TARGET_OPTIONS.filter((target) => target.status === "supported"),
   ];
 
-  const renderTargetIcon = (targetId: string) => {
+  const renderTargetIcon = (targetId: string, label: string) => {
+    const imageFor = (src: string, alt: string) => (
+      <img
+        aria-hidden="true"
+        src={src}
+        alt={alt}
+        className="h-6 w-auto object-contain"
+      />
+    );
+
+    const iconFor = (path: string, hex: string) => (
+      <svg
+        aria-hidden="true"
+        viewBox="0 0 24 24"
+        className="h-5 w-5"
+        style={{ color: hex === "000000" ? "#f5f7fb" : `#${hex}` }}
+      >
+        <path d={path} fill="currentColor" />
+      </svg>
+    );
+
     switch (targetId) {
       case "cursor":
-        return <Compass className="h-4 w-4 text-accent" />;
+        return imageFor("/targets/cursor.svg", "Cursor");
       case "windsurf":
-        return <Orbit className="h-4 w-4 text-accent" />;
+        return imageFor("/targets/windsurf.svg", "Windsurf");
       case "vscode":
-        return <Braces className="h-4 w-4 text-accent" />;
+        return imageFor("/targets/vscode.svg", "VS Code");
       case "antigravity":
-        return <ToyBrick className="h-4 w-4 text-accent" />;
+        return imageFor("/targets/antigravity.svg", "Antigravity");
       case "claude-code":
-        return <Bot className="h-4 w-4 text-accent" />;
+        return imageFor("/targets/claude-code.svg", "Claude Code");
       case "zed":
-        return <Hexagon className="h-4 w-4 text-accent" />;
+        return iconFor(siZedindustries.path, siZedindustries.hex);
       case "codex":
-        return <Command className="h-4 w-4 text-accent" />;
+        return imageFor("/targets/codex.svg", "Codex");
       case "gemini-cli":
-        return <Gem className="h-4 w-4 text-accent" />;
+        return imageFor("/targets/gemini.svg", "Gemini CLI");
       case "junie":
-        return <GalleryVerticalEnd className="h-4 w-4 text-accent" />;
+        return iconFor(siJetbrains.path, siJetbrains.hex);
       case "kiro":
-        return <Sparkles className="h-4 w-4 text-accent" />;
+        return imageFor("/targets/kiro-cli.svg", "Kiro");
       case "cline-cli":
-        return <TerminalSquare className="h-4 w-4 text-accent" />;
+        return imageFor("/targets/cline.svg", "Cline CLI");
       default:
         return <Command className="h-4 w-4 text-accent" />;
     }
@@ -103,14 +120,14 @@ export default async function Home() {
           <div className="flex items-center gap-3">
             {session?.user ? (
               <AuthMenu session={session} />
-            ) : enabledProviders.length > 0 ? (
+            ) : (
               <SignInDialog
                 providers={enabledProviders}
                 callbackUrl="/"
                 triggerLabel="Login"
                 triggerClassName="inline-flex items-center gap-2 border border-border/80 px-4 py-2 font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:border-accent/50 hover:text-foreground"
               />
-            ) : null}
+            )}
             <a
               href="#catalog"
               className="inline-flex items-center gap-2 border border-accent bg-accent/10 px-4 py-2 font-mono text-[11px] uppercase tracking-[0.18em] text-accent transition-colors hover:bg-accent hover:text-accent-foreground"
@@ -184,10 +201,10 @@ export default async function Home() {
                     <div
                       key={`${ide.id}-${index}`}
                       title={ide.label}
-                      className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-border/70 bg-card/65 text-muted-foreground shadow-[0_0_0_1px_rgba(255,255,255,0.02)]"
+                      className="inline-flex h-11 min-w-11 items-center justify-center px-2 text-muted-foreground"
                     >
                       <span className="sr-only">{ide.label}</span>
-                      {renderTargetIcon(ide.id)}
+                      {renderTargetIcon(ide.id, ide.label)}
                     </div>
                   ))}
                 </div>
@@ -245,7 +262,7 @@ export default async function Home() {
                 </div>
                 <div className="mt-4 space-y-1 font-mono text-[11px] leading-6 text-muted-foreground">
                   <p>&gt; Fetching trusted basket configuration...</p>
-                  <p>&gt; Installing 3 MCP servers and 2 skills...</p>
+                  <p>&gt; Writing MCP config for your selected targets...</p>
                   <p className="text-accent">&gt; Context ready in Cursor, Windsurf, and VS Code.</p>
                 </div>
               </div>
@@ -361,6 +378,7 @@ export default async function Home() {
         isSignedIn={Boolean(session?.user)}
         enabledProviders={enabledProviders}
       />
+      <TopToTopButton />
     </main>
   );
 }

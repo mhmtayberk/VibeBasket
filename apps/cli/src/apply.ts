@@ -18,6 +18,7 @@ import { confirm } from "@inquirer/prompts";
 import chalk from "chalk";
 import { resolveSecrets } from "./secrets.js";
 import { createBackup } from "./backup.js";
+import { flattenBundleContent, getUnsupportedTargetContent } from "./apply-helpers.js";
 
 const ADAPTERS = {
   cursor: new CursorAdapter(),
@@ -53,14 +54,36 @@ export async function applyBundle(
   const bundle = BundleSchema.parse(manifest);
   const scope = (options.scope || bundle.scope) as any;
   const projectRoot = scope === "project" ? process.cwd() : undefined;
+  const flattened = flattenBundleContent(bundle);
 
   // 3. Trust Prompt
   console.log(chalk.bold("\n📦 Bundle Summary:"));
-  console.log(`- MCP Servers: ${bundle.mcps.length}`);
-  console.log(`- Skills: ${bundle.skills.length}`);
-  console.log(`- Rules: ${bundle.rules.length}`);
+  console.log(`- MCP Servers: ${flattened.mcps.length}`);
+  console.log(`- Skills: ${flattened.skills.length}`);
+  console.log(`- Rules: ${flattened.rules.length}`);
+  console.log(`- Workflow Files: ${flattened.files.length}`);
   console.log(`- Targets: ${bundle.targets.join(", ")}`);
   console.log(`- Scope: ${scope}\n`);
+
+  const unsupportedFeatureMessages: string[] = [];
+  for (const targetId of bundle.targets) {
+    const adapter = (ADAPTERS as any)[targetId];
+    if (!adapter) {
+      continue;
+    }
+
+    const unsupportedFeatures = getUnsupportedTargetContent(adapter, flattened);
+
+    if (unsupportedFeatures.length > 0) {
+      unsupportedFeatureMessages.push(`${adapter.displayName}: ${unsupportedFeatures.join(", ")}`);
+    }
+  }
+
+  if (unsupportedFeatureMessages.length > 0) {
+    throw new Error(
+      `This bundle contains content the current apply engine cannot install yet.\n${unsupportedFeatureMessages.join("\n")}\n\nRight now VibeBasket can safely auto-apply MCP configuration only for these targets.`
+    );
+  }
 
   if (!options.force) {
     const ok = await confirm({ message: "Do you trust this bundle and want to apply it?", default: true });
@@ -71,7 +94,7 @@ export async function applyBundle(
   }
 
   // 4. Resolve Secrets
-  const allRequiredSecrets = bundle.mcps.flatMap(m => m.requiredSecrets);
+  const allRequiredSecrets = flattened.mcps.flatMap(m => m.requiredSecrets);
   const secrets = await resolveSecrets(allRequiredSecrets);
 
   // 5. Apply per Target
@@ -91,7 +114,7 @@ export async function applyBundle(
 
     try {
       const config = await adapter.readConfig(scope, projectRoot);
-      const pendingConfig = adapter.applyMcps(config, bundle.mcps, secrets, { force: options.force || false });
+      const pendingConfig = adapter.applyMcps(config, flattened.mcps, secrets, { force: options.force || false });
 
       if (options.dryRun) {
         const diff = await adapter.diff(scope, pendingConfig, projectRoot);
