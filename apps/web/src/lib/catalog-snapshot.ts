@@ -23,6 +23,12 @@ export async function getInitialCatalogSnapshot(): Promise<CatalogResponse> {
     await ensureDatabaseIndexes();
 
     const whereClause = eq(catalogItems.type, "mcp");
+    const officialSourcePriority = sql<number>`
+      case
+        when ${catalogItems.sourceName} in ('official-mcp-registry', 'skills-sh-official') then 1
+        else 0
+      end
+    `;
     const initialMcpResult = await db
       .select({ total: sql<number>`count(*)` })
       .from(catalogItems)
@@ -42,7 +48,13 @@ export async function getInitialCatalogSnapshot(): Promise<CatalogResponse> {
         .select()
         .from(catalogItems)
         .where(whereClause)
-        .orderBy(desc(catalogItems.verified), asc(catalogItems.displayName), asc(catalogItems.id))
+        .orderBy(
+          desc(catalogItems.verified),
+          desc(officialSourcePriority),
+          desc(catalogItems.lastSyncedAt),
+          asc(catalogItems.displayName),
+          asc(catalogItems.id)
+        )
         .limit(CATALOG_PAGE_SIZE)
         .offset(0),
       db

@@ -3,6 +3,10 @@
 import { useState } from "react";
 import { CheckCircle2, ChevronsDown, ChevronsUp, Copy, Loader2, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
+import type { EnabledAuthProvider } from "@/auth.config";
+import { SignInDialog } from "@/components/auth/SignInDialog";
+import { SaveStackDialog } from "@/components/stacks/SaveStackDialog";
+import { SavedStacksPanel } from "@/components/stacks/SavedStacksPanel";
 import { useBasketStore } from "@/store/basketStore";
 import { cn } from "@/lib/utils";
 import { SUPPORTED_TARGET_IDS, TARGET_OPTIONS } from "@/lib/targets";
@@ -11,20 +15,26 @@ interface BasketPanelProps {
   className?: string;
   variant?: "desktop" | "modal";
   onClose?: () => void;
+  isSignedIn?: boolean;
+  enabledProviders?: EnabledAuthProvider[];
 }
 
 export function BasketPanel({
   className,
   variant = "desktop",
   onClose,
+  isSignedIn = false,
+  enabledProviders = [],
 }: BasketPanelProps) {
   const items = useBasketStore((s) => s.items);
+  const targets = useBasketStore((s) => s.targetIds);
   const clearBasket = useBasketStore((s) => s.clearBasket);
   const removeItem = useBasketStore((s) => s.removeItem);
-  const [targets, setTargets] = useState<string[]>(SUPPORTED_TARGET_IDS);
+  const toggleTargetId = useBasketStore((s) => s.toggleTargetId);
   const [isBuilding, setIsBuilding] = useState(false);
   const [bundleCommand, setBundleCommand] = useState<string | null>(null);
   const [showAllItems, setShowAllItems] = useState(false);
+  const [savedStacksVersion, setSavedStacksVersion] = useState(0);
 
   const visibleItems = showAllItems ? items : items.slice(0, 6);
   const supportedTargets = TARGET_OPTIONS.filter((target) => target.status === "supported");
@@ -76,11 +86,7 @@ export function BasketPanel({
       return;
     }
 
-    setTargets((current) => (
-      current.includes(targetId)
-        ? current.filter((id) => id !== targetId)
-        : [...current, targetId]
-    ));
+    toggleTargetId(targetId);
   };
 
   return (
@@ -278,6 +284,28 @@ export function BasketPanel({
             Installed targets stay clickable only when the adapter exists, and the bundle API validates
             the same supported set before generating install commands.
           </p>
+        </div>
+
+        <div className="space-y-3 border-t border-border/70 pt-5">
+          <div className="flex flex-wrap items-center gap-3">
+            {isSignedIn ? (
+              <SaveStackDialog
+                disabled={items.length === 0 || targets.length === 0}
+                items={items}
+                targetIds={targets}
+                onSaved={() => setSavedStacksVersion((current) => current + 1)}
+              />
+            ) : enabledProviders.length > 0 ? (
+              <SignInDialog providers={enabledProviders} callbackUrl="/stacks" />
+            ) : null}
+            {!isSignedIn ? (
+              <p className="text-xs leading-6 text-muted-foreground">
+                Sign in to save reusable stacks to your profile.
+              </p>
+            ) : null}
+          </div>
+
+          <SavedStacksPanel enabled={isSignedIn} refreshToken={savedStacksVersion} />
         </div>
 
         <div className="space-y-3 border-t border-border/70 pt-5">

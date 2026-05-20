@@ -27,12 +27,6 @@ export function ItemCard({ item }: ItemCardProps) {
       : item.trust?.tier === "official"
         ? "border-sky-500/30 bg-sky-500/10 text-sky-300"
         : "border-border/70 bg-background/50 text-muted-foreground";
-  const freshnessTone =
-    item.trust?.freshness === "fresh"
-      ? "text-emerald-300"
-      : item.trust?.freshness === "recent"
-        ? "text-amber-200"
-        : "text-muted-foreground";
 
   return (
     <button
@@ -101,7 +95,6 @@ export function ItemCard({ item }: ItemCardProps) {
             {item.trust ? (
               <div className="mt-3 flex flex-wrap items-center gap-3 text-xs">
                 <span className="text-muted-foreground">{item.trust.sourceLabel}</span>
-                <span className={freshnessTone}>{item.trust.freshnessLabel}</span>
                 <span className="text-muted-foreground">Trust score {item.trust.score}</span>
               </div>
             ) : null}

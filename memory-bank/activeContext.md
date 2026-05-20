@@ -19,7 +19,15 @@
 - The system now records sync audit rows and exposes them through `/api/catalog/status`; manual `pnpm catalog:sync` is the intended operator path for cron-style refreshes.
 - Surface testing now covers three layers: live dev-server E2E smoke, API edge-case smoke, and registry chaos/timeout behavior.
 - Batched persistence is now in place for registry writes, and catalog rows now store source/freshness metadata directly.
-- Trust scoring is now derived in the web layer from `verified + source + freshness`, with visible `Verified`, `Official`, and `Community` badges on catalog items.
+- Trust scoring is now derived in the web layer from `verified + source + freshness`, but the visible UI now keeps only `Verified`, `Official`, `Community`, source provenance, and the score itself.
+- Trust metadata is now consumable in catalog browsing through trust filters plus recommended/name sorting; the raw sync-recency surface was intentionally removed from the UI.
+- The catalog filter controls are now collapsed by default and reopen on demand, while active filters remain visible as summary pills next to the trigger.
+- The basket target picker now defaults to `Claude Code` only, and supported targets are rendered alphabetically.
+- A full auth + saved stacks architecture spec now exists under `docs/superpowers/specs/2026-05-20-auth-and-saved-stacks-design.md`; the chosen direction is Auth.js + DB sessions + provider toggles + user-owned saved stacks.
+- The matching implementation plan now exists under `docs/superpowers/plans/2026-05-20-auth-and-saved-stacks-implementation.md`.
+- Auth.js foundation is now wired into `apps/web` with DB-backed sessions, provider gating for GitHub/Google/Apple, a live `/api/auth/[...nextauth]` route, and session helpers for authenticated APIs.
+- The homepage header now exposes a real sign-in surface and signed-in account state, while `/stacks` exists as the first authenticated destination for saved-stack flows.
+- Saved-stack CRUD APIs now exist under `/api/stacks` and `/api/stacks/[id]`, backed by the new `saved_stacks`, `saved_stack_items`, and `saved_stack_targets` tables.
 
 ## Next Steps
 - Optimize registry persistence with batch/transaction-based writes; full sync is functionally correct but still heavier than ideal.
@@ -32,8 +40,9 @@
 - If catalog scale keeps growing, the next backend improvement should be batched persistence rather than one-row-at-a-time upserts.
 - Partial upstream failures should never shrink the catalog surface; prune-on-sync is now tied to fully healthy collector runs only.
 - The next registry performance fix should target persistence speed: full live sync is correct but still takes about a minute because rows are upserted one at a time.
-- The next likely catalog-data improvement after this is trust scoring, because the underlying per-item freshness/source model now exists.
-- The next likely trust-related improvement after this is making the score consumable in filtering/sorting once we see how the current badges perform.
+- The next likely catalog discovery improvement after this is stronger search relevance, because trust/freshness-aware sorting and filtering are now in place.
+- Finish the authenticated UI flow so basket contents can be saved, listed, loaded, renamed, and deleted from the browser rather than only through the new APIs.
+- Add integration/E2E coverage for auth-protected stack routes and the sign-in surface once provider mocking is in place.
 
 ## Considerations
 - **Immutability:** Bundles are stored as full manifests, ensuring they don't break if the catalog changes.
@@ -65,5 +74,16 @@
 - Added a server-side initial catalog snapshot and confirmed Firefox renders the first page (`Showing 1-24 of 8344`) after reload.
 - Fixed official MCP and skills.sh duplicate-ID handling, then verified live sync persisted `19607` MCP rows and `4925` skill rows with zero canonical duplicates.
 - Added production protection for forced catalog refresh requests.
-- Added batched upserts plus per-item freshness/source metadata, then verified a later live sync persisted `24630` rows with freshness fields populated and status telemetry still healthy.
-- Added derived trust badges in the catalog UI and simplified freshness ordering in the API routes to avoid intermittent raw-SQL dev errors.
+- Added batched upserts plus per-item freshness/source metadata, then verified a later live sync persisted `25725` rows with stable source attribution and status telemetry still healthy.
+- Added derived trust badges in the catalog UI, later removed visible sync-recency badges, and simplified freshness ordering in the API routes to avoid intermittent raw-SQL dev errors.
+- Added trust-aware discovery controls to the catalog API/UI, brought `apps/web` into the workspace test/typecheck path, and replaced noisy non-browser basket persistence with a quiet fallback adapter.
+- Added successful-sync cleanup for legacy null-source rows and verified the live catalog now has zero `source_name is null` entries.
+- Added Auth.js dependencies plus provider-gating helpers, then verified provider config behavior with dedicated unit tests.
+- Added auth-aware header UI, a sign-in dialog, a signed-in account surface, and an authenticated `/stacks` entry point.
+- Added saved-stack validation helpers and authenticated stack CRUD routes, then re-ran workspace-wide typecheck and tests successfully.
+- Removed the visible `Auth disabled` fallback from the homepage header; login UI now appears only when at least one provider is actually configured.
+- Fixed the SQLite build-time lock issue by moving auth-table schema ensure work out of `auth.ts` module import time and into the auth route handler request path.
+- Added route-level edge-case coverage for saved-stack APIs: unauthorized access, unsupported targets, empty item selection, and empty update payloads.
+- The basket UI is now being connected to authenticated saved-stack flows instead of stopping at header-level auth. Basket state now carries selected target IDs, supports stack restore, and can save/load/delete named stacks from the UI.
+- The `/stacks` page is no longer a placeholder; it now renders the same saved-stack management surface used inside the basket.
+- Dev auth now uses a local-only fallback secret when `AUTH_SECRET` is absent, which removes noisy `MissingSecret` console errors without relaxing the production requirement for a real secret.

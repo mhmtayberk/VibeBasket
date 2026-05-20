@@ -894,6 +894,7 @@ export class RegistrySyncService {
 
     if (opts.pruneMissing) {
       await db.delete(catalogItems).where(notInArray(catalogItems.id, ids));
+      await db.delete(catalogItems).where(sql`${catalogItems.sourceName} is null`);
     }
   }
 

@@ -1,15 +1,12 @@
 import type { BasketItem } from "@/store/basketStore";
 
 export type TrustTier = "verified" | "official" | "community";
-export type FreshnessTier = "fresh" | "recent" | "aging";
 
 export interface CatalogTrust {
   tier: TrustTier;
   score: number;
   label: string;
   detail: string;
-  freshness: FreshnessTier;
-  freshnessLabel: string;
   sourceLabel: string;
   lastSyncedAt?: string;
 }
@@ -48,42 +45,27 @@ function sourceLabel(sourceName?: string | null) {
   }
 }
 
-function freshnessFromTimestamp(timestamp: number | null): {
-  freshness: FreshnessTier;
-  freshnessLabel: string;
-} {
+function freshnessWeight(timestamp: number | null) {
   if (!timestamp) {
-    return {
-      freshness: "aging",
-      freshnessLabel: "Age unknown",
-    };
+    return "aging" as const;
   }
 
   const ageMs = Date.now() - timestamp;
 
   if (ageMs <= DAY_MS) {
-    return {
-      freshness: "fresh",
-      freshnessLabel: "Fresh sync",
-    };
+    return "fresh" as const;
   }
 
   if (ageMs <= 7 * DAY_MS) {
-    return {
-      freshness: "recent",
-      freshnessLabel: "Recent sync",
-    };
+    return "recent" as const;
   }
 
-  return {
-    freshness: "aging",
-    freshnessLabel: "Aging sync",
-  };
+  return "aging" as const;
 }
 
 export function deriveCatalogTrust(item: CatalogLikeItem): CatalogTrust {
   const syncedAt = toTimestamp(item.lastSyncedAt);
-  const freshnessMeta = freshnessFromTimestamp(syncedAt);
+  const freshness = freshnessWeight(syncedAt);
   const labelForSource = sourceLabel(item.sourceName);
 
   if (item.verified) {
@@ -94,30 +76,27 @@ export function deriveCatalogTrust(item: CatalogLikeItem): CatalogTrust {
       detail: "Curated by VibeBasket and preferred over upstream variants.",
       sourceLabel: labelForSource,
       lastSyncedAt: syncedAt ? new Date(syncedAt).toISOString() : undefined,
-      ...freshnessMeta,
     };
   }
 
   if (item.sourceName === "official-mcp-registry" || item.sourceName === "skills-sh-official") {
     return {
       tier: "official",
-      score: freshnessMeta.freshness === "aging" ? 78 : 86,
+      score: freshness === "aging" ? 78 : 86,
       label: "Official",
       detail: "Synced from an official upstream catalog source.",
       sourceLabel: labelForSource,
       lastSyncedAt: syncedAt ? new Date(syncedAt).toISOString() : undefined,
-      ...freshnessMeta,
     };
   }
 
   return {
     tier: "community",
-    score: freshnessMeta.freshness === "aging" ? 56 : 64,
+    score: freshness === "aging" ? 56 : 64,
     label: "Community",
     detail: "Available in the catalog, but not part of the curated verified set.",
     sourceLabel: labelForSource,
     lastSyncedAt: syncedAt ? new Date(syncedAt).toISOString() : undefined,
-    ...freshnessMeta,
   };
 }
 

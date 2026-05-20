@@ -12,7 +12,7 @@ describe("deriveCatalogTrust", () => {
 
     expect(trust.tier).toBe("verified");
     expect(trust.score).toBe(100);
-    expect(trust.freshness).toBe("fresh");
+    expect(trust.sourceLabel).toBe("Curated");
   });
 
   it("classifies official upstream items separately from community ones", () => {

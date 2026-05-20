@@ -36,6 +36,7 @@ Recent work significantly changed the catalog behavior:
 - fixed selected-state visibility and unselect behavior in the UI
 - replaced brittle registry sync stubs with live trusted-source collectors
 - added pagination so large catalogs remain usable
+- added trust/freshness filtering and sorting so catalog exploration can follow confidence signals instead of only raw search text
 - added API-side sync locking and DB indexing to reduce repeated work
 - server-rendered the first catalog page so the builder can show useful results even if client hydration or the initial browser fetch is delayed
 - aligned the target picker with the real adapter-backed set and removed stale watchlist-only entries

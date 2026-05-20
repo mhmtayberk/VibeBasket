@@ -36,3 +36,6 @@ export const catalogSyncRuns = sqliteTable("catalog_sync_runs", {
   startedAt: integer("started_at", { mode: "timestamp" }).notNull(),
   completedAt: integer("completed_at", { mode: "timestamp" }).notNull(),
 });
+
+export * from "./auth-schema";
+export * from "./stacks-schema";

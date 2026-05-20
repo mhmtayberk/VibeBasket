@@ -2,10 +2,19 @@
 
 import { useState } from "react";
 import { Layers3 } from "lucide-react";
+import type { EnabledAuthProvider } from "@/auth.config";
 import { useBasketStore } from "@/store/basketStore";
 import { BasketPanel } from "./BasketPanel";
 
-export function FloatingBasket() {
+type FloatingBasketProps = {
+  isSignedIn?: boolean;
+  enabledProviders?: EnabledAuthProvider[];
+};
+
+export function FloatingBasket({
+  isSignedIn = false,
+  enabledProviders = [],
+}: FloatingBasketProps) {
   const items = useBasketStore((s) => s.items);
   const [isOpen, setIsOpen] = useState(false);
 
@@ -47,7 +56,12 @@ export function FloatingBasket() {
           onClick={() => setIsOpen(false)}
         >
           <div className="w-full max-w-xl" onClick={(event) => event.stopPropagation()}>
-            <BasketPanel variant="modal" onClose={() => setIsOpen(false)} />
+            <BasketPanel
+              variant="modal"
+              onClose={() => setIsOpen(false)}
+              isSignedIn={isSignedIn}
+              enabledProviders={enabledProviders}
+            />
           </div>
         </div>
       ) : null}

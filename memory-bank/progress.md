@@ -62,11 +62,35 @@
 - Implemented batched registry persistence and item-level freshness/source metadata on `catalog_items`.
 - Verified the new metadata layer live: `24630` rows had `first_seen_at`, `last_seen_at`, and `last_synced_at`, while `24624` rows also carried a non-empty `source_url`.
 - Added trust scoring derived from existing metadata and surfaced it in the catalog UI with tier badges and freshness labels.
+- Added trust/freshness-aware discovery controls plus API query params, so trust metadata now affects filtering and sorting instead of only card presentation.
+- Added `apps/web` package-level `test` and `typecheck` scripts and verified the catalog discovery helpers under the workspace test path.
+- Replaced noisy missing-`localStorage` basket persistence behavior with a quiet fallback storage adapter for tests and server contexts.
+- Polished the builder UX by collapsing advanced catalog filters behind a disclosure control while keeping active filter summaries visible in the closed state.
+- Removed visible sync-recency labels from the catalog cards and narrowed the trust UI to source/provenance plus score.
+- Changed the basket target picker to default to `Claude Code` only and sorted supported targets alphabetically.
+- Added cleanup for legacy null-source catalog rows and verified a live sync now leaves `0` null-source rows in the database.
+- Wrote the auth and saved-stacks design spec covering SaaS + self-host, Auth.js provider strategy, DB sessions, ownership rules, UX, and testing.
+- Wrote the detailed implementation plan for auth and saved stacks, including file ownership, TDD order, verification commands, and docs/memory updates.
+- Hardened the new auth/saved-stack DB bootstrap so existing SQLite tables are rebuilt transactionally, duplicate legacy auth data is surfaced with clear errors, and failed upgrades restore foreign-key enforcement cleanly.
+- Added Auth.js to the web app with DB-backed sessions, provider gating for GitHub/Google/Apple, `/api/auth/[...nextauth]`, and server-side session helpers.
+- Added a real login surface to the homepage header plus a first authenticated `/stacks` page entry point.
+- Added initial saved-stack server APIs (`/api/stacks`, `/api/stacks/[id]`) and shared validation helpers for stack names, targets, and item IDs.
+- Verified the current repo again with `pnpm -r run typecheck` and `pnpm -r run test`, including the new auth/provider and stack helper coverage in `apps/web`.
+- Removed the visible auth-disabled header state and kept login UI conditional on real provider configuration only.
+- Eliminated the production-build `SQLITE_BUSY` warnings by stopping auth schema bootstrap writes during module import/build time.
+- Added saved-stack route tests for unauthorized requests and malformed payload edge cases, then re-verified `apps/web` test, typecheck, and production build.
+- Wired selected target IDs into the persisted basket store, added stack restore support, and extended basket-store tests accordingly.
+- Added `SaveStackDialog` and `SavedStacksPanel`, then connected them to the basket and `/stacks` page so signed-in users can save, load, rename, refresh, and delete stacks from the UI.
+- Re-verified the web app after the UI wiring with `next typegen`, `pnpm --filter web test`, `pnpm --filter web exec tsc --noEmit`, and `pnpm --filter web build`.
+- Removed the dev `MissingSecret` Auth.js console error by introducing a development-only auth secret fallback while keeping production strict.
+- Replaced the old secondary header CTA with `Login`, keeping `Build your basket` as the primary action and updating the button order accordingly.
 
 ## In Progress
 - Improving registry persistence performance for very large sync runs.
 - Auditing remaining gaps between manifest capabilities and installer support.
 - Verifying the redesigned surface across more browsers and viewports once a stable screenshot workflow is available.
+- Wiring the basket UI to the new authenticated stack APIs so users can save, reopen, rename, and delete stacks end-to-end from the browser.
+- Adding integration and E2E coverage for auth and saved-stack flows, including mocked-provider edge cases and unauthorized-access checks.
 
 ## Blockers
 - None at the moment.

@@ -9,7 +9,7 @@ export interface TargetOption {
   vendor?: string;
 }
 
-export const TARGET_OPTIONS: TargetOption[] = [
+const UNSORTED_TARGET_OPTIONS: TargetOption[] = [
   {
     id: "cursor",
     label: "Cursor",
@@ -100,6 +100,12 @@ export const TARGET_OPTIONS: TargetOption[] = [
   },
 ];
 
+export const TARGET_OPTIONS: TargetOption[] = [...UNSORTED_TARGET_OPTIONS].sort((left, right) =>
+  left.label.localeCompare(right.label)
+);
+
 export const SUPPORTED_TARGET_IDS = TARGET_OPTIONS
   .filter((target) => target.status === "supported")
   .map((target) => target.id);
+
+export const DEFAULT_TARGET_IDS = ["claude-code"] as const;

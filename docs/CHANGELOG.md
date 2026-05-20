@@ -67,3 +67,23 @@ All notable changes to this project will be documented in this file.
 - Verified a live sync persisted `24630` rows with those freshness fields populated, and `/api/catalog/status` now reports both `latestCatalogItemAt` and `latestCatalogSyncAt`.
 - Added derived trust scoring in the web catalog so items now show `Verified`, `Official`, or `Community` alongside freshness labels.
 - Simplified catalog freshness ordering away from raw `coalesce(...)` SQL snippets after an intermittent dev-console query generation error.
+- Added trust-aware discovery controls and API query params for `trust`, `freshness`, and `sort`, so trust metadata now influences browse results instead of staying display-only.
+- Added `apps/web` test and typecheck scripts, then verified the new catalog discovery helpers with Vitest under the workspace test path.
+- Added a quiet fallback basket storage adapter for non-browser contexts to remove missing-`localStorage` warnings from tests and SSR.
+- Collapsed the catalog filter controls behind a compact disclosure button with active-filter summary pills so the builder stays cleaner by default without hiding current discovery state.
+- Removed visible sync-recency badges from catalog cards, keeping trust focused on `Verified`, `Official`, `Community`, and source provenance.
+- Defaulted the basket target picker to `Claude Code` only and alphabetized the supported target list.
+- Added successful-sync cleanup for legacy null-source catalog rows, then verified live sync now leaves `0` `source_name is null` records in SQLite.
+
+### Recent auth and saved-stack work
+
+- Added Auth.js plus the Drizzle adapter to `apps/web`, using DB-backed sessions against the shared `@vibebasket/core` tables.
+- Added provider gating for GitHub, Google, and Apple via `AUTH_*_ENABLED`, `AUTH_*_ID`, and `AUTH_*_SECRET`, so self-hosted deployments can expose only the providers they actually configure.
+- Added a live `/api/auth/[...nextauth]` route, server-side session helpers, and a signed-in header/account surface on the homepage.
+- Added a sign-in dialog that only renders enabled providers and links users into the authenticated flow without weakening anonymous catalog browsing.
+- Added the first authenticated saved-stack API surface: `GET/POST /api/stacks` plus `GET/PATCH/DELETE /api/stacks/[id]`.
+- Added stack validation helpers and tests for provider gating and stack payload normalization.
+- Hardened auth/saved-stack SQLite upgrades so existing tables are rebuilt transactionally, duplicate legacy auth data fails with explicit messages, and foreign-key enforcement is restored cleanly after migration errors.
+- Removed the visible `Auth disabled` fallback from the homepage header so the auth surface now disappears cleanly when no provider is configured.
+- Fixed production-build SQLite lock contention by ensuring auth-table bootstrap writes happen in the auth route path instead of at module import time.
+- Wired the basket UI into saved-stack flows with save/load/delete/rename controls and a shared saved-stack panel on both the basket and `/stacks` page.
