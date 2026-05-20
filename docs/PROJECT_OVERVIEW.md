@@ -8,12 +8,7 @@ The product exists to make AI development environments portable, repeatable, and
 
 ## Current Target Model
 
-The product now separates:
-
-- **supported apply targets**: editors and tools with a real installer adapter behind them today
-- **ecosystem watchlist targets**: popular AI editors and agent CLIs that are visible in the UI but intentionally not installable yet
-
-As of May 15, 2026, the visible target landscape includes Cursor, Windsurf, VS Code/Cline, Antigravity, Claude Code, Zed, Codex CLI, Gemini CLI, JetBrains Junie, Kiro, Trae, and Cline CLI. The adapter-backed set now includes Cursor, Windsurf, VS Code/Cline, Antigravity, Claude Code, Zed, Codex CLI, Gemini CLI, JetBrains Junie, Kiro, and Cline CLI. `Trae` remains visible but not installable yet because we do not yet have a verifiable official MCP configuration surface to target.
+As of May 15, 2026, the product exposes a single adapter-backed target set rather than mixing installable targets with a visible watchlist. The current supported landscape includes Cursor, Windsurf, VS Code/Cline, Antigravity, Claude Code, Zed, Codex CLI, Gemini CLI, JetBrains Junie, Kiro, and Cline CLI.
 
 ## Core Experience
 
@@ -42,11 +37,13 @@ Recent work significantly changed the catalog behavior:
 - replaced brittle registry sync stubs with live trusted-source collectors
 - added pagination so large catalogs remain usable
 - added API-side sync locking and DB indexing to reduce repeated work
-- made the target picker more honest by listing both installable and roadmap AI environments
+- server-rendered the first catalog page so the builder can show useful results even if client hydration or the initial browser fetch is delayed
+- aligned the target picker with the real adapter-backed set and removed stale watchlist-only entries
+- converted the homepage AI IDE strip back into a sliding icon marquee
 
 ## Current Constraints
 
 - full-catalog sync is now functionally correct but still expensive at large scale
 - persistence currently works, but the registry write path should be optimized further with batching/transaction improvements
 - catalog search uses SQL `LIKE`; it is acceptable for now but not the final search architecture for very large datasets
-- the UI still reflects a slightly wider AI IDE ecosystem than the backend installer can truly apply; `Trae` remains the main visible-but-not-yet-installable target
+- lockfile health matters: the repo now depends on a refreshed `pnpm-lock.yaml` after the registry package gained `js-yaml`

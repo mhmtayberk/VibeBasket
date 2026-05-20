@@ -21,6 +21,18 @@ function ItemIcon({ type }: Pick<BasketItem, "type">) {
 export function ItemCard({ item }: ItemCardProps) {
   const toggleItem = useBasketStore((s) => s.toggleItem);
   const selected = useBasketStore((s) => s.items.some((existing) => existing.id === item.id));
+  const trustTone =
+    item.trust?.tier === "verified"
+      ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
+      : item.trust?.tier === "official"
+        ? "border-sky-500/30 bg-sky-500/10 text-sky-300"
+        : "border-border/70 bg-background/50 text-muted-foreground";
+  const freshnessTone =
+    item.trust?.freshness === "fresh"
+      ? "text-emerald-300"
+      : item.trust?.freshness === "recent"
+        ? "text-amber-200"
+        : "text-muted-foreground";
 
   return (
     <button
@@ -64,6 +76,17 @@ export function ItemCard({ item }: ItemCardProps) {
               <span className="inline-flex border border-border/70 bg-background/50 px-2 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
                 {item.type}
               </span>
+              {item.trust ? (
+                <span
+                  title={item.trust.detail}
+                  className={cn(
+                    "inline-flex border px-2 py-1 font-mono text-[10px] uppercase tracking-[0.18em]",
+                    trustTone
+                  )}
+                >
+                  {item.trust.label}
+                </span>
+              ) : null}
               {selected ? (
                 <span className="inline-flex border border-accent/60 bg-accent/10 px-2 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-accent">
                   Selected
@@ -74,6 +97,14 @@ export function ItemCard({ item }: ItemCardProps) {
             <p className="mt-2 line-clamp-2 max-w-3xl text-sm leading-6 text-muted-foreground">
               {item.description || "Trusted catalog component ready to bundle into your AI dev setup."}
             </p>
+
+            {item.trust ? (
+              <div className="mt-3 flex flex-wrap items-center gap-3 text-xs">
+                <span className="text-muted-foreground">{item.trust.sourceLabel}</span>
+                <span className={freshnessTone}>{item.trust.freshnessLabel}</span>
+                <span className="text-muted-foreground">Trust score {item.trust.score}</span>
+              </div>
+            ) : null}
           </div>
         </div>
 

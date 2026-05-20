@@ -41,3 +41,29 @@ All notable changes to this project will be documented in this file.
 - Replaced abbreviated target labels in the basket panel with full product names.
 - Added a real Codex CLI adapter based on the official `~/.codex/config.toml` MCP surface.
 - Fixed project-scope apply so adapters now receive the actual project root when resolving config paths.
+- Removed `Trae` from the visible target list so the UI no longer advertises a path we do not support.
+- Converted the hero target strip back into a sliding icon-only marquee.
+- Collapsed the temporary watchlist concept now that the visible target list matches the real adapter-backed set.
+- Refreshed the lockfile after the registry package added `js-yaml`, unblocking full workspace verification again.
+- Fixed package manifest gaps that broke full-workspace verification: missing `drizzle-orm`, `nanoid`, `zod`, and `@types/node` declarations in the right workspaces.
+- Fixed the Tailwind plugin import path so `apps/web` production builds no longer fail resolving `tailwindcss-animate`.
+- Hardened adapter typing and registry typing so workspace typecheck now passes cleanly with `exactOptionalPropertyTypes`.
+- Adjusted package type metadata to point at source entrypoints inside the monorepo, which matches the current internal-consumption model and avoids false broken-type surfaces during local verification.
+- Changed empty-catalog behavior so the first catalog request seeds the local verified catalog immediately and runs the slower upstream sync in the background instead of blocking the UI on a full registry refresh.
+- Added stronger homepage metadata, canonical handling, viewport theme color, and JSON-LD structured data for better SEO/readability by crawlers.
+- Deferred non-refresh catalog sync scheduling until after the request path is free so initial reads do not contend with long-running SQLite writes.
+- Added fetch timeouts to upstream registry collectors so slow upstreams fail fast instead of stalling the sync path indefinitely.
+- Changed catalog persistence so partial upstream failures no longer prune previously synced items from healthy sources.
+- Added a server-rendered initial catalog snapshot for the homepage so the catalog no longer depends on client hydration or the first browser-side `/api/catalog` request to escape the loading state.
+- Verified the live dev server returns `8344` MCP entries through `/api/catalog` and renders the first catalog page in Firefox after reload.
+- Fixed registry persistence loss caused by upstream MCP variants sharing the same generated ID; IDs now include canonical runtime/url/args identity.
+- Normalized skills.sh canonical keys through the same helper used by local skill entries, removing case-only duplicate skill IDs.
+- Confirmed live registry sync now produces `24534` persisted rows with `24534` distinct IDs and zero canonical duplicate MCP or skill rows.
+- Protected production `refresh=1` catalog sync behind `CATALOG_REFRESH_TOKEN` to reduce unauthenticated sync DoS/cost risk.
+- Added `/api/catalog/status` plus `pnpm catalog:sync` and `pnpm catalog:sync:dry` so catalog freshness and sync health are inspectable without opening SQLite by hand.
+- Added a registry timeout test and re-ran smoke E2E/edge-case/chaos checks against the live dev server and registry service.
+- Switched registry persistence from one-row-at-a-time upserts to batched upserts.
+- Added item-level freshness/source metadata to catalog rows: `sourceName`, `sourceUrl`, `firstSeenAt`, `lastSeenAt`, and `lastSyncedAt`.
+- Verified a live sync persisted `24630` rows with those freshness fields populated, and `/api/catalog/status` now reports both `latestCatalogItemAt` and `latestCatalogSyncAt`.
+- Added derived trust scoring in the web catalog so items now show `Verified`, `Official`, or `Community` alongside freshness labels.
+- Simplified catalog freshness ordering away from raw `coalesce(...)` SQL snippets after an intermittent dev-console query generation error.

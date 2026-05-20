@@ -5,6 +5,17 @@ import { z } from "zod";
 
 type McpEntry = z.infer<typeof McpEntrySchema>;
 
+export interface BasketItemTrust {
+  tier: "verified" | "official" | "community";
+  score: number;
+  label: string;
+  detail: string;
+  freshness: "fresh" | "recent" | "aging";
+  freshnessLabel: string;
+  sourceLabel: string;
+  lastSyncedAt?: string;
+}
+
 export interface BasketItem {
   type: "mcp" | "skill" | "rule" | "workflow";
   id: string;
@@ -12,6 +23,7 @@ export interface BasketItem {
   description: string;
   icon?: string;
   mcpData?: McpEntry; // Populated if type === "mcp"
+  trust?: BasketItemTrust;
 }
 
 interface BasketState {

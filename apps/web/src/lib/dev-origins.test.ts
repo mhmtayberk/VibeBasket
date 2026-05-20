@@ -20,7 +20,9 @@ describe("getAllowedDevOrigins", async () => {
   it("includes localhost defaults and active local IPv4 addresses", () => {
     expect(getAllowedDevOrigins()).toEqual([
       "localhost",
+      "*.localhost",
       "127.0.0.1",
+      "127.*.*.*",
       "::1",
       "192.168.1.12",
     ]);

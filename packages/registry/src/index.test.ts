@@ -218,4 +218,129 @@ workflowPacks: []
       expect.objectContaining({ source: "skills-sh-official" }),
     ]);
   });
+
+  it("generates distinct ids for multiple official MCP variants with the same registry name", async () => {
+    const verifiedPath = await createVerifiedCatalog(`
+mcps: []
+skills: []
+workflowPacks: []
+`);
+
+    const fetchImpl: typeof fetch = async (input) => {
+      const url = typeof input === "string" ? input : input.toString();
+      if (url === "https://registry.modelcontextprotocol.io/v0.1/servers?limit=100") {
+        return new Response(JSON.stringify({
+          servers: [
+            {
+              name: "io.github.example/shared",
+              title: "Shared MCP",
+              packages: [
+                {
+                  registryType: "npm",
+                  identifier: "@example/shared-mcp",
+                  version: "1.0.0",
+                  transport: { type: "stdio" },
+                },
+              ],
+            },
+            {
+              name: "io.github.example/shared",
+              title: "Shared MCP",
+              packages: [
+                {
+                  registryType: "npm",
+                  identifier: "@example/shared-mcp",
+                  version: "2.0.0",
+                  transport: { type: "stdio" },
+                },
+              ],
+            },
+          ],
+          metadata: {},
+        }), { status: 200 });
+      }
+      if (url === "https://www.skills.sh/official") {
+        return new Response("<html><body></body></html>", {
+          status: 200,
+          headers: { "Content-Type": "text/html" },
+        });
+      }
+      throw new Error(`Unexpected URL ${url}`);
+    };
+
+    const items = await new RegistrySyncService({
+      fetchImpl,
+      persist: false,
+      verifiedPath,
+    }).collectCatalogItems();
+
+    const mcps = items.filter((item) => item.type === "mcp");
+    expect(mcps).toHaveLength(2);
+    expect(new Set(mcps.map((item) => item.id)).size).toBe(2);
+  });
+
+  it("surfaces a timeout error for one source while continuing with other trusted sources", async () => {
+    const verifiedPath = await createVerifiedCatalog(`
+mcps: []
+skills: []
+workflowPacks: []
+`);
+
+    const fetchImpl: typeof fetch = async (input, init) => {
+      const url = typeof input === "string" ? input : input.toString();
+
+      if (url === "https://registry.modelcontextprotocol.io/v0.1/servers?limit=100") {
+        return await new Promise<Response>((_, reject) => {
+          init?.signal?.addEventListener("abort", () => {
+            const abortError = new Error("aborted");
+            abortError.name = "AbortError";
+            reject(abortError);
+          });
+        });
+      }
+
+      if (url === "https://www.skills.sh/official") {
+        return new Response(`
+          <html>
+            <body>
+              <a href="/copycat/skills">Copycat</a>
+            </body>
+          </html>
+        `, {
+          status: 200,
+          headers: { "Content-Type": "text/html" },
+        });
+      }
+
+      if (url === "https://www.skills.sh/copycat/skills") {
+        return new Response(`
+          <html>
+            <body>
+              <a href="/copycat/skills/next-js-development">Next.js Development</a>
+            </body>
+          </html>
+        `, {
+          status: 200,
+          headers: { "Content-Type": "text/html" },
+        });
+      }
+
+      throw new Error(`Unexpected URL ${url}`);
+    };
+
+    const summary = await new RegistrySyncService({
+      fetchImpl,
+      persist: false,
+      verifiedPath,
+    }).syncAll();
+
+    expect(summary.skills.added).toBe(1);
+    expect(summary.mcps.added).toBe(0);
+    expect(summary.sourceErrors).toEqual([
+      expect.objectContaining({
+        source: "official-mcp-registry",
+        error: expect.stringContaining("timed out"),
+      }),
+    ]);
+  }, 10000);
 });

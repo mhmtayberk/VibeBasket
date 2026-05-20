@@ -2,9 +2,12 @@ import fs from "node:fs/promises";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { sql } from "drizzle-orm";
 import { z } from "zod";
 
 const MCP_REGISTRY_BASE_URL = "https://registry.modelcontextprotocol.io/v0.1";
+const REGISTRY_FETCH_TIMEOUT_MS = 7000;
+const PERSIST_BATCH_SIZE = 250;
 const MODULE_DIR = path.dirname(fileURLToPath(import.meta.url));
 const DEFAULT_VERIFIED_PATH = path.resolve(MODULE_DIR, "../data/verified.yaml");
 const require = createRequire(import.meta.url);
@@ -31,6 +34,7 @@ export interface SyncOptions {
   fetchImpl?: typeof fetch;
   persist?: boolean;
   verifiedPath?: string;
+  trigger?: string;
 }
 
 type CatalogItemType = "mcp" | "skill" | "rule" | "workflow";
@@ -106,6 +110,8 @@ interface CatalogSeedItem {
   description?: string;
   icon?: string;
   verified: boolean;
+  sourceName?: string;
+  sourceUrl?: string;
   data: unknown;
 }
 
@@ -230,6 +236,13 @@ function canonicalMcpKey(entry: McpEntry) {
   });
 }
 
+function officialMcpId(displayName: string, serverName: string, entry: Omit<McpEntry, "id">) {
+  return `mcp-${slugify(displayName)}-${stableHash(`${serverName}:${canonicalMcpKey({
+    ...entry,
+    id: "mcp-temp",
+  })}`).slice(0, 8)}`;
+}
+
 function canonicalSkillKey(entry: SkillEntry) {
   if (entry.source.type === "github") {
     const pathKey = entry.source.path ? slugify(path.basename(entry.source.path)) : "";
@@ -253,6 +266,8 @@ function buildMcpCatalogItem(entry: McpEntry, overrides: Partial<CatalogSeedItem
   };
   if (overrides.description) item.description = overrides.description;
   if (overrides.icon) item.icon = overrides.icon;
+  if (overrides.sourceName) item.sourceName = overrides.sourceName;
+  if (overrides.sourceUrl) item.sourceUrl = overrides.sourceUrl;
   return item;
 }
 
@@ -266,6 +281,8 @@ function buildSkillCatalogItem(entry: SkillEntry, overrides: Partial<CatalogSeed
   };
   if (overrides.description) item.description = overrides.description;
   if (overrides.icon) item.icon = overrides.icon;
+  if (overrides.sourceName) item.sourceName = overrides.sourceName;
+  if (overrides.sourceUrl) item.sourceUrl = overrides.sourceUrl;
   return item;
 }
 
@@ -279,6 +296,8 @@ function buildRuleCatalogItem(entry: RuleEntry, overrides: Partial<CatalogSeedIt
   };
   if (overrides.description) item.description = overrides.description;
   if (overrides.icon) item.icon = overrides.icon;
+  if (overrides.sourceName) item.sourceName = overrides.sourceName;
+  if (overrides.sourceUrl) item.sourceUrl = overrides.sourceUrl;
   return item;
 }
 
@@ -292,7 +311,33 @@ function buildWorkflowCatalogItem(entry: WorkflowPackEntry, overrides: Partial<C
   };
   if (overrides.description) item.description = overrides.description;
   if (overrides.icon) item.icon = overrides.icon;
+  if (overrides.sourceName) item.sourceName = overrides.sourceName;
+  if (overrides.sourceUrl) item.sourceUrl = overrides.sourceUrl;
   return item;
+}
+
+async function fetchWithTimeout(
+  fetchImpl: typeof fetch,
+  input: string,
+  init: RequestInit,
+  label: string
+) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), REGISTRY_FETCH_TIMEOUT_MS);
+
+  try {
+    return await fetchImpl(input, {
+      ...init,
+      signal: controller.signal,
+    });
+  } catch (error) {
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new Error(`${label} timed out after ${REGISTRY_FETCH_TIMEOUT_MS}ms`);
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 }
 
 function toResult(items: CatalogSeedItem[]) {
@@ -319,7 +364,10 @@ class VerifiedCatalogCollector implements SourceCollector {
       items.push({
         canonicalKey: canonicalMcpKey(mcp),
         sourceName: this.name,
-        catalogItem: buildMcpCatalogItem(mcp, { verified: true }),
+        catalogItem: buildMcpCatalogItem(mcp, {
+          verified: true,
+          sourceName: this.name,
+        }),
       });
     }
 
@@ -327,7 +375,10 @@ class VerifiedCatalogCollector implements SourceCollector {
       items.push({
         canonicalKey: canonicalSkillKey(skill),
         sourceName: this.name,
-        catalogItem: buildSkillCatalogItem(skill, { verified: true }),
+        catalogItem: buildSkillCatalogItem(skill, {
+          verified: true,
+          sourceName: this.name,
+        }),
       });
     }
 
@@ -335,7 +386,10 @@ class VerifiedCatalogCollector implements SourceCollector {
       items.push({
         canonicalKey: `rule:${rule.id}`,
         sourceName: this.name,
-        catalogItem: buildRuleCatalogItem(rule, { verified: true }),
+        catalogItem: buildRuleCatalogItem(rule, {
+          verified: true,
+          sourceName: this.name,
+        }),
       });
     }
 
@@ -343,14 +397,20 @@ class VerifiedCatalogCollector implements SourceCollector {
       items.push({
         canonicalKey: `workflow:${workflow.id}`,
         sourceName: this.name,
-        catalogItem: buildWorkflowCatalogItem(workflow, { verified: true }),
+        catalogItem: buildWorkflowCatalogItem(workflow, {
+          verified: true,
+          sourceName: this.name,
+        }),
       });
 
       for (const rule of workflow.rules) {
         items.push({
           canonicalKey: `rule:${rule.id}`,
           sourceName: this.name,
-          catalogItem: buildRuleCatalogItem(rule, { verified: true }),
+          catalogItem: buildRuleCatalogItem(rule, {
+            verified: true,
+            sourceName: this.name,
+          }),
         });
       }
     }
@@ -374,7 +434,17 @@ class OfficialMcpRegistryCollector implements SourceCollector {
         params.set("cursor", cursor);
       }
 
-      const res = await this.fetchImpl(`${MCP_REGISTRY_BASE_URL}/servers?${params.toString()}`);
+      const res = await fetchWithTimeout(
+        this.fetchImpl,
+        `${MCP_REGISTRY_BASE_URL}/servers?${params.toString()}`,
+        {
+          headers: {
+            accept: "application/json",
+            "user-agent": "VibeBasket Registry Sync/0.1 (+https://vibebasket.dev)",
+          },
+        },
+        `MCP registry request`
+      );
       if (!res.ok) {
         throw new Error(`MCP registry request failed: HTTP ${res.status}`);
       }
@@ -396,6 +466,8 @@ class OfficialMcpRegistryCollector implements SourceCollector {
         if (normalized.server.description) {
           overrides.description = normalized.server.description;
         }
+        overrides.sourceName = this.name;
+        overrides.sourceUrl = `${MCP_REGISTRY_BASE_URL}/servers`;
 
         items.push({
           canonicalKey: canonicalMcpKey(entry),
@@ -419,16 +491,24 @@ class OfficialMcpRegistryCollector implements SourceCollector {
         | Record<string, { status?: string }>
         | undefined;
       const officialMeta = metaRecord?.["io.modelcontextprotocol.registry/official"];
-      return {
-        server: registryEntry.server as McpRegistryServer,
-        status: officialMeta?.status,
-      };
+      return officialMeta?.status
+        ? {
+            server: registryEntry.server as McpRegistryServer,
+            status: officialMeta.status,
+          }
+        : {
+            server: registryEntry.server as McpRegistryServer,
+          };
     }
 
-    return {
-      server: registryEntry,
-      status: registryEntry.status,
-    };
+    return registryEntry.status
+      ? {
+          server: registryEntry,
+          status: registryEntry.status,
+        }
+      : {
+          server: registryEntry,
+        };
   }
 
   private normalizeRegistryServer(server: McpRegistryServer) {
@@ -443,21 +523,25 @@ class OfficialMcpRegistryCollector implements SourceCollector {
     const packageDefinition = server.packages?.find((pkg) => pkg.transport?.type === "stdio") ?? server.packages?.[0];
     const displayName = server.title ?? server.name.split("/").pop() ?? server.name;
 
-    const suffix = stableHash(server.name).slice(0, 8);
     const entryBase = {
-      id: `mcp-${slugify(displayName)}-${suffix}`,
       catalogRef: `mcp-registry:${server.name}`,
       displayName,
+      args: [],
       env: {},
       requiredSecrets: [],
       verified: false,
     };
 
     if (remoteUrl) {
-      return McpEntrySchema.parse({
+      const entry = {
         ...entryBase,
         runtime: "remote",
         url: remoteUrl,
+      } satisfies Omit<McpEntry, "id">;
+
+      return McpEntrySchema.parse({
+        ...entry,
+        id: officialMcpId(displayName, server.name, entry),
       });
     }
 
@@ -466,26 +550,41 @@ class OfficialMcpRegistryCollector implements SourceCollector {
     }
 
     if (packageDefinition.registryType === "npm") {
-      return McpEntrySchema.parse({
+      const entry = {
         ...entryBase,
         runtime: "npx",
         args: ["-y", withVersion(packageDefinition.identifier, packageDefinition.version)],
+      } satisfies Omit<McpEntry, "id">;
+
+      return McpEntrySchema.parse({
+        ...entry,
+        id: officialMcpId(displayName, server.name, entry),
       });
     }
 
     if (packageDefinition.registryType === "pypi") {
-      return McpEntrySchema.parse({
+      const entry = {
         ...entryBase,
         runtime: "uvx",
         args: [withVersion(packageDefinition.identifier, packageDefinition.version)],
+      } satisfies Omit<McpEntry, "id">;
+
+      return McpEntrySchema.parse({
+        ...entry,
+        id: officialMcpId(displayName, server.name, entry),
       });
     }
 
     if (packageDefinition.registryType === "docker") {
-      return McpEntrySchema.parse({
+      const entry = {
         ...entryBase,
         runtime: "docker",
         args: ["run", "--rm", withVersion(packageDefinition.identifier, packageDefinition.version)],
+      } satisfies Omit<McpEntry, "id">;
+
+      return McpEntrySchema.parse({
+        ...entry,
+        id: officialMcpId(displayName, server.name, entry),
       });
     }
 
@@ -569,10 +668,12 @@ class SkillsShCuratedCollector implements SourceCollector {
         });
 
         items.push({
-          canonicalKey: `github:${owner}/${repo}:${skillSlug}`,
+          canonicalKey: canonicalSkillKey(entry),
           sourceName: this.name,
           catalogItem: buildSkillCatalogItem(entry, {
             description: `Official skill from ${owner}/${repo} on skills.sh`,
+            sourceName: this.name,
+            sourceUrl: "https://www.skills.sh/official",
           }),
         });
       }
@@ -613,10 +714,12 @@ class SkillsShCuratedCollector implements SourceCollector {
       });
 
       items.push({
-        canonicalKey: `github:${owner}/${repo}:${skillSlug}`,
+        canonicalKey: canonicalSkillKey(entry),
         sourceName: this.name,
         catalogItem: buildSkillCatalogItem(entry, {
           description: `Official skill from ${owner}/${repo} on skills.sh`,
+          sourceName: this.name,
+          sourceUrl: `https://www.skills.sh/${repoPath}`,
         }),
       });
     }
@@ -625,12 +728,17 @@ class SkillsShCuratedCollector implements SourceCollector {
   }
 
   private async fetchText(url: string, label: string) {
-    const res = await this.fetchImpl(url, {
-      headers: {
-        accept: "text/html,application/xhtml+xml",
-        "user-agent": "VibeBasket Registry Sync/0.1 (+https://vibebasket.dev)",
+    const res = await fetchWithTimeout(
+      this.fetchImpl,
+      url,
+      {
+        headers: {
+          accept: "text/html,application/xhtml+xml",
+          "user-agent": "VibeBasket Registry Sync/0.1 (+https://vibebasket.dev)",
+        },
       },
-    });
+      label
+    );
 
     if (!res.ok) {
       throw new Error(`${label} request failed: HTTP ${res.status}`);
@@ -644,12 +752,14 @@ export class RegistrySyncService {
   private readonly fetchImpl: typeof fetch;
   private readonly verifiedPath: string;
   private readonly persist: boolean;
+  private readonly trigger: string;
   private readonly collectors: SourceCollector[];
 
   constructor(options: SyncOptions = {}) {
     this.fetchImpl = options.fetchImpl ?? fetch;
     this.verifiedPath = options.verifiedPath ?? DEFAULT_VERIFIED_PATH;
     this.persist = options.persist ?? true;
+    this.trigger = options.trigger ?? "runtime";
     this.collectors = [
       new VerifiedCatalogCollector(this.verifiedPath),
       new OfficialMcpRegistryCollector(this.fetchImpl),
@@ -660,6 +770,19 @@ export class RegistrySyncService {
   async collectCatalogItems(): Promise<CatalogSeedItem[]> {
     const { items } = await this.runCollectors();
     return items;
+  }
+
+  async collectVerifiedCatalogItems(): Promise<CatalogSeedItem[]> {
+    const items = await new VerifiedCatalogCollector(this.verifiedPath).collect();
+    return items.map((item) => item.catalogItem);
+  }
+
+  async seedVerifiedCatalog(): Promise<number> {
+    const items = await this.collectVerifiedCatalogItems();
+    if (this.persist) {
+      await this.persistCatalog(items, { pruneMissing: false });
+    }
+    return items.length;
   }
 
   private async runCollectors(): Promise<CollectionRunResult> {
@@ -690,24 +813,31 @@ export class RegistrySyncService {
   }
 
   async syncAll(): Promise<RegistrySyncSummary> {
+    const startedAt = new Date();
     const { items, errors } = await this.runCollectors();
 
     if (this.persist) {
-      await this.persistCatalog(items);
+      await this.persistCatalog(items, { pruneMissing: errors.length === 0 });
     }
 
     const counts = toResult(items);
-    return {
+    const summary = {
       mcps: { added: counts.mcps, updated: 0, errors: 0 },
       skills: { added: counts.skills, updated: 0, errors: 0 },
       rules: { added: counts.rules, updated: 0, errors: 0 },
       workflows: { added: counts.workflows, updated: 0, errors: 0 },
       totalItems: items.length,
       sourceErrors: errors,
-    };
+    } satisfies RegistrySyncSummary;
+
+    if (this.persist) {
+      await this.recordSyncRun(summary, startedAt, new Date());
+    }
+
+    return summary;
   }
 
-  private async persistCatalog(items: CatalogSeedItem[]) {
+  private async persistCatalog(items: CatalogSeedItem[], opts: { pruneMissing?: boolean } = {}) {
     if (items.length === 0) {
       return;
     }
@@ -722,30 +852,72 @@ export class RegistrySyncService {
     ]);
 
     const ids = items.map((item) => item.id);
+    const syncTime = new Date();
 
-    for (const item of items) {
-      await db.insert(catalogItems).values({
-        id: item.id,
-        type: item.type,
-        displayName: item.displayName,
-        description: item.description,
-        icon: item.icon,
-        verified: item.verified,
-        data: item.data as any,
-      }).onConflictDoUpdate({
-        target: catalogItems.id,
-        set: {
+    for (let start = 0; start < items.length; start += PERSIST_BATCH_SIZE) {
+      const chunk = items.slice(start, start + PERSIST_BATCH_SIZE);
+
+      await db.insert(catalogItems).values(
+        chunk.map((item) => ({
+          id: item.id,
           type: item.type,
           displayName: item.displayName,
           description: item.description,
           icon: item.icon,
+          sourceName: item.sourceName,
+          sourceUrl: item.sourceUrl,
           verified: item.verified,
           data: item.data as any,
-          createdAt: new Date(),
+          firstSeenAt: syncTime,
+          lastSeenAt: syncTime,
+          lastSyncedAt: syncTime,
+          createdAt: syncTime,
+        }))
+      ).onConflictDoUpdate({
+        target: catalogItems.id,
+        set: {
+          type: sql.raw("excluded.type"),
+          displayName: sql.raw("excluded.display_name"),
+          description: sql.raw("excluded.description"),
+          icon: sql.raw("excluded.icon"),
+          sourceName: sql.raw("excluded.source_name"),
+          sourceUrl: sql.raw("excluded.source_url"),
+          verified: sql.raw("excluded.verified"),
+          data: sql.raw("excluded.data"),
+          firstSeenAt: sql`coalesce(${catalogItems.firstSeenAt}, excluded.first_seen_at)`,
+          lastSeenAt: sql.raw("excluded.last_seen_at"),
+          lastSyncedAt: sql.raw("excluded.last_synced_at"),
+          createdAt: sql.raw("excluded.created_at"),
         },
       });
     }
 
-    await db.delete(catalogItems).where(notInArray(catalogItems.id, ids));
+    if (opts.pruneMissing) {
+      await db.delete(catalogItems).where(notInArray(catalogItems.id, ids));
+    }
+  }
+
+  private async recordSyncRun(summary: RegistrySyncSummary, startedAt: Date, completedAt: Date) {
+    const loadCore = new Function("return import('@vibebasket/core')") as () => Promise<{
+      db: any;
+      catalogSyncRuns: any;
+      ensureDatabaseIndexes: () => Promise<void>;
+    }>;
+    const { db, catalogSyncRuns, ensureDatabaseIndexes } = await loadCore();
+
+    await ensureDatabaseIndexes();
+    await db.insert(catalogSyncRuns).values({
+      trigger: this.trigger,
+      success: summary.sourceErrors.length === 0,
+      totalItems: summary.totalItems,
+      mcps: summary.mcps.added,
+      skills: summary.skills.added,
+      rules: summary.rules.added,
+      workflows: summary.workflows.added,
+      durationMs: Math.max(0, completedAt.getTime() - startedAt.getTime()),
+      sourceErrors: summary.sourceErrors,
+      startedAt,
+      completedAt,
+    });
   }
 }

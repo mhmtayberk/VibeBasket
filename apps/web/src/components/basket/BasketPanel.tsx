@@ -241,40 +241,42 @@ export function BasketPanel({
               </div>
             </div>
 
-            <div>
-              <div className="mb-2 flex items-center justify-between">
-                <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-                  Ecosystem watchlist
-                </p>
-                <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground/80">
-                  {roadmapTargets.length} soon
-                </span>
-              </div>
+            {roadmapTargets.length > 0 ? (
+              <div>
+                <div className="mb-2 flex items-center justify-between">
+                  <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+                    Ecosystem watchlist
+                  </p>
+                  <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground/80">
+                    {roadmapTargets.length} soon
+                  </span>
+                </div>
 
-              <div className="grid max-h-56 grid-cols-2 gap-2 overflow-y-auto pr-1">
-                {roadmapTargets.map((target) => (
-                  <button
-                    key={target.id}
-                    type="button"
-                    onClick={() => toggleTarget(target.id)}
-                    aria-disabled
-                    className="min-h-14 border border-border/50 bg-background/25 px-3 py-2 text-left text-muted-foreground/60"
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-sm font-medium">{target.label}</span>
-                    </div>
-                    <div className="mt-1 text-[10px] text-muted-foreground/85">
-                      {target.vendor}
-                    </div>
-                  </button>
-                ))}
+                <div className="grid max-h-56 grid-cols-2 gap-2 overflow-y-auto pr-1">
+                  {roadmapTargets.map((target) => (
+                    <button
+                      key={target.id}
+                      type="button"
+                      onClick={() => toggleTarget(target.id)}
+                      aria-disabled
+                      className="min-h-14 border border-border/50 bg-background/25 px-3 py-2 text-left text-muted-foreground/60"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-sm font-medium">{target.label}</span>
+                      </div>
+                      <div className="mt-1 text-[10px] text-muted-foreground/85">
+                        {target.vendor}
+                      </div>
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            ) : null}
           </div>
 
           <p className="text-xs leading-6 text-muted-foreground">
-            Installed targets stay clickable only when the adapter exists. The rest are visible on purpose
-            so the catalog reflects the real AI IDE landscape without pretending we already support every apply path.
+            Installed targets stay clickable only when the adapter exists, and the bundle API validates
+            the same supported set before generating install commands.
           </p>
         </div>
 
