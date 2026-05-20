@@ -74,7 +74,7 @@ export class ZedAdapter implements IdeAdapter {
 
       if (mcp.runtime === "remote") {
         next.context_servers[mcp.id] = {
-          url: mcp.url,
+          ...(mcp.url ? { url: mcp.url } : {}),
         };
         continue;
       }

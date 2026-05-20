@@ -1,12 +1,22 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight, Search, SlidersHorizontal, X } from "lucide-react";
 import { useDebounce } from "@/hooks/use-debounce";
+import type { EnabledAuthProvider } from "@/auth.config";
 import type { BasketItem } from "@/store/basketStore";
 import { BasketPanel } from "@/components/basket/BasketPanel";
 import { ItemCard } from "./ItemCard";
 import { cn } from "@/lib/utils";
+import { withCatalogTrust } from "@/lib/catalog-trust";
+import {
+  SORT_OPTIONS,
+  TRUST_FILTER_OPTIONS,
+  getCatalogDiscoveryDefaults,
+  isDefaultCatalogDiscoveryState,
+  type CatalogSort,
+  type CatalogTrustFilter,
+} from "@/lib/catalog-discovery";
 
 type TabKey = "mcps" | "skills" | "rules";
 
@@ -18,7 +28,7 @@ const TAB_TO_TYPE: Record<TabKey, "mcp" | "skill" | "rule"> = {
   rules: "rule",
 };
 
-interface CatalogResponse {
+export interface CatalogResponse {
   items: BasketItem[];
   pagination: {
     page: number;
@@ -30,7 +40,45 @@ interface CatalogResponse {
   };
 }
 
-async function fetchCatalog(query: string, activeTab: TabKey, page: number): Promise<CatalogResponse> {
+interface CatalogGridProps {
+  initialCatalog?: CatalogResponse;
+  isSignedIn?: boolean;
+  enabledProviders?: EnabledAuthProvider[];
+}
+
+function deriveSourceHint(item: any) {
+  const source = item?.data?.source;
+
+  if (source?.type === "github" && source.repo) {
+    return source.path ? `${source.repo} · ${source.path}` : source.repo;
+  }
+
+  if (source?.type === "npm" && source.package) {
+    return source.version ? `${source.package}@${source.version}` : source.package;
+  }
+
+  if (item?.type === "mcp") {
+    if (item?.data?.catalogRef) {
+      return item.data.catalogRef.replace(/^mcp-registry:/, "");
+    }
+
+    if (item?.data?.url) {
+      return item.data.url;
+    }
+  }
+
+  return undefined;
+}
+
+async function fetchCatalog(
+  query: string,
+  activeTab: TabKey,
+  page: number,
+  discovery: {
+    trust: CatalogTrustFilter;
+    sort: CatalogSort;
+  }
+): Promise<CatalogResponse> {
   const controller = new AbortController();
   const timeoutId = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   const params = new URLSearchParams({
@@ -38,6 +86,8 @@ async function fetchCatalog(query: string, activeTab: TabKey, page: number): Pro
     limit: `${PAGE_SIZE}`,
     q: query,
     type: TAB_TO_TYPE[activeTab],
+    trust: discovery.trust,
+    sort: discovery.sort,
   });
 
   try {
@@ -54,12 +104,17 @@ async function fetchCatalog(query: string, activeTab: TabKey, page: number): Pro
 
     return {
       items: (payload.items as any[]).map((item) => ({
-        id: item.id,
-        type: item.type,
-        name: item.displayName,
-        description: item.description ?? "",
-        icon: item.icon,
-        mcpData: item.data,
+        ...withCatalogTrust({
+          id: item.id,
+          type: item.type,
+          name: item.displayName,
+          description: item.description ?? "",
+          icon: item.icon,
+          mcpData: item.data,
+          sourceMeta: {
+            hint: deriveSourceHint(item),
+          },
+        }, item),
       })),
       pagination: payload.pagination,
     };
@@ -73,14 +128,22 @@ async function fetchCatalog(query: string, activeTab: TabKey, page: number): Pro
   }
 }
 
-export function CatalogGrid() {
-  const [items, setItems] = useState<BasketItem[]>([]);
-  const [loading, setLoading] = useState(true);
+export function CatalogGrid({
+  initialCatalog,
+  isSignedIn = false,
+  enabledProviders = [],
+}: CatalogGridProps) {
+  const defaultDiscovery = getCatalogDiscoveryDefaults();
+  const [items, setItems] = useState<BasketItem[]>(initialCatalog?.items ?? []);
+  const [loading, setLoading] = useState(!initialCatalog);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<TabKey>("mcps");
+  const [trustFilter, setTrustFilter] = useState<CatalogTrustFilter>(defaultDiscovery.trust);
+  const [sortOption, setSortOption] = useState<CatalogSort>(defaultDiscovery.sort);
+  const [showFilters, setShowFilters] = useState(false);
   const [page, setPage] = useState(1);
-  const [pagination, setPagination] = useState<CatalogResponse["pagination"]>({
+  const [pagination, setPagination] = useState<CatalogResponse["pagination"]>(initialCatalog?.pagination ?? {
     page: 1,
     limit: PAGE_SIZE,
     total: 0,
@@ -90,13 +153,30 @@ export function CatalogGrid() {
   });
   const debouncedSearch = useDebounce(searchQuery, 300);
   const fetchIdRef = useRef(0);
+  const shouldUseInitialCatalogRef = useRef(Boolean(initialCatalog));
+  const discoveryState = {
+    trust: trustFilter,
+    freshness: defaultDiscovery.freshness,
+    sort: sortOption,
+  };
 
   useEffect(() => {
+    if (
+      shouldUseInitialCatalogRef.current &&
+      activeTab === "mcps" &&
+      debouncedSearch === "" &&
+      page === 1 &&
+      isDefaultCatalogDiscoveryState(discoveryState)
+    ) {
+      shouldUseInitialCatalogRef.current = false;
+      return;
+    }
+
     const id = ++fetchIdRef.current;
     setLoading(true);
     setError(null);
 
-    fetchCatalog(debouncedSearch, activeTab, page)
+    fetchCatalog(debouncedSearch, activeTab, page, discoveryState)
       .then((response) => {
         if (id !== fetchIdRef.current) return;
         setItems(response.items);
@@ -109,11 +189,11 @@ export function CatalogGrid() {
         setError(err.message);
         setLoading(false);
       });
-  }, [activeTab, debouncedSearch, page]);
+  }, [activeTab, debouncedSearch, page, trustFilter, sortOption]);
 
   useEffect(() => {
     setPage(1);
-  }, [activeTab, debouncedSearch]);
+  }, [activeTab, debouncedSearch, trustFilter, sortOption]);
 
   const tabMap: Record<TabKey, { label: string; eyebrow: string; empty: string }> = {
     mcps: {
@@ -136,6 +216,15 @@ export function CatalogGrid() {
   const currentTab = tabMap[activeTab];
   const pageStart = pagination.total === 0 ? 0 : (pagination.page - 1) * pagination.limit + 1;
   const pageEnd = pagination.total === 0 ? 0 : Math.min(pagination.total, pagination.page * pagination.limit);
+  const hasActiveDiscoveryFilters = !isDefaultCatalogDiscoveryState(discoveryState);
+  const activeFilterSummaries = [
+    trustFilter !== defaultDiscovery.trust
+      ? TRUST_FILTER_OPTIONS.find((option) => option.value === trustFilter)?.label
+      : null,
+    sortOption !== defaultDiscovery.sort
+      ? SORT_OPTIONS.find((option) => option.value === sortOption)?.label
+      : null,
+  ].filter(Boolean) as string[];
 
   return (
     <div className="border-t border-border/80">
@@ -154,7 +243,7 @@ export function CatalogGrid() {
         </div>
 
         <div className="mt-8 flex flex-wrap gap-2">
-          {["Trusted sources", "Verified-first ordering", `${PAGE_SIZE} items per page`].map((chip) => (
+          {["Trusted sources", "Trust-aware discovery", `${PAGE_SIZE} items per page`].map((chip) => (
             <span
               key={chip}
               className="inline-flex border border-border/70 bg-background/40 px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground"
@@ -191,7 +280,7 @@ export function CatalogGrid() {
               </div>
 
               <div className="border-b border-border/70 px-4 py-4 sm:px-5">
-                <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-end">
+                <div className="grid gap-4">
                   <div>
                     <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
                       {currentTab.eyebrow}
@@ -212,14 +301,114 @@ export function CatalogGrid() {
                     </div>
                   </div>
 
-                  <div className="grid gap-1 text-sm text-muted-foreground sm:text-right">
-                    <span>
-                      Showing <span className="font-medium text-foreground">{pageStart}-{pageEnd}</span> of{" "}
-                      <span className="font-medium text-foreground">{pagination.total}</span>
-                    </span>
-                    <span className="font-mono text-[11px] uppercase tracking-[0.18em]">
-                      Page {pagination.page}{pagination.totalPages > 0 ? ` / ${pagination.totalPages}` : ""}
-                    </span>
+                  <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-end">
+                    <div className="grid gap-3">
+                      <div className="flex flex-wrap items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() => setShowFilters((current) => !current)}
+                          aria-expanded={showFilters}
+                          className={cn(
+                            "inline-flex h-10 items-center gap-2 border px-3 font-mono text-[11px] uppercase tracking-[0.18em] transition-colors",
+                            showFilters || hasActiveDiscoveryFilters
+                              ? "border-accent/60 bg-accent/10 text-accent"
+                              : "border-border/70 bg-background/30 text-muted-foreground hover:border-accent/40 hover:text-foreground"
+                          )}
+                        >
+                          <SlidersHorizontal className="h-4 w-4" />
+                          Filters
+                          {activeFilterSummaries.length > 0 ? (
+                            <span className="inline-flex min-w-5 items-center justify-center border border-accent/40 px-1.5 py-0.5 text-[10px] text-accent">
+                              {activeFilterSummaries.length}
+                            </span>
+                          ) : null}
+                          <ChevronDown
+                            className={cn(
+                              "h-4 w-4 transition-transform",
+                              showFilters && "rotate-180"
+                            )}
+                          />
+                        </button>
+
+                        {activeFilterSummaries.length > 0 ? (
+                          <>
+                            <div className="flex flex-wrap gap-2">
+                              {activeFilterSummaries.map((summary) => (
+                                <span
+                                  key={summary}
+                                  className="inline-flex border border-accent/30 bg-accent/10 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-accent"
+                                >
+                                  {summary}
+                                </span>
+                              ))}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setTrustFilter(defaultDiscovery.trust);
+                                setSortOption(defaultDiscovery.sort);
+                              }}
+                              className="inline-flex h-9 items-center gap-2 border border-border/70 px-3 font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:border-accent/40 hover:text-foreground"
+                            >
+                              <X className="h-3.5 w-3.5" />
+                              Clear
+                            </button>
+                          </>
+                        ) : null}
+                      </div>
+
+                      {showFilters ? (
+                        <div className="grid gap-3 border border-border/70 bg-background/20 p-3 md:grid-cols-3">
+                          {[
+                            {
+                              label: "Trust",
+                              value: trustFilter,
+                              onChange: setTrustFilter,
+                              options: TRUST_FILTER_OPTIONS,
+                            },
+                            {
+                              label: "Sort",
+                              value: sortOption,
+                              onChange: setSortOption,
+                              options: SORT_OPTIONS,
+                            },
+                          ].map((group) => (
+                            <div key={group.label}>
+                              <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+                                {group.label}
+                              </p>
+                              <div className="mt-2 flex flex-wrap gap-2">
+                                {group.options.map((option) => (
+                                  <button
+                                    key={option.value}
+                                    type="button"
+                                    onClick={() => group.onChange(option.value as never)}
+                                    className={cn(
+                                      "border px-3 py-2 font-mono text-[11px] uppercase tracking-[0.18em] transition-colors",
+                                      group.value === option.value
+                                        ? "border-accent bg-accent/10 text-accent"
+                                        : "border-border/70 bg-background/30 text-muted-foreground hover:border-accent/40 hover:text-foreground"
+                                    )}
+                                  >
+                                    {option.label}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : null}
+                    </div>
+
+                    <div className="grid gap-1 text-sm text-muted-foreground xl:text-right">
+                      <span>
+                        Showing <span className="font-medium text-foreground">{pageStart}-{pageEnd}</span> of{" "}
+                        <span className="font-medium text-foreground">{pagination.total}</span>
+                      </span>
+                      <span className="font-mono text-[11px] uppercase tracking-[0.18em]">
+                        Page {pagination.page}{pagination.totalPages > 0 ? ` / ${pagination.totalPages}` : ""}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -241,7 +430,7 @@ export function CatalogGrid() {
                         setError(null);
                         setLoading(true);
                         fetchIdRef.current++;
-                        fetchCatalog(debouncedSearch, activeTab, page)
+                        fetchCatalog(debouncedSearch, activeTab, page, discoveryState)
                           .then((response) => {
                             setItems(response.items);
                             setPagination(response.pagination);
@@ -304,7 +493,11 @@ export function CatalogGrid() {
             </div>
           </div>
 
-          <BasketPanel className="hidden lg:block" />
+          <BasketPanel
+            className="hidden lg:block"
+            isSignedIn={isSignedIn}
+            enabledProviders={enabledProviders}
+          />
         </div>
       </div>
     </div>

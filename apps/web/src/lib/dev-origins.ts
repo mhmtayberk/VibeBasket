@@ -3,7 +3,9 @@ import os from "node:os";
 export function getAllowedDevOrigins() {
   const origins = new Set<string>([
     "localhost",
+    "*.localhost",
     "127.0.0.1",
+    "127.*.*.*",
     "::1",
   ]);
 

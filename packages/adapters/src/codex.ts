@@ -46,9 +46,12 @@ function parseInlineTable(value: string): Record<string, string> {
       .split(",")
       .map((part) => part.trim())
       .filter(Boolean)
-      .map((part) => {
+      .flatMap((part) => {
         const [rawKey, rawValue] = part.split("=").map((token) => token.trim());
-        return [rawKey.replace(/^"(.*)"$/, "$1"), rawValue.replace(/^"(.*)"$/, "$1")];
+        if (!rawKey || !rawValue) {
+          return [];
+        }
+        return [[rawKey.replace(/^"(.*)"$/, "$1"), rawValue.replace(/^"(.*)"$/, "$1")] as const];
       })
   );
 }
@@ -97,12 +100,12 @@ function parseCodexToml(content: string): Record<string, BasicMcpServerConfig> {
     }
 
     const [, key, rawValue] = kvMatch;
-    const value = rawValue.trim();
     const target = result[currentName];
 
-    if (!target || !key) {
+    if (!target || !key || !rawValue) {
       continue;
     }
+    const value = rawValue.trim();
 
     if (key === "command" || key === "url" || key === "type") {
       target[key] = value.replace(/^"(.*)"$/, "$1");

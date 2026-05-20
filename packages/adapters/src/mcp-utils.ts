@@ -35,7 +35,7 @@ export function toStandardMcpServerConfig(
   if (mcp.runtime === "remote") {
     return {
       type: "http",
-      url: mcp.url,
+      ...(mcp.url ? { url: mcp.url } : {}),
     };
   }
 
