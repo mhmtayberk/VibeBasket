@@ -3,6 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import type { IdeAdapter } from "./types";
 import type { IdeId, McpEntry, Scope } from "@vibebasket/core";
+import { resolveMcpEnv } from "./mcp-utils";
 
 export interface AntigravityMcpConfig {
   mcpServers: Record<
@@ -63,14 +64,7 @@ export class AntigravityAdapter implements IdeAdapter {
         continue;
       }
 
-      const resolvedEnv: Record<string, string> = {};
-      for (const [k, v] of Object.entries(mcp.env)) {
-        let val = v;
-        for (const [secName, secVal] of Object.entries(secrets)) {
-          val = val.replace(`\${secret:${secName}}`, secVal);
-        }
-        resolvedEnv[k] = val;
-      }
+      const resolvedEnv = resolveMcpEnv(mcp.env, secrets);
 
       const nextMcp: NonNullable<AntigravityMcpConfig["mcpServers"][string]> = {
         command: mcp.command || mcp.runtime,

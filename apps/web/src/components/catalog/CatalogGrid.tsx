@@ -7,6 +7,7 @@ import type { BasketItem } from "@/store/basketStore";
 import { BasketPanel } from "@/components/basket/BasketPanel";
 import { ItemCard } from "./ItemCard";
 import { cn } from "@/lib/utils";
+import { withCatalogTrust } from "@/lib/catalog-trust";
 
 type TabKey = "mcps" | "skills" | "rules";
 
@@ -18,7 +19,7 @@ const TAB_TO_TYPE: Record<TabKey, "mcp" | "skill" | "rule"> = {
   rules: "rule",
 };
 
-interface CatalogResponse {
+export interface CatalogResponse {
   items: BasketItem[];
   pagination: {
     page: number;
@@ -28,6 +29,10 @@ interface CatalogResponse {
     hasNextPage: boolean;
     hasPreviousPage: boolean;
   };
+}
+
+interface CatalogGridProps {
+  initialCatalog?: CatalogResponse;
 }
 
 async function fetchCatalog(query: string, activeTab: TabKey, page: number): Promise<CatalogResponse> {
@@ -54,12 +59,14 @@ async function fetchCatalog(query: string, activeTab: TabKey, page: number): Pro
 
     return {
       items: (payload.items as any[]).map((item) => ({
+        ...withCatalogTrust({
         id: item.id,
         type: item.type,
         name: item.displayName,
         description: item.description ?? "",
         icon: item.icon,
         mcpData: item.data,
+      }, item),
       })),
       pagination: payload.pagination,
     };
@@ -73,14 +80,14 @@ async function fetchCatalog(query: string, activeTab: TabKey, page: number): Pro
   }
 }
 
-export function CatalogGrid() {
-  const [items, setItems] = useState<BasketItem[]>([]);
-  const [loading, setLoading] = useState(true);
+export function CatalogGrid({ initialCatalog }: CatalogGridProps) {
+  const [items, setItems] = useState<BasketItem[]>(initialCatalog?.items ?? []);
+  const [loading, setLoading] = useState(!initialCatalog);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<TabKey>("mcps");
   const [page, setPage] = useState(1);
-  const [pagination, setPagination] = useState<CatalogResponse["pagination"]>({
+  const [pagination, setPagination] = useState<CatalogResponse["pagination"]>(initialCatalog?.pagination ?? {
     page: 1,
     limit: PAGE_SIZE,
     total: 0,
@@ -90,8 +97,14 @@ export function CatalogGrid() {
   });
   const debouncedSearch = useDebounce(searchQuery, 300);
   const fetchIdRef = useRef(0);
+  const shouldUseInitialCatalogRef = useRef(Boolean(initialCatalog));
 
   useEffect(() => {
+    if (shouldUseInitialCatalogRef.current && activeTab === "mcps" && debouncedSearch === "" && page === 1) {
+      shouldUseInitialCatalogRef.current = false;
+      return;
+    }
+
     const id = ++fetchIdRef.current;
     setLoading(true);
     setError(null);

@@ -44,6 +44,24 @@
 - Expanded the visible target ecosystem list to include more current AI IDEs and agent CLIs while keeping bundle generation restricted to adapter-backed targets.
 - Promoted Claude Code, Zed, Gemini CLI, Junie, Kiro, and Cline CLI from watchlist-only visibility into real adapter-backed bundle targets.
 - Added a Codex CLI adapter and closed the project-scope path propagation bug in the CLI apply flow.
+- Removed `Trae` from the visible target list so the UI only reflects real supported apply paths.
+- Restored the hero AI IDE rail to a sliding icon marquee.
+- Refreshed the lockfile so workspace-wide install, test, typecheck, and build verification can run again.
+- Fixed backend/workspace verification gaps caused by missing package dependencies, a broken Tailwind plugin import, CLI no-test handling, and strict TypeScript typing issues in adapters/registry.
+- Verified the current repo with full workspace commands: `pnpm -r run typecheck`, `pnpm -r run test`, and `pnpm -r run build`.
+- Eliminated the main recurring `Loading catalog` risk by seeding verified catalog data immediately on the first empty request and moving full upstream sync work behind the request path.
+- Improved homepage SEO basics with stronger metadata and structured data.
+- Further hardened catalog startup by scheduling background sync after the request and by preventing partial upstream failures from pruning existing catalog entries.
+- Added server-rendered initial catalog data to the homepage so the builder first paint is populated from SQLite instead of waiting on client-side `/api/catalog`.
+- Confirmed the running dev server returns `8344` MCP entries and Firefox renders the first catalog page after reload.
+- Fixed registry generated IDs so official MCP variants and case-different skills.sh entries no longer overwrite each other during persistence.
+- Re-ran live full sync and confirmed `24534` total rows, `24534` distinct IDs, `19607` MCP rows, `4925` skill rows, and zero canonical duplicate MCP/skill rows.
+- Protected production `refresh=1` catalog sync with `CATALOG_REFRESH_TOKEN` to reduce unauthenticated DoS/cost exposure.
+- Added `pnpm catalog:sync`, `pnpm catalog:sync:dry`, and `/api/catalog/status` so operators can refresh and inspect catalog health without poking around in SQLite manually.
+- Ran surface E2E smoke on the live dev server (`catalog -> bundle create -> bundle fetch`), plus edge-case API checks and a chaos-style partial upstream failure check.
+- Implemented batched registry persistence and item-level freshness/source metadata on `catalog_items`.
+- Verified the new metadata layer live: `24630` rows had `first_seen_at`, `last_seen_at`, and `last_synced_at`, while `24624` rows also carried a non-empty `source_url`.
+- Added trust scoring derived from existing metadata and surfaced it in the catalog UI with tier badges and freshness labels.
 
 ## In Progress
 - Improving registry persistence performance for very large sync runs.
