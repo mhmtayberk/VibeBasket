@@ -108,3 +108,13 @@ All notable changes to this project will be documented in this file.
 - Expanded local skill search matching to include `sourceUrl` and raw stored `data`, improving repo/path-based queries like `postgresql`.
 - Fixed large-catalog SQLite pruning by replacing a single huge `NOT IN (...)` delete with chunked stale-row deletes under the parameter limit.
 - Verified a live persisted sync now completes successfully with `20827` MCPs, `19932` skills, `1` rule, `1` workflow, and `0` source errors (`40761` total rows).
+- Added bundle route tests and hardened `/api/bundle` around typed manifest partitioning, missing-item rejection, unsupported-target validation, and real-byte payload limits.
+- Cleaned low-risk code-quality debt across CLI and web surfaces by removing a dead mock catalog file, centralizing auth-required JSON responses, simplifying basket state, and replacing several `any`/non-null shortcuts with explicit typed helpers.
+- Added a lightweight Playwright E2E harness for the homepage/catalog smoke path and verified two browser flows against a live local dev server.
+- Re-validated the app with live smoke timings: homepage around `0.98s`, first-page catalog API around `54ms`, and catalog status around `184ms`.
+- Fixed local verification drift by correcting the shared `ignoreDeprecations` setting and refreshing missing dependencies needed for `next`, `next-auth`, Playwright, and Vitest-based checks on this machine.
+- Added a shared workspace-root Vitest launcher (`scripts/run-vitest.mjs`) and repointed package test scripts to it, eliminating package-local pnpm/Vitest resolution drift during recursive test runs.
+- Added an explicit `apps/web` Vitest config so browser E2E files and `node_modules` fixture tests no longer leak into the unit-test suite.
+- Dropped the Google-hosted Geist font dependency from the app shell, which makes local and CI production builds deterministic without network font fetches.
+- Hardened the Playwright harness to run against an isolated production-like `next start` server with its own test-only auth env, avoiding collisions with an already-running local dev server.
+- Re-verified the full workspace after those changes: `CI=true pnpm -r run typecheck`, `CI=true pnpm -r run test`, `pnpm --filter web lint`, `pnpm --filter web test`, `npx next build`, and `npx playwright test` all pass.

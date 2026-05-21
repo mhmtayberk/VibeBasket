@@ -1,9 +1,9 @@
 {
-  "HomePage": {
-    "title": "VibeBasket",
-    "heroTitle": "Bundle your AI dev setup. One link. All your IDEs.",
-    "heroSubtitle": "The Ninite for vibe coding. Select your MCP servers, skills, and rules, and apply them across Cursor, Windsurf, Claude Code, and more with a single command.",
-    "browseCatalog": "Browse Catalog",
-    "buildBasket": "Build a Basket"
-  }
+	"HomePage": {
+		"title": "VibeBasket",
+		"heroTitle": "Bundle your AI dev setup. One link. All your IDEs.",
+		"heroSubtitle": "The Ninite for vibe coding. Select your MCP servers, skills, and rules, and apply them across Cursor, Windsurf, Claude Code, and more with a single command.",
+		"browseCatalog": "Browse Catalog",
+		"buildBasket": "Build a Basket"
+	}
 }

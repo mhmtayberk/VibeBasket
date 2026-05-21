@@ -101,9 +101,26 @@
 - Replaced that enrichment path with local-only search over a much larger synced corpus and expanded the skill search predicate to include `sourceUrl` and raw stored `data`.
 - Switched skills ingestion from homepage/directory scraping to the public skills sitemap index plus skill sitemaps, which now yields the full published skills corpus.
 - Confirmed a live dry sync returns `19932` skills, `20826` MCPs, and `0` source errors; a subsequent live persisted sync completed with `19932` skills, `20827` MCPs, and `40761` total catalog rows.
+- Added focused bundle-route tests for happy path, oversize payload rejection, missing fields, unsupported targets, missing catalog items, and bundle fetch/404 handling.
+- Tightened bundle route typing so catalog JSON is partitioned through explicit schema parsing instead of broad `any` casts.
+- Cleaned low-risk code-quality issues across CLI and web surfaces: removed the dead mock catalog file, centralized auth-required JSON responses, simplified basket state, and replaced several `any`/non-null shortcuts with explicit typed helpers.
+- Brought `apps/web` back to a clean `biome check` state, including targeted lint overrides for Tailwind CSS at-rules and the generic reusable label component.
+- Added a minimal Playwright E2E harness (`apps/web/playwright.config.ts`, `apps/web/e2e/home.spec.ts`) and verified two smoke flows against a live dev server.
+- Verified live performance smoke against the running app: homepage `200` in about `0.98s`, catalog API `200` in about `54ms`, and catalog status API `200` in about `184ms`.
+- Re-ran package-level tests directly where needed and confirmed:
+  - `apps/web`: 36 tests passed
+  - `packages/core`: 12 tests passed
+  - `packages/registry`: 10 tests passed
+  - `packages/adapters`: 21 tests passed
+  - `apps/cli`: 2 tests passed
+- Re-ran monorepo type validation and confirmed `CI=true pnpm -r run typecheck` passes after the web/TS fixes.
 - Fixed a scale bug in catalog pruning by replacing one giant `NOT IN (...)` delete with chunked stale-row deletes that stay under SQLite parameter limits.
 - Downloaded public agent SVG assets for the marquee so supported targets like Codex and Kiro no longer fall back to plain text.
 - Ran a lightweight Codex Security review and fixed two low-risk, worthwhile issues: Auth.js `trustHost` is now explicit in production, and `/api/bundle` now enforces the body-size limit using the real payload bytes.
+- Added a workspace-root Vitest launcher (`scripts/run-vitest.mjs`) and updated all package/app test scripts to call it, which fixed recursive test failures caused by broken package-local Vitest symlinks on this machine.
+- Added `apps/web/vitest.config.ts` so Vitest now only runs `src/**/*.test|spec` and ignores Playwright `e2e/**` plus `node_modules` fixture suites.
+- Removed the app-shell dependency on Google-hosted Geist fonts, so `npx next build` now succeeds without network font fetches.
+- Hardened the Playwright harness to use an isolated `next start` server on its own port with test-only auth env (`AUTH_TRUST_HOST`, `AUTH_SECRET`), then re-ran `npx playwright test` successfully.
 
 ## In Progress
 - Improving registry persistence performance for very large sync runs.

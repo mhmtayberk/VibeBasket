@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import { createRequire } from "node:module";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { sql } from "drizzle-orm";
 import { z } from "zod";
 
@@ -12,11 +12,18 @@ const DEFAULT_FETCH_RETRIES = 1;
 const PERSIST_BATCH_SIZE = 250;
 const PRUNE_BATCH_SIZE = 500;
 const MODULE_DIR = path.dirname(fileURLToPath(import.meta.url));
+const CORE_SOURCE_ENTRY_URL = pathToFileURL(
+  path.resolve(MODULE_DIR, "../../core/src/index.ts")
+).href;
 const DEFAULT_VERIFIED_PATH = path.resolve(MODULE_DIR, "../data/verified.yaml");
 const require = createRequire(import.meta.url);
 const { load: parseYaml } = require("js-yaml") as {
   load: (input: string) => unknown;
 };
+const dynamicImport = new Function(
+  "specifier",
+  "return import(specifier)"
+) as <T>(specifier: string) => Promise<T>;
 
 export interface SyncResult {
   added: number;
@@ -134,6 +141,18 @@ interface SourceCollector {
 interface CollectionRunResult {
   items: CatalogSeedItem[];
   errors: Array<{ source: string; error: string }>;
+}
+
+async function loadCoreModule<T>() {
+  try {
+    return await dynamicImport<T>("@vibebasket/core");
+  } catch (error) {
+    if (process.env.NODE_ENV === "production") {
+      throw error;
+    }
+
+    return dynamicImport<T>(CORE_SOURCE_ENTRY_URL);
+  }
 }
 
 const mcpRegistryServerSchema = z.object({
@@ -1117,12 +1136,11 @@ export class RegistrySyncService {
       return;
     }
 
-    const loadCore = new Function("return import('@vibebasket/core')") as () => Promise<{
+    const { db, catalogItems } = await loadCoreModule<{
       db: any;
       catalogItems: any;
-    }>;
-    const [{ db, catalogItems }, { inArray }] = await Promise.all([
-      loadCore(),
+    }>();
+    const [{ inArray }] = await Promise.all([
       import("drizzle-orm"),
     ]);
 
@@ -1184,12 +1202,11 @@ export class RegistrySyncService {
   }
 
   private async recordSyncRun(summary: RegistrySyncSummary, startedAt: Date, completedAt: Date) {
-    const loadCore = new Function("return import('@vibebasket/core')") as () => Promise<{
+    const { db, catalogSyncRuns, ensureDatabaseIndexes } = await loadCoreModule<{
       db: any;
       catalogSyncRuns: any;
       ensureDatabaseIndexes: () => Promise<void>;
-    }>;
-    const { db, catalogSyncRuns, ensureDatabaseIndexes } = await loadCore();
+    }>();
 
     await ensureDatabaseIndexes();
     await db.insert(catalogSyncRuns).values({

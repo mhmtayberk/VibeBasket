@@ -1,77 +1,162 @@
-import { NextResponse } from "next/server";
-import { db, bundles, catalogItems, BundleSchema, SCHEMA_VERSION } from "@vibebasket/core";
-import { nanoid } from "nanoid";
+import {
+	type Bundle,
+	BundleSchema,
+	bundles,
+	catalogItems,
+	db,
+	McpEntrySchema,
+	RuleEntrySchema,
+	SCHEMA_VERSION,
+	ScopeSchema,
+	SkillEntrySchema,
+	WorkflowPackEntrySchema,
+} from "@vibebasket/core";
 import { inArray } from "drizzle-orm";
+import { nanoid } from "nanoid";
+import { NextResponse } from "next/server";
 import { z } from "zod";
 import { SUPPORTED_TARGET_IDS } from "@/lib/targets";
 
-type Bundle = z.infer<typeof BundleSchema>;
+const MAX_BUNDLE_BYTES = 100 * 1024;
+
+const createBundleRequestSchema = z.object({
+	targets: z.array(z.string()).min(1),
+	scope: ScopeSchema,
+	itemIds: z.array(z.string()).min(1),
+});
+
+type CatalogBundleRow = Pick<
+	typeof catalogItems.$inferSelect,
+	"id" | "type" | "data"
+>;
+
+function createBundleTooLargeResponse() {
+	return NextResponse.json(
+		{ error: "Bundle too large (max 100KB)" },
+		{ status: 413 },
+	);
+}
+
+function getErrorMessage(error: unknown) {
+	if (error instanceof Error && error.message) {
+		return error.message;
+	}
+
+	return "Internal Server Error";
+}
+
+function partitionBundleItems(
+	selectedItems: CatalogBundleRow[],
+): Omit<Bundle, "schemaVersion" | "scope" | "targets"> {
+	const mcps: Bundle["mcps"] = [];
+	const skills: Bundle["skills"] = [];
+	const rules: Bundle["rules"] = [];
+	const workflowPacks: Bundle["workflowPacks"] = [];
+
+	for (const item of selectedItems) {
+		switch (item.type) {
+			case "mcp":
+				mcps.push(McpEntrySchema.parse(item.data));
+				break;
+			case "skill":
+				skills.push(SkillEntrySchema.parse(item.data));
+				break;
+			case "rule":
+				rules.push(RuleEntrySchema.parse(item.data));
+				break;
+			case "workflow":
+				workflowPacks.push(WorkflowPackEntrySchema.parse(item.data));
+				break;
+			default:
+				break;
+		}
+	}
+
+	return { mcps, skills, rules, workflowPacks };
+}
 
 export async function POST(req: Request) {
-  try {
-    // Security: Limit bundle size to 100KB
-    const contentLength = req.headers.get("content-length");
-    if (contentLength && parseInt(contentLength) > 100 * 1024) {
-      return NextResponse.json({ error: "Bundle too large (max 100KB)" }, { status: 413 });
-    }
+	try {
+		const contentLength = req.headers.get("content-length");
+		if (
+			contentLength &&
+			Number.parseInt(contentLength, 10) > MAX_BUNDLE_BYTES
+		) {
+			return createBundleTooLargeResponse();
+		}
 
-    const rawBody = await req.text();
-    if (Buffer.byteLength(rawBody, "utf8") > 100 * 1024) {
-      return NextResponse.json({ error: "Bundle too large (max 100KB)" }, { status: 413 });
-    }
+		const rawBody = await req.text();
+		if (Buffer.byteLength(rawBody, "utf8") > MAX_BUNDLE_BYTES) {
+			return createBundleTooLargeResponse();
+		}
 
-    const body = JSON.parse(rawBody);
-    const { targets, scope, itemIds } = body;
+		const body = JSON.parse(rawBody);
+		const parsed = createBundleRequestSchema.safeParse(body);
 
-    if (!targets || !scope || !itemIds || !Array.isArray(itemIds)) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
-    }
+		if (!parsed.success) {
+			return NextResponse.json(
+				{ error: "Missing required fields" },
+				{ status: 400 },
+			);
+		}
 
-    const unsupportedTargets = targets.filter((target: string) => !SUPPORTED_TARGET_IDS.includes(target));
-    if (unsupportedTargets.length > 0) {
-      return NextResponse.json(
-        { error: `Unsupported bundle targets: ${unsupportedTargets.join(", ")}` },
-        { status: 400 }
-      );
-    }
+		const { targets, scope, itemIds } = parsed.data;
+		const unsupportedTargets = targets.filter(
+			(target: string) => !SUPPORTED_TARGET_IDS.includes(target),
+		);
+		if (unsupportedTargets.length > 0) {
+			return NextResponse.json(
+				{
+					error: `Unsupported bundle targets: ${unsupportedTargets.join(", ")}`,
+				},
+				{ status: 400 },
+			);
+		}
 
-    // Fetch items from DB
-    const selectedItems = await db.select().from(catalogItems).where(inArray(catalogItems.id, itemIds));
-    const selectedItemIds = new Set(selectedItems.map((item) => item.id));
-    const missingItemIds = itemIds.filter((itemId: string) => !selectedItemIds.has(itemId));
+		// Fetch items from DB
+		const selectedItems = await db
+			.select()
+			.from(catalogItems)
+			.where(inArray(catalogItems.id, itemIds));
+		const selectedItemIds = new Set(selectedItems.map((item) => item.id));
+		const missingItemIds = itemIds.filter(
+			(itemId: string) => !selectedItemIds.has(itemId),
+		);
 
-    if (missingItemIds.length > 0) {
-      return NextResponse.json(
-        { error: `Catalog items not found: ${missingItemIds.join(", ")}` },
-        { status: 400 }
-      );
-    }
+		if (missingItemIds.length > 0) {
+			return NextResponse.json(
+				{ error: `Catalog items not found: ${missingItemIds.join(", ")}` },
+				{ status: 400 },
+			);
+		}
 
-    // Construct manifest
-    const manifest: Bundle = {
-      schemaVersion: SCHEMA_VERSION,
-      scope,
-      targets,
-      mcps: selectedItems.filter(i => i.type === 'mcp').map(i => i.data as any),
-      skills: selectedItems.filter(i => i.type === 'skill').map(i => i.data as any),
-      rules: selectedItems.filter(i => i.type === 'rule').map(i => i.data as any),
-      workflowPacks: selectedItems.filter(i => i.type === 'workflow').map(i => i.data as any),
-    };
+		const { mcps, skills, rules, workflowPacks } =
+			partitionBundleItems(selectedItems);
+		const manifest: Bundle = {
+			schemaVersion: SCHEMA_VERSION,
+			scope,
+			targets: targets as Bundle["targets"],
+			mcps,
+			skills,
+			rules,
+			workflowPacks,
+		};
 
-    // Validate
-    const validated = BundleSchema.parse(manifest);
+		const validated = BundleSchema.parse(manifest);
 
-    // Save
-    const id = nanoid(10);
-    await db.insert(bundles).values({
-      id,
-      manifest: validated,
-    });
+		const id = nanoid(10);
+		await db.insert(bundles).values({
+			id,
+			manifest: validated,
+		});
 
-    const origin = new URL(req.url).origin;
-    return NextResponse.json({ id, url: `${origin}/api/bundle/${id}` });
-  } catch (error: any) {
-    console.error("Failed to create bundle:", error);
-    return NextResponse.json({ error: error.message || "Internal Server Error" }, { status: 500 });
-  }
+		const origin = new URL(req.url).origin;
+		return NextResponse.json({ id, url: `${origin}/api/bundle/${id}` });
+	} catch (error) {
+		console.error("Failed to create bundle:", error);
+		return NextResponse.json(
+			{ error: getErrorMessage(error) },
+			{ status: 500 },
+		);
+	}
 }
