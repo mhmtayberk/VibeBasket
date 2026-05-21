@@ -72,15 +72,25 @@ workflowPacks:
         ],
         metadata: {},
       }],
-      ["https://www.skills.sh/", `
+      ["https://www.skills.sh/official", `
         <html>
           <body>
-            <script>
-              self.__next_f.push([1,"{\\"source\\":\\"vercel-labs/agent-skills\\",\\"skillId\\":\\"next-js-development\\",\\"name\\":\\"next-js-development\\",\\"installs\\":99,\\"isOfficial\\":true}"]);
-              self.__next_f.push([1,"{\\"source\\":\\"copycat/skills\\",\\"skillId\\":\\"next-js-development\\",\\"name\\":\\"next-js-development\\",\\"installs\\":10}"]);
-            </script>
+            <a href="/vercel-labs/agent-skills">Vercel Labs</a>
           </body>
         </html>
+      `],
+      ["https://www.skills.sh/sitemap.xml", `
+        <?xml version="1.0" encoding="UTF-8"?>
+        <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+          <sitemap><loc>https://www.skills.sh/sitemap-skills-1.xml</loc></sitemap>
+        </sitemapindex>
+      `],
+      ["https://www.skills.sh/sitemap-skills-1.xml", `
+        <?xml version="1.0" encoding="UTF-8"?>
+        <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+          <url><loc>https://www.skills.sh/vercel-labs/agent-skills/next-js-development</loc></url>
+          <url><loc>https://www.skills.sh/copycat/skills/next-js-development</loc></url>
+        </urlset>
       `],
     ]);
 
@@ -140,16 +150,22 @@ workflowPacks: []
       if (url === "https://registry.modelcontextprotocol.io/v0.1/servers?limit=100") {
         return new Response(JSON.stringify({ servers: [], metadata: {} }), { status: 200 });
       }
+      if (url === "https://www.skills.sh/official") {
+        return new Response("<html><body></body></html>", {
+          status: 200,
+          headers: { "Content-Type": "text/html" },
+        });
+      }
       if (url === "https://www.skills.sh/") {
         return new Response("<html><body></body></html>", {
           status: 200,
           headers: { "Content-Type": "text/html" },
         });
       }
-      if (url === "https://www.skills.sh/official") {
-        return new Response("<html><body></body></html>", {
+      if (url === "https://www.skills.sh/sitemap.xml") {
+        return new Response(`<?xml version="1.0" encoding="UTF-8"?><sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></sitemapindex>`, {
           status: 200,
-          headers: { "Content-Type": "text/html" },
+          headers: { "Content-Type": "application/xml" },
         });
       }
       throw new Error(`Unexpected URL ${url}`);
@@ -193,7 +209,10 @@ workflowPacks: []
         }), { status: 200 });
       }
 
-      if (url === "https://www.skills.sh/") {
+      if (url === "https://www.skills.sh/official") {
+        return new Response("unavailable", { status: 503 });
+      }
+      if (url === "https://www.skills.sh/sitemap.xml") {
         return new Response("unavailable", { status: 503 });
       }
 
@@ -256,10 +275,16 @@ workflowPacks: []
           metadata: {},
         }), { status: 200 });
       }
-      if (url === "https://www.skills.sh/") {
+      if (url === "https://www.skills.sh/official") {
         return new Response("<html><body></body></html>", {
           status: 200,
           headers: { "Content-Type": "text/html" },
+        });
+      }
+      if (url === "https://www.skills.sh/sitemap.xml") {
+        return new Response(`<?xml version="1.0" encoding="UTF-8"?><sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></sitemapindex>`, {
+          status: 200,
+          headers: { "Content-Type": "application/xml" },
         });
       }
       throw new Error(`Unexpected URL ${url}`);
@@ -296,18 +321,38 @@ workflowPacks: []
         });
       }
 
-      if (url === "https://www.skills.sh/") {
+      if (url === "https://www.skills.sh/official") {
         return new Response(`
           <html>
             <body>
-              <script>
-                self.__next_f.push([1,"{\\"source\\":\\"copycat/skills\\",\\"skillId\\":\\"next-js-development\\",\\"name\\":\\"next-js-development\\",\\"installs\\":10}"]);
-              </script>
+              <a href="/copycat/skills">Copycat</a>
             </body>
           </html>
         `, {
           status: 200,
           headers: { "Content-Type": "text/html" },
+        });
+      }
+      if (url === "https://www.skills.sh/sitemap.xml") {
+        return new Response(`
+          <?xml version="1.0" encoding="UTF-8"?>
+          <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+            <sitemap><loc>https://www.skills.sh/sitemap-skills-1.xml</loc></sitemap>
+          </sitemapindex>
+        `, {
+          status: 200,
+          headers: { "Content-Type": "application/xml" },
+        });
+      }
+      if (url === "https://www.skills.sh/sitemap-skills-1.xml") {
+        return new Response(`
+          <?xml version="1.0" encoding="UTF-8"?>
+          <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+            <url><loc>https://www.skills.sh/copycat/skills/next-js-development</loc></url>
+          </urlset>
+        `, {
+          status: 200,
+          headers: { "Content-Type": "application/xml" },
         });
       }
 
@@ -360,10 +405,16 @@ workflowPacks: []
       if (url === "https://registry.modelcontextprotocol.io/v0.1/servers?limit=100") {
         return new Response(JSON.stringify({ servers: [], metadata: {} }), { status: 200 });
       }
-      if (url === "https://www.skills.sh/") {
+      if (url === "https://www.skills.sh/official") {
         return new Response("<html><body></body></html>", {
           status: 200,
           headers: { "Content-Type": "text/html" },
+        });
+      }
+      if (url === "https://www.skills.sh/sitemap.xml") {
+        return new Response(`<?xml version="1.0" encoding="UTF-8"?><sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></sitemapindex>`, {
+          status: 200,
+          headers: { "Content-Type": "application/xml" },
         });
       }
       throw new Error(`Unexpected URL ${url}`);
@@ -392,19 +443,40 @@ workflowPacks: []
       if (url === "https://registry.modelcontextprotocol.io/v0.1/servers?limit=100") {
         return new Response(JSON.stringify({ servers: [], metadata: {} }), { status: 200 });
       }
-      if (url === "https://www.skills.sh/") {
+      if (url === "https://www.skills.sh/official") {
         return new Response(`
           <html>
             <body>
-              <script>
-                self.__next_f.push([1,"{\\"source\\":\\"anthropics/financial-services\\",\\"skillId\\":\\"3-statement-model\\",\\"name\\":\\"3-statement-model\\",\\"installs\\":100,\\"isOfficial\\":true}"]);
-                self.__next_f.push([1,"{\\"source\\":\\"anthropics/financial-services-plugins\\",\\"skillId\\":\\"3-statement-model\\",\\"name\\":\\"3-statement-model\\",\\"installs\\":90,\\"isOfficial\\":true}"]);
-              </script>
+              <a href="/anthropics/financial-services">Anthropics</a>
+              <a href="/anthropics/financial-services-plugins">Anthropics mirror</a>
             </body>
           </html>
         `, {
           status: 200,
           headers: { "Content-Type": "text/html" },
+        });
+      }
+      if (url === "https://www.skills.sh/sitemap.xml") {
+        return new Response(`
+          <?xml version="1.0" encoding="UTF-8"?>
+          <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+            <sitemap><loc>https://www.skills.sh/sitemap-skills-1.xml</loc></sitemap>
+          </sitemapindex>
+        `, {
+          status: 200,
+          headers: { "Content-Type": "application/xml" },
+        });
+      }
+      if (url === "https://www.skills.sh/sitemap-skills-1.xml") {
+        return new Response(`
+          <?xml version="1.0" encoding="UTF-8"?>
+          <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+            <url><loc>https://www.skills.sh/anthropics/financial-services/3-statement-model</loc></url>
+            <url><loc>https://www.skills.sh/anthropics/financial-services-plugins/3-statement-model</loc></url>
+          </urlset>
+        `, {
+          status: 200,
+          headers: { "Content-Type": "application/xml" },
         });
       }
       throw new Error(`Unexpected URL ${url}`);
@@ -442,18 +514,38 @@ workflowPacks: []
           metadata: {},
         }), { status: 200 });
       }
-      if (url === "https://www.skills.sh/") {
+      if (url === "https://www.skills.sh/official") {
         return new Response(`
           <html>
             <body>
-              <script>
-                self.__next_f.push([1,"{\\"source\\":\\"acme/skills\\",\\"skillId\\":\\"skill-creator\\",\\"name\\":\\"Skill\\u0007 Creator\\",\\"installs\\":3}"]);
-              </script>
+              <a href="/acme/skills">Acme</a>
             </body>
           </html>
         `, {
           status: 200,
           headers: { "Content-Type": "text/html" },
+        });
+      }
+      if (url === "https://www.skills.sh/sitemap.xml") {
+        return new Response(`
+          <?xml version="1.0" encoding="UTF-8"?>
+          <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+            <sitemap><loc>https://www.skills.sh/sitemap-skills-1.xml</loc></sitemap>
+          </sitemapindex>
+        `, {
+          status: 200,
+          headers: { "Content-Type": "application/xml" },
+        });
+      }
+      if (url === "https://www.skills.sh/sitemap-skills-1.xml") {
+        return new Response(`
+          <?xml version="1.0" encoding="UTF-8"?>
+          <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+            <url><loc>https://www.skills.sh/acme/skills/skill-creator</loc></url>
+          </urlset>
+        `, {
+          status: 200,
+          headers: { "Content-Type": "application/xml" },
         });
       }
       throw new Error(`Unexpected URL ${url}`);
@@ -467,5 +559,81 @@ workflowPacks: []
 
     expect(items.find((item) => item.type === "mcp")?.displayName).toBe("Strange MCP");
     expect(items.find((item) => item.type === "skill")?.displayName).toBe("Skill Creator");
+  });
+
+  it("collects full skills from sitemap entries and marks official repos correctly", async () => {
+    const verifiedPath = await createVerifiedCatalog(`
+mcps: []
+skills: []
+workflowPacks: []
+`);
+
+    const fetchImpl: typeof fetch = async (input) => {
+      const url = typeof input === "string" ? input : input.toString();
+      if (url === "https://registry.modelcontextprotocol.io/v0.1/servers?limit=100") {
+        return new Response(JSON.stringify({ servers: [], metadata: {} }), { status: 200 });
+      }
+      if (url === "https://www.skills.sh/official") {
+        return new Response(`
+          <html>
+            <body>
+              <a href="/supabase/agent-skills">Supabase</a>
+            </body>
+          </html>
+        `, {
+          status: 200,
+          headers: { "Content-Type": "text/html" },
+        });
+      }
+      if (url === "https://www.skills.sh/sitemap.xml") {
+        return new Response(`
+          <?xml version="1.0" encoding="UTF-8"?>
+          <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+            <sitemap><loc>https://www.skills.sh/sitemap-skills-1.xml</loc></sitemap>
+            <sitemap><loc>https://www.skills.sh/sitemap-skills-2.xml</loc></sitemap>
+          </sitemapindex>
+        `, {
+          status: 200,
+          headers: { "Content-Type": "application/xml" },
+        });
+      }
+      if (url === "https://www.skills.sh/sitemap-skills-1.xml") {
+        return new Response(`
+          <?xml version="1.0" encoding="UTF-8"?>
+          <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+            <url><loc>https://www.skills.sh/supabase/agent-skills/supabase-postgres-best-practices</loc></url>
+          </urlset>
+        `, {
+          status: 200,
+          headers: { "Content-Type": "application/xml" },
+        });
+      }
+      if (url === "https://www.skills.sh/sitemap-skills-2.xml") {
+        return new Response(`
+          <?xml version="1.0" encoding="UTF-8"?>
+          <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+            <url><loc>https://www.skills.sh/community/repo/postgresql-helper</loc></url>
+          </urlset>
+        `, {
+          status: 200,
+          headers: { "Content-Type": "application/xml" },
+        });
+      }
+      throw new Error(`Unexpected URL ${url}`);
+    };
+
+    const items = await new RegistrySyncService({
+      fetchImpl,
+      persist: false,
+      verifiedPath,
+    }).collectCatalogItems();
+
+    const officialSkill = items.find((item) => item.id === "skill-supabase-agent-skills-supabase-postgres-best-practices");
+    const communitySkill = items.find((item) => item.id === "skill-community-repo-postgresql-helper");
+
+    expect(officialSkill?.sourceName).toBe("skills-sh-official");
+    expect(communitySkill?.sourceName).toBe("skills-sh-community");
+    expect(officialSkill?.sourceUrl).toBe("https://www.skills.sh/supabase/agent-skills/supabase-postgres-best-practices");
+    expect(communitySkill?.displayName).toBe("Postgresql Helper");
   });
 });
