@@ -1,4 +1,5 @@
 import { select, confirm } from "@inquirer/prompts";
+import type { IdeAdapter } from "@vibebasket/adapters";
 import chalk from "chalk";
 import fs from "node:fs";
 import { listBackups } from "./backup.js";
@@ -15,6 +16,10 @@ const ADAPTERS = {
   windsurf: new WindsurfAdapter(),
   vscode: new VSCodeAdapter(),
 } as const;
+
+function getRollbackAdapter(targetId: string): IdeAdapter | undefined {
+  return ADAPTERS[targetId as keyof typeof ADAPTERS];
+}
 
 export async function runRollback() {
   console.log(chalk.yellow("🧺 VibeBasket: Rollback utility\n"));
@@ -47,7 +52,7 @@ export async function runRollback() {
   }
 
   const targetId = selectedBackup.targetId as string;
-  const adapter = (ADAPTERS as any)[targetId];
+  const adapter = getRollbackAdapter(targetId);
   if (!adapter) {
     throw new Error(`No adapter found for target: ${targetId}`);
   }

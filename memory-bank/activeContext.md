@@ -22,6 +22,11 @@
 - Trust scoring is now derived in the web layer from provenance only (`verified` and source family), and the visible UI keeps only `Verified`, `Official`, `Community`, source provenance, and the score itself.
 - The current skills ingestion is intentionally narrower than full `skills.sh` search: we sync the `skills.sh` official surface, not every community result on `skills.sh/?q=...`.
 - That old limitation is now partially lifted: base sync parses the public `skills.sh` directory surface, and skill searches can enrich results live from `skills.sh/?q=...` to cover long-tail community skills without exploding sync cost.
+- That live `skills.sh/?q=...` enrichment assumption turned out to be wrong in practice; the returned HTML embedded broad/global leaderboard data often unrelated to the query, so we removed it.
+- Skills ingestion now uses the public `skills.sh` sitemap index and skill sitemaps, which gives VibeBasket the full published skills corpus without depending on homepage HTML blobs.
+- The current live catalog state after a successful full sync is `20827` MCPs, `19932` skills, `1` rule, and `1` workflow with `0` source errors.
+- Skill search is now local-first again and matches across `displayName`, `description`, `sourceUrl`, and stored JSON `data`, which fixes repo/path-style searches like `postgresql`.
+- Full-corpus prune now uses chunked stale-row deletion to stay under SQLite's parameter limit.
 - Trust metadata is now consumable in catalog browsing through trust filters plus recommended/name sorting; the raw sync-recency surface was intentionally removed from the UI.
 - The catalog filter controls are now collapsed by default and reopen on demand, while active filters remain visible as summary pills next to the trigger.
 - The basket target picker now defaults to `Claude Code` only, and supported targets are rendered alphabetically.
@@ -34,6 +39,7 @@
 ## Next Steps
 - Optimize registry persistence with batch/transaction-based writes; full sync is functionally correct but still heavier than ideal.
 - Revisit catalog search strategy once `LIKE` stops being enough.
+- If search quality needs another pass after full sitemap sync, the next step should be weighted tokenized local search or SQLite FTS, not a return to brittle remote HTML enrichment.
 - Continue product audit across responsive polish, SEO, and installer feature parity for non-MCP item types.
 - Keep the target list current against the fast-moving AI editor ecosystem, but do not expose a target in the UI until there is a real adapter-backed apply path.
 - Verify the redesigned homepage across more real browser/device combinations once a reliable automated screenshot path is available.
@@ -102,3 +108,16 @@
 - Corrected Cursor's user-scope config target to `~/.cursor/mcp.json`, which closes a target-specific install-location accuracy bug.
 - Switched the hero marquee to downloaded public agent SVGs for the targets where the generic icon pack was missing or visually weak, including Codex and Kiro.
 - Broadened skills ingestion from `skills.sh` official-only to the public directory surface, and added live search-query enrichment so specific skill searches can pull in far more community entries on demand.
+- Replaced that hybrid strategy after validating the remote query HTML was semantically wrong; full sitemap-backed local sync is now the source of truth for skills.
+- Fixed a scale bug in persisted syncs where prune-on-sync exceeded SQLite's bound-parameter limit once the skills corpus became large.
+- A lightweight Codex Security pass has now hardened two concrete areas: production auth no longer blindly trusts host headers, and bundle creation enforces its payload size limit on the real body instead of trusting `Content-Length` alone.
+- Added bundle route tests and tightened `/api/bundle` around typed manifest partitioning, real-byte size guards, and clearer missing-item / unsupported-target failure paths.
+- Cleaned low-risk code-quality debt across CLI and web code: removed the dead mock catalog file, centralized auth-required responses, dropped a redundant basket-store selector, and replaced several `any` / non-null shortcuts with explicit typed helpers.
+- Restored clean web verification by fixing Biome drift, correcting the shared `ignoreDeprecations` setting, and refreshing missing local dependencies needed for Next/Auth/Playwright/Vitest checks on this machine.
+- Added a lightweight Playwright E2E harness for homepage load, login CTA visibility, catalog search, and filter reset flows, then ran it successfully against a live local dev server.
+- Collected live smoke timings from the real app: homepage around `0.98s`, `/api/catalog` first-page MCP response around `54ms`, and `/api/catalog/status` around `184ms`.
+- Added a shared `scripts/run-vitest.mjs` launcher and switched package test scripts over to it so recursive workspace tests no longer depend on fragile package-local Vitest symlinks.
+- Added `apps/web/vitest.config.ts` to separate Vitest unit tests from Playwright E2E files and `node_modules` fixture noise.
+- Removed `next/font/google` usage for Geist/Geist Mono in the app shell, which makes production builds succeed without external font fetches.
+- Hardened `apps/web/playwright.config.ts` so browser smoke tests run against an isolated `next start` instance with test-only `AUTH_TRUST_HOST` and `AUTH_SECRET` env values, avoiding collisions with the user's running dev server.
+- Re-verified the current tree with passing results for `pnpm --filter web lint`, `pnpm --filter web test`, `CI=true pnpm -r run typecheck`, `CI=true pnpm -r run test`, `npx next build`, and `npx playwright test`.
