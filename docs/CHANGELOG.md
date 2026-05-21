@@ -101,3 +101,5 @@ All notable changes to this project will be documented in this file.
 - Broadened `skills.sh` ingestion beyond the official page by parsing the public directory surface, while preserving official/community provenance and mirror-aware dedupe.
 - Added live `skills.sh` query enrichment for skill searches in `/api/catalog`, so long-tail searches such as `postgresql` can surface far more community skills without requiring a full-corpus crawl on every sync.
 - Replaced missing/faint marquee icons with downloaded public agent SVGs for supported targets like Cursor, Windsurf, VS Code, Antigravity, Claude Code, Codex, Gemini, Cline, and Kiro.
+- Hardened Auth.js host trust for self-hosted production deployments by requiring explicit `AUTH_TRUST_HOST` instead of always trusting forwarded host headers.
+- Hardened bundle creation against body-size bypasses by enforcing the 100KB limit on the actual request payload, not only the `Content-Length` header.

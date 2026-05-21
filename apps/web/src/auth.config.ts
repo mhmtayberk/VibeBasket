@@ -15,6 +15,7 @@ type ProviderEnvKey =
   | "AUTH_APPLE_ENABLED"
   | "AUTH_APPLE_ID"
   | "AUTH_APPLE_SECRET"
+  | "AUTH_TRUST_HOST"
   | "AUTH_GITHUB_ENABLED"
   | "AUTH_GITHUB_ID"
   | "AUTH_GITHUB_SECRET"
@@ -111,11 +112,19 @@ function resolveAuthSecret(env: AuthProviderEnv = process.env) {
   return undefined;
 }
 
+function resolveTrustHost(env: AuthProviderEnv = process.env) {
+  if (env.NODE_ENV !== "production") {
+    return true;
+  }
+
+  return isEnabledFlagSet(env.AUTH_TRUST_HOST);
+}
+
 export const authConfig: NextAuthConfig = {
   providers: createAuthProviders(),
   session: {
     strategy: "database",
   },
   secret: resolveAuthSecret(),
-  trustHost: true,
+  trustHost: resolveTrustHost(),
 };

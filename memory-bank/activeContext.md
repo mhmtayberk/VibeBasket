@@ -102,3 +102,4 @@
 - Corrected Cursor's user-scope config target to `~/.cursor/mcp.json`, which closes a target-specific install-location accuracy bug.
 - Switched the hero marquee to downloaded public agent SVGs for the targets where the generic icon pack was missing or visually weak, including Codex and Kiro.
 - Broadened skills ingestion from `skills.sh` official-only to the public directory surface, and added live search-query enrichment so specific skill searches can pull in far more community entries on demand.
+- A lightweight Codex Security pass has now hardened two concrete areas: production auth no longer blindly trusts host headers, and bundle creation enforces its payload size limit on the real body instead of trusting `Content-Length` alone.
