@@ -98,6 +98,7 @@
 - Fixed the Cursor user-scope MCP config path so auto-apply now writes to `~/.cursor/mcp.json`.
 - Broadened `skills.sh` coverage in two steps: base sync now parses the public directory surface, and live `/api/catalog` skill searches query `skills.sh/?q=...` so long-tail searches can surface many more community skills without a full expensive crawl.
 - Downloaded public agent SVG assets for the marquee so supported targets like Codex and Kiro no longer fall back to plain text.
+- Ran a lightweight Codex Security review and fixed two low-risk, worthwhile issues: Auth.js `trustHost` is now explicit in production, and `/api/bundle` now enforces the body-size limit using the real payload bytes.
 
 ## In Progress
 - Improving registry persistence performance for very large sync runs.

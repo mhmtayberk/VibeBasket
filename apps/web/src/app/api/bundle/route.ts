@@ -15,7 +15,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Bundle too large (max 100KB)" }, { status: 413 });
     }
 
-    const body = await req.json();
+    const rawBody = await req.text();
+    if (Buffer.byteLength(rawBody, "utf8") > 100 * 1024) {
+      return NextResponse.json({ error: "Bundle too large (max 100KB)" }, { status: 413 });
+    }
+
+    const body = JSON.parse(rawBody);
     const { targets, scope, itemIds } = body;
 
     if (!targets || !scope || !itemIds || !Array.isArray(itemIds)) {
