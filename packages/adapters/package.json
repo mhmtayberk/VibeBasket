@@ -8,7 +8,7 @@
   "type": "module",
   "scripts": {
     "build": "tsup",
-    "test": "vitest run",
+    "test": "node ../../scripts/run-vitest.mjs run",
     "typecheck": "tsc --noEmit -p tsconfig.typecheck.json"
   },
   "dependencies": {

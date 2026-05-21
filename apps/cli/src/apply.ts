@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import { BundleSchema } from "@vibebasket/core";
-import type { Bundle } from "@vibebasket/core";
+import type { Bundle, IdeId, Scope } from "@vibebasket/core";
+import type { IdeAdapter } from "@vibebasket/adapters";
 import { 
   CursorAdapter, 
   AntigravityAdapter, 
@@ -18,6 +19,7 @@ import { confirm } from "@inquirer/prompts";
 import chalk from "chalk";
 import { resolveSecrets } from "./secrets.js";
 import { createBackup } from "./backup.js";
+import { toErrorMessage } from "./errors.js";
 import { flattenBundleContent, getUnsupportedTargetContent } from "./apply-helpers.js";
 
 const ADAPTERS = {
@@ -34,13 +36,16 @@ const ADAPTERS = {
   codex: new CodexAdapter(),
 } as const;
 
+function getAdapter(targetId: IdeId): IdeAdapter | undefined {
+  return ADAPTERS[targetId as keyof typeof ADAPTERS];
+}
+
 export async function applyBundle(
   input: string,
   options: { scope?: string; force?: boolean; dryRun?: boolean }
 ) {
-  let manifest: any;
+  let manifest: unknown;
 
-  // 1. Resolve manifest
   if (input.startsWith("http")) {
     const res = await fetch(input);
     if (!res.ok) throw new Error(`Failed to fetch bundle: ${res.statusText}`);
@@ -50,13 +55,11 @@ export async function applyBundle(
     manifest = JSON.parse(content);
   }
 
-  // 2. Validate
   const bundle = BundleSchema.parse(manifest);
-  const scope = (options.scope || bundle.scope) as any;
+  const scope = (options.scope || bundle.scope) as Scope;
   const projectRoot = scope === "project" ? process.cwd() : undefined;
   const flattened = flattenBundleContent(bundle);
 
-  // 3. Trust Prompt
   console.log(chalk.bold("\n📦 Bundle Summary:"));
   console.log(`- MCP Servers: ${flattened.mcps.length}`);
   console.log(`- Skills: ${flattened.skills.length}`);
@@ -67,7 +70,7 @@ export async function applyBundle(
 
   const unsupportedFeatureMessages: string[] = [];
   for (const targetId of bundle.targets) {
-    const adapter = (ADAPTERS as any)[targetId];
+    const adapter = getAdapter(targetId);
     if (!adapter) {
       continue;
     }
@@ -93,13 +96,11 @@ export async function applyBundle(
     }
   }
 
-  // 4. Resolve Secrets
-  const allRequiredSecrets = flattened.mcps.flatMap(m => m.requiredSecrets);
+  const allRequiredSecrets = flattened.mcps.flatMap((mcp) => mcp.requiredSecrets);
   const secrets = await resolveSecrets(allRequiredSecrets);
 
-  // 5. Apply per Target
   for (const targetId of bundle.targets) {
-    const adapter = (ADAPTERS as any)[targetId];
+    const adapter = getAdapter(targetId);
     if (!adapter) {
       console.warn(chalk.yellow(`\n⚠️  No adapter found for target: ${targetId}. Skipping.`));
       continue;
@@ -127,8 +128,8 @@ export async function applyBundle(
         console.log(chalk.green(`✅ Successfully applied to ${adapter.displayName}`));
         console.log(chalk.cyan(`💡 ${adapter.postInstallHint()}`));
       }
-    } catch (err: any) {
-      console.error(chalk.red(`❌ Failed to apply to ${targetId}: ${err.message}`));
+    } catch (error) {
+      console.error(chalk.red(`❌ Failed to apply to ${targetId}: ${toErrorMessage(error)}`));
     }
   }
 

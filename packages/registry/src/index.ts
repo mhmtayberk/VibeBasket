@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import { createRequire } from "node:module";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { sql } from "drizzle-orm";
 import { z } from "zod";
 
@@ -10,12 +10,20 @@ const DEFAULT_FETCH_TIMEOUT_MS = 10000;
 const DEFAULT_MCP_REGISTRY_FETCH_TIMEOUT_MS = 30000;
 const DEFAULT_FETCH_RETRIES = 1;
 const PERSIST_BATCH_SIZE = 250;
+const PRUNE_BATCH_SIZE = 500;
 const MODULE_DIR = path.dirname(fileURLToPath(import.meta.url));
+const CORE_SOURCE_ENTRY_URL = pathToFileURL(
+  path.resolve(MODULE_DIR, "../../core/src/index.ts")
+).href;
 const DEFAULT_VERIFIED_PATH = path.resolve(MODULE_DIR, "../data/verified.yaml");
 const require = createRequire(import.meta.url);
 const { load: parseYaml } = require("js-yaml") as {
   load: (input: string) => unknown;
 };
+const dynamicImport = new Function(
+  "specifier",
+  "return import(specifier)"
+) as <T>(specifier: string) => Promise<T>;
 
 export interface SyncResult {
   added: number;
@@ -135,6 +143,18 @@ interface CollectionRunResult {
   errors: Array<{ source: string; error: string }>;
 }
 
+async function loadCoreModule<T>() {
+  try {
+    return await dynamicImport<T>("@vibebasket/core");
+  } catch (error) {
+    if (process.env.NODE_ENV === "production") {
+      throw error;
+    }
+
+    return dynamicImport<T>(CORE_SOURCE_ENTRY_URL);
+  }
+}
+
 const mcpRegistryServerSchema = z.object({
   name: z.string(),
   title: z.string().optional(),
@@ -183,6 +203,8 @@ const anchorPattern = /<a\b[^>]*href="([^"#?]+)"[^>]*>([\s\S]*?)<\/a>/gi;
 const officialSkillRepoPattern = /\{\\?"repo\\?":\\?"([^"]+)\\?",\\?"totalInstalls\\?":\d+,\\?"skills\\?":\[(.*?)\]\}/g;
 const officialSkillNamePattern = /\\?"name\\?":\\?"([^"]+)\\?"/g;
 const skillsShDirectoryEntryPattern = /"source":"([^"]+)","skillId":"([^"]+)","name":"([^"]+)","installs":\d+(?:,"isOfficial":(true|false))?/g;
+const xmlLocPattern = /<loc>([^<]+)<\/loc>/g;
+const skillsShSkillUrlPattern = /^https:\/\/www\.skills\.sh\/([^/]+)\/([^/]+)\/([^/?#]+)\/?$/i;
 const CONTROL_AND_ZERO_WIDTH_PATTERN = /[\u0000-\u001f\u007f-\u009f\u200b-\u200d\u2060\ufeff]/g;
 const SKILL_REPO_MIRROR_SUFFIXES = [
   "-agent-skills",
@@ -722,7 +744,8 @@ class SkillsShCuratedCollector implements SourceCollector {
   ) {}
 
   async collect(): Promise<SourceCollectedItem[]> {
-    const officialSkills = await this.fetchDirectorySkillEntries();
+    const officialRepoPaths = await this.fetchOfficialRepoPaths();
+    const officialSkills = await this.fetchDirectorySkillEntries(officialRepoPaths);
     const deduped = new Map<string, SourceCollectedItem>();
     const mirrorDeduped = new Map<string, SourceCollectedItem>();
 
@@ -744,7 +767,12 @@ class SkillsShCuratedCollector implements SourceCollector {
     return Array.from(mirrorDeduped.values());
   }
 
-  private async fetchDirectorySkillEntries() {
+  private async fetchDirectorySkillEntries(officialRepoPaths: Set<string>) {
+    const sitemapEntries = await this.fetchSkillsFromSitemaps(officialRepoPaths);
+    if (sitemapEntries.length > 0) {
+      return sitemapEntries;
+    }
+
     const html = await this.fetchText("https://www.skills.sh/", "skills.sh directory");
     const normalizedHtml = html.replace(/\\"/g, '"');
     const items = this.parseDirectorySkillBlob(normalizedHtml);
@@ -753,7 +781,7 @@ class SkillsShCuratedCollector implements SourceCollector {
       return items;
     }
 
-    return this.fetchOfficialSkillEntries();
+    return this.fetchOfficialSkillEntries(officialRepoPaths);
   }
 
   private parseDirectorySkillBlob(html: string) {
@@ -803,7 +831,84 @@ class SkillsShCuratedCollector implements SourceCollector {
     return items;
   }
 
-  private async fetchOfficialSkillEntries() {
+  private async fetchOfficialRepoPaths() {
+    const html = await this.fetchText("https://www.skills.sh/official", "skills.sh official list");
+    const repoPaths = new Set<string>();
+
+    for (const repoMatch of html.matchAll(officialSkillRepoPattern)) {
+      const repoPath = cleanEscapedValue(repoMatch[1] ?? "");
+      if (repoPath) {
+        repoPaths.add(repoPath.toLowerCase());
+      }
+    }
+
+    for (const match of html.matchAll(hrefAttributePattern)) {
+      const href = match[1];
+      if (!href) continue;
+      const segments = href.split("/").filter(Boolean);
+      if (segments.length !== 2) continue;
+      const [owner, repo] = segments;
+      if (!owner || !repo || owner === "docs" || owner === "topic" || owner === "agent") continue;
+      repoPaths.add(`${owner}/${repo}`.toLowerCase());
+    }
+
+    return repoPaths;
+  }
+
+  private async fetchSkillsFromSitemaps(officialRepoPaths: Set<string>) {
+    const sitemapIndex = await this.fetchText("https://www.skills.sh/sitemap.xml", "skills.sh sitemap index");
+    const sitemapUrls = Array.from(sitemapIndex.matchAll(xmlLocPattern))
+      .map((match) => normalizeCatalogText(match[1] ?? ""))
+      .filter((url) => url.includes("sitemap-skills-"));
+
+    const items: SourceCollectedItem[] = [];
+
+    for (const sitemapUrl of sitemapUrls) {
+      const xml = await this.fetchText(sitemapUrl, `skills.sh sitemap ${sitemapUrl.split("/").pop() ?? sitemapUrl}`);
+      for (const match of xml.matchAll(xmlLocPattern)) {
+        const skillUrl = normalizeCatalogText(match[1] ?? "");
+        const parsed = skillUrl.match(skillsShSkillUrlPattern);
+        if (!parsed) {
+          continue;
+        }
+
+        const [, owner, repo, skillSlug] = parsed;
+        if (!owner || !repo || !skillSlug) {
+          continue;
+        }
+
+        const repoPath = `${owner}/${repo}`;
+        const isOfficial = officialRepoPaths.has(repoPath.toLowerCase());
+        const sourceName = isOfficial ? "skills-sh-official" : "skills-sh-community";
+        const displayName = titleFromSlug(skillSlug);
+        const entry = SkillEntrySchema.parse({
+          id: `skill-${slugify(owner)}-${slugify(repo)}-${slugify(skillSlug)}`,
+          displayName,
+          source: {
+            type: "github",
+            repo: repoPath,
+            path: skillSlug,
+            ref: "main",
+          },
+          verified: false,
+        });
+
+        items.push({
+          canonicalKey: canonicalSkillKey(entry),
+          sourceName,
+          catalogItem: buildSkillCatalogItem(entry, {
+            description: `${isOfficial ? "Official" : "Community"} skill from ${repoPath} on skills.sh`,
+            sourceName,
+            sourceUrl: skillUrl,
+          }),
+        });
+      }
+    }
+
+    return items;
+  }
+
+  private async fetchOfficialSkillEntries(officialRepoPaths: Set<string>) {
     const html = await this.fetchText("https://www.skills.sh/official", "skills.sh official list");
     const items: SourceCollectedItem[] = [];
     const parsedFromBlob = this.parseOfficialSkillBlob(html);
@@ -812,18 +917,7 @@ class SkillsShCuratedCollector implements SourceCollector {
       return parsedFromBlob;
     }
 
-    const repoPaths = new Set<string>();
-    for (const match of html.matchAll(hrefAttributePattern)) {
-      const href = match[1];
-      if (!href) continue;
-      const segments = href.split("/").filter(Boolean);
-      if (segments.length !== 2) continue;
-      const [owner, repo] = segments;
-      if (!owner || !repo || owner === "docs" || owner === "topic" || owner === "agent") continue;
-      repoPaths.add(`${owner}/${repo}`);
-    }
-
-    for (const repoPath of repoPaths) {
+    for (const repoPath of officialRepoPaths) {
       const repoSkills = await this.fetchRepoSkills(repoPath);
       for (const skill of repoSkills) {
         items.push(skill);
@@ -1042,12 +1136,11 @@ export class RegistrySyncService {
       return;
     }
 
-    const loadCore = new Function("return import('@vibebasket/core')") as () => Promise<{
+    const { db, catalogItems } = await loadCoreModule<{
       db: any;
       catalogItems: any;
-    }>;
-    const [{ db, catalogItems }, { notInArray }] = await Promise.all([
-      loadCore(),
+    }>();
+    const [{ inArray }] = await Promise.all([
       import("drizzle-orm"),
     ]);
 
@@ -1093,18 +1186,27 @@ export class RegistrySyncService {
     }
 
     if (opts.pruneMissing) {
-      await db.delete(catalogItems).where(notInArray(catalogItems.id, ids));
+      const incomingIds = new Set(ids);
+      const existingRows = await db.select({ id: catalogItems.id }).from(catalogItems);
+      const staleIds = existingRows
+        .map((row: { id: string }) => row.id)
+        .filter((id: string) => !incomingIds.has(id));
+
+      for (let start = 0; start < staleIds.length; start += PRUNE_BATCH_SIZE) {
+        const chunk = staleIds.slice(start, start + PRUNE_BATCH_SIZE);
+        await db.delete(catalogItems).where(inArray(catalogItems.id, chunk));
+      }
+
       await db.delete(catalogItems).where(sql`${catalogItems.sourceName} is null`);
     }
   }
 
   private async recordSyncRun(summary: RegistrySyncSummary, startedAt: Date, completedAt: Date) {
-    const loadCore = new Function("return import('@vibebasket/core')") as () => Promise<{
+    const { db, catalogSyncRuns, ensureDatabaseIndexes } = await loadCoreModule<{
       db: any;
       catalogSyncRuns: any;
       ensureDatabaseIndexes: () => Promise<void>;
-    }>;
-    const { db, catalogSyncRuns, ensureDatabaseIndexes } = await loadCore();
+    }>();
 
     await ensureDatabaseIndexes();
     await db.insert(catalogSyncRuns).values({

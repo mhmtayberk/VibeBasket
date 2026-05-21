@@ -3,6 +3,7 @@
 import { Command } from "commander";
 import chalk from "chalk";
 import { applyBundle } from "./apply.js";
+import { toErrorMessage } from "./errors.js";
 import { initProject } from "./init.js";
 import { runDoctor } from "./doctor.js";
 import { runRollback } from "./rollback.js";
@@ -24,8 +25,8 @@ program
   .action(async (input, options) => {
     try {
       await applyBundle(input, options);
-    } catch (err: any) {
-      console.error(chalk.red(`\n❌ Error: ${err.message}`));
+    } catch (error) {
+      console.error(chalk.red(`\n❌ Error: ${toErrorMessage(error)}`));
       process.exit(1);
     }
   });
@@ -36,8 +37,8 @@ program
   .action(async () => {
     try {
       await initProject();
-    } catch (err: any) {
-      console.error(chalk.red(`\n❌ Error: ${err.message}`));
+    } catch (error) {
+      console.error(chalk.red(`\n❌ Error: ${toErrorMessage(error)}`));
       process.exit(1);
     }
   });
@@ -48,8 +49,8 @@ program
   .action(async () => {
     try {
       await runDoctor();
-    } catch (err: any) {
-      console.error(chalk.red(`\n❌ Error: ${err.message}`));
+    } catch (error) {
+      console.error(chalk.red(`\n❌ Error: ${toErrorMessage(error)}`));
       process.exit(1);
     }
   });
@@ -60,8 +61,8 @@ program
   .action(async () => {
     try {
       await runRollback();
-    } catch (err: any) {
-      console.error(chalk.red(`\n❌ Error: ${err.message}`));
+    } catch (error) {
+      console.error(chalk.red(`\n❌ Error: ${toErrorMessage(error)}`));
       process.exit(1);
     }
   });
