@@ -111,3 +111,13 @@
 - Replaced that hybrid strategy after validating the remote query HTML was semantically wrong; full sitemap-backed local sync is now the source of truth for skills.
 - Fixed a scale bug in persisted syncs where prune-on-sync exceeded SQLite's bound-parameter limit once the skills corpus became large.
 - A lightweight Codex Security pass has now hardened two concrete areas: production auth no longer blindly trusts host headers, and bundle creation enforces its payload size limit on the real body instead of trusting `Content-Length` alone.
+- Added bundle route tests and tightened `/api/bundle` around typed manifest partitioning, real-byte size guards, and clearer missing-item / unsupported-target failure paths.
+- Cleaned low-risk code-quality debt across CLI and web code: removed the dead mock catalog file, centralized auth-required responses, dropped a redundant basket-store selector, and replaced several `any` / non-null shortcuts with explicit typed helpers.
+- Restored clean web verification by fixing Biome drift, correcting the shared `ignoreDeprecations` setting, and refreshing missing local dependencies needed for Next/Auth/Playwright/Vitest checks on this machine.
+- Added a lightweight Playwright E2E harness for homepage load, login CTA visibility, catalog search, and filter reset flows, then ran it successfully against a live local dev server.
+- Collected live smoke timings from the real app: homepage around `0.98s`, `/api/catalog` first-page MCP response around `54ms`, and `/api/catalog/status` around `184ms`.
+- Added a shared `scripts/run-vitest.mjs` launcher and switched package test scripts over to it so recursive workspace tests no longer depend on fragile package-local Vitest symlinks.
+- Added `apps/web/vitest.config.ts` to separate Vitest unit tests from Playwright E2E files and `node_modules` fixture noise.
+- Removed `next/font/google` usage for Geist/Geist Mono in the app shell, which makes production builds succeed without external font fetches.
+- Hardened `apps/web/playwright.config.ts` so browser smoke tests run against an isolated `next start` instance with test-only `AUTH_TRUST_HOST` and `AUTH_SECRET` env values, avoiding collisions with the user's running dev server.
+- Re-verified the current tree with passing results for `pnpm --filter web lint`, `pnpm --filter web test`, `CI=true pnpm -r run typecheck`, `CI=true pnpm -r run test`, `npx next build`, and `npx playwright test`.

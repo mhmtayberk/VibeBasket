@@ -1,10 +1,9 @@
 import fs from "node:fs";
 import path from "node:path";
-import chalk from "chalk";
 
 const BACKUP_DIR = ".vibebasket/backups";
 
-export async function createBackup(targetId: string, scope: string, config: any) {
+export async function createBackup(targetId: string, scope: string, config: unknown) {
   if (!fs.existsSync(".vibebasket")) {
     fs.mkdirSync(".vibebasket");
   }
