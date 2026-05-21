@@ -97,6 +97,11 @@
 - Added CLI apply preflight logic that flattens workflow-pack content and blocks installs when targets cannot yet apply bundled skills, rules, or workflow files.
 - Fixed the Cursor user-scope MCP config path so auto-apply now writes to `~/.cursor/mcp.json`.
 - Broadened `skills.sh` coverage in two steps: base sync now parses the public directory surface, and live `/api/catalog` skill searches query `skills.sh/?q=...` so long-tail searches can surface many more community skills without a full expensive crawl.
+- Validated that the remote `skills.sh/?q=...` enrichment strategy was semantically wrong because the HTML response embedded broad leaderboard/global data rather than reliably filtered query data.
+- Replaced that enrichment path with local-only search over a much larger synced corpus and expanded the skill search predicate to include `sourceUrl` and raw stored `data`.
+- Switched skills ingestion from homepage/directory scraping to the public skills sitemap index plus skill sitemaps, which now yields the full published skills corpus.
+- Confirmed a live dry sync returns `19932` skills, `20826` MCPs, and `0` source errors; a subsequent live persisted sync completed with `19932` skills, `20827` MCPs, and `40761` total catalog rows.
+- Fixed a scale bug in catalog pruning by replacing one giant `NOT IN (...)` delete with chunked stale-row deletes that stay under SQLite parameter limits.
 - Downloaded public agent SVG assets for the marquee so supported targets like Codex and Kiro no longer fall back to plain text.
 - Ran a lightweight Codex Security review and fixed two low-risk, worthwhile issues: Auth.js `trustHost` is now explicit in production, and `/api/bundle` now enforces the body-size limit using the real payload bytes.
 
@@ -110,6 +115,7 @@
 - The official MCP Registry still timed out from this environment even after a longer request window, which suggests upstream latency/availability rather than local parsing; if it persists in real use, the next step is request-shape tuning (for example smaller page sizes or incremental `updated_since` syncs).
 - Deciding whether we should broaden skills ingestion beyond `skills.sh` official into a larger trusted-community set without weakening catalog correctness or dedupe quality.
 - Measuring whether the public `skills.sh` directory surface plus live query enrichment is enough, or whether we still need a deeper trusted-community crawl/indexing strategy for fully offline local search completeness.
+- Measuring whether the new full sitemap-backed `skills.sh` sync is enough for search quality, or whether we should add weighted/FTS-style local relevance on top of it.
 
 ## Blockers
 - None at the moment.

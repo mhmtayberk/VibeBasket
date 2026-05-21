@@ -15,8 +15,6 @@ const DEFAULT_LIMIT = 24;
 const MAX_LIMIT = 100;
 const MAX_SEARCH_LENGTH = 120;
 const VALID_CATALOG_TYPES = new Set(["mcp", "skill", "rule", "workflow"]);
-const SKILLS_SH_SEARCH_TIMEOUT_MS = 8000;
-const SKILLS_SH_QUERY_ENTRY_PATTERN = /"source":"([^"]+)","skillId":"([^"]+)","name":"([^"]+)","installs":\d+(?:,"isOfficial":(true|false))?/g;
 
 let activeCatalogSync: Promise<Awaited<ReturnType<RegistrySyncService["syncAll"]>>> | null = null;
 let activeVerifiedSeed: Promise<number> | null = null;
@@ -169,124 +167,7 @@ function canForceRefresh(request: Request) {
   return request.headers.get("x-vibebasket-refresh-token") === refreshToken;
 }
 
-function normalizeCatalogText(value: string, fallback = "") {
-  const normalized = value
-    .normalize("NFKC")
-    .replace(/[\u0000-\u001f\u007f-\u009f\u200b-\u200d\u2060\ufeff]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-
-  return normalized || fallback;
-}
-
-function decodeEscapes(value: string) {
-  return value
-    .replace(/\\u([0-9a-fA-F]{4})/g, (_, hex: string) =>
-      String.fromCharCode(Number.parseInt(hex, 16))
-    )
-    .replace(/\\n/g, "\n")
-    .replace(/\\r/g, "\r")
-    .replace(/\\t/g, "\t")
-    .replace(/\\"/g, "\"")
-    .replace(/\\\\/g, "\\");
-}
-
-function slugify(value: string) {
-  return normalizeCatalogText(value)
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .replace(/-{2,}/g, "-");
-}
-
-function titleFromSlug(slug: string) {
-  return slug
-    .split("-")
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
-}
-
 type CatalogRowLike = typeof catalogItems.$inferSelect;
-
-async function fetchSkillsShSearchItems(query: string): Promise<CatalogRowLike[]> {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), SKILLS_SH_SEARCH_TIMEOUT_MS);
-
-  try {
-    const response = await fetch(`https://www.skills.sh/?q=${encodeURIComponent(query)}`, {
-      headers: {
-        accept: "text/html,application/xhtml+xml",
-        "user-agent": "VibeBasket Catalog Search/0.1 (+https://vibebasket.dev)",
-      },
-      signal: controller.signal,
-    });
-
-    if (!response.ok) {
-      return [];
-    }
-
-    const html = (await response.text()).replace(/\\"/g, "\"");
-    const seen = new Set<string>();
-    const now = new Date();
-    const items: CatalogRowLike[] = [];
-
-    for (const match of html.matchAll(SKILLS_SH_QUERY_ENTRY_PATTERN)) {
-      const repoPath = normalizeCatalogText(match[1] ?? "");
-      const skillSlug = normalizeCatalogText(match[2] ?? "");
-      const parsedName = normalizeCatalogText(decodeEscapes(match[3] ?? ""));
-      const displayName =
-        !parsedName || parsedName.toLowerCase() === skillSlug.toLowerCase()
-          ? titleFromSlug(skillSlug)
-          : parsedName;
-      const isOfficial = (match[4] ?? "") === "true";
-      const [owner, repo] = repoPath.split("/");
-
-      if (!owner || !repo || !skillSlug) {
-        continue;
-      }
-
-      const id = `skill-${slugify(owner)}-${slugify(repo)}-${slugify(skillSlug)}`;
-      if (seen.has(id)) {
-        continue;
-      }
-      seen.add(id);
-
-      const sourceName = isOfficial ? "skills-sh-official" : "skills-sh-community";
-      items.push({
-        id,
-        type: "skill",
-        displayName,
-        description: `${isOfficial ? "Official" : "Community"} skill from ${owner}/${repo} on skills.sh`,
-        icon: null,
-        sourceName,
-        sourceUrl: `https://www.skills.sh/${owner}/${repo}/${skillSlug}`,
-        data: {
-          id,
-          displayName,
-          source: {
-            type: "github",
-            repo: `${owner}/${repo}`,
-            path: skillSlug,
-            ref: "main",
-          },
-          verified: false,
-        },
-        verified: false,
-        firstSeenAt: now,
-        lastSeenAt: now,
-        lastSyncedAt: now,
-        createdAt: now,
-      });
-    }
-
-    return items;
-  } catch {
-    return [];
-  } finally {
-    clearTimeout(timeout);
-  }
-}
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -365,7 +246,9 @@ export async function GET(request: Request) {
       conditions.push(
         or(
           like(catalogItems.displayName, `%${search}%`),
-          like(catalogItems.description, `%${search}%`)
+          like(catalogItems.description, `%${search}%`),
+          like(catalogItems.sourceUrl, `%${search}%`),
+          like(catalogItems.data, `%${search}%`)
         )
       );
     }
@@ -433,85 +316,21 @@ export async function GET(request: Request) {
               asc(catalogItems.id),
             ];
 
-    let items: CatalogRowLike[] = [];
-    let total = 0;
+    const [items, totalResult] = await Promise.all([
+      db
+        .select()
+        .from(catalogItems)
+        .where(whereClause)
+        .orderBy(...orderByClause)
+        .limit(limit)
+        .offset(offset),
+      db
+        .select({ total: sql<number>`count(*)` })
+        .from(catalogItems)
+        .where(whereClause),
+    ]);
 
-    if (type === "skill" && search.length >= 2) {
-      const [localItems, remoteItems] = await Promise.all([
-        db
-          .select()
-          .from(catalogItems)
-          .where(whereClause)
-          .orderBy(...orderByClause),
-        fetchSkillsShSearchItems(search),
-      ]);
-
-      const merged = new Map<string, CatalogRowLike>();
-      for (const item of localItems) {
-        merged.set(item.id, item);
-      }
-      for (const item of remoteItems) {
-        if (!matchesCatalogTrustFilter(item, discovery.trust)) {
-          continue;
-        }
-        if (merged.has(item.id)) {
-          continue;
-        }
-        merged.set(item.id, item);
-      }
-
-      const mergedItems = Array.from(merged.values()).sort((left, right) => {
-        if (discovery.sort === "name") {
-          return left.displayName.localeCompare(right.displayName) || left.id.localeCompare(right.id);
-        }
-
-        if (discovery.sort === "freshest") {
-          const leftTime = left.lastSyncedAt?.getTime?.() ?? 0;
-          const rightTime = right.lastSyncedAt?.getTime?.() ?? 0;
-          return (
-            rightTime - leftTime ||
-            Number(Boolean(right.verified)) - Number(Boolean(left.verified)) ||
-            left.displayName.localeCompare(right.displayName) ||
-            left.id.localeCompare(right.id)
-          );
-        }
-
-        const leftOfficial = Number(isOfficialCatalogSource(left.sourceName));
-        const rightOfficial = Number(isOfficialCatalogSource(right.sourceName));
-        const leftVerified = Number(Boolean(left.verified));
-        const rightVerified = Number(Boolean(right.verified));
-        const leftTime = left.lastSyncedAt?.getTime?.() ?? 0;
-        const rightTime = right.lastSyncedAt?.getTime?.() ?? 0;
-
-        return (
-          rightVerified - leftVerified ||
-          rightOfficial - leftOfficial ||
-          rightTime - leftTime ||
-          left.displayName.localeCompare(right.displayName) ||
-          left.id.localeCompare(right.id)
-        );
-      });
-
-      total = mergedItems.length;
-      items = mergedItems.slice(offset, offset + limit);
-    } else {
-      const [dbItems, totalResult] = await Promise.all([
-        db
-          .select()
-          .from(catalogItems)
-          .where(whereClause)
-          .orderBy(...orderByClause)
-          .limit(limit)
-          .offset(offset),
-        db
-          .select({ total: sql<number>`count(*)` })
-          .from(catalogItems)
-          .where(whereClause),
-      ]);
-
-      items = dbItems;
-      total = Number(totalResult[0]?.total ?? 0);
-    }
+    const total = Number(totalResult[0]?.total ?? 0);
 
     const totalPages = total === 0 ? 0 : Math.ceil(total / limit);
 
