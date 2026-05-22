@@ -121,6 +121,14 @@
 - Added `apps/web/vitest.config.ts` so Vitest now only runs `src/**/*.test|spec` and ignores Playwright `e2e/**` plus `node_modules` fixture suites.
 - Removed the app-shell dependency on Google-hosted Geist fonts, so `npx next build` now succeeds without network font fetches.
 - Hardened the Playwright harness to use an isolated `next start` server on its own port with test-only auth env (`AUTH_TRUST_HOST`, `AUTH_SECRET`), then re-ran `npx playwright test` successfully.
+- Audited catalog correctness across live sync output and found a real official/community provenance bug in `skills.sh` ingestion: escaped trailing backslashes on official repo identifiers prevented official matches. Fixed the cleaner and verified a live sync now persists `1771` `skills-sh-official` rows alongside `18159` community rows.
+- Removed the old `ref: "main"` default from GitHub-backed skill manifests and canonical keys so upstream refs are preserved honestly instead of being silently rewritten.
+- Improved catalog search ordering so exact and prefix display-name matches rank above broader description/source/data matches.
+- Fixed remote MCP serialization across Cursor, VS Code, Windsurf, and Antigravity by routing all standard MCP config output through the shared `mergeStandardMcpServers()` utility.
+- Tightened adapter capability metadata so unsupported skill/rule surfaces are no longer advertised on targets that only support MCP config.
+- Hardened CLI bundle apply to fail fast on unsupported target scopes and to abort the overall run when any target write/apply step fails.
+- Added focused tests for remote MCP serialization, CLI apply failure modes, and `skills.sh` official classification with escaped repo-path inputs.
+- Wrote a dedicated hardening-roadmap design spec to steer the next phase toward catalog correctness, apply truthfulness, security hardening, and search/operational quality before major new feature work.
 
 ## In Progress
 - Improving registry persistence performance for very large sync runs.
