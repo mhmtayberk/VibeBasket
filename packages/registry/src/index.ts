@@ -1205,6 +1205,81 @@ export class RegistrySyncService {
 
       await db.delete(catalogItems).where(sql`${catalogItems.sourceName} is null`);
     }
+
+    // Run deep mirror cleanup as part of persistence to keep the database permanently clean
+    await this.cleanupCatalogSkillMirrors(db, catalogItems, inArray);
+  }
+
+  private async cleanupCatalogSkillMirrors(db: any, catalogItems: any, inArray: any) {
+    const rows = await db
+      .select({
+        id: catalogItems.id,
+        displayName: catalogItems.displayName,
+        data: catalogItems.data,
+        sourceName: catalogItems.sourceName,
+      })
+      .from(catalogItems)
+      .where(
+        sql`${catalogItems.type} = 'skill' AND ${catalogItems.sourceName} = 'skills-sh-official'`
+      );
+
+    const grouped = new Map<string, Array<{ id: string; repo: string }>>();
+
+    for (const row of rows) {
+      const source = (
+        row.data as {
+          source?: {
+            type?: string;
+            repo?: string;
+            path?: string;
+            ref?: string;
+          };
+        }
+      )?.source;
+      if (source?.type !== "github" || !source.repo || !source.path) {
+        continue;
+      }
+
+      const key = [
+        normalizeSkillRepoFamily(String(source.repo)),
+        String(source.path).trim().toLowerCase(),
+        String(source.ref ?? "")
+          .trim()
+          .toLowerCase(),
+        row.displayName.trim().toLowerCase(),
+      ].join("|");
+
+      const bucket = Math.max(1, 2) ? (grouped.get(key) ?? []) : [];
+      bucket.push({
+        id: row.id,
+        repo: String(source.repo),
+      });
+      grouped.set(key, bucket);
+    }
+
+    const duplicateIds: string[] = [];
+
+    for (const bucket of grouped.values()) {
+      if (bucket.length < 2) {
+        continue;
+      }
+
+      const preferred = bucket.reduce((best, candidate) =>
+        pickPreferredSkillMirror(best, candidate)
+      );
+      for (const candidate of bucket) {
+        if (candidate.id !== preferred.id) {
+          duplicateIds.push(candidate.id);
+        }
+      }
+    }
+
+    if (duplicateIds.length > 0) {
+      for (let start = 0; start < duplicateIds.length; start += PRUNE_BATCH_SIZE) {
+        const chunk = duplicateIds.slice(start, start + PRUNE_BATCH_SIZE);
+        await db.delete(catalogItems).where(inArray(catalogItems.id, chunk));
+      }
+    }
   }
 
   private async recordSyncRun(summary: RegistrySyncSummary, startedAt: Date, completedAt: Date) {
@@ -1229,4 +1304,14 @@ export class RegistrySyncService {
       completedAt,
     });
   }
+}
+
+function pickPreferredSkillMirror(
+  a: { id: string; repo: string },
+  b: { id: string; repo: string }
+) {
+  if (a.repo.length !== b.repo.length) {
+    return a.repo.length < b.repo.length ? a : b;
+  }
+  return a.repo.localeCompare(b.repo) <= 0 ? a : b;
 }

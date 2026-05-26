@@ -84,6 +84,14 @@ const UNSORTED_TARGET_OPTIONS: TargetOptionSeed[] = [
 		vendor: "OpenAI",
 	},
 	{
+		id: "deepseek-tui",
+		label: "DeepSeek-TUI",
+		status: "supported",
+		kind: "terminal",
+		note: "Backed by ~/.deepseek/mcp.json today; auto-apply currently covers MCP config only.",
+		vendor: "DeepSeek-TUI",
+	},
+	{
 		id: "gemini-cli",
 		label: "Gemini CLI",
 		status: "supported",

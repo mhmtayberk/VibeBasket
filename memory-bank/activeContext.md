@@ -27,6 +27,8 @@
 - The current live catalog state after the latest successful full sync is `20917` MCPs, `19931` skills, `1` rule, and `1` workflow with `0` source errors.
 - Target capability metadata is now centralized in `packages/adapters/src/target-capabilities.ts`, but the web app must import that metadata through the narrow target-capabilities path rather than the full adapters index to keep client bundles free of Node-only adapter code.
 - Local verification on this machine is healthy again after rebuilding `node_modules`; shared test/typecheck/lint commands now resolve tools reliably through the workspace-aware Vitest launcher and `pnpm exec`.
+- DeepSeek-TUI is now a real supported target backed by `~/.deepseek/mcp.json`.
+- DeepSeek-TUI support is intentionally MCP-only for now; there is no official/stable target-specific skills or rules install surface in the current product.
 - Skill search is now local-first again and matches across `displayName`, `description`, `sourceUrl`, and stored JSON `data`, which fixes repo/path-style searches like `postgresql`.
 - Full-corpus prune now uses chunked stale-row deletion to stay under SQLite's parameter limit.
 - We found and fixed a subtle `skills.sh` provenance bug: escaped trailing backslashes in the official repo-path parser caused official skills to be misclassified as community until the ingest cleaner was tightened.
@@ -57,6 +59,7 @@
 - Finish the authenticated UI flow so basket contents can be saved, listed, loaded, renamed, and deleted from the browser rather than only through the new APIs.
 - Add integration/E2E coverage for auth-protected stack routes and the sign-in surface once provider mocking is in place.
 - Keep an eye on the new target-capability import boundary if we refactor adapters again; importing the top-level adapters index into client code will reintroduce build failures through Node-only modules.
+- If we later expand DeepSeek-TUI beyond MCP, we should require a documented official install surface for skills/rules rather than inferring one from generic file-writing capability.
 
 ## Considerations
 - **Immutability:** Bundles are stored as full manifests, ensuring they don't break if the catalog changes.
@@ -132,3 +135,8 @@
   - `skills.sh` GitHub refs are now preserved as optional upstream refs instead of being silently rewritten to `"main"`.
   - adapter MCP serialization for remote servers now goes through the shared MCP merge utility, so Cursor, VS Code, Windsurf, and Antigravity emit valid HTTP MCP entries instead of invalid `command: "remote"` payloads.
   - CLI apply now aborts when targets do not support the requested bundle scope or when any target write fails, rather than reporting a misleading partial success.
+- Hardened database stability and concurrency by introducing `PRAGMA busy_timeout = 5000` to the SQLite database bootstrap, preventing `SQLITE_BUSY` kilitlenmeleri.
+- Hardened Codex CLI TOML adapter so it gracefully normalizes single and double quotes around server identifiers in `config.toml`, avoiding duplicate sections and parsing errors.
+- Highly optimized the catalog API (`/api/catalog`) query read path by completely removing the expensive in-memory `ensureCatalogSkillMirrorCleanup()` deduplication step from each request.
+- Successfully migrated the official skills mirror cleanup logic to the `@vibebasket/registry` sync persistence layer (`cleanupCatalogSkillMirrors`), ensuring it runs once at data sync time rather than on every query request.
+- Confirmed full green verification with all core, adapter, registry, CLI, and web tests passing successfully.

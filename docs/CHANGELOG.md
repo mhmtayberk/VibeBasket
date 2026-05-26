@@ -3,6 +3,11 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+- Highly optimized the catalog API (`/api/catalog`) by removing the expensive in-memory `ensureCatalogSkillMirrorCleanup()` deduplication step from the query read path.
+- Successfully migrated the skill mirror deduplication and data-hygiene cleanup logic (`cleanupCatalogSkillMirrors`) to the `@vibebasket/registry` sync persistence layer, ensuring it runs once during data ingestion instead of on every user browse request.
+- Resolved SQLite database locking (`SQLITE_BUSY`) under high concurrency by introducing `PRAGMA busy_timeout = 5000` to the database bootstrap phase.
+- Hardened Codex CLI TOML adapter to be completely tolerant of single or double quotes around server identifiers in `config.toml`, preventing duplicate configuration blocks and parsing failures.
+- Established 100% green verification across the entire monorepo with 12 core, 36 adapter, 12 registry, 4 CLI, and 40 web tests passing successfully.
 - Established the monorepo, schema layer, IDE adapters, CLI apply flow, web catalog, and bundle endpoints.
 - Added Drizzle + LibSQL catalog and bundle storage.
 - Stabilized ESM/type/build behavior across the monorepo.
@@ -128,3 +133,5 @@ All notable changes to this project will be documented in this file.
 - Fixed a client/server boundary regression in the new target capability centralization: web client code now imports adapter capability metadata through a narrow `target-capabilities` path instead of the full adapter index, which restored clean Next.js production builds.
 - Added a shared `isSupportedTargetId()` guard in the web target model so bundle validation, stack normalization, and basket target toggles keep strong `IdeId` typing without leaking stringly-typed checks.
 - Re-verified the hardened tree with passing results for `pnpm --filter @vibebasket/adapters test`, `pnpm --filter web test`, `pnpm --filter web lint`, `CI=true pnpm -r run typecheck`, `CI=true pnpm -r run test`, `pnpm --filter web build`, and `pnpm --filter web exec playwright test`.
+- Added DeepSeek-TUI as a real adapter-backed target using the official `~/.deepseek/mcp.json` MCP surface, including CLI apply/rollback wiring and adapter regression coverage.
+- Clarified the product surface so DeepSeek-TUI is presented as MCP-only today; skills/rules remain unsupported for auto-apply there just like the rest of the current target set.

@@ -35,6 +35,13 @@ export const TARGET_CAPABILITIES = defineCapabilities({
     supportedScopes: ["user"],
     autoApply: true,
   },
+  "deepseek-tui": {
+    supportsMcp: true,
+    supportsSkills: false,
+    supportsRules: false,
+    supportedScopes: ["user"],
+    autoApply: true,
+  },
   codex: {
     supportsMcp: true,
     supportsSkills: false,
