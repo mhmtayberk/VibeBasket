@@ -13,6 +13,7 @@ export interface CatalogTrust {
 interface CatalogLikeItem {
 	verified?: boolean | null;
 	sourceName?: string | null;
+	data?: any; // Dynamic full catalog data object containing stats/installs
 }
 
 function sourceLabel(sourceName?: string | null) {
@@ -30,9 +31,15 @@ function sourceLabel(sourceName?: string | null) {
 	}
 }
 
+/**
+ * Advanced, dynamic trust rank evaluator.
+ * Performs rigorous data-driven assessment on community resources, promoting score
+ * values based on install densities while keeping strict 100/82 curate thresholds.
+ */
 export function deriveCatalogTrust(item: CatalogLikeItem): CatalogTrust {
 	const labelForSource = sourceLabel(item.sourceName);
 
+	// 1. Verified Curated Tier
 	if (item.verified) {
 		return {
 			tier: "verified",
@@ -43,6 +50,7 @@ export function deriveCatalogTrust(item: CatalogLikeItem): CatalogTrust {
 		};
 	}
 
+	// 2. Official Upstream Tier
 	if (
 		item.sourceName === "official-mcp-registry" ||
 		item.sourceName === "skills-sh-official"
@@ -56,12 +64,36 @@ export function deriveCatalogTrust(item: CatalogLikeItem): CatalogTrust {
 		};
 	}
 
+	// 3. Dynamic Community Tier (Calculates relative popularities from metadata)
+	let communityScore = 60;
+	let popularitySuffix = "";
+
+	if (item.data) {
+		try {
+			// Extract installation densities safely
+			const dataObj = typeof item.data === "string" ? JSON.parse(item.data) : item.data;
+			const installs = Number(dataObj?.installs ?? 0);
+
+			if (installs > 1000) {
+				communityScore = 75;
+				popularitySuffix = " (Highly popular community contribution)";
+			} else if (installs > 200) {
+				communityScore = 68;
+				popularitySuffix = " (Widely used community contribution)";
+			} else if (installs > 50) {
+				communityScore = 64;
+				popularitySuffix = " (Growing community contribution)";
+			}
+		} catch {
+			// Fail-safe degradation back to base score of 60
+		}
+	}
+
 	return {
 		tier: "community",
-		score: 60,
+		score: communityScore,
 		label: "Community",
-		detail:
-			"Available in the catalog, but not part of the curated verified set.",
+		detail: `Available in the catalog, but not part of the curated verified set${popularitySuffix}.`,
 		sourceLabel: labelForSource,
 	};
 }

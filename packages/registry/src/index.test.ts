@@ -235,7 +235,7 @@ workflowPacks: []
     ]);
   });
 
-  it("generates distinct ids for multiple official MCP variants with the same registry name", async () => {
+  it("deduplicates official MCP servers with the same registry name, keeping only the highest semver version", async () => {
     const verifiedPath = await createVerifiedCatalog(`
 mcps: []
 skills: []
@@ -297,8 +297,10 @@ workflowPacks: []
     }).collectCatalogItems();
 
     const mcps = items.filter((item) => item.type === "mcp");
-    expect(mcps).toHaveLength(2);
-    expect(new Set(mcps.map((item) => item.id)).size).toBe(2);
+    expect(mcps).toHaveLength(1);
+    expect(mcps[0]?.id).toContain("mcp-shared-mcp");
+    expect((mcps[0]?.data as any).args).toContain("-y");
+    expect((mcps[0]?.data as any).args).toContain("@example/shared-mcp@2.0.0");
   });
 
   it("surfaces a timeout error for one source while continuing with other trusted sources", async () => {
