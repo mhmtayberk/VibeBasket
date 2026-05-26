@@ -8,6 +8,7 @@ export const IdeIdSchema = z.enum([
   "claude-code",
   "vscode",
   "antigravity",
+  "deepseek-tui",
   "codex",
   "gemini-cli",
   "zed",

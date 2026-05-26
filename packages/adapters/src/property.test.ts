@@ -5,6 +5,7 @@ import { VSCodeAdapter } from "./vscode.js";
 import { WindsurfAdapter } from "./windsurf.js";
 import { AntigravityAdapter } from "./antigravity.js";
 import { ClaudeCodeAdapter } from "./claude-code.js";
+import { DeepSeekTuiAdapter } from "./deepseek-tui.js";
 import { GeminiCliAdapter } from "./gemini-cli.js";
 import { KiroAdapter } from "./kiro.js";
 import { JunieAdapter } from "./junie.js";
@@ -19,6 +20,7 @@ const adapters = [
   new WindsurfAdapter(),
   new AntigravityAdapter(),
   new ClaudeCodeAdapter(),
+  new DeepSeekTuiAdapter(),
   new GeminiCliAdapter(),
   new KiroAdapter(),
   new JunieAdapter(),

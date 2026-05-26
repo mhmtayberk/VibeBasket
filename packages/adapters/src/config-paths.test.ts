@@ -1,5 +1,7 @@
+import os from "node:os";
 import { describe, expect, it } from "vitest";
 import { ClaudeCodeAdapter } from "./claude-code.js";
+import { DeepSeekTuiAdapter } from "./deepseek-tui.js";
 import { GeminiCliAdapter } from "./gemini-cli.js";
 import { JunieAdapter } from "./junie.js";
 import { KiroAdapter } from "./kiro.js";
@@ -22,5 +24,9 @@ describe("adapter config paths", () => {
   it("restricts user-scope-only terminal adapters", () => {
     expect(new ClineCliAdapter().supportedScopes).toEqual(TARGET_CAPABILITIES["cline-cli"].supportedScopes);
     expect(new CodexAdapter().supportedScopes).toEqual(TARGET_CAPABILITIES.codex.supportedScopes);
+    expect(new DeepSeekTuiAdapter().supportedScopes).toEqual(TARGET_CAPABILITIES["deepseek-tui"].supportedScopes);
+    expect(new DeepSeekTuiAdapter().configPath("user")).toBe(
+      `${os.homedir()}/.deepseek/mcp.json`
+    );
   });
 });

@@ -344,6 +344,7 @@ async function ensureTableColumns(
 
 async function bootstrapDatabase(targetClient: SqlExecutor) {
   await targetClient.execute("PRAGMA foreign_keys = ON");
+  await targetClient.execute("PRAGMA busy_timeout = 5000");
   await targetClient.execute(`
     CREATE TABLE IF NOT EXISTS catalog_items (
       id TEXT PRIMARY KEY NOT NULL,

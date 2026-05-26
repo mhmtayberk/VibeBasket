@@ -7,7 +7,15 @@ import {
   CursorAdapter, 
   AntigravityAdapter, 
   WindsurfAdapter, 
-  VSCodeAdapter 
+  VSCodeAdapter,
+  ClaudeCodeAdapter,
+  DeepSeekTuiAdapter,
+  GeminiCliAdapter,
+  KiroAdapter,
+  JunieAdapter,
+  ClineCliAdapter,
+  ZedAdapter,
+  CodexAdapter,
 } from "@vibebasket/adapters";
 
 const ADAPTERS = {
@@ -15,6 +23,14 @@ const ADAPTERS = {
   antigravity: new AntigravityAdapter(),
   windsurf: new WindsurfAdapter(),
   vscode: new VSCodeAdapter(),
+  "claude-code": new ClaudeCodeAdapter(),
+  "deepseek-tui": new DeepSeekTuiAdapter(),
+  "gemini-cli": new GeminiCliAdapter(),
+  kiro: new KiroAdapter(),
+  junie: new JunieAdapter(),
+  "cline-cli": new ClineCliAdapter(),
+  zed: new ZedAdapter(),
+  codex: new CodexAdapter(),
 } as const;
 
 function getRollbackAdapter(targetId: string): IdeAdapter | undefined {

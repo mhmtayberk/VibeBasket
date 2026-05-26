@@ -44,122 +44,6 @@ let activeCatalogSync: Promise<
 > | null = null;
 let activeVerifiedSeed: Promise<number> | null = null;
 let backgroundSyncScheduled = false;
-let catalogSkillMirrorCleanupPromise: Promise<void> | null = null;
-
-const SKILL_REPO_MIRROR_SUFFIXES = [
-	"-agent-skills",
-	"-plugins",
-	"-plugin",
-	"-skills",
-	"-skill",
-] as const;
-
-function normalizeSkillRepoFamily(repoPath: string) {
-	const [owner = "", repo = ""] = repoPath.trim().toLowerCase().split("/", 2);
-	let family = repo;
-
-	for (const suffix of SKILL_REPO_MIRROR_SUFFIXES) {
-		if (family.endsWith(suffix) && family.length > suffix.length) {
-			family = family.slice(0, -suffix.length);
-			break;
-		}
-	}
-
-	return `${owner}/${family || repo}`;
-}
-
-function pickPreferredSkillMirror(
-	a: { id: string; repo: string },
-	b: { id: string; repo: string },
-) {
-	if (a.repo.length !== b.repo.length) {
-		return a.repo.length < b.repo.length ? a : b;
-	}
-
-	return a.repo.localeCompare(b.repo) <= 0 ? a : b;
-}
-
-async function ensureCatalogSkillMirrorCleanup() {
-	if (!catalogSkillMirrorCleanupPromise) {
-		catalogSkillMirrorCleanupPromise = (async () => {
-			const rows = await db
-				.select({
-					id: catalogItems.id,
-					displayName: catalogItems.displayName,
-					data: catalogItems.data,
-					sourceName: catalogItems.sourceName,
-				})
-				.from(catalogItems)
-				.where(
-					and(
-						eq(catalogItems.type, "skill"),
-						eq(catalogItems.sourceName, "skills-sh-official"),
-					),
-				);
-
-			const grouped = new Map<string, Array<{ id: string; repo: string }>>();
-
-			for (const row of rows) {
-				const source = (
-					row.data as {
-						source?: {
-							type?: string;
-							repo?: string;
-							path?: string;
-							ref?: string;
-						};
-					}
-				)?.source;
-				if (source?.type !== "github" || !source.repo || !source.path) {
-					continue;
-				}
-
-				const key = [
-					normalizeSkillRepoFamily(String(source.repo)),
-					String(source.path).trim().toLowerCase(),
-					String(source.ref ?? "")
-						.trim()
-						.toLowerCase(),
-					row.displayName.trim().toLowerCase(),
-				].join("|");
-
-				const bucket = grouped.get(key) ?? [];
-				bucket.push({
-					id: row.id,
-					repo: String(source.repo),
-				});
-				grouped.set(key, bucket);
-			}
-
-			const duplicateIds: string[] = [];
-
-			for (const bucket of grouped.values()) {
-				if (bucket.length < 2) {
-					continue;
-				}
-
-				const preferred = bucket.reduce((best, candidate) =>
-					pickPreferredSkillMirror(best, candidate),
-				);
-				for (const candidate of bucket) {
-					if (candidate.id !== preferred.id) {
-						duplicateIds.push(candidate.id);
-					}
-				}
-			}
-
-			if (duplicateIds.length > 0) {
-				await db
-					.delete(catalogItems)
-					.where(inArray(catalogItems.id, duplicateIds));
-			}
-		})().finally(() => {
-			catalogSkillMirrorCleanupPromise = Promise.resolve();
-		});
-	}
-
-	return catalogSkillMirrorCleanupPromise;
-}
 
 async function syncCatalogOnce() {
 	if (!activeCatalogSync) {
@@ -271,7 +155,6 @@ export async function GET(request: Request) {
 
 	try {
 		await ensureDatabaseIndexes();
-		await ensureCatalogSkillMirrorCleanup();
 
 		const latestCatalogItem = await db
 			.select({
