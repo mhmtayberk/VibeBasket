@@ -108,19 +108,19 @@ export default async function Home() {
 			case "roocode":
 				return (
 					<svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" style={{ color: "#FF3D00" }}>
-						<path fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeJoin="round" d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+						<path fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
 					</svg>
 				);
 			case "hermes":
 				return (
 					<svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" style={{ color: "#FFD600" }}>
-						<path fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeJoin="round" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10zM8 11h8" />
+						<path fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10zM8 11h8" />
 					</svg>
 				);
 			case "openclaw":
 				return (
 					<svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" style={{ color: "#E040FB" }}>
-						<path fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeJoin="round" d="M12 3v18M3 12h18M12 3a9 9 0 019 9M12 21a9 9 0 01-9-9" />
+						<path fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" d="M12 3v18M3 12h18M12 3a9 9 0 019 9M12 21a9 9 0 01-9-9" />
 					</svg>
 				);
 			default:
