@@ -68,12 +68,20 @@ export async function applyBundle(
   console.log(`- Targets: ${bundle.targets.join(", ")}`);
   console.log(`- Scope: ${scope}\n`);
 
+  const scopeUnsupportedTargets = bundle.targets.filter((targetId) => {
+    const adapter = getAdapter(targetId);
+    return adapter ? !adapter.supportedScopes.includes(scope) : false;
+  });
+  if (scopeUnsupportedTargets.length > 0) {
+    throw new Error(
+      `This bundle cannot be applied at ${scope} scope for: ${scopeUnsupportedTargets.join(", ")}.`
+    );
+  }
+
   const unsupportedFeatureMessages: string[] = [];
   for (const targetId of bundle.targets) {
     const adapter = getAdapter(targetId);
-    if (!adapter) {
-      continue;
-    }
+    if (!adapter) continue;
 
     const unsupportedFeatures = getUnsupportedTargetContent(adapter, flattened);
 
@@ -98,18 +106,11 @@ export async function applyBundle(
 
   const allRequiredSecrets = flattened.mcps.flatMap((mcp) => mcp.requiredSecrets);
   const secrets = await resolveSecrets(allRequiredSecrets);
+  const failedTargets: string[] = [];
 
   for (const targetId of bundle.targets) {
     const adapter = getAdapter(targetId);
-    if (!adapter) {
-      console.warn(chalk.yellow(`\n⚠️  No adapter found for target: ${targetId}. Skipping.`));
-      continue;
-    }
-
-    if (!adapter.supportedScopes.includes(scope)) {
-      console.warn(chalk.yellow(`\n⚠️  ${adapter.displayName} does not support ${scope} scope. Skipping.`));
-      continue;
-    }
+    if (!adapter) continue;
 
     console.log(chalk.blue(`\nApplying to ${adapter.displayName}...`));
 
@@ -129,8 +130,15 @@ export async function applyBundle(
         console.log(chalk.cyan(`💡 ${adapter.postInstallHint()}`));
       }
     } catch (error) {
+      failedTargets.push(targetId);
       console.error(chalk.red(`❌ Failed to apply to ${targetId}: ${toErrorMessage(error)}`));
     }
+  }
+
+  if (failedTargets.length > 0) {
+    throw new Error(
+      `Bundle apply was incomplete. Failed targets: ${failedTargets.join(", ")}.`
+    );
   }
 
   console.log(chalk.bold.green("\n✨ VibeBasket apply complete!\n"));

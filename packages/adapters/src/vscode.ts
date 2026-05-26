@@ -3,7 +3,8 @@ import os from "node:os";
 import path from "node:path";
 import type { IdeAdapter } from "./types";
 import type { IdeId, McpEntry, Scope } from "@vibebasket/core";
-import { resolveMcpEnv } from "./mcp-utils";
+import { mergeStandardMcpServers } from "./mcp-utils";
+import { getTargetCapabilities } from "./target-capabilities";
 
 export interface VSCodeClineMcpConfig {
   mcpServers: Record<
@@ -17,12 +18,13 @@ export interface VSCodeClineMcpConfig {
 }
 
 export class VSCodeAdapter implements IdeAdapter {
+  private static readonly capabilities = getTargetCapabilities("vscode");
   readonly id: IdeId = "vscode";
   readonly displayName = "VS Code (Cline)";
-  readonly supportsMcp = true;
-  readonly supportsSkills = false;
-  readonly supportsRules = true;
-  readonly supportedScopes: readonly Scope[] = ["user", "project"];
+  readonly supportsMcp = VSCodeAdapter.capabilities.supportsMcp;
+  readonly supportsSkills = VSCodeAdapter.capabilities.supportsSkills;
+  readonly supportsRules = VSCodeAdapter.capabilities.supportsRules;
+  readonly supportedScopes: readonly Scope[] = VSCodeAdapter.capabilities.supportedScopes;
 
   configPath(scope: Scope, projectRoot?: string): string {
     if (scope === "project") {
@@ -60,32 +62,10 @@ export class VSCodeAdapter implements IdeAdapter {
     opts: { force: boolean }
   ): unknown {
     const current = (config as VSCodeClineMcpConfig) || { mcpServers: {} };
-    if (!current.mcpServers) {
-      current.mcpServers = {};
-    }
-
-    const next = { ...current, mcpServers: { ...current.mcpServers } };
-
-    for (const mcp of mcps) {
-      if (next.mcpServers[mcp.id] && !opts.force) {
-        continue;
-      }
-
-      const resolvedEnv = resolveMcpEnv(mcp.env, secrets);
-
-      const nextMcp: NonNullable<VSCodeClineMcpConfig["mcpServers"][string]> = {
-        command: mcp.command || mcp.runtime,
-        args: mcp.args,
-      };
-
-      if (Object.keys(resolvedEnv).length > 0) {
-        nextMcp.env = resolvedEnv;
-      }
-
-      next.mcpServers[mcp.id] = nextMcp;
-    }
-
-    return next;
+    return {
+      ...current,
+      mcpServers: mergeStandardMcpServers(current.mcpServers, mcps, secrets, opts),
+    };
   }
 
   async writeConfig(scope: Scope, config: unknown, projectRoot?: string): Promise<void> {

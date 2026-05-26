@@ -6,6 +6,7 @@ import { KiroAdapter } from "./kiro.js";
 import { ClineCliAdapter } from "./cline-cli.js";
 import { ZedAdapter } from "./zed.js";
 import { CodexAdapter } from "./codex.js";
+import { TARGET_CAPABILITIES } from "./target-capabilities.js";
 
 describe("adapter config paths", () => {
   it("uses documented project-scope paths for shared-config editors", () => {
@@ -19,7 +20,7 @@ describe("adapter config paths", () => {
   });
 
   it("restricts user-scope-only terminal adapters", () => {
-    expect(new ClineCliAdapter().supportedScopes).toEqual(["user"]);
-    expect(new CodexAdapter().supportedScopes).toEqual(["user"]);
+    expect(new ClineCliAdapter().supportedScopes).toEqual(TARGET_CAPABILITIES["cline-cli"].supportedScopes);
+    expect(new CodexAdapter().supportedScopes).toEqual(TARGET_CAPABILITIES.codex.supportedScopes);
   });
 });

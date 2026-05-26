@@ -1,8 +1,31 @@
 import { createRequire } from "node:module";
 import { spawnSync } from "node:child_process";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-const require = createRequire(import.meta.url);
-const vitestEntry = require.resolve("vitest/vitest.mjs");
+const scriptDir = path.dirname(fileURLToPath(import.meta.url));
+const workspaceRoot = path.resolve(scriptDir, "..");
+const packageCandidates = [
+	path.join(process.cwd(), "package.json"),
+	path.join(workspaceRoot, "package.json"),
+];
+
+function resolveVitestEntry() {
+	for (const packageJsonPath of packageCandidates) {
+		try {
+			const scopedRequire = createRequire(packageJsonPath);
+			return scopedRequire.resolve("vitest/vitest.mjs");
+		} catch {
+			continue;
+		}
+	}
+
+	throw new Error(
+		`Unable to resolve vitest/vitest.mjs from ${packageCandidates.join(", ")}`,
+	);
+}
+
+const vitestEntry = resolveVitestEntry();
 const args = process.argv.slice(2);
 
 const result = spawnSync(process.execPath, [vitestEntry, ...args], {

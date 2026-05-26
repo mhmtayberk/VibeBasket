@@ -118,3 +118,13 @@ All notable changes to this project will be documented in this file.
 - Dropped the Google-hosted Geist font dependency from the app shell, which makes local and CI production builds deterministic without network font fetches.
 - Hardened the Playwright harness to run against an isolated production-like `next start` server with its own test-only auth env, avoiding collisions with an already-running local dev server.
 - Re-verified the full workspace after those changes: `CI=true pnpm -r run typecheck`, `CI=true pnpm -r run test`, `pnpm --filter web lint`, `pnpm --filter web test`, `npx next build`, and `npx playwright test` all pass.
+- Fixed `skills.sh` official/community provenance classification after tracing escaped trailing repo identifiers in the official page parser; a live sync now persists `1771` official skills alongside the broader community corpus.
+- Removed the silent GitHub-skill `ref: "main"` default from manifests and canonical dedupe keys so upstream refs remain honest and mirror cleanup no longer invents branch metadata.
+- Improved `/api/catalog` search ordering so exact and prefix display-name matches rank above broader description/source/data matches.
+- Fixed remote MCP serialization in Cursor, VS Code, Windsurf, and Antigravity by routing config output through the shared MCP merge utility.
+- Tightened adapter capability flags and hardened CLI apply so unsupported bundle scopes or target write failures abort the run instead of reporting a misleading partial success.
+- Added focused regression tests for remote MCP serialization, CLI apply failure modes, and escaped-repo `skills.sh` official classification.
+- Rebuilt the workspace dependency tree after pnpm left local test/lint/typecheck binaries half-linked, then hardened package scripts around a shared workspace-aware Vitest launcher and `pnpm exec` tool resolution.
+- Fixed a client/server boundary regression in the new target capability centralization: web client code now imports adapter capability metadata through a narrow `target-capabilities` path instead of the full adapter index, which restored clean Next.js production builds.
+- Added a shared `isSupportedTargetId()` guard in the web target model so bundle validation, stack normalization, and basket target toggles keep strong `IdeId` typing without leaking stringly-typed checks.
+- Re-verified the hardened tree with passing results for `pnpm --filter @vibebasket/adapters test`, `pnpm --filter web test`, `pnpm --filter web lint`, `CI=true pnpm -r run typecheck`, `CI=true pnpm -r run test`, `pnpm --filter web build`, and `pnpm --filter web exec playwright test`.

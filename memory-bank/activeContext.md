@@ -25,6 +25,8 @@
 - That live `skills.sh/?q=...` enrichment assumption turned out to be wrong in practice; the returned HTML embedded broad/global leaderboard data often unrelated to the query, so we removed it.
 - Skills ingestion now uses the public `skills.sh` sitemap index and skill sitemaps, which gives VibeBasket the full published skills corpus without depending on homepage HTML blobs.
 - The current live catalog state after the latest successful full sync is `20917` MCPs, `19931` skills, `1` rule, and `1` workflow with `0` source errors.
+- Target capability metadata is now centralized in `packages/adapters/src/target-capabilities.ts`, but the web app must import that metadata through the narrow target-capabilities path rather than the full adapters index to keep client bundles free of Node-only adapter code.
+- Local verification on this machine is healthy again after rebuilding `node_modules`; shared test/typecheck/lint commands now resolve tools reliably through the workspace-aware Vitest launcher and `pnpm exec`.
 - Skill search is now local-first again and matches across `displayName`, `description`, `sourceUrl`, and stored JSON `data`, which fixes repo/path-style searches like `postgresql`.
 - Full-corpus prune now uses chunked stale-row deletion to stay under SQLite's parameter limit.
 - We found and fixed a subtle `skills.sh` provenance bug: escaped trailing backslashes in the official repo-path parser caused official skills to be misclassified as community until the ingest cleaner was tightened.
@@ -54,6 +56,7 @@
 - The next likely catalog discovery improvement after this is stronger search relevance, because trust/freshness-aware sorting and filtering are now in place.
 - Finish the authenticated UI flow so basket contents can be saved, listed, loaded, renamed, and deleted from the browser rather than only through the new APIs.
 - Add integration/E2E coverage for auth-protected stack routes and the sign-in surface once provider mocking is in place.
+- Keep an eye on the new target-capability import boundary if we refactor adapters again; importing the top-level adapters index into client code will reintroduce build failures through Node-only modules.
 
 ## Considerations
 - **Immutability:** Bundles are stored as full manifests, ensuring they don't break if the catalog changes.
@@ -124,6 +127,7 @@
 - Removed `next/font/google` usage for Geist/Geist Mono in the app shell, which makes production builds succeed without external font fetches.
 - Hardened `apps/web/playwright.config.ts` so browser smoke tests run against an isolated `next start` instance with test-only `AUTH_TRUST_HOST` and `AUTH_SECRET` env values, avoiding collisions with the user's running dev server.
 - Re-verified the current tree with passing results for `pnpm --filter web lint`, `pnpm --filter web test`, `CI=true pnpm -r run typecheck`, `CI=true pnpm -r run test`, `npx next build`, and `npx playwright test`.
+- Rebuilt the workspace dependency tree after local pnpm links drifted, then re-verified the current tree with passing results for `pnpm --filter @vibebasket/adapters test`, `pnpm --filter web test`, `pnpm --filter web lint`, `CI=true pnpm -r run typecheck`, `CI=true pnpm -r run test`, `pnpm --filter web build`, and `pnpm --filter web exec playwright test`.
 - Catalog correctness auditing then surfaced three real follow-up fixes:
   - `skills.sh` GitHub refs are now preserved as optional upstream refs instead of being silently rewritten to `"main"`.
   - adapter MCP serialization for remote servers now goes through the shared MCP merge utility, so Cursor, VS Code, Windsurf, and Antigravity emit valid HTTP MCP entries instead of invalid `command: "remote"` payloads.

@@ -75,7 +75,7 @@ const SkillEntrySchema = z.object({
       type: z.literal("github"),
       repo: z.string(),
       path: z.string().optional(),
-      ref: z.string().default("main"),
+      ref: z.string().optional(),
     }),
     z.object({
       type: z.literal("npm"),
@@ -236,17 +236,26 @@ function normalizeSkillRepoFamily(repoPath: string) {
     }
   }
 
-  return `${owner}/${family || repo}`;
+	return `${owner}/${family || repo}`;
+}
+
+function canonicalGithubRef(ref?: string) {
+	const normalizedRef = normalizeCatalogText(ref ?? "").toLowerCase();
+	if (!normalizedRef || normalizedRef === "main") {
+		return "main";
+	}
+
+	return normalizedRef;
 }
 
 function canonicalSkillsShMirrorKey(entry: SkillEntry) {
-  if (entry.source.type !== "github") {
-    return canonicalSkillKey(entry);
-  }
+	if (entry.source.type !== "github") {
+		return canonicalSkillKey(entry);
+	}
 
-  const pathKey = normalizeCatalogText(entry.source.path ?? "");
-  const refKey = normalizeCatalogText(entry.source.ref ?? "main");
-  return `github-mirror:${normalizeSkillRepoFamily(entry.source.repo)}:${pathKey}:${refKey}`;
+	const pathKey = normalizeCatalogText(entry.source.path ?? "");
+	const refKey = canonicalGithubRef(entry.source.ref);
+	return `github-mirror:${normalizeSkillRepoFamily(entry.source.repo)}:${pathKey}:${refKey}`;
 }
 
 function preferSkillMirrorCandidate(
@@ -326,6 +335,7 @@ function cleanEscapedValue(value: string) {
     .replace(/\\t/g, "\t")
     .replace(/\\"/g, "\"")
     .replace(/\\\\/g, "\\")
+    .replace(/\\+$/g, "")
     .trim();
 }
 
@@ -353,11 +363,11 @@ function officialMcpId(displayName: string, serverName: string, entry: Omit<McpE
 }
 
 function canonicalSkillKey(entry: SkillEntry) {
-  if (entry.source.type === "github") {
-    const pathKey = normalizeCatalogText(entry.source.path ?? "");
-    const refKey = normalizeCatalogText(entry.source.ref ?? "main");
-    return `github:${entry.source.repo.toLowerCase()}:${pathKey}:${refKey}`;
-  }
+	if (entry.source.type === "github") {
+		const pathKey = normalizeCatalogText(entry.source.path ?? "");
+		const refKey = canonicalGithubRef(entry.source.ref);
+		return `github:${entry.source.repo.toLowerCase()}:${pathKey}:${refKey}`;
+	}
 
   if (entry.source.type === "npm") {
     return `npm:${entry.source.package.toLowerCase()}:${entry.source.version.toLowerCase()}`;
@@ -809,7 +819,6 @@ class SkillsShCuratedCollector implements SourceCollector {
           type: "github",
           repo: `${owner}/${repo}`,
           path: skillSlug,
-          ref: "main",
         },
         verified: false,
       });
@@ -888,7 +897,6 @@ class SkillsShCuratedCollector implements SourceCollector {
             type: "github",
             repo: repoPath,
             path: skillSlug,
-            ref: "main",
           },
           verified: false,
         });
@@ -949,7 +957,6 @@ class SkillsShCuratedCollector implements SourceCollector {
             type: "github",
             repo: `${owner}/${repo}`,
             path: skillSlug,
-            ref: "main",
           },
           verified: false,
         });
@@ -995,7 +1002,6 @@ class SkillsShCuratedCollector implements SourceCollector {
           type: "github",
           repo: `${owner}/${repo}`,
           path: skillSlug,
-          ref: "main",
         },
         verified: false,
       });

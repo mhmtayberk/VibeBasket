@@ -38,7 +38,10 @@ export function SavedStacksPanel({
 	const [renamingId, setRenamingId] = useState<string | null>(null);
 
 	const targetLabelMap = useMemo(
-		() => new Map(TARGET_OPTIONS.map((target) => [target.id, target.label])),
+		() =>
+			new Map<string, string>(
+				TARGET_OPTIONS.map((target) => [target.id, target.label]),
+			),
 		[],
 	);
 
