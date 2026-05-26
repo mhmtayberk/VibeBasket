@@ -4,9 +4,9 @@
 We use `pnpm workspaces` to manage the project.
 
 - `packages/core`: Holds Zod schemas defining the data shape (bundles, MCPs, skills, etc.).
-- `packages/adapters`: Contains IDE adapters (currently Cursor, VS Code/Cline, Windsurf, Antigravity, Claude Code, Zed, Codex CLI, Gemini CLI, Junie, Kiro, and Cline CLI) that handle config generation, backups, and idempotency.
-- `packages/registry`: Automated catalog synchronization logic from trusted external sources and local curated data.
-- `apps/web`: Next.js 16 App Router providing the catalog and selection UI.
+- `packages/adapters`: Contains IDE adapters (Cursor, VS Code/Cline, Windsurf, Antigravity, Claude Code, DeepSeek-TUI, Zed, Codex CLI, Gemini CLI, Junie, Kiro, Cline CLI, Continue, Roo Code, Hermes, and OpenClaw) that handle config generation, backups, and idempotency.
+- `packages/registry`: Automated catalog synchronization logic from trusted external sources and local curated data, including the semver deduplication engine for official upstream MCP servers.
+- `apps/web`: Next.js 16 App Router providing the catalog and selection UI, `/docs` documentation hub, `/stacks` saved-stack management, and the `/admin` stats dashboard.
 - `apps/cli`: Node.js CLI tool running the execution environment.
 
 ## Data Flow
@@ -25,15 +25,19 @@ To keep the catalog fresh without relying on mostly manual entry, VibeBasket imp
 2. **Normalization**
    - external metadata is transformed into internal Zod-validated `McpEntry`, `SkillEntry`, `RuleEntry`, or `WorkflowPackEntry`
    - item-level freshness metadata is attached during persistence: `sourceName`, `sourceUrl`, `firstSeenAt`, `lastSeenAt`, `lastSyncedAt`
-3. **Canonical dedupe**
+3. **Semver Deduplication (MCP Registry)**
+   - the official MCP registry lists every published version of each npm/pypi/docker package as a separate entry
+   - `OfficialMcpRegistryCollector` groups all entries by `server.name` (lowercased) and keeps only the record with the highest semantic version via `compareSemver`
+   - this prevents multiple cards for the same logical server (e.g. nine `.FAF Context` variants) from cluttering the catalog
+4. **Canonical dedupe (cross-source)**
    - MCPs are deduped by runtime/command/args/url identity
    - Skills are deduped by source identity such as `repo + path`
    - generated catalog IDs include the same canonical runtime/source identity so upstream variants do not overwrite each other during persistence
-4. **Verified precedence**
+5. **Verified precedence**
    - if a curated verified record conflicts with an upstream record, the verified record wins
 6. **Trust scoring**
    - trust is currently derived, not stored: `verified`, official source identity, and freshness metadata combine into a visible `verified` / `official` / `community` trust tier
-5. **Source isolation**
+7. **Source isolation**
    - one broken upstream source should not fail the entire sync run
    - sync summary now surfaces source-level errors explicitly
 

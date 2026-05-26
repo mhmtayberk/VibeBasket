@@ -48,9 +48,27 @@
 - Added **Continue, Roo Code, Hermes, and OpenClaw** IDE/Agent adapters with full MCP and Skills (Prompts & Rules) support.
 - Added independent desktop grid scroll for the Catalog grid and Basket columns with smooth custom-scrollbar styles.
 - Re-verified full monorepository compilation, typechecks, and vitest passes successfully.
+- [x] Premium OLED-dark Documentation Hub `/docs` page reflecting `vibebasket_docs_hub` UI spec perfectly
+- [x] Implemented professional systems-grade technical documentation sections (CLI, Delimiters, Security, Self-Hosting)
+- [x] Separated detailed guides into dynamic Next.js 15 `searchParams` query tabs for perfect layout hygiene
+- [x] Eliminated nested rounded outlines in the sidebar, replacing with a clean flat Setup Builder segment and edge-to-edge menu rows
+- [x] Added fluid edge-to-edge slide-in hover transitions (`hover:pl-6 duration-300`) and active mint vertical border indicators in the sidebar
+- [x] Implemented high-contrast glowing card borders (`hover:border-[#a0fdda]`) and soft mint outer shadow drops (`hover:shadow-[0_0_30px_rgba(160,253,218,0.18)]`)
+- [x] Customized dynamic brand-matched glows for each IDE Adapter card (Cursor orange, Windsurf cyan, Continue mint, Hermes purple)
+- [x] Relaxed vertical page spacing (`space-y-24`) and relaxed grid gap scales (`gap-12 lg:gap-16`) to provide extensive breathing room
+- [x] Added `/docs` route to the header and footer menus for unified system navigation
+- [x] Centered animated "Made with ♥ by Vibe Coding for Vibe Coders" footer signature inside a standalone row at the bottom of the page
+- [x] Overhauled `/docs` vertical/horizontal spacing (py-20, main px-24, bento gap-14, card p-10) eliminating vertical clutter and delivering a deeply spacious visual environment.
+- [x] Implemented a strict global sharp border-radius (2px) by setting `--radius: 0.125rem` in `globals.css`, instantly geometric-polishing all buttons, cards, inputs, and dialogs.
+- [x] Resolved Next.js `missing-data-scroll-behavior` transition warning by conditionalizing globals.css scroll-behavior with `html[data-scroll-behavior="smooth"]`.
+- [x] Fully validated TypeScript typechecks and dynamic static-page production building with zero warnings and zero runtime regressions.
+- [x] Integrated `compareSemver` utility into `OfficialMcpRegistryCollector` — only the highest semver version of each official MCP server is ingested, eliminating catalog duplication for multi-version packages like `.FAF Context`.
+- [x] Added semver deduplication unit test in `packages/registry/src/index.test.ts`; all 120 Vitest tests remain green.
+- [x] Refreshed all `docs/` files: CHANGELOG promoted to versioned `[0.8.0]` entry, ARCHITECTURE updated with new adapters + semver dedup section, PROJECT_OVERVIEW expanded with docs hub and correct target model, CODING_STANDARDS gained rules 10 & 11.
+- [x] Updated `memory-bank/activeContext.md` and `memory-bank/progress.md` to reflect current state.
 
 ## In Progress
-- Improving registry persistence performance for very large sync runs (Fully optimized now with atomic DB transactions).
+- Running a catalog sync to prune stale duplicate MCP rows from the live SQLite database.
 - Broadening automated browser E2E coverage for secure admin and saved stacks flows.
 
 ## Blockers
