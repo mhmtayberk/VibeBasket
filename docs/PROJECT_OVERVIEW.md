@@ -8,7 +8,9 @@ The product exists to make AI development environments portable, repeatable, and
 
 ## Current Target Model
 
-As of May 26, 2026, the product exposes a single adapter-backed target set rather than mixing installable targets with a visible watchlist. The current supported landscape includes Cursor, Windsurf, VS Code/Cline, Antigravity, Claude Code, DeepSeek-TUI, Zed, Codex CLI, Gemini CLI, JetBrains Junie, Kiro, and Cline CLI.
+As of May 26, 2026, the product exposes a single adapter-backed target set. The current supported landscape includes Cursor, Windsurf, VS Code/Cline, Antigravity, Claude Code, DeepSeek-TUI, Zed, Codex CLI, Gemini CLI, JetBrains Junie, Kiro, Cline CLI, Continue, Roo Code, Hermes, and OpenClaw.
+
+For targets that support it (Continue, Roo Code, Hermes, OpenClaw), the CLI adapter also installs Skills (Prompts) and Rules using idempotent block delimiters to avoid corrupting existing developer configurations.
 
 ## Core Experience
 
@@ -32,31 +34,30 @@ When multiple sources describe the same item, VibeBasket deduplicates by canonic
 
 ## Recent State
 
-Recent work significantly changed the catalog behavior:
+Recent work significantly changed the catalog behavior and design system:
 
-- fixed catalog loading stability problems
-- fixed selected-state visibility and unselect behavior in the UI
+- fixed catalog loading stability problems and selected-state visibility
 - replaced brittle registry sync stubs with live trusted-source collectors
-- corrected `skills.sh` official/community provenance classification after tracing escaped repo identifiers from the upstream page parser
-- switched skills ingestion to the full public `skills.sh` sitemap corpus and tightened canonical skill identity around `repo + full path + ref`
-- improved search ranking so exact and prefix display-name matches beat broader description/source JSON matches
-- centralized target capability metadata while keeping the web client on a metadata-only import path, so supported-target UX stays in sync with adapters without dragging server-only modules into browser bundles
-- added pagination so large catalogs remain usable
-- added trust/freshness filtering and sorting so catalog exploration can follow confidence signals instead of only raw search text
-- added API-side sync locking and DB indexing to reduce repeated work
-- server-rendered the first catalog page so the builder can show useful results even if client hydration or the initial browser fetch is delayed
-- aligned the target picker with the real adapter-backed set and removed stale watchlist-only entries
-- converted the homepage AI IDE strip back into a sliding icon marquee
-- fixed adapter MCP serialization for remote servers so supported targets now write proper HTTP-based MCP config instead of invalid `command: "remote"` payloads
-- hardened CLI apply so unsupported scopes or target write failures abort the run instead of pretending success
-- resolved SQLite database locking (`SQLITE_BUSY`) under high concurrency by adding `PRAGMA busy_timeout = 5000` to the database bootstrap phase
-- hardened Codex CLI TOML adapter parsing/serialization to cleanly support single/double quoted server identifiers
-- highly optimized the catalog API (`/api/catalog`) query path by migrating the expensive in-memory skill mirror cleanup logic to the registry sync persistence layer, ensuring it runs once during ingestion
+- **semver deduplication engine:** `OfficialMcpRegistryCollector` now groups servers by `server.name` and ingests only the highest semver release, eliminating duplicate cards for packages with multiple historical versions (e.g. nine `.FAF Context` entries reduced to one)
+- corrected `skills.sh` official/community provenance classification
+- switched skills ingestion to the full public `skills.sh` sitemap corpus with tighter canonical skill identity (`repo + full path + ref`)
+- improved search ranking so exact/prefix display-name matches rank above broader description/source JSON matches
+- centralized target capability metadata with a metadata-only web client import path
+- added pagination, trust/freshness filtering and sorting, API-side sync locking and DB indexing
+- server-rendered the first catalog page so the builder shows useful results before client hydration
+- fixed adapter MCP serialization for remote servers
+- hardened CLI apply so unsupported scopes or target write failures abort instead of pretending success
+- resolved SQLite locking (`SQLITE_BUSY`) via `PRAGMA busy_timeout = 5000` and full WAL mode
+- hardened Codex CLI TOML adapter for single/double quoted server identifiers
+- **docs hub:** built the `/docs` documentation center with spacious bento layout, sidebar navigation, tabbed guides, and brand-coherent design system (sharp 2px borders, OLED dark mode)
+- **design system baseline:** set `--radius: 0.125rem` globally, added surface container color tokens, and resolved the Next.js route smooth-scroll warning
+- **rate limiter hardening:** hybrid IP detection with Cloudflare header, `TRUST_PROXY` env var, and in-memory leak cleanup sweeper
+- **delimiter engine:** Roo Code, Hermes, and OpenClaw adapters use `>>> VIBEBASKET START/END <<<` block delimiters for idempotent rule/skill writes
 
 ## Current Constraints
 
-- full-catalog sync is now functionally correct but still expensive at large scale
-- catalog search uses SQL `LIKE`; it is acceptable for now but not the final search architecture for very large datasets
-- same-name skills from distinct upstream repos are intentionally preserved unless canonical source identity proves they are mirrors; correctness currently wins over aggressive title-based merging
-- lockfile health matters: the repo now depends on a refreshed `pnpm-lock.yaml` after the registry package gained `js-yaml`
-- adapter-backed support still means MCP-first today; even on supported targets like DeepSeek-TUI, skills/rules/workflow auto-apply should stay off until the target exposes an official, stable install surface for them
+- full-catalog sync is functionally correct but still expensive at large scale; `pnpm catalog:sync` is the recommended hook for periodic refreshes
+- catalog search uses SQL `LIKE`; acceptable for now but not the final search architecture for very large datasets
+- same-name skills from distinct upstream repos are intentionally preserved unless canonical source identity proves they are mirrors; correctness wins over aggressive title-based merging
+- adapter-backed support is MCP-first today; Skills/Rules/Workflow auto-apply is only live for Continue, Roo Code, Hermes, and OpenClaw; even there, the CLI prompts rather than silently overwriting user configurations
+- the docs hub at `/docs` serves static tabbed content for now; interactive search and versioned content are future improvements

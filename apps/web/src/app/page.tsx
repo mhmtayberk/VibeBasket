@@ -155,10 +155,16 @@ export default async function Home() {
 							</a>
 							<a
 								href={`#${sectionIds.command}`}
-								className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:text-accent"
+								className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:text-accent cursor-pointer"
 							>
 								Install flow
 							</a>
+							<Link
+								href="/docs"
+								className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:text-accent cursor-pointer"
+							>
+								Documentation
+							</Link>
 						</nav>
 					</div>
 
@@ -423,34 +429,48 @@ export default async function Home() {
 				</div>
 			</section>
 
-			<footer className="mx-auto flex max-w-[1440px] flex-col gap-6 px-4 py-10 text-sm text-muted-foreground sm:px-6 lg:flex-row lg:items-end lg:justify-between lg:px-8">
-				<div>
-					<p className="text-2xl font-semibold text-foreground">VibeBasket</p>
-					<p className="mt-3 max-w-xl leading-7">
-						AI-engineered setup infrastructure for teams that want reproducible
-						context across modern coding tools.
-					</p>
+			<footer className="mx-auto max-w-[1440px] px-4 py-10 sm:px-6 lg:px-8 border-t border-border/40 mt-20">
+				<div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+					<div>
+						<p className="text-2xl font-semibold text-foreground">VibeBasket</p>
+						<p className="mt-3 max-w-xl leading-7 text-muted-foreground/80 text-sm">
+							AI-engineered setup infrastructure for teams that want reproducible
+							context across modern coding tools.
+						</p>
+					</div>
+
+					<div className="flex flex-wrap gap-5 font-mono text-[11px] uppercase tracking-[0.18em]">
+						<a
+							href={`#${sectionIds.how}`}
+							className="transition-colors hover:text-accent cursor-pointer"
+						>
+							Workflow
+						</a>
+						<a
+							href={`#${sectionIds.catalog}`}
+							className="transition-colors hover:text-accent cursor-pointer"
+						>
+							Catalog
+						</a>
+						<a
+							href={`#${sectionIds.command}`}
+							className="transition-colors hover:text-accent cursor-pointer"
+						>
+							Install flow
+						</a>
+						<Link
+							href="/docs"
+							className="transition-colors hover:text-accent cursor-pointer"
+						>
+							Documentation
+						</Link>
+					</div>
 				</div>
 
-				<div className="flex flex-wrap gap-5 font-mono text-[11px] uppercase tracking-[0.18em]">
-					<a
-						href={`#${sectionIds.how}`}
-						className="transition-colors hover:text-accent"
-					>
-						Workflow
-					</a>
-					<a
-						href={`#${sectionIds.catalog}`}
-						className="transition-colors hover:text-accent"
-					>
-						Catalog
-					</a>
-					<a
-						href={`#${sectionIds.command}`}
-						className="transition-colors hover:text-accent"
-					>
-						Install flow
-					</a>
+				<div className="mt-8 pt-8 border-t border-border/20 flex justify-center items-center">
+					<p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground/60 flex items-center gap-1.5 justify-center text-center">
+						Made with <span className="text-accent animate-pulse">♥</span> by <span className="text-foreground hover:text-accent transition-colors duration-200 cursor-default">Vibe Coding</span> for <span className="text-accent font-medium">Vibe Coders</span>
+					</p>
 				</div>
 			</footer>
 
