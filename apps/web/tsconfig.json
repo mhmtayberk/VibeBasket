@@ -21,7 +21,9 @@
 		"paths": {
 			"@/*": ["./src/*"],
 			"@vibebasket/adapters": ["../../packages/adapters/src"],
-			"@vibebasket/adapters/target-capabilities": ["../../packages/adapters/src/target-capabilities.ts"],
+			"@vibebasket/adapters/target-capabilities": [
+				"../../packages/adapters/src/target-capabilities.ts"
+			],
 			"@vibebasket/adapters/types": ["../../packages/adapters/src/types.ts"],
 			"@vibebasket/registry": ["../../packages/registry/src"],
 			"@vibebasket/core": ["../../packages/core/src"]

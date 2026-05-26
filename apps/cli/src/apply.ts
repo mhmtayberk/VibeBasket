@@ -8,6 +8,7 @@ import {
   WindsurfAdapter, 
   VSCodeAdapter,
   ClaudeCodeAdapter,
+  DeepSeekTuiAdapter,
   GeminiCliAdapter,
   KiroAdapter,
   JunieAdapter,
@@ -28,6 +29,7 @@ const ADAPTERS = {
   windsurf: new WindsurfAdapter(),
   vscode: new VSCodeAdapter(),
   "claude-code": new ClaudeCodeAdapter(),
+  "deepseek-tui": new DeepSeekTuiAdapter(),
   "gemini-cli": new GeminiCliAdapter(),
   kiro: new KiroAdapter(),
   junie: new JunieAdapter(),
@@ -67,6 +69,13 @@ export async function applyBundle(
   console.log(`- Workflow Files: ${flattened.files.length}`);
   console.log(`- Targets: ${bundle.targets.join(", ")}`);
   console.log(`- Scope: ${scope}\n`);
+
+  const unsupportedTargets = bundle.targets.filter((targetId) => !getAdapter(targetId));
+  if (unsupportedTargets.length > 0) {
+    throw new Error(
+      `This bundle references targets the current apply engine cannot install yet: ${unsupportedTargets.join(", ")}.`
+    );
+  }
 
   const scopeUnsupportedTargets = bundle.targets.filter((targetId) => {
     const adapter = getAdapter(targetId);

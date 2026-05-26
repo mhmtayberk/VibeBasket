@@ -5,6 +5,7 @@ export * from "./vscode";
 export * from "./windsurf";
 export * from "./antigravity";
 export * from "./claude-code";
+export * from "./deepseek-tui";
 export * from "./gemini-cli";
 export * from "./kiro";
 export * from "./junie";

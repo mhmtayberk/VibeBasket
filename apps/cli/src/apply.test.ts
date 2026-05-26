@@ -47,6 +47,7 @@ vi.mock("@vibebasket/adapters", () => ({
 	WindsurfAdapter: FakeAdapter,
 	VSCodeAdapter: FakeAdapter,
 	ClaudeCodeAdapter: FakeAdapter,
+	DeepSeekTuiAdapter: UserOnlyAdapter,
 	GeminiCliAdapter: FakeAdapter,
 	KiroAdapter: FakeAdapter,
 	JunieAdapter: FakeAdapter,

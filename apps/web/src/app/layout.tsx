@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 	applicationName: "VibeBasket",
 	title: "VibeBasket | The Ninite for Vibe Coding",
 	description:
-		"Bundle trusted MCP servers, agent skills, and project rules into one shareable install flow for Cursor, Windsurf, VS Code, Claude Code, Codex CLI, Zed, Gemini CLI, Junie, Kiro, and Cline CLI.",
+		"Bundle trusted MCP servers, agent skills, and project rules into one shareable install flow for Cursor, Windsurf, VS Code, Claude Code, DeepSeek-TUI, Codex CLI, Zed, Gemini CLI, Junie, Kiro, and Cline CLI.",
 	keywords: [
 		"AI coding",
 		"MCP server",

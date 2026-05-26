@@ -84,7 +84,15 @@ function parseCodexToml(content: string): Record<string, BasicMcpServerConfig> {
 
     const sectionMatch = line.match(/^\[mcp_servers\.([^\]]+)\]$/);
     if (sectionMatch) {
-      currentName = sectionMatch[1] || null;
+      let name = sectionMatch[1] || "";
+      // Strip outer double or single quotes if present
+      if (
+        (name.startsWith('"') && name.endsWith('"')) ||
+        (name.startsWith("'") && name.endsWith("'"))
+      ) {
+        name = name.slice(1, -1);
+      }
+      currentName = name || null;
       if (currentName) {
         result[currentName] = result[currentName] || {};
       }
@@ -133,7 +141,8 @@ function renderCodexToml(
 
     if (sectionMatch) {
       const sectionName = sectionMatch[1] || "";
-      skippingMcpSection = sectionName.startsWith("mcp_servers.");
+      const normalizedSectionName = sectionName.replace(/['"]/g, "");
+      skippingMcpSection = normalizedSectionName.startsWith("mcp_servers.");
       if (!skippingMcpSection) {
         keptLines.push(rawLine);
       }

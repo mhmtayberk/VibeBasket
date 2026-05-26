@@ -21,7 +21,9 @@ describe("TARGET_OPTIONS", () => {
 				(target) => target.id,
 			),
 		);
-		expect(SUPPORTED_TARGET_IDS).toEqual(ADAPTER_SUPPORTED_TARGET_IDS);
+		expect(new Set(SUPPORTED_TARGET_IDS)).toEqual(
+			new Set(ADAPTER_SUPPORTED_TARGET_IDS),
+		);
 	});
 
 	it("keeps targets alphabetically ordered by label", () => {
@@ -43,5 +45,23 @@ describe("TARGET_OPTIONS", () => {
 				TARGET_CAPABILITIES[target.id].autoApply ? "supported" : "coming-soon",
 			);
 		}
+	});
+
+	it("adds DeepSeek-TUI as supported with MCP-only positioning", () => {
+		expect(
+			TARGET_OPTIONS.find((target) => target.id === "deepseek-tui"),
+		).toEqual(
+			expect.objectContaining({
+				label: "DeepSeek-TUI",
+				status: "supported",
+				note: expect.stringContaining("MCP config only"),
+			}),
+		);
+		expect(
+			TARGET_OPTIONS.some((target) => target.label === "DeepCode"),
+		).toBe(false);
+		expect(
+			TARGET_OPTIONS.some((target) => target.label === "Cherry Studio"),
+		).toBe(false);
 	});
 });

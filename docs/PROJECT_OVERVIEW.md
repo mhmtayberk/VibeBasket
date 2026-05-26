@@ -8,7 +8,7 @@ The product exists to make AI development environments portable, repeatable, and
 
 ## Current Target Model
 
-As of May 15, 2026, the product exposes a single adapter-backed target set rather than mixing installable targets with a visible watchlist. The current supported landscape includes Cursor, Windsurf, VS Code/Cline, Antigravity, Claude Code, Zed, Codex CLI, Gemini CLI, JetBrains Junie, Kiro, and Cline CLI.
+As of May 26, 2026, the product exposes a single adapter-backed target set rather than mixing installable targets with a visible watchlist. The current supported landscape includes Cursor, Windsurf, VS Code/Cline, Antigravity, Claude Code, DeepSeek-TUI, Zed, Codex CLI, Gemini CLI, JetBrains Junie, Kiro, and Cline CLI.
 
 ## Core Experience
 
@@ -49,11 +49,14 @@ Recent work significantly changed the catalog behavior:
 - converted the homepage AI IDE strip back into a sliding icon marquee
 - fixed adapter MCP serialization for remote servers so supported targets now write proper HTTP-based MCP config instead of invalid `command: "remote"` payloads
 - hardened CLI apply so unsupported scopes or target write failures abort the run instead of pretending success
+- resolved SQLite database locking (`SQLITE_BUSY`) under high concurrency by adding `PRAGMA busy_timeout = 5000` to the database bootstrap phase
+- hardened Codex CLI TOML adapter parsing/serialization to cleanly support single/double quoted server identifiers
+- highly optimized the catalog API (`/api/catalog`) query path by migrating the expensive in-memory skill mirror cleanup logic to the registry sync persistence layer, ensuring it runs once during ingestion
 
 ## Current Constraints
 
 - full-catalog sync is now functionally correct but still expensive at large scale
-- persistence currently works, but the registry write path should be optimized further with batching/transaction improvements
 - catalog search uses SQL `LIKE`; it is acceptable for now but not the final search architecture for very large datasets
 - same-name skills from distinct upstream repos are intentionally preserved unless canonical source identity proves they are mirrors; correctness currently wins over aggressive title-based merging
 - lockfile health matters: the repo now depends on a refreshed `pnpm-lock.yaml` after the registry package gained `js-yaml`
+- adapter-backed support still means MCP-first today; even on supported targets like DeepSeek-TUI, skills/rules/workflow auto-apply should stay off until the target exposes an official, stable install surface for them

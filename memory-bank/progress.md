@@ -140,6 +140,18 @@
   - `CI=true pnpm -r run test`
   - `pnpm --filter web build`
   - `pnpm --filter web exec playwright test`
+- Added `DeepSeek-TUI` as a supported target end to end: manifest enum, target capability registry, adapter export, CLI apply wiring, rollback support, target picker visibility, and regression tests.
+- Clarified the target surface so DeepSeek-TUI is explicitly presented as MCP-only today rather than implying skills/rules auto-apply parity.
+- Resolved SQLite database locking (`SQLITE_BUSY`) under high concurrency by adding `PRAGMA busy_timeout = 5000` to the database bootstrap phase, preventing migration/initialization lockups.
+- Hardened Codex CLI TOML adapter to gracefully normalize single/double quotes around server identifiers in `config.toml`, preventing section duplicates and parsing errors.
+- Highly optimized the catalog API (`/api/catalog`) query read path by removing the expensive in-memory `ensureCatalogSkillMirrorCleanup()` step from each request.
+- Successfully migrated the official skills mirror cleanup and hygiene logic (`cleanupCatalogSkillMirrors`) to the `@vibebasket/registry` sync persistence layer, ensuring it runs once at data sync time rather than on every query request.
+- Re-ran the verification stack successfully with all core, adapter, registry, CLI, and web tests passing cleanly:
+  - `pnpm --filter @vibebasket/adapters test`
+  - `pnpm --filter @vibebasket/core test`
+  - `pnpm --filter @vibebasket/registry test`
+  - `CI=true pnpm -r run typecheck`
+  - `CI=true pnpm -r run test`
 
 ## In Progress
 - Improving registry persistence performance for very large sync runs.
@@ -153,6 +165,7 @@
 - Measuring whether the public `skills.sh` directory surface plus live query enrichment is enough, or whether we still need a deeper trusted-community crawl/indexing strategy for fully offline local search completeness.
 - Measuring whether the new full sitemap-backed `skills.sh` sync is enough for search quality, or whether we should add weighted/FTS-style local relevance on top of it.
 - Broadening automated browser coverage beyond the current homepage/catalog smoke suite now that Playwright is installed and working locally.
+- Expanding non-MCP installer parity only when a target has an official and stable install surface for those artifacts; DeepSeek-TUI should not get guessed skills/rules support.
 
 ## Blockers
 - None at the moment.
