@@ -346,6 +346,19 @@ function withVersion(identifier: string, version?: string) {
   return `${identifier}@${version}`;
 }
 
+function compareSemver(a: string, b: string): number {
+  const partsA = a.split(".").map((x) => parseInt(x, 10) || 0);
+  const partsB = b.split(".").map((x) => parseInt(x, 10) || 0);
+  for (let i = 0; i < Math.max(partsA.length, partsB.length); i++) {
+    const valA = partsA[i] ?? 0;
+    const valB = partsB[i] ?? 0;
+    if (valA !== valB) {
+      return valA - valB;
+    }
+  }
+  return 0;
+}
+
 function canonicalMcpKey(entry: McpEntry) {
   return JSON.stringify({
     runtime: entry.runtime,
@@ -575,6 +588,7 @@ class OfficialMcpRegistryCollector implements SourceCollector {
 
   async collect(): Promise<SourceCollectedItem[]> {
     const items: SourceCollectedItem[] = [];
+    const bestServers = new Map<string, { item: SourceCollectedItem; version: string }>();
     let cursor: string | undefined;
 
     do {
@@ -622,15 +636,28 @@ class OfficialMcpRegistryCollector implements SourceCollector {
         overrides.sourceName = this.name;
         overrides.sourceUrl = `${MCP_REGISTRY_BASE_URL}/servers`;
 
-        items.push({
+        const packageDefinition = normalized.server.packages?.find((pkg) => pkg.transport?.type === "stdio") ?? normalized.server.packages?.[0];
+        const version = packageDefinition?.version ?? "0.0.0";
+        const serverKey = normalized.server.name.toLowerCase();
+
+        const collectedItem: SourceCollectedItem = {
           canonicalKey: canonicalMcpKey(entry),
           sourceName: this.name,
           catalogItem: buildMcpCatalogItem(entry, overrides),
-        });
+        };
+
+        const existing = bestServers.get(serverKey);
+        if (!existing || compareSemver(version, existing.version) > 0) {
+          bestServers.set(serverKey, { item: collectedItem, version });
+        }
       }
 
       cursor = payload.metadata?.nextCursor;
     } while (cursor);
+
+    for (const val of bestServers.values()) {
+      items.push(val.item);
+    }
 
     return items;
   }
@@ -1153,61 +1180,63 @@ export class RegistrySyncService {
     const ids = items.map((item) => item.id);
     const syncTime = new Date();
 
-    for (let start = 0; start < items.length; start += PERSIST_BATCH_SIZE) {
-      const chunk = items.slice(start, start + PERSIST_BATCH_SIZE);
+    await db.transaction(async (tx: any) => {
+      for (let start = 0; start < items.length; start += PERSIST_BATCH_SIZE) {
+        const chunk = items.slice(start, start + PERSIST_BATCH_SIZE);
 
-      await db.insert(catalogItems).values(
-        chunk.map((item) => ({
-          id: item.id,
-          type: item.type,
-          displayName: item.displayName,
-          description: item.description,
-          icon: item.icon,
-          sourceName: item.sourceName,
-          sourceUrl: item.sourceUrl,
-          verified: item.verified,
-          data: item.data as any,
-          firstSeenAt: syncTime,
-          lastSeenAt: syncTime,
-          lastSyncedAt: syncTime,
-          createdAt: syncTime,
-        }))
-      ).onConflictDoUpdate({
-        target: catalogItems.id,
-        set: {
-          type: sql.raw("excluded.type"),
-          displayName: sql.raw("excluded.display_name"),
-          description: sql.raw("excluded.description"),
-          icon: sql.raw("excluded.icon"),
-          sourceName: sql.raw("excluded.source_name"),
-          sourceUrl: sql.raw("excluded.source_url"),
-          verified: sql.raw("excluded.verified"),
-          data: sql.raw("excluded.data"),
-          firstSeenAt: sql`coalesce(${catalogItems.firstSeenAt}, excluded.first_seen_at)`,
-          lastSeenAt: sql.raw("excluded.last_seen_at"),
-          lastSyncedAt: sql.raw("excluded.last_synced_at"),
-          createdAt: sql.raw("excluded.created_at"),
-        },
-      });
-    }
-
-    if (opts.pruneMissing) {
-      const incomingIds = new Set(ids);
-      const existingRows = await db.select({ id: catalogItems.id }).from(catalogItems);
-      const staleIds = existingRows
-        .map((row: { id: string }) => row.id)
-        .filter((id: string) => !incomingIds.has(id));
-
-      for (let start = 0; start < staleIds.length; start += PRUNE_BATCH_SIZE) {
-        const chunk = staleIds.slice(start, start + PRUNE_BATCH_SIZE);
-        await db.delete(catalogItems).where(inArray(catalogItems.id, chunk));
+        await tx.insert(catalogItems).values(
+          chunk.map((item) => ({
+            id: item.id,
+            type: item.type,
+            displayName: item.displayName,
+            description: item.description,
+            icon: item.icon,
+            sourceName: item.sourceName,
+            sourceUrl: item.sourceUrl,
+            verified: item.verified,
+            data: item.data as any,
+            firstSeenAt: syncTime,
+            lastSeenAt: syncTime,
+            lastSyncedAt: syncTime,
+            createdAt: syncTime,
+          }))
+        ).onConflictDoUpdate({
+          target: catalogItems.id,
+          set: {
+            type: sql.raw("excluded.type"),
+            displayName: sql.raw("excluded.display_name"),
+            description: sql.raw("excluded.description"),
+            icon: sql.raw("excluded.icon"),
+            sourceName: sql.raw("excluded.source_name"),
+            sourceUrl: sql.raw("excluded.source_url"),
+            verified: sql.raw("excluded.verified"),
+            data: sql.raw("excluded.data"),
+            firstSeenAt: sql`coalesce(${catalogItems.firstSeenAt}, excluded.first_seen_at)`,
+            lastSeenAt: sql.raw("excluded.last_seen_at"),
+            lastSyncedAt: sql.raw("excluded.last_synced_at"),
+            createdAt: sql.raw("excluded.created_at"),
+          },
+        });
       }
 
-      await db.delete(catalogItems).where(sql`${catalogItems.sourceName} is null`);
-    }
+      if (opts.pruneMissing) {
+        const incomingIds = new Set(ids);
+        const existingRows = await tx.select({ id: catalogItems.id }).from(catalogItems);
+        const staleIds = existingRows
+          .map((row: { id: string }) => row.id)
+          .filter((id: string) => !incomingIds.has(id));
 
-    // Run deep mirror cleanup as part of persistence to keep the database permanently clean
-    await this.cleanupCatalogSkillMirrors(db, catalogItems, inArray);
+        for (let start = 0; start < staleIds.length; start += PRUNE_BATCH_SIZE) {
+          const chunk = staleIds.slice(start, start + PRUNE_BATCH_SIZE);
+          await tx.delete(catalogItems).where(inArray(catalogItems.id, chunk));
+        }
+
+        await tx.delete(catalogItems).where(sql`${catalogItems.sourceName} is null`);
+      }
+
+      // Run deep mirror cleanup as part of persistence to keep the database permanently clean
+      await this.cleanupCatalogSkillMirrors(tx, catalogItems, inArray);
+    });
   }
 
   private async cleanupCatalogSkillMirrors(db: any, catalogItems: any, inArray: any) {

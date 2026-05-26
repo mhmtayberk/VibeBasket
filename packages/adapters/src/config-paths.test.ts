@@ -8,6 +8,10 @@ import { KiroAdapter } from "./kiro.js";
 import { ClineCliAdapter } from "./cline-cli.js";
 import { ZedAdapter } from "./zed.js";
 import { CodexAdapter } from "./codex.js";
+import { ContinueAdapter } from "./continue.js";
+import { RooCodeAdapter } from "./roocode.js";
+import { HermesAdapter } from "./hermes.js";
+import { OpenClawAdapter } from "./openclaw.js";
 import { TARGET_CAPABILITIES } from "./target-capabilities.js";
 
 describe("adapter config paths", () => {
@@ -19,6 +23,7 @@ describe("adapter config paths", () => {
     expect(new JunieAdapter().configPath("project", projectRoot)).toBe("/tmp/demo-project/.junie/mcp/mcp.json");
     expect(new KiroAdapter().configPath("project", projectRoot)).toBe("/tmp/demo-project/.kiro/settings/mcp.json");
     expect(new ZedAdapter().configPath("project", projectRoot)).toBe("/tmp/demo-project/.zed/settings.json");
+    expect(new ContinueAdapter().configPath("project", projectRoot)).toBe("/tmp/demo-project/.continue/config.json");
   });
 
   it("restricts user-scope-only terminal adapters", () => {
@@ -28,5 +33,15 @@ describe("adapter config paths", () => {
     expect(new DeepSeekTuiAdapter().configPath("user")).toBe(
       `${os.homedir()}/.deepseek/mcp.json`
     );
+  });
+
+  it("verifies user/project scopes for roocode, hermes, and openclaw", () => {
+    expect(new RooCodeAdapter().supportedScopes).toEqual(["project"]);
+    expect(new HermesAdapter().supportedScopes).toEqual(["project"]);
+    expect(new OpenClawAdapter().supportedScopes).toEqual(["project"]);
+
+    expect(new RooCodeAdapter().configPath("project")).toContain("roocode_mcp_settings.json");
+    expect(new HermesAdapter().configPath("project")).toBe(`${os.homedir()}/.hermes/config.yaml`);
+    expect(new OpenClawAdapter().configPath("project")).toBe(`${os.homedir()}/.openclaw/openclaw.json`);
   });
 });

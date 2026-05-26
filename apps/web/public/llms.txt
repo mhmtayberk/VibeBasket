@@ -1,0 +1,47 @@
+# VibeBasket
+
+VibeBasket is the "Ninite for vibe coding." It provides a centralized, web-based catalog to select and bundle MCP servers, reusable AI agent skills (rules/prompts), and project configuration files into one shareable URL and a single local installation command.
+
+## Core Features
+
+- **Shareable Configurations:** Generate anonymous, immutable JSON configuration bundles from a curated browser catalog.
+- **Single Command Bootstrapping:** Apply a complete multi-IDE AI development environment in one shot via `npx vibebasket apply <url>`.
+- **Multi-IDE & Agent Adapters:** Out-of-the-box configuration support for:
+  - **Cursor** (`~/.cursor/mcp.json`)
+  - **VS Code / Cline** (`~/.vscode/extensions/...` and local `.clinerules`)
+  - **Windsurf** (`~/.codeium/windsurf/mcp.json`)
+  - **Antigravity** (OLED Dark Mode AI IDE)
+  - **Claude Code** (CLI agent MCP client)
+  - **Continue** (`~/.continue/config.json` and `.continue/prompts/*.prompt`)
+  - **Roo Code** (Fully custom rules `.clinerules` merges)
+  - **Hermes** (`~/.hermes/config.yaml` high-fidelity YAML parser)
+  - **OpenClaw** (Stdio nested `mcp.servers` inside `openclaw.json` and `.openclawrules`)
+  - **Codex CLI, DeepSeek TUI, Cline CLI, Junie, Kiro, Gemini CLI, Zed, etc.**
+
+## Technical Architecture
+
+VibeBasket is structured as a pnpm-workspace monorepo:
+- **`@vibebasket/core`:** Shared business models, SQLite migrations, and canonical Zod schemas (`manifest.ts`).
+- **`@vibebasket/adapters`:** Multi-IDE configuration mergers managing standard stdio/remote server parameters and block-level rule delimiter writes.
+- **`@vibebasket/registry`:** Unified ingest engine crawling official registries and sitemap indices asynchronously.
+- **`apps/web`:** Next.js 15 App Router web builder with dynamic verified OAuth session guards, SQLite concurrent Bento dashboards, and Zustand stores.
+- **`apps/cli`:** Node.js commander terminal client asking securely for runtime secrets without logging them.
+
+## Installation & CLI Usage
+
+Install and configure a bundle locally:
+```bash
+npx vibebasket apply https://vibebasket.dev/b/anonymous-bundle-id
+```
+
+### CLI Command Options
+- `--force` / `-f`: Overwrites conflicting MCP server command parameters.
+- `--project-root` / `-p`: Directs project-scoped configuration writers (e.g. `.clinerules`, `.hermesrules`) to a custom path.
+- `--secret <key>=<value>`: Pre-seeds required environment credentials inline to bypass interactive command prompts.
+
+## Security Controls
+
+- **Zero-Secret Cloud Storage:** Required API credentials (e.g. token values, private keys) are never stored in the database or shareable bundle JSON. They are prompted and applied strictly in the local offline terminal execution.
+- **Verified Promotion:** Administrative actions (such as triggering live catalog syncs) are restricted to dynamic admin sessions backed by strictly verified OAuth databases.
+- **Immutability:** Generated configuration bundle payloads are completely immutable once created.
+- **Idempotency:** Custom block-delimiter wrappers (`>>> VIBEBASKET START/END <<<`) ensure kural and skill updates rewrite target developer configs without duplicating files or corrupting manual developer notes.

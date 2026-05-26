@@ -23,6 +23,15 @@ export function AuthMenu({ session }: AuthMenuProps) {
 
 	return (
 		<div className="flex items-center gap-3">
+			{session.user?.role === "admin" && (
+				<a
+					href="/admin"
+					className="hidden items-center gap-2 border border-accent bg-accent/10 px-4 py-2 font-mono text-[11px] uppercase tracking-[0.18em] text-accent transition-colors hover:bg-accent hover:text-accent-foreground sm:inline-flex"
+				>
+					Admin Panel
+				</a>
+			)}
+
 			<a
 				href="/stacks"
 				className="hidden items-center gap-2 border border-border/80 px-4 py-2 font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:border-accent/40 hover:text-foreground sm:inline-flex"

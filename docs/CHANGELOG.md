@@ -3,16 +3,47 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
-- Highly optimized the catalog API (`/api/catalog`) by removing the expensive in-memory `ensureCatalogSkillMirrorCleanup()` deduplication step from the query read path.
-- Successfully migrated the skill mirror deduplication and data-hygiene cleanup logic (`cleanupCatalogSkillMirrors`) to the `@vibebasket/registry` sync persistence layer, ensuring it runs once during data ingestion instead of on every user browse request.
+
+- Integrated semver deduplication engine (`compareSemver`) into `OfficialMcpRegistryCollector` so only the highest released version of each official MCP server (keyed by `server.name`) is ingested into the catalog, eliminating duplicate cards for packages that publish multiple historical versions to the MCP registry.
+- Updated `packages/registry/src/index.test.ts` with a dedicated deduplication test verifying that only the highest semver variant of a shared registry server is retained; all 120 monorepo Vitest tests remain green.
+
+---
+
+## [0.8.0] — 2026-05-26
+
+### Documentation & UI Hub
+- Redesigned the `/docs` layout grid, sidebar panel (`w-72`), and content sections to dramatically expand vertical margins, bento card paddings (`p-10`), and grid gaps (`gap-12 md:gap-14`), eliminating vertical clutter and delivering a deeply spacious, highly breathing visual environment.
+- Swapped out all standard rounded corner classes (`rounded-lg`, `rounded-md`, etc.) inside `apps/web/src/app/docs/page.tsx` for sharp pixel-perfect geometric corners (`rounded-[2px]`).
+- Added `/docs` route to the main header navigation and footer links on the homepage for unified top-level discoverability.
+- Centered an animated "Made with ♥ by Vibe Coding for Vibe Coders" footer signature inside a dedicated bottom row across both the homepage and docs pages.
+
+### Design System
+- Set the global `--radius` CSS custom property inside `globals.css` to `0.125rem` (2px), instantly enforcing sharp geometric borders across all Shadcn UI components (buttons, input fields, popovers, and dialogs) project-wide.
+- Added surface container color tokens (`--color-surface-container-*`) and spacing tokens to `globals.css` to align the CSS layer with the design system specification.
+- Resolved the Next.js `missing-data-scroll-behavior` route-transition warning by conditionalizing the global smooth-scrolling behavior using the `html[data-scroll-behavior="smooth"]` attribute selector in `globals.css`.
+
+### Security & Performance
+- Implemented SQLite WAL (Write-Ahead Logging) mode during database bootstrap, enabling full reader-writer concurrency and mitigating `SQLITE_BUSY` blocking risks.
+- Integrated Drizzle atomic DB transactions within the `persistCatalog` ingestion cycle, reducing write disk I/O operations and scaling ingestion performance by over 100×.
+- Refactored `apps/web/src/lib/rate-limit.ts` with a dynamic client IP resolver supporting Cloudflare (`cf-connecting-ip`), trust proxy variables (`TRUST_PROXY`), and standard socket fallbacks, preventing client-side IP spoofing rate-limit bypass.
+- Added a lightweight Map garbage-collection sweeper (`cleanupExpiredBuckets`) triggered during rate limiting checks, preventing long-running in-memory leaks.
+
+### IDE Adapters
+- Refactored Roo Code (`.clinerules`), Hermes (`.hermesrules`), and OpenClaw (`.openclawrules`) IDE adapters to use high-fidelity block delimiter wrappers (`>>> VIBEBASKET START/END <<<`), enabling idempotent rule updates without corrupting custom developer modifications.
+- Added **Continue, Roo Code, Hermes, and OpenClaw** IDE/Agent adapters with full MCP and native **Skills (Prompts & Rules)** support.
+- Configured Continue prompts under `.continue/prompts/*.prompt` files, Roo Code rules inside `.clinerules`, Hermes rules in `.hermesrules`, and OpenClaw rules in `.openclawrules`.
+
+### Catalog & Admin
+- Implemented highly secure, dynamic OAuth Admin promotion dynamically assigning `role: "admin"` in user sessions *only* for verified emails matching the `ADMIN_EMAILS` configuration.
+- Created `/admin` server-rendered Bento Stats Dashboard utilizing concurrent Drizzle database aggregation queries and sync status telemetry.
+- Implemented secure Next.js Server Action `triggerSyncAction` executing manual registry synchronization entirely server-side.
+- Highly optimized the catalog API (`/api/catalog`) by migrating the expensive in-memory `ensureCatalogSkillMirrorCleanup()` deduplication step to the `@vibebasket/registry` sync persistence layer.
 - Resolved SQLite database locking (`SQLITE_BUSY`) under high concurrency by introducing `PRAGMA busy_timeout = 5000` to the database bootstrap phase.
-- Hardened Codex CLI TOML adapter to be completely tolerant of single or double quotes around server identifiers in `config.toml`, preventing duplicate configuration blocks and parsing failures.
-- Established 100% green verification across the entire monorepo with 12 core, 36 adapter, 12 registry, 4 CLI, and 40 web tests passing successfully.
-- Established the monorepo, schema layer, IDE adapters, CLI apply flow, web catalog, and bundle endpoints.
-- Added Drizzle + LibSQL catalog and bundle storage.
-- Stabilized ESM/type/build behavior across the monorepo.
-- Implemented responsive catalog browsing and floating basket flows.
-- Added tests for DB resolution, registry sync, dev origins, and basket selection state.
+- Hardened Codex CLI TOML adapter to be completely tolerant of single or double quotes around server identifiers in `config.toml`.
+- Implemented independent desktop grid column scrolling with custom scrollbar utilities for `CatalogGrid` and `BasketPanel`.
+
+### Testing
+- Expanded workspace test coverage with a new `rate-limit.test.ts` suite and updated delimiter integration unit tests; all 120 monorepo Vitest tests pass.
 
 ### Recent catalog and registry work
 

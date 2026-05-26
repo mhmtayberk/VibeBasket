@@ -107,7 +107,7 @@ export function BasketPanel({
 	return (
 		<aside
 			className={cn(
-				"border border-border/80 bg-card/85 backdrop-blur-sm",
+				"border border-border/80 bg-card/85 backdrop-blur-sm lg:max-h-[calc(100vh-140px)] lg:overflow-y-auto custom-scrollbar",
 				variant === "desktop" ? "sticky top-24 rounded-lg" : "rounded-lg",
 				className,
 			)}
