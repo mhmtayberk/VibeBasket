@@ -7,6 +7,7 @@ import {
   mergeStandardMcpServers,
   type BasicMcpServerConfig,
 } from "./mcp-utils";
+import { getTargetCapabilities } from "./target-capabilities";
 
 interface CodexMcpConfig {
   mcpServers: Record<string, BasicMcpServerConfig>;
@@ -181,12 +182,13 @@ function renderCodexToml(
 }
 
 export class CodexAdapter implements IdeAdapter {
+  private static readonly capabilities = getTargetCapabilities("codex");
   readonly id: IdeId = "codex";
   readonly displayName = "Codex CLI";
-  readonly supportsMcp = true;
-  readonly supportsSkills = false;
-  readonly supportsRules = true;
-  readonly supportedScopes: readonly Scope[] = ["user"];
+  readonly supportsMcp = CodexAdapter.capabilities.supportsMcp;
+  readonly supportsSkills = CodexAdapter.capabilities.supportsSkills;
+  readonly supportsRules = CodexAdapter.capabilities.supportsRules;
+  readonly supportedScopes: readonly Scope[] = CodexAdapter.capabilities.supportedScopes;
 
   configPath(scope: Scope): string {
     if (scope === "project") {

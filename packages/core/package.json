@@ -9,7 +9,7 @@
   "scripts": {
     "build": "tsup",
     "test": "node ../../scripts/run-vitest.mjs run",
-    "typecheck": "tsc -b"
+    "typecheck": "pnpm exec tsc -b"
   },
   "dependencies": {
     "@libsql/client": "^0.17.3",

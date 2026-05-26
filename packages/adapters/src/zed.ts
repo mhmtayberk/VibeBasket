@@ -4,6 +4,7 @@ import path from "node:path";
 import type { IdeAdapter } from "./types";
 import type { IdeId, McpEntry, Scope } from "@vibebasket/core";
 import { resolveMcpEnv } from "./mcp-utils";
+import { getTargetCapabilities } from "./target-capabilities";
 
 interface ZedContextServerConfig {
   command?: string;
@@ -18,12 +19,13 @@ interface ZedSettingsConfig {
 }
 
 export class ZedAdapter implements IdeAdapter {
+  private static readonly capabilities = getTargetCapabilities("zed");
   readonly id: IdeId = "zed";
   readonly displayName = "Zed";
-  readonly supportsMcp = true;
-  readonly supportsSkills = false;
-  readonly supportsRules = true;
-  readonly supportedScopes: readonly Scope[] = ["user", "project"];
+  readonly supportsMcp = ZedAdapter.capabilities.supportsMcp;
+  readonly supportsSkills = ZedAdapter.capabilities.supportsSkills;
+  readonly supportsRules = ZedAdapter.capabilities.supportsRules;
+  readonly supportedScopes: readonly Scope[] = ZedAdapter.capabilities.supportedScopes;
 
   configPath(scope: Scope, projectRoot?: string): string {
     if (scope === "project") {

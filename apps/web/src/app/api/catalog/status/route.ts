@@ -6,11 +6,27 @@ import {
 } from "@vibebasket/core";
 import { asc, desc, sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
+import { checkRateLimit, getClientAddress } from "@/lib/rate-limit";
+import {
+	applySecurityHeaders,
+	createTooManyRequestsResponse,
+} from "@/lib/security-headers";
 
 const SYNC_INTERVAL_MS = 60 * 60 * 1000;
+const STATUS_RATE_LIMIT = 5;
+const STATUS_RATE_WINDOW_MS = 60 * 1000;
 
-export async function GET() {
+export async function GET(request: Request = new Request("http://localhost")) {
 	try {
+		const rateLimit = checkRateLimit(
+			`catalog-status:${getClientAddress(request)}`,
+			STATUS_RATE_LIMIT,
+			STATUS_RATE_WINDOW_MS,
+		);
+		if (!rateLimit.allowed) {
+			return createTooManyRequestsResponse();
+		}
+
 		await ensureDatabaseIndexes();
 
 		const [counts, latestCatalogItem, latestSyncRun] = await Promise.all([
@@ -42,40 +58,41 @@ export async function GET() {
 			latestCatalogItem[0]?.lastSyncedAt ?? latestCreatedAt;
 		const completedAt = latestSyncRun[0]?.completedAt ?? null;
 
-		return NextResponse.json({
-			counts: counts.reduce<Record<string, number>>((acc, row) => {
-				acc[row.type] = Number(row.total ?? 0);
-				return acc;
-			}, {}),
-			freshness: {
-				latestCatalogItemAt: latestCreatedAt,
-				latestCatalogSyncAt,
-				stale:
-					latestCatalogSyncAt instanceof Date
-						? Date.now() - latestCatalogSyncAt.getTime() >= SYNC_INTERVAL_MS
-						: true,
-			},
-			lastSync: latestSyncRun[0]
-				? {
-						trigger: latestSyncRun[0].trigger,
-						success: latestSyncRun[0].success,
-						totalItems: latestSyncRun[0].totalItems,
-						mcps: latestSyncRun[0].mcps,
-						skills: latestSyncRun[0].skills,
-						rules: latestSyncRun[0].rules,
-						workflows: latestSyncRun[0].workflows,
-						durationMs: latestSyncRun[0].durationMs,
-						sourceErrors: latestSyncRun[0].sourceErrors,
-						startedAt: latestSyncRun[0].startedAt,
-						completedAt,
-					}
-				: null,
-		});
+		return applySecurityHeaders(
+			NextResponse.json({
+				counts: counts.reduce<Record<string, number>>((acc, row) => {
+					acc[row.type] = Number(row.total ?? 0);
+					return acc;
+				}, {}),
+				freshness: {
+					latestCatalogItemAt: latestCreatedAt,
+					latestCatalogSyncAt,
+					stale:
+						latestCatalogSyncAt instanceof Date
+							? Date.now() - latestCatalogSyncAt.getTime() >= SYNC_INTERVAL_MS
+							: true,
+				},
+				lastSync: latestSyncRun[0]
+					? {
+							trigger: latestSyncRun[0].trigger,
+							success: latestSyncRun[0].success,
+							totalItems: latestSyncRun[0].totalItems,
+							mcps: latestSyncRun[0].mcps,
+							skills: latestSyncRun[0].skills,
+							rules: latestSyncRun[0].rules,
+							workflows: latestSyncRun[0].workflows,
+							durationMs: latestSyncRun[0].durationMs,
+							sourceErrors: latestSyncRun[0].sourceErrors,
+							startedAt: latestSyncRun[0].startedAt,
+							completedAt,
+						}
+					: null,
+			}),
+		);
 	} catch (error) {
 		console.error("Failed to fetch catalog status:", error);
-		return NextResponse.json(
-			{ error: "Internal Server Error" },
-			{ status: 500 },
+		return applySecurityHeaders(
+			NextResponse.json({ error: "Internal Server Error" }, { status: 500 }),
 		);
 	}
 }

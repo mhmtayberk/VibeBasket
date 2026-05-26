@@ -15,9 +15,16 @@ import { inArray } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { SUPPORTED_TARGET_IDS } from "@/lib/targets";
+import { checkRateLimit, getClientAddress } from "@/lib/rate-limit";
+import {
+	applySecurityHeaders,
+	createTooManyRequestsResponse,
+} from "@/lib/security-headers";
+import { isSupportedTargetId } from "@/lib/targets";
 
 const MAX_BUNDLE_BYTES = 100 * 1024;
+const BUNDLE_RATE_LIMIT = 20;
+const BUNDLE_RATE_WINDOW_MS = 60 * 1000;
 
 const createBundleRequestSchema = z.object({
 	targets: z.array(z.string()).min(1),
@@ -31,9 +38,11 @@ type CatalogBundleRow = Pick<
 >;
 
 function createBundleTooLargeResponse() {
-	return NextResponse.json(
-		{ error: "Bundle too large (max 100KB)" },
-		{ status: 413 },
+	return applySecurityHeaders(
+		NextResponse.json(
+			{ error: "Bundle too large (max 100KB)" },
+			{ status: 413 },
+		),
 	);
 }
 
@@ -77,6 +86,15 @@ function partitionBundleItems(
 
 export async function POST(req: Request) {
 	try {
+		const rateLimit = checkRateLimit(
+			`bundle:${getClientAddress(req)}`,
+			BUNDLE_RATE_LIMIT,
+			BUNDLE_RATE_WINDOW_MS,
+		);
+		if (!rateLimit.allowed) {
+			return createTooManyRequestsResponse();
+		}
+
 		const contentLength = req.headers.get("content-length");
 		if (
 			contentLength &&
@@ -94,22 +112,26 @@ export async function POST(req: Request) {
 		const parsed = createBundleRequestSchema.safeParse(body);
 
 		if (!parsed.success) {
-			return NextResponse.json(
-				{ error: "Missing required fields" },
-				{ status: 400 },
+			return applySecurityHeaders(
+				NextResponse.json(
+					{ error: "Missing required fields" },
+					{ status: 400 },
+				),
 			);
 		}
 
 		const { targets, scope, itemIds } = parsed.data;
 		const unsupportedTargets = targets.filter(
-			(target: string) => !SUPPORTED_TARGET_IDS.includes(target),
+			(target) => !isSupportedTargetId(target),
 		);
 		if (unsupportedTargets.length > 0) {
-			return NextResponse.json(
-				{
-					error: `Unsupported bundle targets: ${unsupportedTargets.join(", ")}`,
-				},
-				{ status: 400 },
+			return applySecurityHeaders(
+				NextResponse.json(
+					{
+						error: `Unsupported bundle targets: ${unsupportedTargets.join(", ")}`,
+					},
+					{ status: 400 },
+				),
 			);
 		}
 
@@ -124,9 +146,11 @@ export async function POST(req: Request) {
 		);
 
 		if (missingItemIds.length > 0) {
-			return NextResponse.json(
-				{ error: `Catalog items not found: ${missingItemIds.join(", ")}` },
-				{ status: 400 },
+			return applySecurityHeaders(
+				NextResponse.json(
+					{ error: `Catalog items not found: ${missingItemIds.join(", ")}` },
+					{ status: 400 },
+				),
 			);
 		}
 
@@ -151,12 +175,13 @@ export async function POST(req: Request) {
 		});
 
 		const origin = new URL(req.url).origin;
-		return NextResponse.json({ id, url: `${origin}/api/bundle/${id}` });
+		return applySecurityHeaders(
+			NextResponse.json({ id, url: `${origin}/api/bundle/${id}` }),
+		);
 	} catch (error) {
 		console.error("Failed to create bundle:", error);
-		return NextResponse.json(
-			{ error: getErrorMessage(error) },
-			{ status: 500 },
+		return applySecurityHeaders(
+			NextResponse.json({ error: getErrorMessage(error) }, { status: 500 }),
 		);
 	}
 }

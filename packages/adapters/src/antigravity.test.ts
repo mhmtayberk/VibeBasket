@@ -10,8 +10,8 @@ describe("AntigravityAdapter", () => {
   it("should have correct id and capabilities", () => {
     expect(adapter.id).toBe("antigravity");
     expect(adapter.supportsMcp).toBe(true);
-    expect(adapter.supportsSkills).toBe(true);
-    expect(adapter.supportsRules).toBe(true);
+    expect(adapter.supportsSkills).toBe(false);
+    expect(adapter.supportsRules).toBe(false);
   });
 
   it("should return correct config path for user scope", () => {
@@ -59,5 +59,26 @@ describe("AntigravityAdapter", () => {
 
     const result = adapter.applyMcps(null, mcps, { MY_KEY: "12345" }, { force: false }) as any;
     expect(result.mcpServers["sec-mcp"].env).toEqual({ KEY: "12345", OTHER: "plain" });
+  });
+
+  it("should serialize remote MCPs as http URLs", () => {
+    const mcps: McpEntry[] = [
+      {
+        id: "remote-docs",
+        displayName: "Remote Docs",
+        runtime: "remote",
+        url: "https://example.com/mcp",
+        args: [],
+        env: {},
+        requiredSecrets: [],
+        verified: false,
+      },
+    ];
+
+    const result = adapter.applyMcps(null, mcps, {}, { force: false }) as any;
+    expect(result.mcpServers["remote-docs"]).toEqual({
+      type: "http",
+      url: "https://example.com/mcp",
+    });
   });
 });

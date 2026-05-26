@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { SUPPORTED_TARGET_IDS } from "./targets";
+import { isSupportedTargetId } from "./targets";
 
 const MAX_STACK_ITEMS = 100;
 const MAX_STACK_TARGETS = 20;
@@ -40,7 +40,7 @@ export type UpdateStackInput = z.infer<typeof updateStackSchema>;
 export function normalizeStackTargetIds(targetIds: string[]) {
 	const uniqueTargetIds = Array.from(new Set(targetIds));
 	const unsupportedTargetIds = uniqueTargetIds.filter(
-		(targetId) => !SUPPORTED_TARGET_IDS.includes(targetId),
+		(targetId) => !isSupportedTargetId(targetId),
 	);
 
 	if (unsupportedTargetIds.length > 0) {

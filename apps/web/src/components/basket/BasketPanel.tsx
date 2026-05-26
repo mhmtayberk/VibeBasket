@@ -15,7 +15,7 @@ import type { EnabledAuthProvider } from "@/auth.config";
 import { SignInDialog } from "@/components/auth/SignInDialog";
 import { SavedStacksPanel } from "@/components/stacks/SavedStacksPanel";
 import { SaveStackDialog } from "@/components/stacks/SaveStackDialog";
-import { SUPPORTED_TARGET_IDS, TARGET_OPTIONS } from "@/lib/targets";
+import { isSupportedTargetId, TARGET_OPTIONS } from "@/lib/targets";
 import { cn } from "@/lib/utils";
 import { useBasketStore } from "@/store/basketStore";
 
@@ -94,7 +94,7 @@ export function BasketPanel({
 	};
 
 	const toggleTarget = (targetId: string) => {
-		if (!SUPPORTED_TARGET_IDS.includes(targetId)) {
+		if (!isSupportedTargetId(targetId)) {
 			toast.message(
 				"This target is planned, but not supported by the apply engine yet.",
 			);

@@ -1,12 +1,15 @@
-import type { Bundle, FileEntry, IdeId, McpEntry, RuleEntry, Scope, SkillEntry } from "@vibebasket/core";
+import type { FileEntry, IdeId, McpEntry, RuleEntry, Scope, SkillEntry } from "@vibebasket/core";
 
-export interface IdeAdapter {
-  readonly id: IdeId;
-  readonly displayName: string;
+export interface IdeAdapterCapabilities {
   readonly supportsMcp: boolean;
   readonly supportsSkills: boolean;
   readonly supportsRules: boolean;
   readonly supportedScopes: readonly Scope[];
+}
+
+export interface IdeAdapter extends IdeAdapterCapabilities {
+  readonly id: IdeId;
+  readonly displayName: string;
 
   /** Resolve the absolute config path on this OS for a given scope. */
   configPath(scope: Scope, projectRoot?: string): string;

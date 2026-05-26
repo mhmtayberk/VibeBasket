@@ -8,18 +8,20 @@ import {
   writeJsonFileWithBackup,
   type BasicMcpServerConfig,
 } from "./mcp-utils";
+import { getTargetCapabilities } from "./target-capabilities";
 
 interface KiroMcpConfig {
   mcpServers: Record<string, BasicMcpServerConfig>;
 }
 
 export class KiroAdapter implements IdeAdapter {
+  private static readonly capabilities = getTargetCapabilities("kiro");
   readonly id: IdeId = "kiro";
   readonly displayName = "Kiro";
-  readonly supportsMcp = true;
-  readonly supportsSkills = false;
-  readonly supportsRules = true;
-  readonly supportedScopes: readonly Scope[] = ["user", "project"];
+  readonly supportsMcp = KiroAdapter.capabilities.supportsMcp;
+  readonly supportsSkills = KiroAdapter.capabilities.supportsSkills;
+  readonly supportsRules = KiroAdapter.capabilities.supportsRules;
+  readonly supportedScopes: readonly Scope[] = KiroAdapter.capabilities.supportedScopes;
 
   configPath(scope: Scope, projectRoot?: string): string {
     if (scope === "project") {
