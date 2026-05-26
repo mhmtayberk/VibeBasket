@@ -3,7 +3,8 @@ import os from "node:os";
 import path from "node:path";
 import type { IdeAdapter } from "./types";
 import type { IdeId, McpEntry, Scope } from "@vibebasket/core";
-import { resolveMcpEnv } from "./mcp-utils";
+import { mergeStandardMcpServers } from "./mcp-utils";
+import { getTargetCapabilities } from "./target-capabilities";
 
 export interface WindsurfMcpConfig {
   mcpServers: Record<
@@ -17,12 +18,13 @@ export interface WindsurfMcpConfig {
 }
 
 export class WindsurfAdapter implements IdeAdapter {
+  private static readonly capabilities = getTargetCapabilities("windsurf");
   readonly id: IdeId = "windsurf";
   readonly displayName = "Windsurf";
-  readonly supportsMcp = true;
-  readonly supportsSkills = false;
-  readonly supportsRules = true;
-  readonly supportedScopes: readonly Scope[] = ["user", "project"];
+  readonly supportsMcp = WindsurfAdapter.capabilities.supportsMcp;
+  readonly supportsSkills = WindsurfAdapter.capabilities.supportsSkills;
+  readonly supportsRules = WindsurfAdapter.capabilities.supportsRules;
+  readonly supportedScopes: readonly Scope[] = WindsurfAdapter.capabilities.supportedScopes;
 
   configPath(scope: Scope, projectRoot?: string): string {
     if (scope === "project") {
@@ -53,32 +55,10 @@ export class WindsurfAdapter implements IdeAdapter {
     opts: { force: boolean }
   ): unknown {
     const current = (config as WindsurfMcpConfig) || { mcpServers: {} };
-    if (!current.mcpServers) {
-      current.mcpServers = {};
-    }
-
-    const next = { ...current, mcpServers: { ...current.mcpServers } };
-
-    for (const mcp of mcps) {
-      if (next.mcpServers[mcp.id] && !opts.force) {
-        continue;
-      }
-
-      const resolvedEnv = resolveMcpEnv(mcp.env, secrets);
-
-      const nextMcp: NonNullable<WindsurfMcpConfig["mcpServers"][string]> = {
-        command: mcp.command || mcp.runtime,
-        args: mcp.args,
-      };
-
-      if (Object.keys(resolvedEnv).length > 0) {
-        nextMcp.env = resolvedEnv;
-      }
-
-      next.mcpServers[mcp.id] = nextMcp;
-    }
-
-    return next;
+    return {
+      ...current,
+      mcpServers: mergeStandardMcpServers(current.mcpServers, mcps, secrets, opts),
+    };
   }
 
   async writeConfig(scope: Scope, config: unknown, projectRoot?: string): Promise<void> {

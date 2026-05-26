@@ -8,18 +8,20 @@ import {
   writeJsonFileWithBackup,
   type BasicMcpServerConfig,
 } from "./mcp-utils";
+import { getTargetCapabilities } from "./target-capabilities";
 
 interface GeminiCliConfig {
   mcpServers: Record<string, BasicMcpServerConfig>;
 }
 
 export class GeminiCliAdapter implements IdeAdapter {
+  private static readonly capabilities = getTargetCapabilities("gemini-cli");
   readonly id: IdeId = "gemini-cli";
   readonly displayName = "Gemini CLI";
-  readonly supportsMcp = true;
-  readonly supportsSkills = false;
-  readonly supportsRules = true;
-  readonly supportedScopes: readonly Scope[] = ["user", "project"];
+  readonly supportsMcp = GeminiCliAdapter.capabilities.supportsMcp;
+  readonly supportsSkills = GeminiCliAdapter.capabilities.supportsSkills;
+  readonly supportsRules = GeminiCliAdapter.capabilities.supportsRules;
+  readonly supportedScopes: readonly Scope[] = GeminiCliAdapter.capabilities.supportedScopes;
 
   configPath(scope: Scope, projectRoot?: string): string {
     if (scope === "project") {

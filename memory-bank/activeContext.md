@@ -24,9 +24,13 @@
 - That old limitation is now partially lifted: base sync parses the public `skills.sh` directory surface, and skill searches can enrich results live from `skills.sh/?q=...` to cover long-tail community skills without exploding sync cost.
 - That live `skills.sh/?q=...` enrichment assumption turned out to be wrong in practice; the returned HTML embedded broad/global leaderboard data often unrelated to the query, so we removed it.
 - Skills ingestion now uses the public `skills.sh` sitemap index and skill sitemaps, which gives VibeBasket the full published skills corpus without depending on homepage HTML blobs.
-- The current live catalog state after a successful full sync is `20827` MCPs, `19932` skills, `1` rule, and `1` workflow with `0` source errors.
+- The current live catalog state after the latest successful full sync is `20917` MCPs, `19931` skills, `1` rule, and `1` workflow with `0` source errors.
+- Target capability metadata is now centralized in `packages/adapters/src/target-capabilities.ts`, but the web app must import that metadata through the narrow target-capabilities path rather than the full adapters index to keep client bundles free of Node-only adapter code.
+- Local verification on this machine is healthy again after rebuilding `node_modules`; shared test/typecheck/lint commands now resolve tools reliably through the workspace-aware Vitest launcher and `pnpm exec`.
 - Skill search is now local-first again and matches across `displayName`, `description`, `sourceUrl`, and stored JSON `data`, which fixes repo/path-style searches like `postgresql`.
 - Full-corpus prune now uses chunked stale-row deletion to stay under SQLite's parameter limit.
+- We found and fixed a subtle `skills.sh` provenance bug: escaped trailing backslashes in the official repo-path parser caused official skills to be misclassified as community until the ingest cleaner was tightened.
+- Search ranking is no longer flat `LIKE` ordering; exact-name and prefix-name matches now sort above description/source/data matches.
 - Trust metadata is now consumable in catalog browsing through trust filters plus recommended/name sorting; the raw sync-recency surface was intentionally removed from the UI.
 - The catalog filter controls are now collapsed by default and reopen on demand, while active filters remain visible as summary pills next to the trigger.
 - The basket target picker now defaults to `Claude Code` only, and supported targets are rendered alphabetically.
@@ -35,6 +39,7 @@
 - Auth.js foundation is now wired into `apps/web` with DB-backed sessions, provider gating for GitHub/Google/Apple, a live `/api/auth/[...nextauth]` route, and session helpers for authenticated APIs.
 - The homepage header now exposes a real sign-in surface and signed-in account state, while `/stacks` exists as the first authenticated destination for saved-stack flows.
 - Saved-stack CRUD APIs now exist under `/api/stacks` and `/api/stacks/[id]`, backed by the new `saved_stacks`, `saved_stack_items`, and `saved_stack_targets` tables.
+- A new hardening-roadmap spec now exists under `docs/superpowers/specs/2026-05-22-hardening-roadmap-design.md`; the chosen direction is correctness-first across catalog truth, apply parity, security hardening, and search/operational follow-through before major new feature expansion.
 
 ## Next Steps
 - Optimize registry persistence with batch/transaction-based writes; full sync is functionally correct but still heavier than ideal.
@@ -51,6 +56,7 @@
 - The next likely catalog discovery improvement after this is stronger search relevance, because trust/freshness-aware sorting and filtering are now in place.
 - Finish the authenticated UI flow so basket contents can be saved, listed, loaded, renamed, and deleted from the browser rather than only through the new APIs.
 - Add integration/E2E coverage for auth-protected stack routes and the sign-in surface once provider mocking is in place.
+- Keep an eye on the new target-capability import boundary if we refactor adapters again; importing the top-level adapters index into client code will reintroduce build failures through Node-only modules.
 
 ## Considerations
 - **Immutability:** Bundles are stored as full manifests, ensuring they don't break if the catalog changes.
@@ -121,3 +127,8 @@
 - Removed `next/font/google` usage for Geist/Geist Mono in the app shell, which makes production builds succeed without external font fetches.
 - Hardened `apps/web/playwright.config.ts` so browser smoke tests run against an isolated `next start` instance with test-only `AUTH_TRUST_HOST` and `AUTH_SECRET` env values, avoiding collisions with the user's running dev server.
 - Re-verified the current tree with passing results for `pnpm --filter web lint`, `pnpm --filter web test`, `CI=true pnpm -r run typecheck`, `CI=true pnpm -r run test`, `npx next build`, and `npx playwright test`.
+- Rebuilt the workspace dependency tree after local pnpm links drifted, then re-verified the current tree with passing results for `pnpm --filter @vibebasket/adapters test`, `pnpm --filter web test`, `pnpm --filter web lint`, `CI=true pnpm -r run typecheck`, `CI=true pnpm -r run test`, `pnpm --filter web build`, and `pnpm --filter web exec playwright test`.
+- Catalog correctness auditing then surfaced three real follow-up fixes:
+  - `skills.sh` GitHub refs are now preserved as optional upstream refs instead of being silently rewritten to `"main"`.
+  - adapter MCP serialization for remote servers now goes through the shared MCP merge utility, so Cursor, VS Code, Windsurf, and Antigravity emit valid HTTP MCP entries instead of invalid `command: "remote"` payloads.
+  - CLI apply now aborts when targets do not support the requested bundle scope or when any target write fails, rather than reporting a misleading partial success.

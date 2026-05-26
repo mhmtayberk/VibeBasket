@@ -7,9 +7,9 @@
 		"build": "next build",
 		"start": "next start",
 		"test": "node ../../scripts/run-vitest.mjs run",
-		"typecheck": "tsc --noEmit",
-		"lint": "biome check",
-		"format": "biome format --write"
+		"typecheck": "pnpm exec tsc --noEmit",
+		"lint": "pnpm exec biome check",
+		"format": "pnpm exec biome format --write"
 	},
 	"dependencies": {
 		"@auth/drizzle-adapter": "^1.10.0",

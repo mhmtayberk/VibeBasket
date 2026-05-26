@@ -25,12 +25,19 @@ import {
 	normalizeCatalogDiscoveryInput,
 	OFFICIAL_SOURCE_NAMES,
 } from "@/lib/catalog-discovery";
+import { checkRateLimit, getClientAddress } from "@/lib/rate-limit";
+import {
+	applySecurityHeaders,
+	createTooManyRequestsResponse,
+} from "@/lib/security-headers";
 
 const SYNC_INTERVAL_MS = 60 * 60 * 1000;
 const DEFAULT_LIMIT = 24;
 const MAX_LIMIT = 100;
 const MAX_SEARCH_LENGTH = 120;
 const VALID_CATALOG_TYPES = new Set(["mcp", "skill", "rule", "workflow"]);
+const CATALOG_RATE_LIMIT = 120;
+const CATALOG_RATE_WINDOW_MS = 60 * 1000;
 
 let activeCatalogSync: Promise<
 	Awaited<ReturnType<RegistrySyncService["syncAll"]>>
@@ -110,7 +117,7 @@ async function ensureCatalogSkillMirrorCleanup() {
 				const key = [
 					normalizeSkillRepoFamily(String(source.repo)),
 					String(source.path).trim().toLowerCase(),
-					String(source.ref ?? "main")
+					String(source.ref ?? "")
 						.trim()
 						.toLowerCase(),
 					row.displayName.trim().toLowerCase(),
@@ -206,6 +213,15 @@ function canForceRefresh(request: Request) {
 }
 
 export async function GET(request: Request) {
+	const rateLimit = checkRateLimit(
+		`catalog:${getClientAddress(request)}`,
+		CATALOG_RATE_LIMIT,
+		CATALOG_RATE_WINDOW_MS,
+	);
+	if (!rateLimit.allowed) {
+		return createTooManyRequestsResponse();
+	}
+
 	const { searchParams } = new URL(request.url);
 	const search = (searchParams.get("q") ?? "")
 		.trim()
@@ -230,12 +246,28 @@ export async function GET(request: Request) {
 	});
 	const freshCutoff = new Date(Date.now() - DAY_MS);
 	const recentCutoff = new Date(Date.now() - 7 * DAY_MS);
+	const normalizedSearch = search.toLowerCase();
+	const searchLike = `%${normalizedSearch}%`;
+	const searchPrefix = `${normalizedSearch}%`;
 	const officialSourcePriority = sql<number>`
     case
       when ${catalogItems.sourceName} in ('official-mcp-registry', 'skills-sh-official') then 1
       else 0
     end
   `;
+	const searchPriority = search
+		? sql<number>`
+        case
+          when lower(${catalogItems.displayName}) = ${normalizedSearch} then 500
+          when lower(${catalogItems.displayName}) like ${searchPrefix} then 400
+          when lower(${catalogItems.displayName}) like ${searchLike} then 300
+          when lower(coalesce(${catalogItems.description}, '')) like ${searchLike} then 200
+          when lower(coalesce(${catalogItems.sourceUrl}, '')) like ${searchLike} then 100
+          when lower(coalesce(${catalogItems.data}, '')) like ${searchLike} then 50
+          else 0
+        end
+      `
+		: null;
 
 	try {
 		await ensureDatabaseIndexes();
@@ -258,9 +290,11 @@ export async function GET(request: Request) {
 		if (shouldSync) {
 			if (refresh) {
 				if (!canForceRefresh(request)) {
-					return NextResponse.json(
-						{ error: "Refresh is not allowed" },
-						{ status: 403 },
+					return applySecurityHeaders(
+						NextResponse.json(
+							{ error: "Refresh is not allowed" },
+							{ status: 403 },
+						),
 					);
 				}
 
@@ -357,6 +391,7 @@ export async function GET(request: Request) {
 		const orderByClause =
 			discovery.sort === "freshest"
 				? [
+						...(searchPriority ? [desc(searchPriority)] : []),
 						desc(catalogItems.lastSyncedAt),
 						desc(catalogItems.verified),
 						asc(catalogItems.displayName),
@@ -364,11 +399,13 @@ export async function GET(request: Request) {
 					]
 				: discovery.sort === "name"
 					? [
+							...(searchPriority ? [desc(searchPriority)] : []),
 							asc(catalogItems.displayName),
 							desc(catalogItems.verified),
 							asc(catalogItems.id),
 						]
 					: [
+							...(searchPriority ? [desc(searchPriority)] : []),
 							desc(catalogItems.verified),
 							desc(officialSourcePriority),
 							desc(catalogItems.lastSyncedAt),
@@ -394,17 +431,19 @@ export async function GET(request: Request) {
 
 		const totalPages = total === 0 ? 0 : Math.ceil(total / limit);
 
-		const response = NextResponse.json({
-			items,
-			pagination: {
-				page,
-				limit,
-				total,
-				totalPages,
-				hasNextPage: page < totalPages,
-				hasPreviousPage: page > 1,
-			},
-		});
+		const response = applySecurityHeaders(
+			NextResponse.json({
+				items,
+				pagination: {
+					page,
+					limit,
+					total,
+					totalPages,
+					hasNextPage: page < totalPages,
+					hasPreviousPage: page > 1,
+				},
+			}),
+		);
 
 		if (shouldScheduleBackgroundSync) {
 			scheduleBackgroundCatalogSync();
@@ -413,9 +452,8 @@ export async function GET(request: Request) {
 		return response;
 	} catch (error) {
 		console.error("Failed to fetch catalog:", error);
-		return NextResponse.json(
-			{ error: "Internal Server Error" },
-			{ status: 500 },
+		return applySecurityHeaders(
+			NextResponse.json({ error: "Internal Server Error" }, { status: 500 }),
 		);
 	}
 }
