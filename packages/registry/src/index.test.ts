@@ -636,4 +636,128 @@ workflowPacks: []
     expect(officialSkill?.sourceUrl).toBe("https://www.skills.sh/supabase/agent-skills/supabase-postgres-best-practices");
     expect(communitySkill?.displayName).toBe("Postgresql Helper");
   });
+
+  it("marks official skills correctly when the official page encodes repo values with trailing escapes", async () => {
+    const verifiedPath = await createVerifiedCatalog(`
+mcps: []
+skills: []
+workflowPacks: []
+`);
+
+    const fetchImpl: typeof fetch = async (input) => {
+      const url = typeof input === "string" ? input : input.toString();
+      if (url === "https://registry.modelcontextprotocol.io/v0.1/servers?limit=100") {
+        return new Response(JSON.stringify({ servers: [], metadata: {} }), { status: 200 });
+      }
+      if (url === "https://www.skills.sh/official") {
+        return new Response(`
+          <script>
+            {"repo":"supabase/agent-skills\\","totalInstalls":123,"skills":[]}
+          </script>
+        `, {
+          status: 200,
+          headers: { "Content-Type": "text/html" },
+        });
+      }
+      if (url === "https://www.skills.sh/sitemap.xml") {
+        return new Response(`
+          <?xml version="1.0" encoding="UTF-8"?>
+          <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+            <sitemap><loc>https://www.skills.sh/sitemap-skills-1.xml</loc></sitemap>
+          </sitemapindex>
+        `, {
+          status: 200,
+          headers: { "Content-Type": "application/xml" },
+        });
+      }
+      if (url === "https://www.skills.sh/sitemap-skills-1.xml") {
+        return new Response(`
+          <?xml version="1.0" encoding="UTF-8"?>
+          <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+            <url><loc>https://www.skills.sh/supabase/agent-skills/supabase-postgres-best-practices</loc></url>
+          </urlset>
+        `, {
+          status: 200,
+          headers: { "Content-Type": "application/xml" },
+        });
+      }
+      throw new Error(`Unexpected URL ${url}`);
+    };
+
+    const items = await new RegistrySyncService({
+      fetchImpl,
+      persist: false,
+      verifiedPath,
+    }).collectCatalogItems();
+
+    expect(
+      items.find((item) => item.id === "skill-supabase-agent-skills-supabase-postgres-best-practices")?.sourceName
+    ).toBe("skills-sh-official");
+  });
+
+  it("dedupes github skills when one source omits ref and another uses main", async () => {
+    const verifiedPath = await createVerifiedCatalog(`
+mcps: []
+skills:
+  - id: verified-skill
+    displayName: Verified Skill
+    source:
+      type: github
+      repo: vercel-labs/agent-skills
+      path: next-js-development
+      ref: main
+    verified: true
+workflowPacks: []
+`);
+
+    const fetchImpl: typeof fetch = async (input) => {
+      const url = typeof input === "string" ? input : input.toString();
+      if (url === "https://registry.modelcontextprotocol.io/v0.1/servers?limit=100") {
+        return new Response(JSON.stringify({ servers: [], metadata: {} }), { status: 200 });
+      }
+      if (url === "https://www.skills.sh/official") {
+        return new Response('<a href="/vercel-labs/agent-skills">Vercel Labs</a>', {
+          status: 200,
+          headers: { "Content-Type": "text/html" },
+        });
+      }
+      if (url === "https://www.skills.sh/sitemap.xml") {
+        return new Response(`
+          <?xml version="1.0" encoding="UTF-8"?>
+          <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+            <sitemap><loc>https://www.skills.sh/sitemap-skills-1.xml</loc></sitemap>
+          </sitemapindex>
+        `, {
+          status: 200,
+          headers: { "Content-Type": "application/xml" },
+        });
+      }
+      if (url === "https://www.skills.sh/sitemap-skills-1.xml") {
+        return new Response(`
+          <?xml version="1.0" encoding="UTF-8"?>
+          <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+            <url><loc>https://www.skills.sh/vercel-labs/agent-skills/next-js-development</loc></url>
+          </urlset>
+        `, {
+          status: 200,
+          headers: { "Content-Type": "application/xml" },
+        });
+      }
+
+      throw new Error(`Unexpected URL ${url}`);
+    };
+
+    const items = await new RegistrySyncService({
+      fetchImpl,
+      persist: false,
+      verifiedPath,
+    }).collectCatalogItems();
+
+    const matchingSkills = items.filter(
+      (item) => item.type === "skill" && item.displayName === "Verified Skill"
+    );
+
+    expect(matchingSkills).toHaveLength(1);
+    expect(matchingSkills[0]?.verified).toBe(true);
+  });
 });

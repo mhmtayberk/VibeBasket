@@ -8,18 +8,20 @@ import {
   writeJsonFileWithBackup,
   type BasicMcpServerConfig,
 } from "./mcp-utils";
+import { getTargetCapabilities } from "./target-capabilities";
 
 interface ClineCliMcpConfig {
   mcpServers: Record<string, BasicMcpServerConfig>;
 }
 
 export class ClineCliAdapter implements IdeAdapter {
+  private static readonly capabilities = getTargetCapabilities("cline-cli");
   readonly id: IdeId = "cline-cli";
   readonly displayName = "Cline CLI";
-  readonly supportsMcp = true;
-  readonly supportsSkills = false;
-  readonly supportsRules = true;
-  readonly supportedScopes: readonly Scope[] = ["user"];
+  readonly supportsMcp = ClineCliAdapter.capabilities.supportsMcp;
+  readonly supportsSkills = ClineCliAdapter.capabilities.supportsSkills;
+  readonly supportsRules = ClineCliAdapter.capabilities.supportsRules;
+  readonly supportedScopes: readonly Scope[] = ClineCliAdapter.capabilities.supportedScopes;
 
   configPath(scope: Scope, projectRoot?: string): string {
     if (scope === "project") {

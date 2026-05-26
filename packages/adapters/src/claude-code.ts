@@ -8,6 +8,7 @@ import {
   writeJsonFileWithBackup,
   type BasicMcpServerConfig,
 } from "./mcp-utils";
+import { getTargetCapabilities } from "./target-capabilities";
 
 interface ClaudeProjectMcpConfig {
   mcpServers: Record<string, BasicMcpServerConfig>;
@@ -19,12 +20,13 @@ interface ClaudeUserConfig {
 }
 
 export class ClaudeCodeAdapter implements IdeAdapter {
+  private static readonly capabilities = getTargetCapabilities("claude-code");
   readonly id: IdeId = "claude-code";
   readonly displayName = "Claude Code";
-  readonly supportsMcp = true;
-  readonly supportsSkills = true;
-  readonly supportsRules = true;
-  readonly supportedScopes: readonly Scope[] = ["user", "project"];
+  readonly supportsMcp = ClaudeCodeAdapter.capabilities.supportsMcp;
+  readonly supportsSkills = ClaudeCodeAdapter.capabilities.supportsSkills;
+  readonly supportsRules = ClaudeCodeAdapter.capabilities.supportsRules;
+  readonly supportedScopes: readonly Scope[] = ClaudeCodeAdapter.capabilities.supportedScopes;
 
   configPath(scope: Scope, projectRoot?: string): string {
     if (scope === "project") {

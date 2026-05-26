@@ -129,6 +129,17 @@
 - Hardened CLI bundle apply to fail fast on unsupported target scopes and to abort the overall run when any target write/apply step fails.
 - Added focused tests for remote MCP serialization, CLI apply failure modes, and `skills.sh` official classification with escaped repo-path inputs.
 - Wrote a dedicated hardening-roadmap design spec to steer the next phase toward catalog correctness, apply truthfulness, security hardening, and search/operational quality before major new feature work.
+- Rebuilt the workspace dependency tree after pnpm left local binaries half-linked, then hardened package scripts around `scripts/run-vitest.mjs` plus `pnpm exec` so package-local verification works reliably again on this machine.
+- Centralized target capability metadata in `packages/adapters/src/target-capabilities.ts` and updated web target modeling to consume only the metadata subpath, which fixed a real Next.js production-build regression caused by client code pulling the full adapters index.
+- Added a typed `isSupportedTargetId()` helper so bundle validation, stack normalization, and basket target toggles reuse one source of truth without stringly-typed `includes()` checks.
+- Re-ran the verification stack successfully after the hardening pass:
+  - `pnpm --filter @vibebasket/adapters test`
+  - `pnpm --filter web test`
+  - `pnpm --filter web lint`
+  - `CI=true pnpm -r run typecheck`
+  - `CI=true pnpm -r run test`
+  - `pnpm --filter web build`
+  - `pnpm --filter web exec playwright test`
 
 ## In Progress
 - Improving registry persistence performance for very large sync runs.
@@ -141,6 +152,7 @@
 - Deciding whether we should broaden skills ingestion beyond `skills.sh` official into a larger trusted-community set without weakening catalog correctness or dedupe quality.
 - Measuring whether the public `skills.sh` directory surface plus live query enrichment is enough, or whether we still need a deeper trusted-community crawl/indexing strategy for fully offline local search completeness.
 - Measuring whether the new full sitemap-backed `skills.sh` sync is enough for search quality, or whether we should add weighted/FTS-style local relevance on top of it.
+- Broadening automated browser coverage beyond the current homepage/catalog smoke suite now that Playwright is installed and working locally.
 
 ## Blockers
 - None at the moment.

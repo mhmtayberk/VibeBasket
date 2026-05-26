@@ -6,7 +6,6 @@ export const IdeIdSchema = z.enum([
   "cursor",
   "windsurf",
   "claude-code",
-  "claude-desktop",
   "vscode",
   "antigravity",
   "codex",
@@ -46,7 +45,7 @@ export const SkillEntrySchema = z.object({
       type: z.literal("github"),
       repo: z.string(),
       path: z.string().optional(),
-      ref: z.string().default("main"),
+      ref: z.string().optional(),
     }),
     z.object({
       type: z.literal("npm"),

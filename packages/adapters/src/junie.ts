@@ -8,18 +8,20 @@ import {
   writeJsonFileWithBackup,
   type BasicMcpServerConfig,
 } from "./mcp-utils";
+import { getTargetCapabilities } from "./target-capabilities";
 
 interface JunieMcpConfig {
   mcpServers: Record<string, BasicMcpServerConfig>;
 }
 
 export class JunieAdapter implements IdeAdapter {
+  private static readonly capabilities = getTargetCapabilities("junie");
   readonly id: IdeId = "junie";
   readonly displayName = "JetBrains Junie";
-  readonly supportsMcp = true;
-  readonly supportsSkills = false;
-  readonly supportsRules = true;
-  readonly supportedScopes: readonly Scope[] = ["user", "project"];
+  readonly supportsMcp = JunieAdapter.capabilities.supportsMcp;
+  readonly supportsSkills = JunieAdapter.capabilities.supportsSkills;
+  readonly supportsRules = JunieAdapter.capabilities.supportsRules;
+  readonly supportedScopes: readonly Scope[] = JunieAdapter.capabilities.supportedScopes;
 
   configPath(scope: Scope, projectRoot?: string): string {
     if (scope === "project") {

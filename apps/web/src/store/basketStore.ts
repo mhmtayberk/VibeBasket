@@ -5,7 +5,7 @@ import {
 	persist,
 	type StateStorage,
 } from "zustand/middleware";
-import { DEFAULT_TARGET_IDS, SUPPORTED_TARGET_IDS } from "../lib/targets";
+import { DEFAULT_TARGET_IDS, isSupportedTargetId } from "../lib/targets";
 
 export interface BasketItemTrust {
 	tier: "verified" | "official" | "community";
@@ -91,12 +91,12 @@ export const useBasketStore = create<BasketState>()(
 			setTargetIds: (targetIds) =>
 				set({
 					targetIds: Array.from(new Set(targetIds)).filter((targetId) =>
-						SUPPORTED_TARGET_IDS.includes(targetId),
+						isSupportedTargetId(targetId),
 					),
 				}),
 			toggleTargetId: (targetId) =>
 				set((state) => {
-					if (!SUPPORTED_TARGET_IDS.includes(targetId)) {
+					if (!isSupportedTargetId(targetId)) {
 						return state;
 					}
 
@@ -107,7 +107,7 @@ export const useBasketStore = create<BasketState>()(
 			loadStack: (items, targetIds) =>
 				set(() => {
 					const nextTargetIds = Array.from(new Set(targetIds)).filter(
-						(targetId) => SUPPORTED_TARGET_IDS.includes(targetId),
+						(targetId) => isSupportedTargetId(targetId),
 					);
 
 					return {

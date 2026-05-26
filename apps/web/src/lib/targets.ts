@@ -1,15 +1,32 @@
+import {
+	SUPPORTED_TARGET_IDS as ADAPTER_SUPPORTED_TARGET_IDS,
+	TARGET_CAPABILITIES,
+} from "@vibebasket/adapters/target-capabilities";
+import type { IdeAdapterCapabilities } from "@vibebasket/adapters/types";
+import type { IdeId } from "@vibebasket/core";
+
 export type TargetStatus = "supported" | "coming-soon";
 
 export interface TargetOption {
-	id: string;
+	id: IdeId;
 	label: string;
 	status: TargetStatus;
 	kind: "editor" | "terminal";
 	note: string;
 	vendor?: string;
+	capabilities: IdeAdapterCapabilities;
 }
 
-const UNSORTED_TARGET_OPTIONS: TargetOption[] = [
+interface TargetOptionSeed {
+	id: IdeId;
+	label: string;
+	status?: TargetStatus;
+	kind: "editor" | "terminal";
+	note: string;
+	vendor?: string;
+}
+
+const UNSORTED_TARGET_OPTIONS: TargetOptionSeed[] = [
 	{
 		id: "cursor",
 		label: "Cursor",
@@ -100,12 +117,32 @@ const UNSORTED_TARGET_OPTIONS: TargetOption[] = [
 	},
 ];
 
-export const TARGET_OPTIONS: TargetOption[] = [...UNSORTED_TARGET_OPTIONS].sort(
-	(left, right) => left.label.localeCompare(right.label),
+function deriveTargetStatus(id: IdeId): TargetStatus {
+	return TARGET_CAPABILITIES[id].autoApply ? "supported" : "coming-soon";
+}
+
+export const TARGET_OPTIONS: TargetOption[] = UNSORTED_TARGET_OPTIONS.map(
+	(target) => ({
+		...target,
+		status: deriveTargetStatus(target.id),
+		capabilities: TARGET_CAPABILITIES[target.id],
+	}),
+).sort((left, right) => left.label.localeCompare(right.label));
+
+export const SUPPORTED_TARGET_IDS = [...ADAPTER_SUPPORTED_TARGET_IDS].sort(
+	(left, right) => {
+		const leftLabel =
+			TARGET_OPTIONS.find((target) => target.id === left)?.label ?? left;
+		const rightLabel =
+			TARGET_OPTIONS.find((target) => target.id === right)?.label ?? right;
+		return leftLabel.localeCompare(rightLabel);
+	},
 );
 
-export const SUPPORTED_TARGET_IDS = TARGET_OPTIONS.filter(
-	(target) => target.status === "supported",
-).map((target) => target.id);
-
 export const DEFAULT_TARGET_IDS = ["claude-code"] as const;
+
+const supportedTargetIdSet = new Set<IdeId>(SUPPORTED_TARGET_IDS);
+
+export function isSupportedTargetId(targetId: string): targetId is IdeId {
+	return supportedTargetIdSet.has(targetId as IdeId);
+}

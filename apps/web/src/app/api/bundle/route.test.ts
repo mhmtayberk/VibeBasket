@@ -42,6 +42,8 @@ vi.mock("nanoid", () => ({
 
 vi.mock("@/lib/targets", () => ({
 	SUPPORTED_TARGET_IDS: ["claude-code", "cursor", "codex"],
+	isSupportedTargetId: (targetId: string) =>
+		["claude-code", "cursor", "codex"].includes(targetId),
 }));
 
 describe("POST /api/bundle", () => {

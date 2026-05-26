@@ -1,3 +1,7 @@
+import {
+	SUPPORTED_TARGET_IDS as ADAPTER_SUPPORTED_TARGET_IDS,
+	TARGET_CAPABILITIES,
+} from "@vibebasket/adapters";
 import { describe, expect, it } from "vitest";
 import {
 	DEFAULT_TARGET_IDS,
@@ -17,6 +21,7 @@ describe("TARGET_OPTIONS", () => {
 				(target) => target.id,
 			),
 		);
+		expect(SUPPORTED_TARGET_IDS).toEqual(ADAPTER_SUPPORTED_TARGET_IDS);
 	});
 
 	it("keeps targets alphabetically ordered by label", () => {
@@ -29,5 +34,14 @@ describe("TARGET_OPTIONS", () => {
 
 	it("defaults target selection to Claude Code only", () => {
 		expect(DEFAULT_TARGET_IDS).toEqual(["claude-code"]);
+	});
+
+	it("derives status and capabilities from the shared adapter registry", () => {
+		for (const target of TARGET_OPTIONS) {
+			expect(target.capabilities).toEqual(TARGET_CAPABILITIES[target.id]);
+			expect(target.status).toBe(
+				TARGET_CAPABILITIES[target.id].autoApply ? "supported" : "coming-soon",
+			);
+		}
 	});
 });

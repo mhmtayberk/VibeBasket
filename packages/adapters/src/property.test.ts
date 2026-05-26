@@ -11,6 +11,7 @@ import { JunieAdapter } from "./junie.js";
 import { ClineCliAdapter } from "./cline-cli.js";
 import { ZedAdapter } from "./zed.js";
 import { CodexAdapter } from "./codex.js";
+import { TARGET_CAPABILITIES } from "./target-capabilities.js";
 
 const adapters = [
   new CursorAdapter(),
@@ -60,6 +61,17 @@ describe("Adapter Idempotency Law", () => {
           }
         )
       );
+    });
+  }
+});
+
+describe("Adapter capability contract", () => {
+  for (const adapter of adapters) {
+    it(`${adapter.displayName} matches the shared capability registry`, () => {
+      expect(adapter.supportsMcp).toBe(TARGET_CAPABILITIES[adapter.id].supportsMcp);
+      expect(adapter.supportsSkills).toBe(TARGET_CAPABILITIES[adapter.id].supportsSkills);
+      expect(adapter.supportsRules).toBe(TARGET_CAPABILITIES[adapter.id].supportsRules);
+      expect(adapter.supportedScopes).toEqual(TARGET_CAPABILITIES[adapter.id].supportedScopes);
     });
   }
 });
