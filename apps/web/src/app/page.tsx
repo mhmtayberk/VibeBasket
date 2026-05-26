@@ -54,13 +54,13 @@ export default async function Home() {
 	} as const;
 
 	const renderTargetIcon = (targetId: string) => {
-		const imageFor = (src: string) => (
+		const imageFor = (src: string, altText: string) => (
 			<Image
-				aria-hidden="true"
 				src={src}
-				alt=""
+				alt={altText}
 				width={24}
 				height={24}
+				priority
 				className="h-6 w-auto object-contain"
 			/>
 		);
@@ -78,27 +78,51 @@ export default async function Home() {
 
 		switch (targetId) {
 			case "cursor":
-				return imageFor("/targets/cursor.svg");
+				return imageFor("/targets/cursor.svg", "Cursor");
 			case "windsurf":
-				return imageFor("/targets/windsurf.svg");
+				return imageFor("/targets/windsurf.svg", "Windsurf");
 			case "vscode":
-				return imageFor("/targets/vscode.svg");
+				return imageFor("/targets/vscode.svg", "VS Code");
 			case "antigravity":
-				return imageFor("/targets/antigravity.svg");
+				return imageFor("/targets/antigravity.svg", "Antigravity");
 			case "claude-code":
-				return imageFor("/targets/claude-code.svg");
+				return imageFor("/targets/claude-code.svg", "Claude Code");
 			case "zed":
 				return iconFor(siZedindustries.path, siZedindustries.hex);
 			case "codex":
-				return imageFor("/targets/codex.svg");
+				return imageFor("/targets/codex.svg", "Codex");
 			case "gemini-cli":
-				return imageFor("/targets/gemini.svg");
+				return imageFor("/targets/gemini.svg", "Gemini CLI");
 			case "junie":
 				return iconFor(siJetbrains.path, siJetbrains.hex);
 			case "kiro":
-				return imageFor("/targets/kiro-cli.svg");
+				return imageFor("/targets/kiro-cli.svg", "Kiro CLI");
 			case "cline-cli":
-				return imageFor("/targets/cline.svg");
+				return imageFor("/targets/cline.svg", "Cline CLI");
+			case "continue":
+				return (
+					<svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" style={{ color: "#00E5FF" }}>
+						<path fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" d="M4 12a8 8 0 0113.65-5.65L20 9m0 0v-4m0 4h-4M20 12a8 8 0 01-13.65 5.65L4 15m0 0v4m0-4h4" />
+					</svg>
+				);
+			case "roocode":
+				return (
+					<svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" style={{ color: "#FF3D00" }}>
+						<path fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeJoin="round" d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+					</svg>
+				);
+			case "hermes":
+				return (
+					<svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" style={{ color: "#FFD600" }}>
+						<path fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeJoin="round" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10zM8 11h8" />
+					</svg>
+				);
+			case "openclaw":
+				return (
+					<svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" style={{ color: "#E040FB" }}>
+						<path fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeJoin="round" d="M12 3v18M3 12h18M12 3a9 9 0 019 9M12 21a9 9 0 01-9-9" />
+					</svg>
+				);
 			default:
 				return <Command className="h-4 w-4 text-accent" />;
 		}
