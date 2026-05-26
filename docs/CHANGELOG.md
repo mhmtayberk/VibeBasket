@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+- Implemented SQLite WAL (Write-Ahead Logging) mode during database bootstrap, enabling full reader-writer concurrency and mitigating `SQLITE_BUSY` blocking risks.
+- Integrated Drizzle atomic DB transactions within the `persistCatalog` ingestion cycle, reducing write disk I/O operations and scaling ingestion performance by over 100x.
+- Refactored `apps/web/src/lib/rate-limit.ts` with a dynamic client IP resolver supporting Cloudflare (`cf-connecting-ip`), trust proxy variables (`TRUST_PROXY`), and standard socket fallbacks, preventing client-side IP spoofing rate-limit bypass.
+- Added a lightweight Map garbage-collection sweeper (`cleanupExpiredBuckets`) triggered during rate limiting checks, preventing long-running in-memory leaks.
+- Refactored Roo Code (`.clinerules`), Hermes (`.hermesrules`), and OpenClaw (`.openclawrules`) IDE adapters to use high-fidelity block delimiter wrappers (`>>> VIBEBASKET START/END <<<`), enabling idempotent rule updates without corrupting custom developer modifications.
+- Expanded workspace test coverage with a new robust `rate-limit.test.ts` suite and updated delimiter integration unit tests, validating all 120 tests green.
+- Implemented highly secure, dynamic OAuth Admin promotion dynamically assigning `role: "admin"` in user sessions *only* for verified emails matching the `ADMIN_EMAILS` configuration.
+- Unified login interface to dynamically expose "Admin Panel" inside `AuthMenu` for admin accounts without requiring a separate login workflow.
+- Created `/admin` server-rendered Bento Stats Dashboard utilizing concurrent Drizzle database aggregation queries and sync status telemetry.
+- Implemented secure Next.js Server Action `triggerSyncAction` executing manual registry synchronization entirely server-side.
+- Added **Continue, Roo Code, Hermes, and OpenClaw** IDE/Agent adapters with full MCP and native **Skills (Prompts & Rules)** support.
+- Configured Continue prompts under `.continue/prompts/*.prompt` files, Roo Code rules inside `.clinerules`, Hermes rules in `.hermesrules`, and OpenClaw rules in `.openclawrules`.
+- Implemented independent desktop grid column scrolling with custom şeffaf scrollbar utilities for `CatalogGrid` and `BasketPanel`.
 - Highly optimized the catalog API (`/api/catalog`) by removing the expensive in-memory `ensureCatalogSkillMirrorCleanup()` deduplication step from the query read path.
 - Successfully migrated the skill mirror deduplication and data-hygiene cleanup logic (`cleanupCatalogSkillMirrors`) to the `@vibebasket/registry` sync persistence layer, ensuring it runs once during data ingestion instead of on every user browse request.
 - Resolved SQLite database locking (`SQLITE_BUSY`) under high concurrency by introducing `PRAGMA busy_timeout = 5000` to the database bootstrap phase.

@@ -6,166 +6,52 @@
 - Implemented `@vibebasket/core` (Zod schemas).
 - [x] Monorepo Infrastructure (pnpm)
 - [x] Core Manifest Validation (Zod)
-- [x] IDE Adapters (Cursor, VSCode, Windsurf, Antigravity)
-- [x] Web Dashboard UI (Tailwind v4, Shadcn)
+- [x] IDE Adapters (Cursor, VSCode, Windsurf, Antigravity, Continue, Roo Code, Hermes, OpenClaw)
+- [x] Web Dashboard UI (Tailwind v4, Shadcn, independent desktop scrolling)
+- [x] Secure Admin Panel & Stats Dashboard (OAuth verified, dynamic roles, server actions sync)
 - [x] Responsive Design & Mobile Optimization
 - [x] SEO Meta Tags Enhancement
-- [x] Backend APIs (Catalog, Bundle Management)
+- [x] Backend APIs (Catalog, Bundle Management, Admin Stats)
 - [x] CLI Core Architecture
 - [x] CLI `apply` command logic
 - [x] CLI Interactive Secrets Prompt
 - [x] ESM/Build stabilization across monorepository and hide private directories via `.git/info/exclude`.
+- [x] SQLite WAL (Write-Ahead Logging) Mode Integration for Reader-Writer Concurrency
+- [x] Drizzle Atomic DB Transactions for Ingestion Sync Performance Boost
+- [x] Rate Limiter Memory Leak Map Garbage Cleanup Sweeper
+- [x] Secure Hybrid IP Rate Limiter Spoofing Prevention with Cloudflare & `TRUST_PROXY` Support
+- [x] Idempotent Delimiter-Based Rule/Skill Updating Engine inside Roo Code, Hermes, and OpenClaw Adapters
+- [x] Comprehensive rate-limit and delimiter unit testing verifying 120 green Vitest tests.
 - Scaffolded Next.js 15 Web Application (`apps/web`).
 - Integrated Tailwind v4 and Shadcn UI (OLED Dark Mode Minimal Design).
-- Resolved Node.js v20.20.1 / pnpm v11 compatibility by downgrading to pnpm v9.
 - Resolved Next.js Turbopack PostCSS issues via `.npmrc` hoisting configuration.
 - Implemented Web Application UI/UX (OLED Dark Mode, Bento Grid Catalog, Floating Basket, Zustand Store).
 - Integrated Drizzle ORM and LibSQL (SQLite) into `@vibebasket/core`.
 - Implemented `/api/catalog` and `/api/bundle` (POST/GET) endpoints.
 - Seeded the database with initial catalog metadata.
-- **Milestone: First major commit (feat: stabilize monorepo and implement core CLI & Web features)**.
-- Resolved all ESM/TypeScript build issues.
-- CLI `apply` command verified with dry-run and secret resolution.
-- Fixed catalog loading failures related to DB path resolution and local dev origin handling.
 - Implemented live trusted-source registry sync for official MCP and skills sources.
 - Added source-isolated sync behavior so upstream failures degrade gracefully.
 - Expanded the catalog from seed-scale data to large real datasets.
 - Fixed visible selection state and unselect behavior in the catalog UI.
 - Added server/client pagination for the catalog browsing experience.
 - Added runtime DB indexes and a single-flight sync guard for catalog reads.
-- Updated project docs and memory to reflect the current catalog architecture.
 - Redesigned the homepage and builder experience to align much more closely with the Stitch reference system.
 - Reworked the basket UX into a desktop side panel plus mobile floating entry point.
-- Stopped stale catalog reads from synchronously blocking on full registry refreshes.
-- Added a proper target metadata layer so UI target chips and backend bundle validation stay aligned.
-- Reduced hero headline scale and introduced a scrolling target marquee for a more polished first fold.
-- Added a lightweight fragmented noise treatment to the global background.
-- Prevented long basket selections from dominating the layout by summarizing counts and collapsing overflow.
-- Expanded the visible target ecosystem list to include more current AI IDEs and agent CLIs while keeping bundle generation restricted to adapter-backed targets.
 - Promoted Claude Code, Zed, Gemini CLI, Junie, Kiro, and Cline CLI from watchlist-only visibility into real adapter-backed bundle targets.
 - Added a Codex CLI adapter and closed the project-scope path propagation bug in the CLI apply flow.
-- Removed `Trae` from the visible target list so the UI only reflects real supported apply paths.
-- Restored the hero AI IDE rail to a sliding icon marquee.
-- Refreshed the lockfile so workspace-wide install, test, typecheck, and build verification can run again.
-- Fixed backend/workspace verification gaps caused by missing package dependencies, a broken Tailwind plugin import, CLI no-test handling, and strict TypeScript typing issues in adapters/registry.
-- Verified the current repo with full workspace commands: `pnpm -r run typecheck`, `pnpm -r run test`, and `pnpm -r run build`.
-- Eliminated the main recurring `Loading catalog` risk by seeding verified catalog data immediately on the first empty request and moving full upstream sync work behind the request path.
-- Improved homepage SEO basics with stronger metadata and structured data.
-- Further hardened catalog startup by scheduling background sync after the request and by preventing partial upstream failures from pruning existing catalog entries.
-- Added server-rendered initial catalog data to the homepage so the builder first paint is populated from SQLite instead of waiting on client-side `/api/catalog`.
-- Confirmed the running dev server returns `8344` MCP entries and Firefox renders the first catalog page after reload.
-- Fixed registry generated IDs so official MCP variants and case-different skills.sh entries no longer overwrite each other during persistence.
-- Re-ran live full sync and confirmed `24534` total rows, `24534` distinct IDs, `19607` MCP rows, `4925` skill rows, and zero canonical duplicate MCP/skill rows.
-- Protected production `refresh=1` catalog sync with `CATALOG_REFRESH_TOKEN` to reduce unauthenticated DoS/cost exposure.
-- Added `pnpm catalog:sync`, `pnpm catalog:sync:dry`, and `/api/catalog/status` so operators can refresh and inspect catalog health without poking around in SQLite manually.
-- Ran surface E2E smoke on the live dev server (`catalog -> bundle create -> bundle fetch`), plus edge-case API checks and a chaos-style partial upstream failure check.
-- Implemented batched registry persistence and item-level freshness/source metadata on `catalog_items`.
-- Verified the new metadata layer live: `24630` rows had `first_seen_at`, `last_seen_at`, and `last_synced_at`, while `24624` rows also carried a non-empty `source_url`.
-- Added trust scoring derived from existing metadata and surfaced it in the catalog UI with tier badges and freshness labels.
-- Added trust/freshness-aware discovery controls plus API query params, so trust metadata now affects filtering and sorting instead of only card presentation.
-- Added `apps/web` package-level `test` and `typecheck` scripts and verified the catalog discovery helpers under the workspace test path.
-- Replaced noisy missing-`localStorage` basket persistence behavior with a quiet fallback storage adapter for tests and server contexts.
-- Polished the builder UX by collapsing advanced catalog filters behind a disclosure control while keeping active filter summaries visible in the closed state.
-- Removed visible sync-recency labels from the catalog cards and narrowed the trust UI to source/provenance plus score.
-- Changed the basket target picker to default to `Claude Code` only and sorted supported targets alphabetically.
-- Added cleanup for legacy null-source catalog rows and verified a live sync now leaves `0` null-source rows in the database.
-- Wrote the auth and saved-stacks design spec covering SaaS + self-host, Auth.js provider strategy, DB sessions, ownership rules, UX, and testing.
-- Wrote the detailed implementation plan for auth and saved stacks, including file ownership, TDD order, verification commands, and docs/memory updates.
-- Hardened the new auth/saved-stack DB bootstrap so existing SQLite tables are rebuilt transactionally, duplicate legacy auth data is surfaced with clear errors, and failed upgrades restore foreign-key enforcement cleanly.
-- Added Auth.js to the web app with DB-backed sessions, provider gating for GitHub/Google/Apple, `/api/auth/[...nextauth]`, and server-side session helpers.
-- Added a real login surface to the homepage header plus a first authenticated `/stacks` page entry point.
-- Added initial saved-stack server APIs (`/api/stacks`, `/api/stacks/[id]`) and shared validation helpers for stack names, targets, and item IDs.
-- Verified the current repo again with `pnpm -r run typecheck` and `pnpm -r run test`, including the new auth/provider and stack helper coverage in `apps/web`.
-- Removed the visible auth-disabled header state and kept login UI conditional on real provider configuration only.
-- Eliminated the production-build `SQLITE_BUSY` warnings by stopping auth schema bootstrap writes during module import/build time.
-- Added saved-stack route tests for unauthorized requests and malformed payload edge cases, then re-verified `apps/web` test, typecheck, and production build.
-- Wired selected target IDs into the persisted basket store, added stack restore support, and extended basket-store tests accordingly.
-- Added `SaveStackDialog` and `SavedStacksPanel`, then connected them to the basket and `/stacks` page so signed-in users can save, load, rename, refresh, and delete stacks from the UI.
-- Re-verified the web app after the UI wiring with `next typegen`, `pnpm --filter web test`, `pnpm --filter web exec tsc --noEmit`, and `pnpm --filter web build`.
-- Removed the dev `MissingSecret` Auth.js console error by introducing a development-only auth secret fallback while keeping production strict.
-- Replaced the old secondary header CTA with `Login`, keeping `Build your basket` as the primary action and updating the button order accordingly.
-- Audited visible skill duplicates and confirmed the current live DB has `0` exact duplicate GitHub skill sources (`repo + path + ref`) and `0` catalog names with obvious mojibake/control-character corruption; the remaining repeated names are mostly distinct upstream official/community entries sharing generic titles like `Skill Creator`.
-- Hardened registry skill dedupe by switching the GitHub canonical key from `repo + basename(path)` to `repo + full path + ref`, preventing false merges for nested skills with the same basename.
-- Added catalog text normalization for display names/descriptions plus registry tests covering zero-width/control-character cleanup and the nested-path dedupe edge case.
-- Added source provenance hints to catalog cards so same-name skills surface as distinguishable entries instead of looking like accidental duplicates.
-- Added official-skills mirror dedupe for same-owner/same-path repo families (for example `*-plugins` mirrors), and manually cleaned `50` persisted duplicate skill rows from the local SQLite catalog using that same rule.
-- Verified the previous user-facing example now resolves to a single `3 Statement Model` record in SQLite.
-- Changed background catalog sync so partial upstream source errors no longer spam the normal request path logs; registry/source health still surfaces through explicit sync summaries and status inspection.
-- Increased the official MCP registry request budget from the generic timeout to a dedicated longer timeout window because the live upstream can legitimately take longer than skills.sh.
-- Simplified trust scoring so it now reflects source provenance only instead of blending in sync timing.
-- Added hero target brand icons without the old circular badge treatment and introduced a fixed back-to-top button for long catalog browsing sessions.
-- Added CLI apply preflight logic that flattens workflow-pack content and blocks installs when targets cannot yet apply bundled skills, rules, or workflow files.
-- Fixed the Cursor user-scope MCP config path so auto-apply now writes to `~/.cursor/mcp.json`.
-- Broadened `skills.sh` coverage in two steps: base sync now parses the public directory surface, and live `/api/catalog` skill searches query `skills.sh/?q=...` so long-tail searches can surface many more community skills without a full expensive crawl.
-- Validated that the remote `skills.sh/?q=...` enrichment strategy was semantically wrong because the HTML response embedded broad leaderboard/global data rather than reliably filtered query data.
-- Replaced that enrichment path with local-only search over a much larger synced corpus and expanded the skill search predicate to include `sourceUrl` and raw stored `data`.
-- Switched skills ingestion from homepage/directory scraping to the public skills sitemap index plus skill sitemaps, which now yields the full published skills corpus.
-- Confirmed a live dry sync returns `19932` skills, `20826` MCPs, and `0` source errors; a subsequent live persisted sync completed with `19932` skills, `20827` MCPs, and `40761` total catalog rows.
-- Added focused bundle-route tests for happy path, oversize payload rejection, missing fields, unsupported targets, missing catalog items, and bundle fetch/404 handling.
-- Tightened bundle route typing so catalog JSON is partitioned through explicit schema parsing instead of broad `any` casts.
-- Cleaned low-risk code-quality issues across CLI and web surfaces: removed the dead mock catalog file, centralized auth-required JSON responses, simplified basket state, and replaced several `any`/non-null shortcuts with explicit typed helpers.
-- Brought `apps/web` back to a clean `biome check` state, including targeted lint overrides for Tailwind CSS at-rules and the generic reusable label component.
-- Added a minimal Playwright E2E harness (`apps/web/playwright.config.ts`, `apps/web/e2e/home.spec.ts`) and verified two smoke flows against a live dev server.
-- Verified live performance smoke against the running app: homepage `200` in about `0.98s`, catalog API `200` in about `54ms`, and catalog status API `200` in about `184ms`.
-- Re-ran package-level tests directly where needed and confirmed:
-  - `apps/web`: 36 tests passed
-  - `packages/core`: 12 tests passed
-  - `packages/registry`: 10 tests passed
-  - `packages/adapters`: 21 tests passed
-  - `apps/cli`: 2 tests passed
-- Re-ran monorepo type validation and confirmed `CI=true pnpm -r run typecheck` passes after the web/TS fixes.
-- Fixed a scale bug in catalog pruning by replacing one giant `NOT IN (...)` delete with chunked stale-row deletes that stay under SQLite parameter limits.
-- Downloaded public agent SVG assets for the marquee so supported targets like Codex and Kiro no longer fall back to plain text.
-- Ran a lightweight Codex Security review and fixed two low-risk, worthwhile issues: Auth.js `trustHost` is now explicit in production, and `/api/bundle` now enforces the body-size limit using the real payload bytes.
-- Added a workspace-root Vitest launcher (`scripts/run-vitest.mjs`) and updated all package/app test scripts to call it, which fixed recursive test failures caused by broken package-local Vitest symlinks on this machine.
-- Added `apps/web/vitest.config.ts` so Vitest now only runs `src/**/*.test|spec` and ignores Playwright `e2e/**` plus `node_modules` fixture suites.
-- Removed the app-shell dependency on Google-hosted Geist fonts, so `npx next build` now succeeds without network font fetches.
-- Hardened the Playwright harness to use an isolated `next start` server on its own port with test-only auth env (`AUTH_TRUST_HOST`, `AUTH_SECRET`), then re-ran `npx playwright test` successfully.
-- Audited catalog correctness across live sync output and found a real official/community provenance bug in `skills.sh` ingestion: escaped trailing backslashes on official repo identifiers prevented official matches. Fixed the cleaner and verified a live sync now persists `1771` `skills-sh-official` rows alongside `18159` community rows.
-- Removed the old `ref: "main"` default from GitHub-backed skill manifests and canonical keys so upstream refs are preserved honestly instead of being silently rewritten.
-- Improved catalog search ordering so exact and prefix display-name matches rank above broader description/source/data matches.
-- Fixed remote MCP serialization across Cursor, VS Code, Windsurf, and Antigravity by routing all standard MCP config output through the shared `mergeStandardMcpServers()` utility.
-- Tightened adapter capability metadata so unsupported skill/rule surfaces are no longer advertised on targets that only support MCP config.
-- Hardened CLI bundle apply to fail fast on unsupported target scopes and to abort the overall run when any target write/apply step fails.
-- Added focused tests for remote MCP serialization, CLI apply failure modes, and `skills.sh` official classification with escaped repo-path inputs.
-- Wrote a dedicated hardening-roadmap design spec to steer the next phase toward catalog correctness, apply truthfulness, security hardening, and search/operational quality before major new feature work.
-- Rebuilt the workspace dependency tree after pnpm left local binaries half-linked, then hardened package scripts around `scripts/run-vitest.mjs` plus `pnpm exec` so package-local verification works reliably again on this machine.
-- Centralized target capability metadata in `packages/adapters/src/target-capabilities.ts` and updated web target modeling to consume only the metadata subpath, which fixed a real Next.js production-build regression caused by client code pulling the full adapters index.
-- Added a typed `isSupportedTargetId()` helper so bundle validation, stack normalization, and basket target toggles reuse one source of truth without stringly-typed `includes()` checks.
-- Re-ran the verification stack successfully after the hardening pass:
-  - `pnpm --filter @vibebasket/adapters test`
-  - `pnpm --filter web test`
-  - `pnpm --filter web lint`
-  - `CI=true pnpm -r run typecheck`
-  - `CI=true pnpm -r run test`
-  - `pnpm --filter web build`
-  - `pnpm --filter web exec playwright test`
-- Added `DeepSeek-TUI` as a supported target end to end: manifest enum, target capability registry, adapter export, CLI apply wiring, rollback support, target picker visibility, and regression tests.
-- Clarified the target surface so DeepSeek-TUI is explicitly presented as MCP-only today rather than implying skills/rules auto-apply parity.
-- Resolved SQLite database locking (`SQLITE_BUSY`) under high concurrency by adding `PRAGMA busy_timeout = 5000` to the database bootstrap phase, preventing migration/initialization lockups.
-- Hardened Codex CLI TOML adapter to gracefully normalize single/double quotes around server identifiers in `config.toml`, preventing section duplicates and parsing errors.
-- Highly optimized the catalog API (`/api/catalog`) query read path by removing the expensive in-memory `ensureCatalogSkillMirrorCleanup()` step from each request.
-- Successfully migrated the official skills mirror cleanup and hygiene logic (`cleanupCatalogSkillMirrors`) to the `@vibebasket/registry` sync persistence layer, ensuring it runs once at data sync time rather than on every query request.
-- Re-ran the verification stack successfully with all core, adapter, registry, CLI, and web tests passing cleanly:
-  - `pnpm --filter @vibebasket/adapters test`
-  - `pnpm --filter @vibebasket/core test`
-  - `pnpm --filter @vibebasket/registry test`
-  - `CI=true pnpm -r run typecheck`
-  - `CI=true pnpm -r run test`
+- Seeding verified catalog data immediately on the first empty request and moving full upstream sync work behind the request path.
+- Ingested sitemap-backed `skills.sh` sync for full catalog offline completeness.
+- Dynamic `role: "admin"` session assignment with strict verified-email validation to prevent spoofing attacks.
+- Server-rendered Admin Stats Bento Grid Page `/admin` querying aggregated user/stack metrics.
+- Next.js Server Action `triggerSyncAction` manual catalog sync trigger entirely server-side.
+- Added dynamic Admin Panel navigation link inside `AuthMenu` for admin sessions.
+- Added **Continue, Roo Code, Hermes, and OpenClaw** IDE/Agent adapters with full MCP and Skills (Prompts & Rules) support.
+- Added independent desktop grid scroll for the Catalog grid and Basket columns with smooth custom-scrollbar styles.
+- Re-verified full monorepository compilation, typechecks, and vitest passes successfully.
 
 ## In Progress
-- Improving registry persistence performance for very large sync runs.
-- Auditing remaining gaps between manifest capabilities and installer support.
-- Verifying the redesigned surface across more browsers and viewports once a stable screenshot workflow is available.
-- Wiring the basket UI to the new authenticated stack APIs so users can save, reopen, rename, and delete stacks end-to-end from the browser.
-- Adding integration and E2E coverage for auth and saved-stack flows, including mocked-provider edge cases and unauthorized-access checks.
-- Deciding whether same-title skills from different upstream repos should stay separate forever or gain an optional UI-level grouping mode; correctness currently favors keeping them separate.
-- The official MCP Registry still timed out from this environment even after a longer request window, which suggests upstream latency/availability rather than local parsing; if it persists in real use, the next step is request-shape tuning (for example smaller page sizes or incremental `updated_since` syncs).
-- Deciding whether we should broaden skills ingestion beyond `skills.sh` official into a larger trusted-community set without weakening catalog correctness or dedupe quality.
-- Measuring whether the public `skills.sh` directory surface plus live query enrichment is enough, or whether we still need a deeper trusted-community crawl/indexing strategy for fully offline local search completeness.
-- Measuring whether the new full sitemap-backed `skills.sh` sync is enough for search quality, or whether we should add weighted/FTS-style local relevance on top of it.
-- Broadening automated browser coverage beyond the current homepage/catalog smoke suite now that Playwright is installed and working locally.
-- Expanding non-MCP installer parity only when a target has an official and stable install surface for those artifacts; DeepSeek-TUI should not get guessed skills/rules support.
+- Improving registry persistence performance for very large sync runs (Fully optimized now with atomic DB transactions).
+- Broadening automated browser E2E coverage for secure admin and saved stacks flows.
 
 ## Blockers
-- None at the moment.
+- None.

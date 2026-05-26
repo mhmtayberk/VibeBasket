@@ -12,3 +12,7 @@ export * from "./junie";
 export * from "./cline-cli";
 export * from "./zed";
 export * from "./codex";
+export * from "./continue";
+export * from "./roocode";
+export * from "./hermes";
+export * from "./openclaw";

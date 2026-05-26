@@ -343,6 +343,7 @@ async function ensureTableColumns(
 }
 
 async function bootstrapDatabase(targetClient: SqlExecutor) {
+  await targetClient.execute("PRAGMA journal_mode = WAL");
   await targetClient.execute("PRAGMA foreign_keys = ON");
   await targetClient.execute("PRAGMA busy_timeout = 5000");
   await targetClient.execute(`
