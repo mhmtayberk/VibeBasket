@@ -123,6 +123,38 @@ const UNSORTED_TARGET_OPTIONS: TargetOptionSeed[] = [
 		note: "Backed by the Cline CLI MCP settings file.",
 		vendor: "Cline",
 	},
+	{
+		id: "continue",
+		label: "Continue",
+		status: "supported",
+		kind: "editor",
+		note: "Backed by ~/.continue/config.json MCP configuration and custom Markdown prompts.",
+		vendor: "Continue",
+	},
+	{
+		id: "roocode",
+		label: "Roo Code",
+		status: "supported",
+		kind: "editor",
+		note: "Backed by local roocode_mcp_settings.json MCP configuration and workspace-level .clinerules integration.",
+		vendor: "Roo Code",
+	},
+	{
+		id: "hermes",
+		label: "Hermes",
+		status: "supported",
+		kind: "terminal",
+		note: "Backed by ~/.hermes/config.yaml MCP configuration and project-level .hermesrules rules.",
+		vendor: "Hermes",
+	},
+	{
+		id: "openclaw",
+		label: "OpenClaw",
+		status: "supported",
+		kind: "terminal",
+		note: "Backed by ~/.openclaw/openclaw.json MCP configuration and project-level .openclawrules rules.",
+		vendor: "OpenClaw",
+	},
 ];
 
 function deriveTargetStatus(id: IdeId): TargetStatus {

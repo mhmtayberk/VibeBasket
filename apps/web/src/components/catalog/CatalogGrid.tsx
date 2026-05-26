@@ -318,7 +318,7 @@ export function CatalogGrid({
 				</div>
 
 				<div className="mt-10 grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
-					<div className="space-y-5">
+					<div className="space-y-5 lg:sticky lg:top-24 lg:max-h-[calc(100vh-140px)] lg:overflow-y-auto lg:pr-4 custom-scrollbar">
 						<div className="border border-border/80 bg-card/60">
 							<div className="border-b border-border/70 px-4 py-4">
 								<div className="flex flex-wrap gap-2">

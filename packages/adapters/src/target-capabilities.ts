@@ -49,6 +49,13 @@ export const TARGET_CAPABILITIES = defineCapabilities({
     supportedScopes: ["user"],
     autoApply: true,
   },
+  continue: {
+    supportsMcp: true,
+    supportsSkills: true,
+    supportsRules: false,
+    supportedScopes: ["user", "project"],
+    autoApply: true,
+  },
   cursor: {
     supportsMcp: true,
     supportsSkills: false,
@@ -96,6 +103,27 @@ export const TARGET_CAPABILITIES = defineCapabilities({
     supportsSkills: false,
     supportsRules: false,
     supportedScopes: ["user", "project"],
+    autoApply: true,
+  },
+  roocode: {
+    supportsMcp: true,
+    supportsSkills: true,
+    supportsRules: true,
+    supportedScopes: ["project"],
+    autoApply: true,
+  },
+  hermes: {
+    supportsMcp: true,
+    supportsSkills: true,
+    supportsRules: false,
+    supportedScopes: ["project"],
+    autoApply: true,
+  },
+  openclaw: {
+    supportsMcp: true,
+    supportsSkills: true,
+    supportsRules: false,
+    supportedScopes: ["project"],
     autoApply: true,
   },
 });

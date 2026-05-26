@@ -175,3 +175,22 @@
 		transform: translateX(-50%);
 	}
 }
+
+/* Custom Scrollbar for desktop independent scrolling columns */
+@layer utilities {
+	.custom-scrollbar::-webkit-scrollbar {
+		width: 5px;
+		height: 5px;
+	}
+	.custom-scrollbar::-webkit-scrollbar-track {
+		background: transparent;
+	}
+	.custom-scrollbar::-webkit-scrollbar-thumb {
+		background: rgba(160, 253, 218, 0.1);
+		border-radius: 9999px;
+		border: 1px solid rgba(255, 255, 255, 0.05);
+	}
+	.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+		background: rgba(160, 253, 218, 0.2);
+	}
+}
