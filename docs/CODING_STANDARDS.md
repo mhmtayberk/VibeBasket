@@ -11,3 +11,7 @@
 9. **Trust Model**: New upstream catalog sources should be explicit, reviewable, and treated as trusted/community layers rather than silently merged.
 10. **Idempotent Writes**: IDE adapter rule/skill writes must use `>>> VIBEBASKET START: id <<<` / `>>> VIBEBASKET END: id <<<` block delimiters so VibeBasket-managed content can be updated in-place without corrupting surrounding developer configuration.
 11. **Upstream Deduplication**: When ingesting from registries that publish multiple versions of the same logical server, keep only the highest semver release. Never let version proliferation create duplicate catalog cards for the same logical item.
+12. **High-Performance Caching & DoS Prevention**: Health checks, status endpoints, or heavy resource-checking APIs must leverage in-memory caches or debouncing layers (e.g., 5s DB connectivity caching in `/api/health`) to safeguard production database layers against network flooding or service denial.
+13. **Input Sanitization & Whitelisting boundaries**: All user-supplied query parameters (like `tab` or `q`) must be strictly sanitized, whitelist-validated to block LFI/RFI, and size-constrained (e.g., 100 char limit) to shield against ReDoS and payload injections.
+14. **Information Leakage Isolation**: Sitemap configurations, log systems, or error outputs must strictly filter administrative paths, private user bundles, or database schemas. Never expose sensitive development profiles to search engines or anonymous users.
+
