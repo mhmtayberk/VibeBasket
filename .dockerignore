@@ -1,0 +1,38 @@
+# Version control
+.git
+.gitignore
+
+# Development artifacts
+**/.next
+**/node_modules
+**/.pnpm-store
+
+# Secrets — never bake into image
+.env
+.env.*
+!.env.example
+
+# Database files (provided at runtime via volume)
+*.db
+*.db-shm
+*.db-wal
+
+# Tests and local tooling
+**/test-results
+**/e2e
+**/__tests__
+**/*.test.ts
+**/*.spec.ts
+**/playwright.config.ts
+
+# Docs and non-essential files
+docs/
+memory-bank/
+stitch_vibebasket_design_system_ui_specification/
+test-env/
+test-project/
+*.md
+!README.md
+
+# macOS
+.DS_Store
