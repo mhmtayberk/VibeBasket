@@ -4,8 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### IDE Targets & Automation Upgrades
+- **Integrated Aider, Void, and GitHub Copilot Targets**: Added native adapter integrations for these highly popular coding tools:
+  - **GitHub Copilot**: Supports project-scoped rules and skills inside `.github/copilot-instructions.md` using high-fidelity delimiters.
+  - **Void Editor**: Supports global/project mcp config merging in `mcp_servers.json` and rules/skills inside both `.voidrules` and `.clinerules`.
+  - **Aider**: Supports zero-dependency idempotent `.aider.conf.yml` YAML config mutations (injecting the `read` flag) and rules/skills inside `.aiderinstructions.md`.
+- **CLI Auto-Apply for Skills & Rules**: Reworked the CLI execution pipeline (`apply.ts`, `rollback.ts`) to automatically apply and compile rules and skills right after base config writes, delivering 100% feature-complete automation.
+- **Ecosystem Watchlist Sync**: Registered and dökümante edildi all 19 supported targets inside `apps/web/src/lib/targets.ts` and the `/docs` adapters layout tab.
+
 ### Security & Hardening
-- **Secure Health Check Endpoint**: Implemented a live `/api/health` API route that queries the database via a lightweight Drizzle select (`db.select().from(users).limit(1)`) to verify real system connectivity. Mitigated Denial of Service (DoS) and request flooding risks via an in-memory database status cache with 5s TTL, and enforced strict HTTP no-cache headers.
+- **Secure Health Check Endpoint**: Implemented a live `/api/health` API route that queries the database via a lightweight Drizzle select (`db.select().from(users).limit(1)`) to verify real system connectivity. Mitigated Denial of Service (DoS) and request flooding risks via an in-memory database status cache with 5s TTL, and enforced strict HTTP no-cache headers. Enjected process uptime tracking in seconds (`uptime` field).
+
 - **Information Disclosure Mitigation in Sitemap**: Added `/docs` route to the intelligent `sitemap.ts` generator, and verified that no private user-scoped bundle pages (`/bundle/[id]`) or administrative routes (`/admin`) are exposed to search engine bots, keeping user data confidential.
 - **XSS & LFI/RFI Defenses**: Secured the `/docs` routing context against Local/Remote File Inclusion (LFI/RFI) by strictly validating the tab query parameter against a secure whitelist of allowed sekmeler. Shielded search inputs from ReDoS and Cross-Site Scripting (XSS) by enforcing a 100-character constraint on the query parameter.
 
