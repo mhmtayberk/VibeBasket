@@ -126,6 +126,27 @@ export const TARGET_CAPABILITIES = defineCapabilities({
     supportedScopes: ["project"],
     autoApply: true,
   },
+  "github-copilot": {
+    supportsMcp: false,
+    supportsSkills: true,
+    supportsRules: true,
+    supportedScopes: ["project"],
+    autoApply: true,
+  },
+  void: {
+    supportsMcp: true,
+    supportsSkills: true,
+    supportsRules: true,
+    supportedScopes: ["user", "project"],
+    autoApply: true,
+  },
+  aider: {
+    supportsMcp: false,
+    supportsSkills: true,
+    supportsRules: true,
+    supportedScopes: ["project"],
+    autoApply: true,
+  },
 });
 
 export const SUPPORTED_TARGET_IDS = Object.entries(TARGET_CAPABILITIES)
