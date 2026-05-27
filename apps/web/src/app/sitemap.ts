@@ -37,6 +37,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 			priority: 1.0,
 		},
 		{
+			url: `${normalizedBase}/docs`,
+			lastModified: latestUpdate,
+			changeFrequency: "weekly",
+			priority: 0.9,
+		},
+		{
 			url: `${normalizedBase}/stacks`,
 			lastModified: latestUpdate,
 			changeFrequency: "daily",
@@ -44,3 +50,4 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 		},
 	];
 }
+
