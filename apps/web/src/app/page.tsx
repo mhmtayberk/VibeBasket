@@ -123,6 +123,12 @@ export default async function Home() {
 						<path fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" d="M12 3v18M3 12h18M12 3a9 9 0 019 9M12 21a9 9 0 01-9-9" />
 					</svg>
 				);
+			case "deepseek-tui":
+				return (
+					<svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" style={{ color: "#1C6EF2" }}>
+						<path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z" />
+					</svg>
+				);
 			default:
 				return <Command className="h-4 w-4 text-accent" />;
 		}
