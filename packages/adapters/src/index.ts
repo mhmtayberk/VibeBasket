@@ -16,3 +16,7 @@ export * from "./continue";
 export * from "./roocode";
 export * from "./hermes";
 export * from "./openclaw";
+export * from "./github-copilot";
+export * from "./void";
+export * from "./aider";
+

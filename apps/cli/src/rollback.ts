@@ -16,6 +16,13 @@ import {
   ClineCliAdapter,
   ZedAdapter,
   CodexAdapter,
+  ContinueAdapter,
+  RooCodeAdapter,
+  HermesAdapter,
+  OpenClawAdapter,
+  GitHubCopilotAdapter,
+  VoidAdapter,
+  AiderAdapter,
 } from "@vibebasket/adapters";
 
 const ADAPTERS = {
@@ -31,6 +38,13 @@ const ADAPTERS = {
   "cline-cli": new ClineCliAdapter(),
   zed: new ZedAdapter(),
   codex: new CodexAdapter(),
+  continue: new ContinueAdapter(),
+  roocode: new RooCodeAdapter(),
+  hermes: new HermesAdapter(),
+  openclaw: new OpenClawAdapter(),
+  "github-copilot": new GitHubCopilotAdapter(),
+  void: new VoidAdapter(),
+  aider: new AiderAdapter(),
 } as const;
 
 function getRollbackAdapter(targetId: string): IdeAdapter | undefined {
