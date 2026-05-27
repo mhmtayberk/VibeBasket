@@ -155,6 +155,30 @@ const UNSORTED_TARGET_OPTIONS: TargetOptionSeed[] = [
 		note: "Backed by ~/.openclaw/openclaw.json MCP configuration and project-level .openclawrules rules.",
 		vendor: "OpenClaw",
 	},
+	{
+		id: "github-copilot",
+		label: "GitHub Copilot",
+		status: "supported",
+		kind: "editor",
+		note: "Idempotent project-level .github/copilot-instructions.md skills & rules supported.",
+		vendor: "GitHub / Microsoft",
+	},
+	{
+		id: "void",
+		label: "Void Editor",
+		status: "supported",
+		kind: "editor",
+		note: "Standard MCP servers and idempotent skills & rules (.voidrules) supported.",
+		vendor: "Void",
+	},
+	{
+		id: "aider",
+		label: "Aider",
+		status: "supported",
+		kind: "terminal",
+		note: "Idempotent project-level .aider.conf.yml and .aiderinstructions.md supported.",
+		vendor: "Aider",
+	},
 ];
 
 function deriveTargetStatus(id: IdeId): TargetStatus {
