@@ -1,0 +1,41 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: vibebasket:latest
+    container_name: vibebasket
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      # Persist the SQLite database across restarts and upgrades
+      - vibebasket_data:/data
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: file:/data/vibebasket.db
+      # ── Required ───────────────────────────────────────────────────────────
+      # Generate with: openssl rand -base64 32
+      AUTH_SECRET: "${AUTH_SECRET}"
+      # Public URL of your instance (used for OAuth redirects)
+      NEXTAUTH_URL: "${NEXTAUTH_URL}"
+      # ── Optional: GitHub OAuth login ────────────────────────────────────────
+      AUTH_GITHUB_ID: "${AUTH_GITHUB_ID:-}"
+      AUTH_GITHUB_SECRET: "${AUTH_GITHUB_SECRET:-}"
+      # ── Optional: Admin dashboard access ────────────────────────────────────
+      # Comma-separated list of GitHub account emails granted /admin access
+      ADMIN_OAUTH_EMAILS: "${ADMIN_OAUTH_EMAILS:-}"
+      # ── Optional: Reverse proxy support ─────────────────────────────────────
+      # Set to "true" when behind Cloudflare, Nginx, Caddy, etc.
+      # This lets the rate limiter read the real client IP from X-Forwarded-For
+      TRUST_PROXY: "${TRUST_PROXY:-false}"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+volumes:
+  vibebasket_data:
+    driver: local

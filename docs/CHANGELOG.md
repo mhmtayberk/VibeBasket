@@ -4,8 +4,19 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-- Integrated semver deduplication engine (`compareSemver`) into `OfficialMcpRegistryCollector` so only the highest released version of each official MCP server (keyed by `server.name`) is ingested into the catalog, eliminating duplicate cards for packages that publish multiple historical versions to the MCP registry.
-- Updated `packages/registry/src/index.test.ts` with a dedicated deduplication test verifying that only the highest semver variant of a shared registry server is retained; all 120 monorepo Vitest tests remain green.
+### Security & Hardening
+- **Secure Health Check Endpoint**: Implemented a live `/api/health` API route that queries the database via a lightweight Drizzle select (`db.select().from(users).limit(1)`) to verify real system connectivity. Mitigated Denial of Service (DoS) and request flooding risks via an in-memory database status cache with 5s TTL, and enforced strict HTTP no-cache headers.
+- **Information Disclosure Mitigation in Sitemap**: Added `/docs` route to the intelligent `sitemap.ts` generator, and verified that no private user-scoped bundle pages (`/bundle/[id]`) or administrative routes (`/admin`) are exposed to search engine bots, keeping user data confidential.
+- **XSS & LFI/RFI Defenses**: Secured the `/docs` routing context against Local/Remote File Inclusion (LFI/RFI) by strictly validating the tab query parameter against a secure whitelist of allowed sekmeler. Shielded search inputs from ReDoS and Cross-Site Scripting (XSS) by enforcing a 100-character constraint on the query parameter.
+
+### Self-Hosting & Docker Integration
+- **Multi-stage Production Dockerfile**: Created a lean multi-stage `Dockerfile` based on Node.js 22 Alpine, optimizing image size via Next.js standalone build output, running as a non-root user, and supporting SQLite database persistence via Docker volume mounts.
+- **Docker Compose Setup**: Designed a production-ready `docker-compose.yml` configuration with custom named volume persistence, automated container health checks utilizing the `/api/health` endpoint, and comprehensive inline environment documentation.
+- **Structured .env.example**: Produced a clean, secure `.env.example` template covering all key parameters (Next-Auth secrets, OAuth credentials, trust proxies), tracked it under Git, and updated the `.dockerignore` to block accidental secret leaks.
+
+### Documentation & UI Improvements
+- **Expanded Search Scope**: Zenginleştirilmiş keywords mapping was added to all guides inside the `/docs` hub, allowing users to successfully search long-tail terms like "Docker", "compose", "volume", "security", "credentials" and locate relevant architectural articles instantly.
+- **GitHub OAuth Redirect Spec**: Expanded the self-hosting documentation inside `/docs?tab=self-hosting` with a dedicated callout explaining how to correctly declare the GitHub OAuth application callback URL (`${NEXTAUTH_URL}/api/auth/callback/github`) in developer environments.
 
 ---
 
