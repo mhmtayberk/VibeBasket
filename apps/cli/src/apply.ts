@@ -15,6 +15,13 @@ import {
   ClineCliAdapter,
   ZedAdapter,
   CodexAdapter,
+  ContinueAdapter,
+  RooCodeAdapter,
+  HermesAdapter,
+  OpenClawAdapter,
+  GitHubCopilotAdapter,
+  VoidAdapter,
+  AiderAdapter,
 } from "@vibebasket/adapters";
 import { confirm } from "@inquirer/prompts";
 import chalk from "chalk";
@@ -36,6 +43,13 @@ const ADAPTERS = {
   "cline-cli": new ClineCliAdapter(),
   zed: new ZedAdapter(),
   codex: new CodexAdapter(),
+  continue: new ContinueAdapter(),
+  roocode: new RooCodeAdapter(),
+  hermes: new HermesAdapter(),
+  openclaw: new OpenClawAdapter(),
+  "github-copilot": new GitHubCopilotAdapter(),
+  void: new VoidAdapter(),
+  aider: new AiderAdapter(),
 } as const;
 
 function getAdapter(targetId: IdeId): IdeAdapter | undefined {
@@ -135,6 +149,19 @@ export async function applyBundle(
         console.log(chalk.gray(`  - Created backup: ${backupPath}`));
         
         await adapter.writeConfig(scope, pendingConfig, projectRoot);
+
+        // Auto-apply rules if supported
+        if (adapter.supportsRules && adapter.applyRules && flattened.rules.length > 0) {
+          await adapter.applyRules(flattened.rules, scope, projectRoot);
+          console.log(chalk.gray(`  - Successfully applied rules for ${adapter.displayName}`));
+        }
+
+        // Auto-apply skills if supported
+        if (adapter.supportsSkills && adapter.applySkills && flattened.skills.length > 0) {
+          await adapter.applySkills(flattened.skills, scope, projectRoot);
+          console.log(chalk.gray(`  - Successfully applied skills for ${adapter.displayName}`));
+        }
+
         console.log(chalk.green(`✅ Successfully applied to ${adapter.displayName}`));
         console.log(chalk.cyan(`💡 ${adapter.postInstallHint()}`));
       }

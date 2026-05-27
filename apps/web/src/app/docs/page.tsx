@@ -616,6 +616,9 @@ export default async function DocsPage({
 											{ name: "Roo Code", color: "#FF3D00", config: "roocode_mcp_settings.json + .clinerules", skills: true, note: "MCP entries merge into roocode_mcp_settings.json. Rules and skills are written into .clinerules using the VibeBasket block delimiter engine." },
 											{ name: "Hermes", color: "#FFD600", config: "~/.hermes/config.yaml + .hermesrules", skills: true, note: "MCP servers merge into the YAML config. Rules and skills are written into .hermesrules using idempotent block delimiters." },
 											{ name: "OpenClaw", color: "#E040FB", config: "~/.openclaw/openclaw.json + .openclawrules", skills: true, note: "MCP entries merge into the JSON config. Rules and skills are written into .openclawrules using idempotent block delimiters." },
+											{ name: "GitHub Copilot", color: "#FF1744", config: ".github/copilot-instructions.md", skills: true, note: "Rules and skills are written as Markdown custom instructions inside .github/copilot-instructions.md." },
+											{ name: "Void Editor", color: "#673AB7", config: "~/.config/void/mcp_servers.json + .voidrules", skills: true, note: "MCP servers merge into the mcp_servers.json. Rules and skills are written into .voidrules and .clinerules using idempotent block delimiters." },
+											{ name: "Aider", color: "#4CAF50", config: ".aider.conf.yml + .aiderinstructions.md", skills: true, note: "Registers .aiderinstructions.md via the read flag in .aider.conf.yml. Rules and skills are written into the instructions Markdown file." },
 										] as { name: string; color: string; config: string; skills: boolean; note: string }[]).map((adapter) => (
 											<div
 												key={adapter.name}

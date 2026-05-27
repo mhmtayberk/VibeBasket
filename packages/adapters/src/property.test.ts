@@ -12,6 +12,13 @@ import { JunieAdapter } from "./junie.js";
 import { ClineCliAdapter } from "./cline-cli.js";
 import { ZedAdapter } from "./zed.js";
 import { CodexAdapter } from "./codex.js";
+import { ContinueAdapter } from "./continue.js";
+import { RooCodeAdapter } from "./roocode.js";
+import { HermesAdapter } from "./hermes.js";
+import { OpenClawAdapter } from "./openclaw.js";
+import { GitHubCopilotAdapter } from "./github-copilot.js";
+import { VoidAdapter } from "./void.js";
+import { AiderAdapter } from "./aider.js";
 import { TARGET_CAPABILITIES } from "./target-capabilities.js";
 
 const adapters = [
@@ -27,6 +34,13 @@ const adapters = [
   new ClineCliAdapter(),
   new ZedAdapter(),
   new CodexAdapter(),
+  new ContinueAdapter(),
+  new RooCodeAdapter(),
+  new HermesAdapter(),
+  new OpenClawAdapter(),
+  new GitHubCopilotAdapter(),
+  new VoidAdapter(),
+  new AiderAdapter(),
 ];
 
 describe("Adapter Idempotency Law", () => {
