@@ -3,13 +3,26 @@
 ## Prerequisites
 - Node.js 20+
 - pnpm 9+
+- Docker & Docker Compose (Optional, for containerized deployments)
 
-## Installation
+## Installation (Manual Dev Setup)
 ```bash
 git clone <repo_url>
 cd vibebasket
+cp .env.example .env     # Copy the environment template
 pnpm install
+pnpm dev                 # Starts workspace dev server on http://localhost:3000
 ```
+
+## Installation (Docker Production Setup)
+For automated containerized self-hosting:
+```bash
+git clone <repo_url>
+cd vibebasket
+cp .env.example .env     # Fill in required Next-Auth and Auth secrets
+docker compose up -d     # Starts non-root containers with automatic SQLite volume mounts
+```
+
 
 ## Running the Full Workspace
 ```bash
@@ -74,6 +87,12 @@ pnpm test
 
 ## Useful Catalog Debug Commands
 
+Test API and database health status (with 5s in-memory cache protection):
+
+```bash
+curl -i "http://localhost:3000/api/health"
+```
+
 Fetch the first page of MCPs:
 
 ```bash
@@ -91,6 +110,7 @@ Read catalog status and the most recent recorded sync:
 ```bash
 curl "http://localhost:3000/api/catalog/status"
 ```
+
 
 Run a manual live sync into the local DB:
 

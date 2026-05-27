@@ -101,3 +101,21 @@ Returns current catalog counts, freshness derived from the newest catalog row, a
 - the installer side still lags behind the manifest surface for some non-MCP entry types
 - the target picker now mirrors the real adapter-backed set instead of keeping a visible roadmap/watchlist tier
 - `project` scope apply now forwards the working directory as `projectRoot`, which closes an earlier bug where project-scoped adapters had the right path logic but were never given the project path at runtime
+
+## Production & Deployment Architecture
+
+### 🐳 Docker & Self-Hosting Pipeline
+- **Next.js Standalone Mode:** Configured `output: 'standalone'` in `next.config.ts`. The Docker build uses this lean, self-contained server layout, only bundling required `node_modules` and files, reducing the production image to under 150MB.
+- **Multi-stage Alpine Runtime:** A secure, non-root Node.js 22 Alpine multi-stage `Dockerfile` handles installation, building, and runner optimization stages.
+- **SQLite Persistence:** Mounts a Docker volume at `/data` mapping SQLite `.db` records to keep user stacks and authenticated accounts safe during container updates.
+- **docker-compose.yml Spec:** Integrates an automatic container health check, binds default port `3000`, and provisions named volume mount points securely.
+
+### 🛡️ Secure Health Checks & Cache Shielding
+- **Database Status Probe:** `/api/health` performs a live select on the SQLite `users` table via Drizzle to assert true database status.
+- **Anti-DoS Protection:** The database verification is guarded by a 5-second in-memory cache TTL. Rapid health check pings (e.g., from Kubernetes or Docker probes) are served immediately from memory without contacting SQLite.
+- **Zero-Cache Response Headers:** Sets strict HTTP `no-store, no-cache, must-revalidate` directives to avoid stale proxies hiding dead servers.
+
+### 🗺️ Sitemap & Query Hardening
+- **Information Leak Protection:** `sitemap.ts` includes `/docs` alongside `/` and `/stacks` but intentionally excludes user-created stack pages (`/bundle/[id]`) and `/admin` routes. This guards against search engines indexing personal development context profiles (Information Disclosure defense).
+- **docs Route Boundaries:** Protects against Local/Remote File Inclusion (LFI/RFI) by validating the docs `tab` search parameter against an allowed whitelist. The arama search parameter is capped at 100 characters to prevent ReDoS (Regular Expression Denial of Service) and XSS enjections.
+

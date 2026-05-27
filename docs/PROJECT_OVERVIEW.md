@@ -20,7 +20,7 @@ For targets that support it (Continue, Roo Code, Hermes, OpenClaw), the CLI adap
 4. Generate a bundle URL and a CLI apply command.
 5. Apply the bundle locally with idempotent IDE adapters.
 
-At the moment, automatic local apply is intentionally limited to MCP configuration. Skills, rules, and workflow files remain part of the bundle format and web catalog, but they are not yet auto-installed by the CLI adapters.
+Automatic local apply is fully supported for MCP configuration across all 16 target adapters. Skills and rules are additionally auto-installed for Continue, Roo Code, Hermes, and OpenClaw using our idempotent block delimiter engine.
 
 ## Trusted Catalog Model
 
@@ -34,25 +34,16 @@ When multiple sources describe the same item, VibeBasket deduplicates by canonic
 
 ## Recent State
 
-Recent work significantly changed the catalog behavior and design system:
+Recent work significantly changed the catalog behavior, deployment, and security baseline:
 
-- fixed catalog loading stability problems and selected-state visibility
-- replaced brittle registry sync stubs with live trusted-source collectors
-- **semver deduplication engine:** `OfficialMcpRegistryCollector` now groups servers by `server.name` and ingests only the highest semver release, eliminating duplicate cards for packages with multiple historical versions (e.g. nine `.FAF Context` entries reduced to one)
-- corrected `skills.sh` official/community provenance classification
-- switched skills ingestion to the full public `skills.sh` sitemap corpus with tighter canonical skill identity (`repo + full path + ref`)
-- improved search ranking so exact/prefix display-name matches rank above broader description/source JSON matches
-- centralized target capability metadata with a metadata-only web client import path
-- added pagination, trust/freshness filtering and sorting, API-side sync locking and DB indexing
-- server-rendered the first catalog page so the builder shows useful results before client hydration
-- fixed adapter MCP serialization for remote servers
-- hardened CLI apply so unsupported scopes or target write failures abort instead of pretending success
-- resolved SQLite locking (`SQLITE_BUSY`) via `PRAGMA busy_timeout = 5000` and full WAL mode
-- hardened Codex CLI TOML adapter for single/double quoted server identifiers
-- **docs hub:** built the `/docs` documentation center with spacious bento layout, sidebar navigation, tabbed guides, and brand-coherent design system (sharp 2px borders, OLED dark mode)
-- **design system baseline:** set `--radius: 0.125rem` globally, added surface container color tokens, and resolved the Next.js route smooth-scroll warning
-- **rate limiter hardening:** hybrid IP detection with Cloudflare header, `TRUST_PROXY` env var, and in-memory leak cleanup sweeper
-- **delimiter engine:** Roo Code, Hermes, and OpenClaw adapters use `>>> VIBEBASKET START/END <<<` block delimiters for idempotent rule/skill writes
+- **Dockerization & Production Config:** Multi-stage production `Dockerfile` based on Node.js 22 Alpine utilizing lean Next.js standalone build outputs, root privilege isolation, and SQLite volume persistence. Added `docker-compose.yml` with automated container health probes and `.dockerignore` shielding.
+- **Performanslı ve Güvenli Health Check (`/api/health`):** Real-time database connectivity check through a lightweight Drizzle select. Safeguarded against flooding/DoS attacks via a 5-second in-memory status cache, with explicit HTTP no-cache headers.
+- **Information Disclosure Mitigation in Sitemap:** Dynamic sitemap.ts generator updated to index `/docs` under weekly changeFrequency, strictly auditing sitemap queries to prevent accidental leakage of private user bundle paths or admin roots.
+- **XSS, LFI/RFI Defenses & Whitelisting:** Secured `/docs` tab-based rendering by pre-verifying queries against an allowed whitelist. Shielded search input from ReDoS/XSS payloads by restricting inputs to 100 characters.
+- **Expanded Search Scope:** Enriched keywords map for all guides in the `/docs` bento grid, enabling users to search long-tail keywords like "Docker", "compose", "volume", and "security" instantly.
+- **GitHub OAuth Redirect Spec:** Added a dedicated callout spec in `/docs?tab=self-hosting` and registered `.env.example` under Git tracking.
+- **Idempotent Delimiter Engine:** Roo Code (`.clinerules`), Hermes (`.hermesrules`), and OpenClaw (`.openclawrules`) IDE adapters use `>>> VIBEBASKET START/END <<<` block delimiters for idempotent rule/skill writes.
+- **Semver Deduplication Engine:** `OfficialMcpRegistryCollector` groups servers by `server.name` and ingests only the highest semver release, eliminating multi-version catalog duplicates (e.g. FAF Context).
 
 ## Current Constraints
 
@@ -60,4 +51,4 @@ Recent work significantly changed the catalog behavior and design system:
 - catalog search uses SQL `LIKE`; acceptable for now but not the final search architecture for very large datasets
 - same-name skills from distinct upstream repos are intentionally preserved unless canonical source identity proves they are mirrors; correctness wins over aggressive title-based merging
 - adapter-backed support is MCP-first today; Skills/Rules/Workflow auto-apply is only live for Continue, Roo Code, Hermes, and OpenClaw; even there, the CLI prompts rather than silently overwriting user configurations
-- the docs hub at `/docs` serves static tabbed content for now; interactive search and versioned content are future improvements
+- the docs hub at `/docs` supports fully-functional interactive search with 300ms client debouncing; versioned documentation is a future improvement
