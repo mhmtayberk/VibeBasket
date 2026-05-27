@@ -40,6 +40,7 @@ export async function GET(_req: NextRequest) {
 		services: {
 			database: isDbHealthy ? "healthy" : "unreachable",
 		},
+		uptime: Math.floor(process.uptime()),
 		timestamp: Date.now(),
 	};
 
