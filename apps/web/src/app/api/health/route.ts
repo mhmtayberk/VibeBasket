@@ -1,16 +1,13 @@
 import { db, users } from "@vibebasket/core";
-import { sql } from "drizzle-orm";
 import type { NextRequest } from "next/server";
 import { checkRateLimit, getClientAddress } from "@/lib/rate-limit";
 
 const HEALTH_RATE_LIMIT = 120;
 const HEALTH_RATE_WINDOW_MS = 60 * 1000;
 
-// Dynamic, secure and high-performance health check.
-// Using inline variables for persistent cache during the node server lifecycle.
 let lastDbCheck = 0;
 let lastDbStatus = false;
-const CACHE_TTL_MS = 5000; // 5-second threshold to safeguard DB from health probes flooding
+const CACHE_TTL_MS = 5000;
 
 async function checkDatabase(): Promise<boolean> {
 	const now = Date.now();
@@ -19,23 +16,16 @@ async function checkDatabase(): Promise<boolean> {
 	}
 
 	try {
-		// Standard, highly compatible Drizzle lightweight query on users table
 		await db.select().from(users).limit(1);
 		lastDbStatus = true;
-		lastDbCheck = now;
-		return true;
 	} catch (error) {
-		console.error("[Healthcheck Probe] Database connectivity failure:", error);
+		console.error("[Health] DB check failed:", error);
 		lastDbStatus = false;
-		lastDbCheck = now;
-		return false;
 	}
+	lastDbCheck = now;
+	return lastDbStatus;
 }
 
-/**
- * Lightweight, security-hardened health check endpoint.
- * Validates process health and database availability.
- */
 export async function GET(req: NextRequest) {
 	const rateLimit = checkRateLimit(
 		`health:${getClientAddress(req)}`,
@@ -44,22 +34,26 @@ export async function GET(req: NextRequest) {
 	);
 	if (!rateLimit.allowed) {
 		return Response.json(
-			{ status: "ok", services: { database: "healthy" }, uptime: Math.floor(process.uptime()), timestamp: Date.now() },
-			{ status: 200, headers: { "Cache-Control": "no-store" } },
+			{ error: "Too many requests" },
+			{
+				status: 429,
+				headers: {
+					"Retry-After": String(rateLimit.retryAfterSeconds),
+					"Cache-Control": "no-store",
+				},
+			},
 		);
 	}
-	const isDbHealthy = await checkDatabase();
 
-	const responsePayload = {
+	const isDbHealthy = await checkDatabase();
+	const payload = {
 		status: isDbHealthy ? "ok" : "unhealthy",
-		services: {
-			database: isDbHealthy ? "healthy" : "unreachable",
-		},
+		services: { database: isDbHealthy ? "healthy" : "unreachable" },
 		uptime: Math.floor(process.uptime()),
 		timestamp: Date.now(),
 	};
 
-	return Response.json(responsePayload, {
+	return Response.json(payload, {
 		status: isDbHealthy ? 200 : 503,
 		headers: {
 			"Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
@@ -68,4 +62,3 @@ export async function GET(req: NextRequest) {
 		},
 	});
 }
-

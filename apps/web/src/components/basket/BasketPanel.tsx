@@ -53,7 +53,6 @@ export function BasketPanel({
 	const roadmapTargets = TARGET_OPTIONS.filter(
 		(target) => target.status === "coming-soon",
 	);
-	const hasNonMcpItems = items.some((item) => item.type !== "mcp");
 	const itemCounts = items.reduce(
 		(acc, item) => {
 			acc[item.type] = (acc[item.type] ?? 0) + 1;
@@ -322,13 +321,6 @@ export function BasketPanel({
 						the bundle API validates the same supported set before generating
 						install commands.
 					</p>
-					{hasNonMcpItems ? (
-						<p className="text-xs leading-6 text-amber-300/90">
-							Today&apos;s apply engine writes MCP configuration files. Skills,
-							rules, and workflow files stay inside the shared bundle manifest
-							until target-specific installers land.
-						</p>
-					) : null}
 				</div>
 
 				<div className="space-y-3 border-t border-border/70 pt-5">

@@ -87,6 +87,20 @@
 - Playwright E2E testlerine rate limit ve storage management akışlarının entegrasyonu.
 
 ## Completed (Latest Batch — May 28, 2026)
+
+- [x] Trust score simplified: removed arbitrary numbers, pure 3-tier system
+- [x] Catalog detail view: "Details →" button + responsive modal
+- [x] Landing page: unified SVG icons (16 targets), removed simple-icons, badge update
+- [x] Health endpoint: proper 429 on rate limit (was fake 200)
+- [x] ADMIN_EMAILS mismatch: code accepts both ADMIN_OAUTH_EMAILS and ADMIN_EMAILS
+- [x] Bundle TTL: anonymous 48h, registered 365d, auto-cleanup
+- [x] CLI docs: removed non-existent flags, added actual --scope/--dry-run
+- [x] ErrorBoundary component created
+- [x] Dead code removed: community.json, unused imports/variables
+- [x] DB: idx_bundles_expires_user, .gitignore *.db files
+- [x] Test paths: dynamic resolveRepoRoot() instead of hardcoded paths
+- [x] Bundle schema: user_id + expires_at columns, cleanup index
+- [x] Atomic backup: VACUUM INTO for local backend
 - [x] Microsoft Entra ID (Azure AD) OAuth provider added (4th provider: GitHub, Google, Apple, Microsoft)
 - [x] Multi-cloud backup storage system with 6 backends: Local, S3, R2, Spaces, Azure, GCS
 - [x] AES-256-GCM encrypted credential storage in SQLite `backup_storage_config` table

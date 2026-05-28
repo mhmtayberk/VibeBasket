@@ -91,7 +91,29 @@ export async function backupDatabaseAction() {
 			.slice(0, 19);
 		const key = `vibebasket-backup-${timestamp}.db`;
 
-		const result = await backend.createBackup(dbPath, key);
+		let result: { key: string; sizeBytes: number; location?: string };
+
+		if (backend.id === "local") {
+			const backupDir = path.resolve(
+				process.env.BACKUP_LOCAL_DIR ?? path.join(process.cwd(), "backups"),
+			);
+			await fs.promises.mkdir(backupDir, { recursive: true });
+			const safeKey = path.basename(key).replace(/[^a-zA-Z0-9._-]/g, "_");
+			const destPath = path.join(backupDir, safeKey);
+
+			// Atomic backup using SQLite VACUUM INTO
+			try {
+				const { client } = await import("@vibebasket/core");
+				await client.execute(`VACUUM INTO '${destPath.replace(/'/g, "''")}'`);
+			} catch {
+				await fs.promises.copyFile(dbPath, destPath);
+			}
+
+			const stat = await fs.promises.stat(destPath);
+			result = { key: safeKey, sizeBytes: stat.size, location: destPath };
+		} else {
+			result = await backend.createBackup(dbPath, key);
+		}
 
 		revalidatePath("/admin");
 
