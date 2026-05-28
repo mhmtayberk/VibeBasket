@@ -9,7 +9,6 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { siJetbrains, siZedindustries } from "simple-icons";
 import { auth, getEnabledAuthProviders } from "@/auth";
 import { AuthMenu } from "@/components/auth/AuthMenu";
 import { SignInDialog } from "@/components/auth/SignInDialog";
@@ -54,84 +53,33 @@ export default async function Home() {
 	} as const;
 
 	const renderTargetIcon = (targetId: string) => {
-		const imageFor = (src: string, altText: string) => (
-			<Image
-				src={src}
-				alt={altText}
-				width={24}
-				height={24}
-				priority
-				className="h-6 w-auto object-contain"
-			/>
-		);
+		const iconMap: Record<string, string> = {
+			cursor: "/targets/cursor.svg",
+			windsurf: "/targets/windsurf.svg",
+			vscode: "/targets/vscode.svg",
+			antigravity: "/targets/antigravity.svg",
+			"claude-code": "/targets/claude-code.svg",
+			codex: "/targets/codex.svg",
+			"gemini-cli": "/targets/gemini.svg",
+			"cline-cli": "/targets/cline.svg",
+			kiro: "/targets/kiro-cli.svg",
+			continue: "/targets/continue.svg",
+			roocode: "/targets/roocode.svg",
+			hermes: "/targets/hermes.svg",
+			openclaw: "/targets/openclaw.svg",
+			"deepseek-tui": "/targets/deepseek.svg",
+			zed: "/targets/zed.svg",
+			junie: "/targets/junie.svg",
+		};
 
-		const iconFor = (path: string, hex: string) => (
-			<svg
-				aria-hidden="true"
-				viewBox="0 0 24 24"
-				className="h-5 w-5"
-				style={{ color: hex === "000000" ? "#f5f7fb" : `#${hex}` }}
-			>
-				<path d={path} fill="currentColor" />
-			</svg>
-		);
-
-		switch (targetId) {
-			case "cursor":
-				return imageFor("/targets/cursor.svg", "Cursor");
-			case "windsurf":
-				return imageFor("/targets/windsurf.svg", "Windsurf");
-			case "vscode":
-				return imageFor("/targets/vscode.svg", "VS Code");
-			case "antigravity":
-				return imageFor("/targets/antigravity.svg", "Antigravity");
-			case "claude-code":
-				return imageFor("/targets/claude-code.svg", "Claude Code");
-			case "zed":
-				return iconFor(siZedindustries.path, siZedindustries.hex);
-			case "codex":
-				return imageFor("/targets/codex.svg", "Codex");
-			case "gemini-cli":
-				return imageFor("/targets/gemini.svg", "Gemini CLI");
-			case "junie":
-				return iconFor(siJetbrains.path, siJetbrains.hex);
-			case "kiro":
-				return imageFor("/targets/kiro-cli.svg", "Kiro CLI");
-			case "cline-cli":
-				return imageFor("/targets/cline.svg", "Cline CLI");
-			case "continue":
-				return (
-					<svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" style={{ color: "#00E5FF" }}>
-						<path fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" d="M4 12a8 8 0 0113.65-5.65L20 9m0 0v-4m0 4h-4M20 12a8 8 0 01-13.65 5.65L4 15m0 0v4m0-4h4" />
-					</svg>
-				);
-			case "roocode":
-				return (
-					<svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" style={{ color: "#FF3D00" }}>
-						<path fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-					</svg>
-				);
-			case "hermes":
-				return (
-					<svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" style={{ color: "#FFD600" }}>
-						<path fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10zM8 11h8" />
-					</svg>
-				);
-			case "openclaw":
-				return (
-					<svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" style={{ color: "#E040FB" }}>
-						<path fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" d="M12 3v18M3 12h18M12 3a9 9 0 019 9M12 21a9 9 0 01-9-9" />
-					</svg>
-				);
-			case "deepseek-tui":
-				return (
-					<svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" style={{ color: "#1C6EF2" }}>
-						<path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z" />
-					</svg>
-				);
-			default:
-				return <Command className="h-4 w-4 text-accent" />;
+		const src = iconMap[targetId];
+		if (src) {
+			return (
+				<Image src={src} alt={targetId} width={28} height={28} className="h-7 w-auto object-contain" />
+			);
 		}
+
+		return <Command className="h-4 w-4 text-accent" />;
 	};
 
 	return (
@@ -207,9 +155,9 @@ export default async function Home() {
 				<div className="mx-auto grid max-w-[1440px] gap-14 px-4 py-14 sm:px-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(420px,0.95fr)] lg:px-8 lg:py-20">
 					<div className="flex flex-col justify-center">
 						<div className="inline-flex w-fit items-center gap-2 border border-border/80 bg-card/70 px-3 py-1.5">
-							<span className="h-2 w-2 rounded-full bg-accent" />
+							<span className="h-2 w-2 rounded-full bg-accent animate-pulse" />
 							<span className="font-mono text-[11px] uppercase tracking-[0.18em] text-accent">
-								Public beta
+								Open source · 19 IDE targets
 							</span>
 						</div>
 
@@ -257,7 +205,7 @@ export default async function Home() {
 										<div
 											key={`${ide.id}-${index}`}
 											title={ide.label}
-											className="inline-flex h-11 min-w-11 items-center justify-center px-2 text-muted-foreground"
+											className="inline-flex h-12 min-w-11 items-center justify-center px-2 text-muted-foreground"
 										>
 											<span className="sr-only">{ide.label}</span>
 											{renderTargetIcon(ide.id)}

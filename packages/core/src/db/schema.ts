@@ -19,6 +19,8 @@ export const catalogItems = sqliteTable("catalog_items", {
 export const bundles = sqliteTable("bundles", {
   id: text("id").primaryKey(), // nanoid or similar for short URLs
   manifest: text("manifest", { mode: "json" }).notNull(), // Full Bundle manifest
+  userId: text("user_id"),
+  expiresAt: integer("expires_at", { mode: "timestamp" }),
   createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
 });
 

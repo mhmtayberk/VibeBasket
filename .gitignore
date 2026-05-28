@@ -4,3 +4,8 @@ dist/
 .pnpm-store/
 playwright-report/
 test-results/
+
+# SQLite database files (contains user data, never commit)
+*.db
+*.db-wal
+*.db-shm

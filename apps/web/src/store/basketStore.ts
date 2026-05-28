@@ -9,7 +9,6 @@ import { DEFAULT_TARGET_IDS, isSupportedTargetId } from "../lib/targets";
 
 export interface BasketItemTrust {
 	tier: "verified" | "official" | "community";
-	score: number;
 	label: string;
 	detail: string;
 	sourceLabel: string;
