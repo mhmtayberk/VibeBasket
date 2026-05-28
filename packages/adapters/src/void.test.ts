@@ -80,7 +80,7 @@ describe("VoidAdapter", () => {
     ];
 
     await adapter.applyRules(rules, "project", tempDir);
-    rules[0].content = "Updated second run rules.";
+    rules[0]!.content = "Updated second run rules.";
     await adapter.applyRules(rules, "project", tempDir);
 
     const voidRulesContent = await fs.readFile(path.join(tempDir, ".voidrules"), "utf8");

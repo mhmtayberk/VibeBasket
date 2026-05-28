@@ -58,4 +58,28 @@ describe("auth provider configuration", () => {
 
 		expect(providerIds).toEqual(["github", "google"]);
 	});
+
+	it("enables Microsoft Entra ID when configured", () => {
+		const env = {
+			NODE_ENV: "test",
+			AUTH_MICROSOFT_ENTRA_ID_ENABLED: "true",
+			AUTH_MICROSOFT_ENTRA_ID_ID: "ms-client-id",
+			AUTH_MICROSOFT_ENTRA_ID_SECRET: "ms-secret",
+		} as const;
+
+		expect(getEnabledAuthProviders(env)).toEqual([
+			{ id: "microsoft-entra-id", label: "Microsoft" },
+		]);
+	});
+
+	it("excludes Microsoft when secret is missing", () => {
+		const env = {
+			NODE_ENV: "test",
+			AUTH_MICROSOFT_ENTRA_ID_ENABLED: "true",
+			AUTH_MICROSOFT_ENTRA_ID_ID: "ms-client-id",
+			AUTH_MICROSOFT_ENTRA_ID_SECRET: "",
+		} as const;
+
+		expect(getEnabledAuthProviders(env)).toEqual([]);
+	});
 });

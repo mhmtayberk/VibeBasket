@@ -64,7 +64,7 @@ describe("GitHubCopilotAdapter", () => {
     await adapter.applySkills(skills, "project", tempDir);
 
     // Modify skill content and apply second time
-    skills[0].source = { type: "inline", content: "Always write perfect code." };
+    skills[0]!.source = { type: "inline", content: "Always write perfect code." };
     await adapter.applySkills(skills, "project", tempDir);
 
     const file = adapter.configPath("project", tempDir);

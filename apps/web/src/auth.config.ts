@@ -3,8 +3,13 @@ import type { Provider } from "next-auth/providers";
 import Apple from "next-auth/providers/apple";
 import GitHub from "next-auth/providers/github";
 import Google from "next-auth/providers/google";
+import MicrosoftEntraID from "next-auth/providers/microsoft-entra-id";
 
-export type AuthProviderId = "apple" | "github" | "google";
+export type AuthProviderId =
+	| "apple"
+	| "github"
+	| "google"
+	| "microsoft-entra-id";
 
 export type EnabledAuthProvider = {
 	id: AuthProviderId;
@@ -21,7 +26,10 @@ type ProviderEnvKey =
 	| "AUTH_GITHUB_SECRET"
 	| "AUTH_GOOGLE_ENABLED"
 	| "AUTH_GOOGLE_ID"
-	| "AUTH_GOOGLE_SECRET";
+	| "AUTH_GOOGLE_SECRET"
+	| "AUTH_MICROSOFT_ENTRA_ID_ENABLED"
+	| "AUTH_MICROSOFT_ENTRA_ID_ID"
+	| "AUTH_MICROSOFT_ENTRA_ID_SECRET";
 
 export type AuthProviderEnv = Partial<
 	Record<ProviderEnvKey | "AUTH_SECRET" | "NODE_ENV", string | undefined>
@@ -70,6 +78,20 @@ const PROVIDER_DEFINITIONS: readonly ProviderDefinition[] = [
 			Apple({
 				clientId: env.AUTH_APPLE_ID ?? "",
 				clientSecret: env.AUTH_APPLE_SECRET ?? "",
+			}),
+	},
+	{
+		id: "microsoft-entra-id",
+		label: "Microsoft",
+		enabledFlag: "AUTH_MICROSOFT_ENTRA_ID_ENABLED",
+		requiredEnv: [
+			"AUTH_MICROSOFT_ENTRA_ID_ID",
+			"AUTH_MICROSOFT_ENTRA_ID_SECRET",
+		],
+		create: (env) =>
+			MicrosoftEntraID({
+				clientId: env.AUTH_MICROSOFT_ENTRA_ID_ID ?? "",
+				clientSecret: env.AUTH_MICROSOFT_ENTRA_ID_SECRET ?? "",
 			}),
 	},
 ] as const;

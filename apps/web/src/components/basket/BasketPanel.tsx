@@ -25,6 +25,7 @@ interface BasketPanelProps {
 	onClose?: () => void;
 	isSignedIn?: boolean;
 	enabledProviders?: EnabledAuthProvider[];
+	userRole?: string;
 }
 
 export function BasketPanel({
@@ -33,6 +34,7 @@ export function BasketPanel({
 	onClose,
 	isSignedIn = false,
 	enabledProviders = [],
+	userRole,
 }: BasketPanelProps) {
 	const items = useBasketStore((s) => s.items);
 	const targets = useBasketStore((s) => s.targetIds);
@@ -328,30 +330,33 @@ export function BasketPanel({
 				</div>
 
 				<div className="space-y-3 border-t border-border/70 pt-5">
-					<div className="flex flex-wrap items-center gap-3">
-						{isSignedIn ? (
-							<SaveStackDialog
-								disabled={items.length === 0 || targets.length === 0}
-								items={items}
-								targetIds={targets}
-								onSaved={() => setSavedStacksVersion((current) => current + 1)}
-							/>
-						) : enabledProviders.length > 0 ? (
-							<SignInDialog
-								providers={enabledProviders}
-								callbackUrl="/stacks"
-							/>
-						) : null}
-						{!isSignedIn ? (
-							<p className="text-xs leading-6 text-muted-foreground">
-								Sign in to save reusable stacks to your profile.
-							</p>
-						) : null}
-					</div>
+					{userRole !== "admin" && (
+						<div className="flex flex-wrap items-center gap-3">
+							{isSignedIn ? (
+								<SaveStackDialog
+									disabled={items.length === 0 || targets.length === 0}
+									items={items}
+									targetIds={targets}
+									onSaved={() => setSavedStacksVersion((current) => current + 1)}
+								/>
+							) : enabledProviders.length > 0 ? (
+								<SignInDialog
+									providers={enabledProviders}
+									callbackUrl="/stacks"
+								/>
+							) : null}
+							{!isSignedIn ? (
+								<p className="text-xs leading-6 text-muted-foreground">
+									Sign in to save reusable stacks to your profile.
+								</p>
+							) : null}
+						</div>
+					)}
 
 					<SavedStacksPanel
 						enabled={isSignedIn}
 						refreshToken={savedStacksVersion}
+						userRole={userRole}
 					/>
 				</div>
 
