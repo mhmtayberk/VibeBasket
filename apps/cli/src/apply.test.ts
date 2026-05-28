@@ -54,6 +54,13 @@ vi.mock("@vibebasket/adapters", () => ({
 	ClineCliAdapter: UserOnlyAdapter,
 	ZedAdapter: FakeAdapter,
 	CodexAdapter: FakeAdapter,
+	ContinueAdapter: FakeAdapter,
+	RooCodeAdapter: FakeAdapter,
+	HermesAdapter: FakeAdapter,
+	OpenClawAdapter: FakeAdapter,
+	GitHubCopilotAdapter: FakeAdapter,
+	VoidAdapter: FakeAdapter,
+	AiderAdapter: FakeAdapter,
 }));
 
 describe("applyBundle", () => {

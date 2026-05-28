@@ -65,7 +65,7 @@ export class AiderAdapter implements IdeAdapter {
     const singleLineReadRegex = /^read:\s*['"]?([^'\n\r"]+)['"]?\s*$/m;
     const singleLineMatch = yamlContent.match(singleLineReadRegex);
 
-    if (singleLineMatch) {
+    if (singleLineMatch && singleLineMatch[1]) {
       const existingFile = singleLineMatch[1].trim();
       const newBlock = `read:\n  - ${existingFile}\n  - ${targetFile}`;
       return yamlContent.replace(singleLineReadRegex, newBlock);

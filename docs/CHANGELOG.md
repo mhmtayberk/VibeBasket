@@ -4,6 +4,65 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Multi-Cloud Backup Storage System with DB-Backed Config
+- **Six storage backends**: Local Filesystem, AWS S3, Cloudflare R2, DigitalOcean Spaces, Azure Blob Storage, Google Cloud Storage — all with a unified `StorageBackend` interface.
+- **R2 and Spaces piggyback on S3 backend**: S3-compatible protocol means one implementation covers three providers.
+- **AES-256-GCM encrypted credential storage**: API keys and secrets are encrypted with a key derived from `AUTH_SECRET` via `scryptSync` before storing in the SQLite `backup_storage_config` table. Never stored in plaintext.
+- **DB-first configuration**: `BACKUP_STORAGE_BACKEND` env var is still supported as fallback, but credentials stored in the DB take precedence. Changing backends no longer requires a server restart.
+- **Admin panel storage management UI**: Full-width card with a backend selector table (6 rows showing status, active indicator, Setup/Edit button). Credential forms dynamically show the correct fields per backend type (endpoint, bucket, access key, secret key for S3; connection string + container for Azure; bucket + project ID for GCS).
+- **Lazy-loaded cloud SDKs**: `@aws-sdk/client-s3`, `@azure/storage-blob`, and `@google-cloud/storage` are dynamically imported only when their backend is activated. The barrel `index.ts` avoids static re-exports that would trigger Next.js module resolution errors.
+- **Backup operations**: Create timestamped backups, list them, restore (with pre-restore safety backup), and delete — all through server actions with admin-only auth guards.
+- **25 unit + edge case + chaos tests**: Local backup create/list/delete, concurrent backups, missing files, zero-byte files, special characters, non-file entries, factory backend selection for all 6 backends, and graceful DB-not-available fallback.
+
+### Microsoft Entra ID (Azure AD) Auth Provider
+- **New OAuth provider**: Microsoft Entra ID added alongside GitHub, Google, and Apple. Uses `next-auth/providers/microsoft-entra-id` with `/common/` endpoint for personal + work/school accounts.
+- **Provider gating**: `AUTH_MICROSOFT_ENTRA_ID_ENABLED`, `AUTH_MICROSOFT_ENTRA_ID_ID`, `AUTH_MICROSOFT_ENTRA_ID_SECRET`. Included in `.env.example` and `provider-config.test.ts`.
+- **Total 4 providers now**: GitHub, Google, Apple, Microsoft — each independently gateable.
+
+### Admin Panel Redesign
+- **Consistent design system**: Replaced hardcoded `#050505`/`#a855f7` colors with project CSS variables (`--background`, `--accent`, `--foreground`). Removed `rounded-2xl`/`rounded-xl` in favor of global `--radius: 0.125rem` (2px sharp corners).
+- **Leaderboard table**: Converted div-list to proper `<table>` with `<thead>`/`<tbody>`/`<tr>`/`<td>` structure. Headers, alignment, and padding all consistent.
+- **Sync button**: Redesigned with proper hover/disabled states, spinner animation during sync.
+- **Backup card**: Full-width `md:col-span-3` with backend selector table, credential forms, backup operations, and status indicators.
+
+### Sync & Concurrent Operations Hardening
+- **Concurrency analysis**: Verified no data corruption risk during registry sync. Different tables (`catalog_items` vs `saved_stacks` vs `bundles`), SQLite WAL concurrent readers, transactional sync writes, single-flight guard.
+- **Server action robustness**: Dynamic import for `RegistrySyncService` (avoids Next.js bundle issues), null-safe summary fields, `instanceof Error` checks in catch blocks, try/catch on network errors in SyncButton.
+- **18 sync edge case tests**: Auth guards, error types (Error, TypeError, string, object, empty message), zero/max items, source errors, sequential calls, revalidatePath behavior.
+
+### Saved Stack & Profile Enhancements
+- **Interactive Stack Editing**: Replaced the primitive `window.prompt` rename dialog with a fully featured, custom `EditStackDialog` modal. Normal users can now edit stack name and description, add/remove components directly (synced dynamically with their active basket), and toggle target IDEs in a geometric grid. Expanded screen utilization to `max-w-7xl` / `w-[95vw]` to deliver a spacious two-column layout (Components on the left, Target IDEs on the right) with strict **English-only** arayüz copy.
+- **Admin Layout and Navigation Hiding**: Admin users are no longer shown a saved stacks list or the `Save Stack` panel triggers, preventing all administrative footprinting. In its place, we introduced a premium systems widget with a direct redirection action link to the `/admin` console. Dynamically hid the `My Stacks` navigation link from the `AuthMenu` header for administrators, displaying exclusively the `Admin Panel` action button.
+- **Mock Admin Session Insertion**: Safe database fixtures were populated in the local SQLite db, restoring the ability to log in as an administrator using the `mock-admin-token-12345` token.
+
+### IDE Targets & Automation Upgrades
+- **Integrated Aider, Void, and GitHub Copilot Targets**: Added native adapter integrations for these highly popular coding tools:
+  - **GitHub Copilot**: Supports project-scoped rules and skills inside `.github/copilot-instructions.md` using high-fidelity delimiters.
+  - **Void Editor**: Supports global/project mcp config merging in `mcp_servers.json` and rules/skills inside both `.voidrules` and `.clinerules`.
+  - **Aider**: Supports zero-dependency idempotent `.aider.conf.yml` YAML config mutations (injecting the `read` flag) and rules/skills inside `.aiderinstructions.md`.
+- **CLI Auto-Apply for Skills & Rules**: Reworked the CLI execution pipeline (`apply.ts`, `rollback.ts`) to automatically apply and compile rules and skills right after base config writes, delivering 100% feature-complete automation.
+- **Ecosystem Watchlist Sync**: Registered and documented all 19 supported targets inside `apps/web/src/lib/targets.ts` and the `/docs` adapters layout tab.
+
+### Security & Hardening
+- **Secure Health Check Endpoint**: Implemented a live `/api/health` API route that queries the database via a lightweight Drizzle select (`db.select().from(users).limit(1)`) to verify real system connectivity. Mitigated Denial of Service (DoS) and request flooding risks via an in-memory database status cache with 5s TTL, and enforced strict HTTP no-cache headers. Injected process uptime tracking in seconds (`uptime` field).
+
+- **Information Disclosure Mitigation in Sitemap**: Added `/docs` route to the intelligent `sitemap.ts` generator, and verified that no private user-scoped bundle pages (`/bundle/[id]`) or administrative routes (`/admin`) are exposed to search engine bots, keeping user data confidential.
+- **XSS & LFI/RFI Defenses**: Secured the `/docs` routing context against Local/Remote File Inclusion (LFI/RFI) by strictly validating the tab query parameter against a secure whitelist of allowed tabs. Shielded search inputs from ReDoS and Cross-Site Scripting (XSS) by enforcing a 100-character constraint on the query parameter.
+
+### Self-Hosting & Docker Integration
+- **Multi-stage Production Dockerfile**: Created a lean multi-stage `Dockerfile` based on Node.js 22 Alpine, optimizing image size via Next.js standalone build output, running as a non-root user, and supporting SQLite database persistence via Docker volume mounts.
+- **Docker Compose Setup**: Designed a production-ready `docker-compose.yml` configuration with custom named volume persistence, automated container health checks utilizing the `/api/health` endpoint, and comprehensive inline environment documentation.
+- **Structured .env.example**: Produced a clean, secure `.env.example` template covering all key parameters (Next-Auth secrets, OAuth credentials, trust proxies), tracked it under Git, and updated the `.dockerignore` to block accidental secret leaks.
+
+### Documentation & UI Improvements
+- **Expanded Search Scope**: Enriched keywords mapping was added to all guides inside the `/docs` hub, allowing users to successfully search long-tail terms like "Docker", "compose", "volume", "security", "credentials" and locate relevant architectural articles instantly.
+- **GitHub OAuth Redirect Spec**: Expanded the self-hosting documentation inside `/docs?tab=self-hosting` with a dedicated callout explaining how to correctly declare the GitHub OAuth application callback URL (`${NEXTAUTH_URL}/api/auth/callback/github`) in developer environments.
+
+### Saved Stack & Profile Enhancements
+- **Interactive Stack Editing**: Replaced the primitive `window.prompt` rename dialog with a fully featured, custom `EditStackDialog` modal. Normal users can now edit stack name and description, add/remove components directly (synced dynamically with their active basket), and toggle target IDEs in a geometric grid. Expanded screen utilization to `max-w-7xl` / `w-[95vw]` to deliver a spacious two-column layout (Components on the left, Target IDEs on the right) with strict **English-only** arayüz copy.
+- **Admin Layout and Navigation Hiding**: Admin users are no longer shown a saved stacks list or the `Save Stack` panel triggers, preventing all administrative footprinting. In its place, we introduced a premium systems widget with a direct redirection action link to the `/admin` console. Dynamically hid the `My Stacks` navigation link from the `AuthMenu` header for administrators, displaying exclusively the `Admin Panel` action button.
+- **Mock Admin Session Insertion**: Safe database fixtures were populated in the local SQLite db, restoring the ability to log in as an administrator using the `mock-admin-token-12345` token.
+
 ### IDE Targets & Automation Upgrades
 - **Integrated Aider, Void, and GitHub Copilot Targets**: Added native adapter integrations for these highly popular coding tools:
   - **GitHub Copilot**: Supports project-scoped rules and skills inside `.github/copilot-instructions.md` using high-fidelity delimiters.

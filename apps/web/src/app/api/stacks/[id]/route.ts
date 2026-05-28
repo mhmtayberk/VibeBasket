@@ -1,16 +1,20 @@
 import {
 	db,
+	catalogItems,
 	savedStackItems,
 	savedStacks,
 	savedStackTargets,
 } from "@vibebasket/core";
-import { and, asc, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, inArray } from "drizzle-orm";
+import { nanoid } from "nanoid";
 import { type NextRequest, NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { requireCurrentUserId, SessionRequiredError } from "@/lib/session";
 import {
 	unauthorizedResponse,
 	updateStackSchema,
+	normalizeStackItemIds,
+	normalizeStackTargetIds,
 } from "../../../../lib/stacks";
 
 export async function GET(
@@ -130,31 +134,130 @@ export async function PATCH(
 		}
 
 		const updatedAt = new Date();
-		await db
-			.update(savedStacks)
-			.set({
-				...(payload.name !== undefined ? { name: payload.name } : {}),
-				...(payload.description !== undefined
-					? { description: payload.description }
-					: {}),
-				updatedAt,
-			})
-			.where(and(eq(savedStacks.id, id), eq(savedStacks.userId, userId)));
+		let itemIds: string[] | undefined;
+		let targetIds: string[] | undefined;
+		let catalogSelection: any[] = [];
 
-		const updatedStack = await db
-			.select({
-				id: savedStacks.id,
-				name: savedStacks.name,
-				description: savedStacks.description,
-				createdAt: savedStacks.createdAt,
-				updatedAt: savedStacks.updatedAt,
-			})
-			.from(savedStacks)
-			.where(and(eq(savedStacks.id, id), eq(savedStacks.userId, userId)))
-			.orderBy(desc(savedStacks.updatedAt))
-			.limit(1);
+		if (payload.itemIds) {
+			itemIds = normalizeStackItemIds(payload.itemIds);
+			catalogSelection = await db
+				.select({
+					id: catalogItems.id,
+					type: catalogItems.type,
+					displayName: catalogItems.displayName,
+					description: catalogItems.description,
+				})
+				.from(catalogItems)
+				.where(inArray(catalogItems.id, itemIds));
 
-		return NextResponse.json(updatedStack[0]);
+			const selectedIds = new Set(catalogSelection.map((item) => item.id));
+			const missingItemIds = itemIds.filter((itemId) => !selectedIds.has(itemId));
+
+			if (missingItemIds.length > 0) {
+				return NextResponse.json(
+					{ error: `Catalog items not found: ${missingItemIds.join(", ")}` },
+					{ status: 400 },
+				);
+			}
+		}
+
+		if (payload.targetIds) {
+			targetIds = normalizeStackTargetIds(payload.targetIds);
+		}
+
+		await db.transaction(async (tx) => {
+			await tx
+				.update(savedStacks)
+				.set({
+					...(payload.name !== undefined ? { name: payload.name } : {}),
+					...(payload.description !== undefined
+						? { description: payload.description }
+						: {}),
+					updatedAt,
+				})
+				.where(and(eq(savedStacks.id, id), eq(savedStacks.userId, userId)));
+
+			if (itemIds) {
+				await tx.delete(savedStackItems).where(eq(savedStackItems.stackId, id));
+				const catalogSelectionById = new Map(
+					catalogSelection.map((item) => [item.id, item] as const),
+				);
+
+				await tx.insert(savedStackItems).values(
+					itemIds.map((itemId, index) => {
+						const item = catalogSelectionById.get(itemId);
+						if (!item) {
+							throw new Error(
+								`Catalog item missing during stack persistence: ${itemId}`,
+							);
+						}
+						return {
+							id: nanoid(14),
+							stackId: id,
+							catalogItemId: item.id,
+							catalogItemType: item.type,
+							snapshotDisplayName: item.displayName,
+							snapshotDescription: item.description,
+							position: index,
+							createdAt: updatedAt,
+						};
+					}),
+				);
+			}
+
+			if (targetIds) {
+				await tx.delete(savedStackTargets).where(eq(savedStackTargets.stackId, id));
+				await tx.insert(savedStackTargets).values(
+					targetIds.map((targetId, index) => ({
+						id: nanoid(14),
+						stackId: id,
+						targetId,
+						position: index,
+					})),
+				);
+			}
+		});
+
+		const [updatedStack, updatedItems, updatedTargets] = await Promise.all([
+			db
+				.select({
+					id: savedStacks.id,
+					name: savedStacks.name,
+					description: savedStacks.description,
+					createdAt: savedStacks.createdAt,
+					updatedAt: savedStacks.updatedAt,
+				})
+				.from(savedStacks)
+				.where(and(eq(savedStacks.id, id), eq(savedStacks.userId, userId)))
+				.limit(1),
+			db
+				.select({
+					id: savedStackItems.id,
+					catalogItemId: savedStackItems.catalogItemId,
+					catalogItemType: savedStackItems.catalogItemType,
+					snapshotDisplayName: savedStackItems.snapshotDisplayName,
+					snapshotDescription: savedStackItems.snapshotDescription,
+					position: savedStackItems.position,
+					createdAt: savedStackItems.createdAt,
+				})
+				.from(savedStackItems)
+				.where(eq(savedStackItems.stackId, id))
+				.orderBy(asc(savedStackItems.position)),
+			db
+				.select({
+					targetId: savedStackTargets.targetId,
+				})
+				.from(savedStackTargets)
+				.where(eq(savedStackTargets.stackId, id))
+				.orderBy(asc(savedStackTargets.position)),
+		]);
+
+		return NextResponse.json({
+			...updatedStack[0],
+			itemCount: updatedItems.length,
+			items: updatedItems,
+			targetIds: updatedTargets.map((t) => t.targetId),
+		});
 	} catch (error) {
 		if (error instanceof SessionRequiredError) {
 			return unauthorizedResponse();

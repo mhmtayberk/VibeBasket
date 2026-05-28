@@ -1,11 +1,13 @@
 "use client";
 
-import { ExternalLink, Loader2, Pencil, RefreshCw, Trash2 } from "lucide-react";
+import { ExternalLink, Loader2, Pencil, RefreshCw, Trash2, Copy, ShieldCheck, ArrowRight, TerminalSquare } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { TARGET_OPTIONS } from "@/lib/targets";
 import { cn } from "@/lib/utils";
 import { type BasketItem, useBasketStore } from "@/store/basketStore";
+import Link from "next/link";
+import { EditStackDialog } from "./EditStackDialog";
 
 type SavedStackSummary = {
 	id: string;
@@ -24,18 +26,25 @@ type SavedStacksPanelProps = {
 	enabled: boolean;
 	className?: string;
 	refreshToken?: number;
+	userRole?: string;
 };
 
 export function SavedStacksPanel({
 	enabled,
 	className,
 	refreshToken = 0,
+	userRole,
 }: SavedStacksPanelProps) {
 	const loadStack = useBasketStore((state) => state.loadStack);
+	const basketItems = useBasketStore((state) => state.items);
+	const basketTargets = useBasketStore((state) => state.targetIds);
+
 	const [stacks, setStacks] = useState<SavedStackSummary[]>([]);
 	const [loading, setLoading] = useState(false);
 	const [deletingId, setDeletingId] = useState<string | null>(null);
-	const [renamingId, setRenamingId] = useState<string | null>(null);
+	const [updatingContentId, setUpdatingContentId] = useState<string | null>(null);
+	const [editingStack, setEditingStack] = useState<SavedStackSummary | null>(null);
+	const [isEditOpen, setIsEditOpen] = useState(false);
 
 	const targetLabelMap = useMemo(
 		() =>
@@ -46,7 +55,7 @@ export function SavedStacksPanel({
 	);
 
 	const refreshStacks = useCallback(async () => {
-		if (!enabled) {
+		if (!enabled || userRole === "admin") {
 			setStacks([]);
 			return;
 		}
@@ -67,7 +76,7 @@ export function SavedStacksPanel({
 		} finally {
 			setLoading(false);
 		}
-	}, [enabled]);
+	}, [enabled, userRole]);
 
 	useEffect(() => {
 		void refreshStacks();
@@ -94,6 +103,10 @@ export function SavedStacksPanel({
 	};
 
 	const handleDelete = async (stackId: string) => {
+		if (!window.confirm("Bu kaydedilmiş stack'i silmek istediğinizden emin misiniz?")) {
+			return;
+		}
+
 		setDeletingId(stackId);
 		try {
 			const response = await fetch(`/api/stacks/${stackId}`, {
@@ -114,42 +127,98 @@ export function SavedStacksPanel({
 			setDeletingId(null);
 		}
 	};
+	const handleEdit = (stack: SavedStackSummary) => {
+		setEditingStack(stack);
+		setIsEditOpen(true);
+	};
 
-	const handleRename = async (stack: SavedStackSummary) => {
-		const nextName = window.prompt("Rename stack", stack.name)?.trim();
-		if (!nextName || nextName === stack.name) {
+	const handleUpdateContent = async (stack: SavedStackSummary) => {
+		if (basketItems.length === 0 || basketTargets.length === 0) {
+			toast.error("Your basket is empty. Add at least one item and one IDE to update this stack.");
 			return;
 		}
 
-		setRenamingId(stack.id);
+		if (!window.confirm(`Are you sure you want to overwrite '${stack.name}' content with your current basket items and targets?`)) {
+			return;
+		}
+
+		setUpdatingContentId(stack.id);
 		try {
 			const response = await fetch(`/api/stacks/${stack.id}`, {
 				method: "PATCH",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ name: nextName }),
+				body: JSON.stringify({
+					itemIds: basketItems.map((item) => item.id),
+					targetIds: basketTargets,
+				}),
 			});
 			const payload = await response.json();
 			if (!response.ok) {
-				throw new Error(payload.error ?? "Failed to rename stack.");
+				throw new Error(payload.error ?? "Failed to update stack content.");
 			}
 
 			setStacks((current) =>
 				current.map((entry) =>
-					entry.id === stack.id ? { ...entry, name: payload.name } : entry,
+					entry.id === stack.id
+						? {
+								...entry,
+								itemCount: payload.itemCount,
+								items: payload.items,
+								targetIds: payload.targetIds,
+							}
+						: entry,
 				),
 			);
-			toast.success("Saved stack renamed.");
+			toast.success("Stack content successfully updated with current basket!");
 		} catch (error) {
 			toast.error(
-				error instanceof Error ? error.message : "Failed to rename stack.",
+				error instanceof Error ? error.message : "Failed to update stack content.",
 			);
 		} finally {
-			setRenamingId(null);
+			setUpdatingContentId(null);
+		}
+	};
+
+	const handleCopyNpx = async (stackId: string) => {
+		try {
+			const command = `npx vibebasket apply ${window.location.origin}/api/stacks/${stackId}`;
+			await navigator.clipboard.writeText(command);
+			toast.success("NPX apply command copied to clipboard!");
+		} catch {
+			toast.error("Failed to copy command to clipboard.");
 		}
 	};
 
 	if (!enabled) {
 		return null;
+	}
+
+	if (enabled && userRole === "admin") {
+		return (
+			<div className={cn("space-y-4 border-t border-border/70 pt-5", className)}>
+				<p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+					Admin Console
+				</p>
+				<div className="border border-border/60 bg-background/25 p-5 text-center rounded-[2px]">
+					<div className="flex justify-center mb-3">
+						<ShieldCheck className="h-8 w-8 text-accent animate-pulse" />
+					</div>
+					<h3 className="text-sm font-semibold text-foreground mb-1">
+						Administrator Account
+					</h3>
+					<p className="text-xs text-muted-foreground leading-5 mb-5 max-w-xs mx-auto">
+						Saved stacks are disabled for administrator sessions to prioritize systems security.
+					</p>
+					<Link
+						href="/admin"
+						className="inline-flex w-full items-center justify-center gap-2 border border-accent/40 hover:border-accent bg-accent/5 hover:bg-accent/15 px-3 py-2.5 font-mono text-[10px] uppercase tracking-widest text-accent transition-all duration-300 rounded-[2px]"
+					>
+						Go to Admin Panel
+						<ArrowRight className="h-3.5 w-3.5" />
+					</Link>
+				</div>
+			</div>
+		);
 	}
 
 	return (
@@ -199,16 +268,11 @@ export function SavedStacksPanel({
 								<div className="flex items-center gap-1">
 									<button
 										type="button"
-										onClick={() => void handleRename(stack)}
-										disabled={renamingId === stack.id}
+										onClick={() => handleEdit(stack)}
 										className="inline-flex h-8 w-8 items-center justify-center text-muted-foreground transition-colors hover:text-foreground disabled:opacity-40"
-										aria-label={`Rename ${stack.name}`}
+										aria-label={`Edit ${stack.name}`}
 									>
-										{renamingId === stack.id ? (
-											<Loader2 className="h-4 w-4 animate-spin" />
-										) : (
-											<Pencil className="h-4 w-4" />
-										)}
+										<Pencil className="h-4 w-4" />
 									</button>
 									<button
 										type="button"
@@ -260,10 +324,49 @@ export function SavedStacksPanel({
 									Load
 								</button>
 							</div>
+
+							{/* Actions: NPX Copy and Update content */}
+							<div className="mt-3 pt-3 border-t border-border/40 flex items-center justify-between gap-3">
+								<button
+									type="button"
+									onClick={() => void handleUpdateContent(stack)}
+									disabled={updatingContentId === stack.id || basketItems.length === 0}
+									className="inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:text-accent disabled:opacity-40"
+								>
+									{updatingContentId === stack.id ? (
+										<Loader2 className="h-3.5 w-3.5 animate-spin" />
+									) : (
+										<RefreshCw className="h-3.5 w-3.5" />
+									)}
+									Update Content
+								</button>
+
+								<button
+									type="button"
+									onClick={() => void handleCopyNpx(stack.id)}
+									className="inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-[0.14em] text-accent hover:text-[#a0fdda] transition-colors"
+								>
+									<TerminalSquare className="h-3.5 w-3.5" />
+									Copy NPX
+								</button>
+							</div>
 						</div>
 					))}
 				</div>
 			)}
+
+			<EditStackDialog
+				stack={editingStack}
+				open={isEditOpen}
+				onOpenChange={setIsEditOpen}
+				onSaved={(updatedStack) => {
+					setStacks((current) =>
+						current.map((entry) =>
+							entry.id === updatedStack.id ? updatedStack : entry,
+						),
+					);
+				}}
+			/>
 		</div>
 	);
 }
