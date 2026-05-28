@@ -9,11 +9,13 @@ import { BasketPanel } from "./BasketPanel";
 type FloatingBasketProps = {
 	isSignedIn?: boolean;
 	enabledProviders?: EnabledAuthProvider[];
+	userRole?: string;
 };
 
 export function FloatingBasket({
 	isSignedIn = false,
 	enabledProviders = [],
+	userRole,
 }: FloatingBasketProps) {
 	const items = useBasketStore((s) => s.items);
 	const [isOpen, setIsOpen] = useState(false);
@@ -64,6 +66,7 @@ export function FloatingBasket({
 							onClose={() => setIsOpen(false)}
 							isSignedIn={isSignedIn}
 							enabledProviders={enabledProviders}
+							userRole={userRole}
 						/>
 					</div>
 				</div>

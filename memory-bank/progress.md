@@ -67,9 +67,38 @@
 - [x] Refreshed all `docs/` files: CHANGELOG promoted to versioned `[0.8.0]` entry, ARCHITECTURE updated with new adapters + semver dedup section, PROJECT_OVERVIEW expanded with docs hub and correct target model, CODING_STANDARDS gained rules 10 & 11.
 - [x] Updated `memory-bank/activeContext.md` and `memory-bank/progress.md` to reflect current state.
 
+- [x] Multi-stage Production Dockerfile based on Node.js 22 Alpine using standalone build outputs.
+- [x] Production docker-compose.yml configuration with persistence, health checks, and full inline documentation.
+- [x] Fully-implemented secure `/api/health` endpoint with lightweight Drizzle connection checks, 5s in-memory caching to guard against database flooding/DoS, and dynamic process uptime tracking.
+- [x] Sitemap.xml generation including `/docs` with strict Information Disclosure safeguards blocking exposure of private bundles.
+- [x] Secured documentation hub with 100-character input restrictions (XSS/ReDoS protection) and a strict whitelist validation for tab routes (LFI/RFI protection).
+- [x] Broadened arama kapsamı by enriching keywords for all guides inside the `/docs` page, making search queries like "Docker" instantly find relevant guides.
+- [x] Added dedicated GitHub OAuth Application Callback URL configuration instructions inside the self-hosting tab of the docs hub.
+- [x] Enforced Git tracking for `.env.example` template with all keys fully documented.
+- [x] Completed full TypeScript check (`tsc --noEmit`) and dynamic production verification with zero errors.
+- [x] Completed monorepo-wide security audit and functionality sweep across all components (Landing Page, Catalog, Auth, Admin, CLI, APIs).
+- [x] Resolved TypeScript errors in Aider, Void, and GitHub Copilot adapters and test mocks. Verified 148/148 Vitest tests are green.
+- [x] Hardened Zod schemas in `manifest.ts` with strict regex validation to eliminate CLI Path Traversal and Arbitrary File Write vulnerabilities.
+- [x] Implemented "Copy NPX" command kopyalama aracı, "Update Content" (sepet içeriğini stack'e atomik yazan) PATCH API transaction'ı ve silme onayı (window.confirm).
+- [x] Secured admin layout inside basket panel by disabling saved stacks lists for administrators and embedding a direct Admin Panel redirection card.
+
 ## In Progress
-- Running a catalog sync to prune stale duplicate MCP rows from the live SQLite database.
-- Broadening automated browser E2E coverage for secure admin and saved stacks flows.
+- CLI tarafında `list` ve `prune` komutlarının implementasyonu.
+- Playwright E2E testlerine rate limit ve storage management akışlarının entegrasyonu.
+
+## Completed (Latest Batch — May 28, 2026)
+- [x] Microsoft Entra ID (Azure AD) OAuth provider added (4th provider: GitHub, Google, Apple, Microsoft)
+- [x] Multi-cloud backup storage system with 6 backends: Local, S3, R2, Spaces, Azure, GCS
+- [x] AES-256-GCM encrypted credential storage in SQLite `backup_storage_config` table
+- [x] DB-first configuration with env and local fallback (no restart needed to switch backends)
+- [x] Lazy-loaded cloud SDKs to avoid Next.js build-time module resolution errors
+- [x] Admin panel storage management UI: backend selector table, credential forms, backup operations
+- [x] Admin panel full redesign: design-token-consistent colors, sharp corners, proper tables
+- [x] `triggerSyncAction` hardened: dynamic import for registry, null-safe, error-type-aware catch
+- [x] 18 sync edge case tests + 25 storage unit/chaos tests (93 total passing)
+- [x] `.env.example` updated with all 4 providers + backup storage vars
+- [x] TypeScript strict mode: zero errors. All Vitest tests green. Browser verification: zero console errors.
 
 ## Blockers
 - None.
+

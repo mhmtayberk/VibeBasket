@@ -46,7 +46,7 @@ export const McpEntrySchema = z.object({
 export type McpEntry = z.infer<typeof McpEntrySchema>;
 
 export const SkillEntrySchema = z.object({
-  id: z.string(),
+  id: z.string().regex(/^[a-z0-9-]+$/),
   displayName: z.string(),
   source: z.discriminatedUnion("type", [
     z.object({
@@ -70,7 +70,7 @@ export const SkillEntrySchema = z.object({
 export type SkillEntry = z.infer<typeof SkillEntrySchema>;
 
 export const RuleEntrySchema = z.object({
-  id: z.string(),
+  id: z.string().regex(/^[a-z0-9-]+$/),
   displayName: z.string(),
   content: z.string(), // markdown body
   verified: z.boolean().default(false),
@@ -78,14 +78,14 @@ export const RuleEntrySchema = z.object({
 export type RuleEntry = z.infer<typeof RuleEntrySchema>;
 
 export const FileEntrySchema = z.object({
-  path: z.string(), // relative to project root or ${WORKSPACE}
+  path: z.string().regex(/^(?!\/|\\|\.\.)[a-zA-Z0-9_/.-]+$/), // relative only, no LFI/path traversal
   content: z.string(),
   ifExists: z.enum(["skip", "overwrite", "merge"]).default("skip"),
 });
 export type FileEntry = z.infer<typeof FileEntrySchema>;
 
 export const WorkflowPackEntrySchema = z.object({
-  id: z.string(), // e.g. "cline-memory-bank"
+  id: z.string().regex(/^[a-z0-9-]+$/), // e.g. "cline-memory-bank"
   displayName: z.string(),
   files: z.array(FileEntrySchema).default([]),
   rules: z.array(RuleEntrySchema).default([]),
