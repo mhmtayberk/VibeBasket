@@ -21,6 +21,11 @@ export interface StorageConfig {
 		bucket: string;
 		projectId: string;
 	};
+	schedule?: {
+		enabled: boolean;
+		intervalHours: number;
+		lastScheduledAt?: string;
+	};
 }
 
 export async function loadStorageConfig(): Promise<StorageConfig | null> {
@@ -92,8 +97,45 @@ export async function resolveBackendId(): Promise<StorageBackendId> {
 	return "local";
 }
 
-export async function getActiveBackendLabel(): Promise<string> {
-	const id = await resolveBackendId();
-	const option = STORAGE_BACKEND_OPTIONS.find((o) => o.id === id);
-	return option?.label ?? "Local Filesystem";
+export async function loadScheduleConfig(): Promise<{
+	enabled: boolean;
+	intervalHours: number;
+	lastScheduledAt: string | null;
+} | null> {
+	const config = await loadStorageConfig();
+	return config?.schedule
+		? {
+				enabled: config.schedule.enabled,
+				intervalHours: config.schedule.intervalHours || 24,
+				lastScheduledAt: config.schedule.lastScheduledAt ?? null,
+			}
+		: null;
+}
+
+export async function isScheduleDue(): Promise<boolean> {
+	const schedule = await loadScheduleConfig();
+	if (!schedule?.enabled || !schedule.intervalHours) return false;
+
+	const lastAt = schedule.lastScheduledAt
+		? new Date(schedule.lastScheduledAt).getTime()
+		: 0;
+	const intervalMs = schedule.intervalHours * 60 * 60 * 1000;
+
+	return Date.now() - lastAt >= intervalMs;
+}
+
+export async function markScheduleComplete(): Promise<void> {
+	const config = await loadStorageConfig();
+	if (!config) return;
+
+	await saveStorageConfig(config.backend, {
+		s3: config.s3,
+		azure: config.azure,
+		gcs: config.gcs,
+		schedule: {
+			enabled: config.schedule?.enabled ?? false,
+			intervalHours: config.schedule?.intervalHours ?? 24,
+			lastScheduledAt: new Date().toISOString(),
+		},
+	});
 }

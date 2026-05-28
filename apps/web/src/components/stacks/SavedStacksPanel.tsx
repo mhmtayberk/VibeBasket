@@ -1,6 +1,6 @@
 "use client";
 
-import { ExternalLink, Loader2, Pencil, RefreshCw, Trash2, Copy, ShieldCheck, ArrowRight, TerminalSquare } from "lucide-react";
+import { ExternalLink, Loader2, Pencil, RefreshCw, Trash2, ShieldCheck, ArrowRight, TerminalSquare } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { TARGET_OPTIONS } from "@/lib/targets";
@@ -45,6 +45,8 @@ export function SavedStacksPanel({
 	const [updatingContentId, setUpdatingContentId] = useState<string | null>(null);
 	const [editingStack, setEditingStack] = useState<SavedStackSummary | null>(null);
 	const [isEditOpen, setIsEditOpen] = useState(false);
+	const [page, setPage] = useState(1);
+	const [totalPages, setTotalPages] = useState(1);
 
 	const targetLabelMap = useMemo(
 		() =>
@@ -54,7 +56,7 @@ export function SavedStacksPanel({
 		[],
 	);
 
-	const refreshStacks = useCallback(async () => {
+	const refreshStacks = useCallback(async (targetPage = 1) => {
 		if (!enabled || userRole === "admin") {
 			setStacks([]);
 			return;
@@ -62,13 +64,15 @@ export function SavedStacksPanel({
 
 		setLoading(true);
 		try {
-			const response = await fetch("/api/stacks", { cache: "no-store" });
+			const response = await fetch(`/api/stacks?page=${targetPage}&limit=20`, { cache: "no-store" });
 			const payload = await response.json();
 			if (!response.ok) {
 				throw new Error(payload.error ?? "Failed to load saved stacks.");
 			}
 
-			setStacks(payload.stacks);
+			setStacks(payload.stacks.map((s: SavedStackSummary) => ({ ...s, items: s.items ?? [] })));
+			setTotalPages(payload.pagination?.totalPages ?? 1);
+			setPage(targetPage);
 		} catch (error) {
 			toast.error(
 				error instanceof Error ? error.message : "Failed to load saved stacks.",
@@ -88,8 +92,21 @@ export function SavedStacksPanel({
 		}
 	}, [refreshStacks, refreshToken]);
 
-	const handleLoad = (stack: SavedStackSummary) => {
-		const restoredItems: BasketItem[] = stack.items.map((item, index) => ({
+	const handleLoad = async (stack: SavedStackSummary) => {
+		let items = stack.items;
+		if (items.length === 0) {
+			try {
+				const res = await fetch(`/api/stacks/${stack.id}`);
+				const data = await res.json();
+				items = data.items;
+			} catch {
+				toast.error("Failed to load stack items.");
+				return;
+			}
+		}
+		if (!items || items.length === 0) return;
+
+		const restoredItems: BasketItem[] = items.map((item, index) => ({
 			id:
 				item.catalogItemId ||
 				`${stack.id}:${index}:${item.snapshotDisplayName}`,
@@ -103,7 +120,7 @@ export function SavedStacksPanel({
 	};
 
 	const handleDelete = async (stackId: string) => {
-		if (!window.confirm("Bu kaydedilmiş stack'i silmek istediğinizden emin misiniz?")) {
+		if (!window.confirm("Are you sure you want to delete this saved stack?")) {
 			return;
 		}
 
@@ -127,8 +144,19 @@ export function SavedStacksPanel({
 			setDeletingId(null);
 		}
 	};
-	const handleEdit = (stack: SavedStackSummary) => {
-		setEditingStack(stack);
+	const handleEdit = async (stack: SavedStackSummary) => {
+		let fullStack = stack;
+		if (stack.items.length === 0) {
+			try {
+				const res = await fetch(`/api/stacks/${stack.id}`);
+				const data = await res.json();
+				fullStack = { ...stack, items: data.items, targetIds: data.targetIds };
+			} catch {
+				toast.error("Failed to load stack details.");
+				return;
+			}
+		}
+		setEditingStack(fullStack);
 		setIsEditOpen(true);
 	};
 
@@ -182,7 +210,9 @@ export function SavedStacksPanel({
 	const handleCopyNpx = async (stackId: string) => {
 		try {
 			const command = `npx vibebasket apply ${window.location.origin}/api/stacks/${stackId}`;
-			await navigator.clipboard.writeText(command);
+			if (navigator.clipboard?.writeText) {
+				await navigator.clipboard.writeText(command);
+			}
 			toast.success("NPX apply command copied to clipboard!");
 		} catch {
 			toast.error("Failed to copy command to clipboard.");
@@ -224,135 +254,68 @@ export function SavedStacksPanel({
 	return (
 		<div className={cn("space-y-3 border-t border-border/70 pt-5", className)}>
 			<div className="flex items-center justify-between">
-				<p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-					Saved stacks
-				</p>
-				<button
-					type="button"
-					onClick={() => void refreshStacks()}
-					className="inline-flex items-center gap-2 text-xs text-muted-foreground transition-colors hover:text-foreground"
-				>
-					<RefreshCw className={cn("h-3.5 w-3.5", loading && "animate-spin")} />
-					Refresh
+				<p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Saved stacks</p>
+				<button type="button" onClick={() => void refreshStacks(page)} className="inline-flex items-center gap-2 text-xs text-muted-foreground transition-colors hover:text-foreground">
+					<RefreshCw className={cn("h-3.5 w-3.5", loading && "animate-spin")} />Refresh
 				</button>
 			</div>
 
 			{loading && stacks.length === 0 ? (
 				<div className="flex items-center gap-2 border border-border/60 bg-background/30 px-3 py-3 text-sm text-muted-foreground">
-					<Loader2 className="h-4 w-4 animate-spin" />
-					Loading saved stacks...
+					<Loader2 className="h-4 w-4 animate-spin" />Loading saved stacks...
 				</div>
 			) : stacks.length === 0 ? (
 				<div className="border border-dashed border-border/60 bg-background/25 px-4 py-5 text-sm text-muted-foreground">
 					Your saved stacks will appear here after you save one.
 				</div>
 			) : (
-				<div className="space-y-2">
-					{stacks.map((stack) => (
-						<div
-							key={stack.id}
-							className="border border-border/60 bg-background/25 p-3"
-						>
-							<div className="flex items-start justify-between gap-3">
-								<div className="min-w-0">
-									<p className="truncate text-sm font-medium text-foreground">
-										{stack.name}
-									</p>
-									{stack.description ? (
-										<p className="mt-1 text-xs leading-5 text-muted-foreground">
-											{stack.description}
-										</p>
-									) : null}
+				<>
+					<div className="space-y-2">
+						{stacks.map((stack) => (
+							<div key={stack.id} className="border border-border/60 bg-background/25 p-3">
+								<div className="flex items-start justify-between gap-3">
+									<div className="min-w-0">
+										<p className="truncate text-sm font-medium text-foreground">{stack.name}</p>
+										{stack.description ? <p className="mt-1 text-xs leading-5 text-muted-foreground">{stack.description}</p> : null}
+									</div>
+									<div className="flex items-center gap-1">
+										<button type="button" onClick={() => handleEdit(stack)} className="inline-flex h-8 w-8 items-center justify-center text-muted-foreground transition-colors hover:text-foreground disabled:opacity-40" aria-label={`Edit ${stack.name}`}><Pencil className="h-4 w-4" /></button>
+										<button type="button" onClick={() => void handleDelete(stack.id)} disabled={deletingId === stack.id} className="inline-flex h-8 w-8 items-center justify-center text-muted-foreground transition-colors hover:text-destructive disabled:opacity-40" aria-label={`Delete ${stack.name}`}>
+											{deletingId === stack.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+										</button>
+									</div>
 								</div>
-
-								<div className="flex items-center gap-1">
-									<button
-										type="button"
-										onClick={() => handleEdit(stack)}
-										className="inline-flex h-8 w-8 items-center justify-center text-muted-foreground transition-colors hover:text-foreground disabled:opacity-40"
-										aria-label={`Edit ${stack.name}`}
-									>
-										<Pencil className="h-4 w-4" />
+								<div className="mt-3 flex flex-wrap gap-2">
+									<span className="inline-flex border border-border/60 bg-background/50 px-2 py-1 font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">{stack.itemCount} items</span>
+									{stack.targetIds.map((targetId) => (
+										<span key={targetId} className="inline-flex border border-accent/20 bg-accent/5 px-2 py-1 font-mono text-[10px] uppercase tracking-[0.16em] text-accent">{targetLabelMap.get(targetId) ?? targetId}</span>
+									))}
+								</div>
+								<div className="mt-3 flex items-center justify-between gap-3">
+									<span className="text-xs text-muted-foreground">{stack.itemCount} item{stack.itemCount !== 1 ? "s" : ""}</span>
+									<button type="button" onClick={() => handleLoad(stack)} className="inline-flex items-center gap-2 border border-border/70 px-3 py-2 font-mono text-[11px] uppercase tracking-[0.18em] text-foreground transition-colors hover:border-accent/40 hover:text-accent">
+										<ExternalLink className="h-3.5 w-3.5" />Load
 									</button>
-									<button
-										type="button"
-										onClick={() => void handleDelete(stack.id)}
-										disabled={deletingId === stack.id}
-										className="inline-flex h-8 w-8 items-center justify-center text-muted-foreground transition-colors hover:text-destructive disabled:opacity-40"
-										aria-label={`Delete ${stack.name}`}
-									>
-										{deletingId === stack.id ? (
-											<Loader2 className="h-4 w-4 animate-spin" />
-										) : (
-											<Trash2 className="h-4 w-4" />
-										)}
+								</div>
+								<div className="mt-3 pt-3 border-t border-border/40 flex items-center justify-between gap-3">
+									<button type="button" onClick={() => void handleUpdateContent(stack)} disabled={updatingContentId === stack.id || basketItems.length === 0} className="inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:text-accent disabled:opacity-40">
+										{updatingContentId === stack.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}Update Content
+									</button>
+									<button type="button" onClick={() => void handleCopyNpx(stack.id)} className="inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-[0.14em] text-accent hover:text-[#a0fdda] transition-colors">
+										<TerminalSquare className="h-3.5 w-3.5" />Copy NPX
 									</button>
 								</div>
 							</div>
-
-							<div className="mt-3 flex flex-wrap gap-2">
-								<span className="inline-flex border border-border/60 bg-background/50 px-2 py-1 font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-									{stack.itemCount} items
-								</span>
-								{stack.targetIds.map((targetId) => (
-									<span
-										key={targetId}
-										className="inline-flex border border-accent/20 bg-accent/5 px-2 py-1 font-mono text-[10px] uppercase tracking-[0.16em] text-accent"
-									>
-										{targetLabelMap.get(targetId) ?? targetId}
-									</span>
-								))}
-							</div>
-
-							<div className="mt-3 flex items-center justify-between gap-3">
-								<div className="truncate text-xs text-muted-foreground">
-									{stack.items
-										.slice(0, 2)
-										.map((item) => item.snapshotDisplayName)
-										.join(", ")}
-									{stack.items.length > 2
-										? ` +${stack.items.length - 2} more`
-										: ""}
-								</div>
-
-								<button
-									type="button"
-									onClick={() => handleLoad(stack)}
-									className="inline-flex items-center gap-2 border border-border/70 px-3 py-2 font-mono text-[11px] uppercase tracking-[0.18em] text-foreground transition-colors hover:border-accent/40 hover:text-accent"
-								>
-									<ExternalLink className="h-3.5 w-3.5" />
-									Load
-								</button>
-							</div>
-
-							{/* Actions: NPX Copy and Update content */}
-							<div className="mt-3 pt-3 border-t border-border/40 flex items-center justify-between gap-3">
-								<button
-									type="button"
-									onClick={() => void handleUpdateContent(stack)}
-									disabled={updatingContentId === stack.id || basketItems.length === 0}
-									className="inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:text-accent disabled:opacity-40"
-								>
-									{updatingContentId === stack.id ? (
-										<Loader2 className="h-3.5 w-3.5 animate-spin" />
-									) : (
-										<RefreshCw className="h-3.5 w-3.5" />
-									)}
-									Update Content
-								</button>
-
-								<button
-									type="button"
-									onClick={() => void handleCopyNpx(stack.id)}
-									className="inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-[0.14em] text-accent hover:text-[#a0fdda] transition-colors"
-								>
-									<TerminalSquare className="h-3.5 w-3.5" />
-									Copy NPX
-								</button>
-							</div>
+						))}
+					</div>
+					{totalPages > 1 ? (
+						<div className="flex items-center justify-center gap-3 pt-3">
+							<button type="button" onClick={() => refreshStacks(page - 1)} disabled={page <= 1 || loading} className="px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.14em] border border-border/50 text-muted-foreground hover:text-foreground hover:border-border disabled:opacity-30 disabled:cursor-not-allowed transition-colors">Prev</button>
+							<span className="font-mono text-[10px] text-muted-foreground">{page} / {totalPages}</span>
+							<button type="button" onClick={() => refreshStacks(page + 1)} disabled={page >= totalPages || loading} className="px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.14em] border border-border/50 text-muted-foreground hover:text-foreground hover:border-border disabled:opacity-30 disabled:cursor-not-allowed transition-colors">Next</button>
 						</div>
-					))}
-				</div>
+					) : null}
+				</>
 			)}
 
 			<EditStackDialog
@@ -360,11 +323,7 @@ export function SavedStacksPanel({
 				open={isEditOpen}
 				onOpenChange={setIsEditOpen}
 				onSaved={(updatedStack) => {
-					setStacks((current) =>
-						current.map((entry) =>
-							entry.id === updatedStack.id ? updatedStack : entry,
-						),
-					);
+					setStacks((current) => current.map((entry) => (entry.id === updatedStack.id ? updatedStack : entry)));
 				}}
 			/>
 		</div>

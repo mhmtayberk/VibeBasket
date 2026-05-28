@@ -480,8 +480,12 @@ async function bootstrapDatabase(targetClient: SqlExecutor) {
     ON saved_stack_items(stack_id, position)
   `);
   await targetClient.execute(`
-    CREATE INDEX IF NOT EXISTS saved_stack_targets_stack_id_position_idx
-    ON saved_stack_targets(stack_id, position)
+    CREATE INDEX IF NOT EXISTS idx_catalog_items_source_name
+    ON catalog_items(source_name)
+  `);
+  await targetClient.execute(`
+    CREATE INDEX IF NOT EXISTS idx_saved_stack_items_catalog_item_id
+    ON saved_stack_items(catalog_item_id)
   `);
 }
 

@@ -17,10 +17,27 @@ import {
 	normalizeStackTargetIds,
 } from "../../../../lib/stacks";
 
+import {
+	applySecurityHeaders,
+	createTooManyRequestsResponse,
+} from "@/lib/security-headers";
+import { checkRateLimit, getClientAddress } from "@/lib/rate-limit";
+
+const STACK_ID_RATE_LIMIT = 30;
+const STACK_ID_RATE_WINDOW_MS = 60 * 1000;
+
 export async function GET(
-	_request: NextRequest,
+	request: NextRequest,
 	context: RouteContext<"/api/stacks/[id]">,
 ) {
+	const rateLimit = checkRateLimit(
+		`stacks-id:${getClientAddress(request)}`,
+		STACK_ID_RATE_LIMIT,
+		STACK_ID_RATE_WINDOW_MS,
+	);
+	if (!rateLimit.allowed) {
+		return createTooManyRequestsResponse(rateLimit.retryAfterSeconds);
+	}
 	try {
 		const userId = await requireCurrentUserId();
 		const { id } = await context.params;
@@ -91,6 +108,14 @@ export async function PATCH(
 	request: NextRequest,
 	context: RouteContext<"/api/stacks/[id]">,
 ) {
+	const rateLimit = checkRateLimit(
+		`stacks-id:${getClientAddress(request)}`,
+		STACK_ID_RATE_LIMIT,
+		STACK_ID_RATE_WINDOW_MS,
+	);
+	if (!rateLimit.allowed) {
+		return createTooManyRequestsResponse(rateLimit.retryAfterSeconds);
+	}
 	try {
 		const userId = await requireCurrentUserId();
 		const { id } = await context.params;
@@ -278,9 +303,17 @@ export async function PATCH(
 }
 
 export async function DELETE(
-	_request: NextRequest,
+	request: NextRequest,
 	context: RouteContext<"/api/stacks/[id]">,
 ) {
+	const rateLimit = checkRateLimit(
+		`stacks-id:${getClientAddress(request)}`,
+		STACK_ID_RATE_LIMIT,
+		STACK_ID_RATE_WINDOW_MS,
+	);
+	if (!rateLimit.allowed) {
+		return createTooManyRequestsResponse(rateLimit.retryAfterSeconds);
+	}
 	try {
 		const userId = await requireCurrentUserId();
 		const { id } = await context.params;

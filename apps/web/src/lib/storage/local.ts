@@ -2,6 +2,10 @@ import fs from "node:fs";
 import path from "node:path";
 import type { BackupEntry, CreateBackupResult, StorageBackend, StorageBackendId } from "./types";
 
+function sanitizeKey(key: string): string {
+	return path.basename(key).replace(/[^a-zA-Z0-9._-]/g, "_");
+}
+
 export class LocalStorageBackend implements StorageBackend {
 	readonly id: StorageBackendId = "local";
 	readonly label = "Local Filesystem";
@@ -26,11 +30,12 @@ export class LocalStorageBackend implements StorageBackend {
 		key: string,
 	): Promise<CreateBackupResult> {
 		await this.ensureDir();
-		const destPath = path.join(this.backupsDir, key);
+		const safeKey = sanitizeKey(key);
+		const destPath = path.join(this.backupsDir, safeKey);
 		await fs.promises.copyFile(path.resolve(localPath), destPath);
 		const stat = await fs.promises.stat(destPath);
 		return {
-			key,
+			key: safeKey,
 			sizeBytes: stat.size,
 			location: destPath,
 		};
@@ -68,13 +73,7 @@ export class LocalStorageBackend implements StorageBackend {
 	}
 
 	async deleteBackup(key: string): Promise<void> {
-		const destPath = path.join(this.backupsDir, key);
-		await fs.promises.unlink(destPath);
+		const safeKey = sanitizeKey(key);
+		await fs.promises.unlink(path.join(this.backupsDir, safeKey));
 	}
-}
-
-export function resolveLocalBackupDir(): string {
-	return path.resolve(
-		process.env.BACKUP_LOCAL_DIR ?? path.join(process.cwd(), "backups"),
-	);
 }
