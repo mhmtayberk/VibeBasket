@@ -34,11 +34,7 @@ export class LocalStorageBackend implements StorageBackend {
 		const destPath = path.join(this.backupsDir, safeKey);
 		await fs.promises.copyFile(path.resolve(localPath), destPath);
 		const stat = await fs.promises.stat(destPath);
-		return {
-			key: safeKey,
-			sizeBytes: stat.size,
-			location: destPath,
-		};
+		return { key: safeKey, sizeBytes: stat.size, location: destPath };
 	}
 
 	async listBackups(): Promise<BackupEntry[]> {

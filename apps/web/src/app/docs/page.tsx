@@ -80,7 +80,7 @@ export default async function DocsPage({
 		{
 			title: "CLI Reference",
 			description:
-				"Complete reference for the `vibebasket apply` command: bundle IDs, the `--force` flag, `--project-root` path overrides, and `--yes` for non-interactive environments.",
+				"Complete reference for the `vibebasket apply` command: bundle URLs, the `--force` flag, `--scope` overrides, and `--dry-run` preview mode.",
 			icon: <TerminalSquare className="h-5 w-5 text-[#33bbc5]" />,
 			linkText: "View CLI reference",
 			tabKey: "cli",
@@ -519,17 +519,17 @@ export default async function DocsPage({
 													</td>
 												</tr>
 												<tr className="hover:bg-[#1c211e]/40 transition-colors">
-													<td className="p-5 pl-7 text-[#a0fdda] font-semibold">--project-root / -p</td>
-													<td className="p-5">String</td>
+													<td className="p-5 pl-7 text-[#a0fdda] font-semibold">--scope / -s</td>
+													<td className="p-5">user | project</td>
 													<td className="p-5 pr-7 text-xs font-sans text-[#bdc9c2]/90 leading-relaxed">
-														Sets the working directory where workspace-scoped config files (e.g. <code className="font-mono text-[10px] text-foreground bg-card px-1.5 py-0.5 rounded-[2px] border border-[#3e4944]">.cursor/mcp.json</code>) are resolved. Defaults to <code className="font-mono text-[10px] text-foreground bg-card px-1.5 py-0.5 rounded-[2px] border border-[#3e4944]">process.cwd()</code>.
+														Overrides the bundle's scope. <code className="font-mono text-[10px] text-foreground bg-card px-1.5 py-0.5 rounded-[2px] border border-[#3e4944]">user</code> installs in home directory, <code className="font-mono text-[10px] text-foreground bg-card px-1.5 py-0.5 rounded-[2px] border border-[#3e4944]">project</code> installs relative to the working directory.
 													</td>
 												</tr>
 												<tr className="hover:bg-[#1c211e]/40 transition-colors">
-													<td className="p-5 pl-7 text-[#a0fdda] font-semibold">--yes / -y</td>
+													<td className="p-5 pl-7 text-[#a0fdda] font-semibold">--dry-run / -d</td>
 													<td className="p-5">Boolean</td>
 													<td className="p-5 pr-7 text-xs font-sans text-[#bdc9c2]/90 leading-relaxed">
-														Skips all interactive confirmation prompts. Useful in CI pipelines or scripts where no user input is available.
+														Previews pending config changes without writing to disk. Shows the target configuration that would be applied.
 													</td>
 												</tr>
 											</tbody>
