@@ -32,6 +32,10 @@ vi.mock("@vibebasket/core", async () => {
 	};
 });
 
+vi.mock("@/auth", () => ({
+	auth: vi.fn(() => Promise.resolve(null)),
+}));
+
 vi.mock("drizzle-orm", () => ({
 	inArray: vi.fn(() => "in-array"),
 }));

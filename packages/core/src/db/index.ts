@@ -367,9 +367,24 @@ async function bootstrapDatabase(targetClient: SqlExecutor) {
     CREATE TABLE IF NOT EXISTS bundles (
       id TEXT PRIMARY KEY NOT NULL,
       manifest TEXT NOT NULL,
+      user_id TEXT,
+      expires_at INTEGER,
       created_at INTEGER
     )
   `);
+
+  const existingBundleColumns = await ensureTableColumns(targetClient, "bundles", [
+    { name: "user_id", sql: "user_id TEXT" },
+    { name: "expires_at", sql: "expires_at INTEGER" },
+  ]);
+
+  if (existingBundleColumns.size > 0) {
+    await targetClient.execute(`
+      UPDATE bundles
+      SET expires_at = coalesce(expires_at, created_at + 86400000)
+      WHERE expires_at IS NULL
+    `);
+  }
 
   const existingCatalogColumns = await ensureTableColumns(targetClient, "catalog_items", [
     { name: "source_name", sql: "source_name TEXT" },
@@ -486,6 +501,10 @@ async function bootstrapDatabase(targetClient: SqlExecutor) {
   await targetClient.execute(`
     CREATE INDEX IF NOT EXISTS idx_saved_stack_items_catalog_item_id
     ON saved_stack_items(catalog_item_id)
+  `);
+  await targetClient.execute(`
+    CREATE INDEX IF NOT EXISTS idx_bundles_expires_user
+    ON bundles(expires_at, user_id)
   `);
 }
 

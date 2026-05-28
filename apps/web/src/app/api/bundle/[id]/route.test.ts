@@ -10,10 +10,15 @@ const fromMock = vi.fn(() => ({
 const selectMock = vi.fn(() => ({
 	from: fromMock,
 }));
+const delWhereMock = vi.fn();
+const delMock = vi.fn(() => ({
+	where: delWhereMock,
+}));
 
 vi.mock("@vibebasket/core", () => ({
 	db: {
 		select: selectMock,
+		delete: delMock,
 	},
 	bundles: {
 		id: "id",
@@ -22,6 +27,9 @@ vi.mock("@vibebasket/core", () => ({
 
 vi.mock("drizzle-orm", () => ({
 	eq: vi.fn(() => "eq"),
+	lt: vi.fn(() => "lt"),
+	and: vi.fn((...args: unknown[]) => args),
+	isNull: vi.fn(() => "is-null"),
 }));
 
 describe("GET /api/bundle/[id]", () => {

@@ -11,10 +11,11 @@ import {
 	SkillEntrySchema,
 	WorkflowPackEntrySchema,
 } from "@vibebasket/core";
-import { inArray } from "drizzle-orm";
+import { inArray, lt } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { auth } from "@/auth";
 import { checkRateLimit, getClientAddress } from "@/lib/rate-limit";
 import {
 	applySecurityHeaders,
@@ -169,9 +170,18 @@ export async function POST(req: Request) {
 		const validated = BundleSchema.parse(manifest);
 
 		const id = nanoid(10);
+
+		const session = await auth().catch(() => null);
+		const isRegistered = Boolean(session?.user?.id);
+		// Anonymous: 48h TTL, auto-cleaned. Registered: 365d, kept.
+		const TTL_MS = isRegistered ? 365 * 24 * 60 * 60 * 1000 : 48 * 60 * 60 * 1000;
+		const expiresAt = new Date(Date.now() + TTL_MS);
+
 		await db.insert(bundles).values({
 			id,
 			manifest: validated,
+			userId: session?.user?.id ?? null,
+			expiresAt,
 		});
 
 		const origin = new URL(req.url).origin;
