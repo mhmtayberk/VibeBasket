@@ -86,7 +86,9 @@ export function BasketPanel({
 			const data = await response.json();
 			const command = `npx vibebasket apply ${data.url}`;
 			setBundleCommand(command);
-			await navigator.clipboard.writeText(command);
+			if (navigator.clipboard?.writeText) {
+				await navigator.clipboard.writeText(command);
+			}
 			toast.success("Install command copied to clipboard.");
 		} catch {
 			toast.error("Failed to generate bundle command.");

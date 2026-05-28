@@ -44,7 +44,7 @@ describe("GET /api/admin/stats", () => {
     vi.mocked(requireAdminRole).mockRejectedValueOnce(new ForbiddenError());
     const { GET } = await import("./route");
 
-    const response = await GET();
+    const response = await GET(new Request("http://localhost:3000/api/admin/stats"));
 
     expect(response.status).toBe(403);
     await expect(response.json()).resolves.toEqual({

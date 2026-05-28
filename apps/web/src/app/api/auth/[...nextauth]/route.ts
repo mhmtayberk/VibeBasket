@@ -11,18 +11,18 @@ export const runtime = "nodejs";
 const AUTH_RATE_LIMIT = 60;
 const AUTH_RATE_WINDOW_MS = 60 * 1000;
 
-function isRateLimited(request: NextRequest) {
-	const result = checkRateLimit(
+function checkAuthRateLimit(request: NextRequest) {
+	return checkRateLimit(
 		`auth:${getClientAddress(request)}`,
 		AUTH_RATE_LIMIT,
 		AUTH_RATE_WINDOW_MS,
 	);
-	return !result.allowed;
 }
 
 export async function GET(request: NextRequest) {
-	if (isRateLimited(request)) {
-		return createTooManyRequestsResponse();
+	const rateLimit = checkAuthRateLimit(request);
+	if (!rateLimit.allowed) {
+		return createTooManyRequestsResponse(rateLimit.retryAfterSeconds);
 	}
 
 	await ensureDatabaseSchema();
@@ -30,8 +30,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-	if (isRateLimited(request)) {
-		return createTooManyRequestsResponse();
+	const rateLimit = checkAuthRateLimit(request);
+	if (!rateLimit.allowed) {
+		return createTooManyRequestsResponse(rateLimit.retryAfterSeconds);
 	}
 
 	await ensureDatabaseSchema();

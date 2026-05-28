@@ -103,7 +103,7 @@ export async function GET(request: Request) {
 		CATALOG_RATE_WINDOW_MS,
 	);
 	if (!rateLimit.allowed) {
-		return createTooManyRequestsResponse();
+		return createTooManyRequestsResponse(rateLimit.retryAfterSeconds);
 	}
 
 	const { searchParams } = new URL(request.url);

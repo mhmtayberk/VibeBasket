@@ -5,18 +5,38 @@ export const DEFAULT_SECURITY_HEADERS = {
 	"X-Content-Type-Options": "nosniff",
 	"X-Frame-Options": "DENY",
 	"Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+	"Content-Security-Policy":
+		process.env.NODE_ENV === "production"
+			? [
+					"default-src 'self'",
+					"script-src 'self' 'unsafe-inline'",
+					"style-src 'self' 'unsafe-inline'",
+					"img-src 'self' data: https:",
+					"font-src 'self'",
+					"connect-src 'self'",
+					"frame-ancestors 'none'",
+					"base-uri 'self'",
+					"form-action 'self'",
+				].join("; ")
+			: "",
 } as const;
 
 export function applySecurityHeaders(response: Response) {
 	for (const [key, value] of Object.entries(DEFAULT_SECURITY_HEADERS)) {
-		response.headers.set(key, value);
+		if (value) {
+			response.headers.set(key, value);
+		}
 	}
 
 	return response;
 }
 
-export function createTooManyRequestsResponse() {
-	return applySecurityHeaders(
+export function createTooManyRequestsResponse(retryAfterSeconds?: number) {
+	const response = applySecurityHeaders(
 		NextResponse.json({ error: "Too many requests" }, { status: 429 }),
 	);
+	if (retryAfterSeconds && retryAfterSeconds > 0) {
+		response.headers.set("Retry-After", String(retryAfterSeconds));
+	}
+	return response;
 }

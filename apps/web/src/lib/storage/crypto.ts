@@ -8,9 +8,9 @@ const TAG_POSITION = IV_LENGTH;
 function getEncryptionKey(): Buffer {
 	const secret =
 		process.env.AUTH_SECRET ||
-		process.env.NODE_ENV === "development"
+		(process.env.NODE_ENV !== "production"
 			? "vibebasket-dev-only-secret-change-me"
-			: null;
+			: null);
 
 	if (!secret) {
 		throw new Error(
@@ -47,11 +47,6 @@ export function decryptValue(encoded: string): string {
 	decipher.setAuthTag(tag);
 
 	return decipher.update(encrypted) + decipher.final("utf8");
-}
-
-export interface EncryptedString {
-	__encrypted: true;
-	value: string;
 }
 
 export function sealConfig(config: Record<string, unknown>): string {
