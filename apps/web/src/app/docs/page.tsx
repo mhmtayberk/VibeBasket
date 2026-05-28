@@ -8,7 +8,6 @@ import {
 	ShieldAlert,
 	TerminalSquare,
 	ArrowRight,
-	Search,
 	Info,
 	AlertTriangle,
 	KeyRound,
@@ -90,7 +89,7 @@ export default async function DocsPage({
 		{
 			title: "IDE Adapters",
 			description:
-				"All 16 supported targets documented: Cursor, Windsurf, VS Code, Claude Code, Gemini CLI, Codex CLI, Zed, JetBrains Junie, Kiro, DeepSeek-TUI, Continue, Roo Code, Hermes, OpenClaw, Cline CLI, and Antigravity.",
+				"All 19 supported targets: Cursor, Windsurf, VS Code, Claude Code, Gemini CLI, Codex CLI, Zed, Junie, Kiro, DeepSeek-TUI, Continue, Roo Code, Hermes, OpenClaw, Cline CLI, Antigravity, GitHub Copilot, Void Editor, and Aider.",
 			icon: <Power className="h-5 w-5 text-[#ff5722]" />,
 			linkText: "Explore adapters",
 			tabKey: "adapters",
@@ -218,34 +217,6 @@ export default async function DocsPage({
 									</div>
 								</div>
 							</div>
-							<Link
-								href="/"
-								className="block w-full text-center bg-[#a0fdda]/10 hover:bg-[#a0fdda] hover:text-[#002117] border border-[#a0fdda]/30 hover:border-[#a0fdda] hover:shadow-[0_0_15px_rgba(160,253,218,0.25)] text-[#a0fdda] font-mono text-[10px] uppercase tracking-widest py-3 px-4 rounded-[2px] transition-all duration-300 cursor-pointer active:scale-[0.97] font-semibold mt-5"
-							>
-								Generate Bundle
-							</Link>
-						</div>
-
-						<div className="py-8">
-							<p className="font-mono text-[9px] uppercase tracking-[0.25em] text-[#bdc9c2]/50 mb-4 pl-6">
-								Navigation
-							</p>
-							<nav className="space-y-1">
-								{sidebarNav.map((item) => (
-									<Link
-										key={item.title}
-										href={item.href}
-										className={`flex items-center gap-3.5 px-6 py-3.5 font-mono text-[11px] uppercase tracking-wider transition-all duration-300 cursor-pointer hover:bg-[#262b28]/60 hover:text-[#a0fdda] hover:pl-7 ${
-											item.active && activeTab === "hub"
-												? "bg-[#a0fdda]/10 border-l-2 border-[#a0fdda] text-[#a0fdda] font-semibold pl-7"
-												: "text-[#bdc9c2]"
-										}`}
-									>
-										{item.icon}
-										{item.title}
-									</Link>
-								))}
-							</nav>
 						</div>
 
 						<div className="pb-6">
@@ -320,7 +291,7 @@ export default async function DocsPage({
 					{/* Sidebar Footer — back-to-builder shortcut */}
 					<div className="border-t border-[#3e4944]/60 p-4">
 						<p className="font-mono text-[9px] uppercase tracking-[0.25em] text-[#bdc9c2]/35 mb-2 pl-2">
-							v0.8 · 16 adapters
+							v0.9 · 19 adapters
 						</p>
 					</div>
 				</aside>
@@ -583,7 +554,7 @@ export default async function DocsPage({
 									IDE Adapters
 								</h1>
 								<p className="text-base sm:text-lg text-[#bdc9c2] max-w-3xl leading-relaxed">
-									16 supported targets, each with its own adapter that reads the target&apos;s config format, merges entries idempotently, and backs up the original file before writing. MCP configuration is supported on every adapter. Skills and rules are additionally supported on Roo Code, Hermes, and OpenClaw.
+									19 supported targets, each with its own adapter that reads the target&apos;s config format, merges entries idempotently, and backs up the original file before writing. MCP configuration is supported on every adapter. Skills and rules are additionally supported on Continue, Roo Code, Hermes, OpenClaw, GitHub Copilot, Void Editor, and Aider.
 								</p>
 							</div>
 
@@ -760,6 +731,42 @@ export default async function DocsPage({
 										</p>
 									</div>
 								</section>
+
+								<section id="rate-limiting" className="scroll-mt-28">
+									<div className="flex items-center gap-2.5 mb-8">
+										<ShieldAlert className="h-6 w-6 text-[#a0fdda]" />
+										<h2 className="text-2xl font-semibold tracking-tight text-foreground">Rate Limiting</h2>
+									</div>
+									<div className="prose prose-invert max-w-none text-sm text-[#bdc9c2] leading-relaxed space-y-8">
+										<p className="max-w-3xl">All public API endpoints are protected by a sliding-window rate limiter with per-IP tracking and automatic garbage collection.</p>
+										<div className="overflow-x-auto">
+											<table className="w-full border border-[#3e4944]">
+												<thead className="bg-[#181d1a]"><tr className="text-left font-mono text-[10px] uppercase tracking-widest text-[#bdc9c2]"><th className="p-3 border-b border-[#3e4944] pl-4">Endpoint</th><th className="p-3 border-b border-[#3e4944]">Limit</th></tr></thead>
+												<tbody className="divide-y divide-[#3e4944] font-mono text-[#bdc9c2]">
+													{[["/api/health","120/min"],["/api/catalog","120/min"],["/api/auth/*","60/min"],["/api/bundle/[id]","60/min"],["/api/stacks","30/min"],["/api/admin/stats","30/min"],["/api/catalog/status","5/min"],["/api/bundle POST","20/min"]].map(([ep,lim]) => (<tr key={ep} className="hover:bg-[#1c211e]/40 transition-colors"><td className="p-3 pl-4 text-[#a0fdda]">{ep}</td><td className="p-3">{lim}</td></tr>))}
+												</tbody>
+											</table>
+										</div>
+									</div>
+								</section>
+
+								<section id="security-headers" className="scroll-mt-28">
+									<div className="flex items-center gap-2.5 mb-8">
+										<KeyRound className="h-6 w-6 text-[#e040fb]" />
+										<h2 className="text-2xl font-semibold tracking-tight text-foreground">Security Headers</h2>
+									</div>
+									<div className="prose prose-invert max-w-none text-sm text-[#bdc9c2] leading-relaxed space-y-8">
+										<p className="max-w-3xl">All API responses include hardened headers. In production, a Content-Security-Policy is also enforced.</p>
+										<div className="overflow-x-auto">
+											<table className="w-full border border-[#3e4944]">
+												<thead className="bg-[#181d1a]"><tr className="text-left font-mono text-[10px] uppercase tracking-widest text-[#bdc9c2]"><th className="p-3 border-b border-[#3e4944] pl-4">Header</th><th className="p-3 border-b border-[#3e4944]">Value</th></tr></thead>
+												<tbody className="divide-y divide-[#3e4944] font-mono text-[#bdc9c2]">
+													{[["X-Frame-Options","DENY"],["X-Content-Type-Options","nosniff"],["Referrer-Policy","strict-origin-when-cross-origin"],["Permissions-Policy","camera=(), microphone=(), geolocation=()"],["Content-Security-Policy","default-src 'self'; frame-ancestors 'none'"]].map(([h,v]) => (<tr key={h} className="hover:bg-[#1c211e]/40 transition-colors"><td className="p-3 pl-4 text-[#a0fdda]">{h}</td><td className="p-3 text-[10px]">{v}</td></tr>))}
+												</tbody>
+											</table>
+										</div>
+									</div>
+								</section>
 							</div>
 						</div>
 					)}
@@ -897,10 +904,17 @@ pnpm --filter web start        # production server on :3000`}</pre>
 													{ name: "DATABASE_URL", req: true, desc: 'SQLite connection string. Use file:/data/vibebasket.db for Docker (volume mount) or an absolute path for manual installs.' },
 													{ name: "AUTH_SECRET", req: true, desc: 'Random 32-byte secret used to sign Next-Auth session tokens. Generate with: openssl rand -base64 32' },
 													{ name: "NEXTAUTH_URL", req: true, desc: 'The public canonical URL of your deployment, e.g. https://vibebasket.example.com. Required for OAuth redirects.' },
-													{ name: "AUTH_GITHUB_ID", req: false, desc: 'GitHub OAuth App client ID. Required if you want GitHub login.' },
-													{ name: "AUTH_GITHUB_SECRET", req: false, desc: 'GitHub OAuth App client secret.' },
-													{ name: "ADMIN_OAUTH_EMAILS", req: false, desc: 'Comma-separated list of GitHub emails that can access the /admin stats dashboard.' },
+													{ name: "AUTH_TRUST_HOST", req: false, desc: 'Set to true when running behind a reverse proxy. Required for OAuth callbacks to work correctly in production.' },
+													{ name: "AUTH_GITHUB_ID / SECRET", req: false, desc: 'GitHub OAuth App credentials. Set AUTH_GITHUB_ENABLED=true to enable.' },
+													{ name: "AUTH_GOOGLE_ID / SECRET", req: false, desc: 'Google OAuth credentials. Set AUTH_GOOGLE_ENABLED=true to enable.' },
+													{ name: "AUTH_APPLE_ID / SECRET", req: false, desc: 'Apple Sign-In credentials. Set AUTH_APPLE_ENABLED=true to enable.' },
+													{ name: "AUTH_MICROSOFT_ENTRA_ID_ID / SECRET", req: false, desc: 'Microsoft Entra ID (Azure AD) credentials. Set AUTH_MICROSOFT_ENTRA_ID_ENABLED=true. Uses /common/ endpoint by default.' },
+													{ name: "ADMIN_OAUTH_EMAILS", req: false, desc: 'Comma-separated list of verified account emails that can access the /admin dashboard.' },
 													{ name: "TRUST_PROXY", req: false, desc: 'Set to true when running behind Cloudflare, Nginx, or any reverse proxy. Enables correct IP extraction for rate limiting.' },
+													{ name: "BACKUP_STORAGE_BACKEND", req: false, desc: 'Backup storage backend: local, s3, r2, spaces, azure, or gcs. Defaults to local. Can also be set via admin panel.' },
+													{ name: "BACKUP_S3_* / R2_* / SPACES_*", req: false, desc: 'S3-compatible storage credentials (endpoint, region, bucket, access key, secret key). Covers AWS S3, Cloudflare R2, and DigitalOcean Spaces.' },
+													{ name: "BACKUP_AZURE_CONNECTION_STRING / CONTAINER", req: false, desc: 'Azure Blob Storage connection string and container name.' },
+													{ name: "BACKUP_GCS_BUCKET / PROJECT_ID", req: false, desc: 'Google Cloud Storage bucket name and GCP project ID.' },
 												].map((v) => (
 													<tr key={v.name} className="hover:bg-[#1c211e]/40 transition-colors">
 														<td className="p-4 pl-6 text-[#a0fdda] font-semibold text-[10px]">{v.name}</td>

@@ -5,7 +5,7 @@ import {
 	savedStacks,
 	savedStackTargets,
 } from "@vibebasket/core";
-import { and, asc, desc, eq, inArray } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
@@ -17,74 +17,91 @@ import {
 	normalizeStackTargetIds,
 	unauthorizedResponse,
 } from "../../../lib/stacks";
+import {
+	applySecurityHeaders,
+	createTooManyRequestsResponse,
+} from "@/lib/security-headers";
+import { checkRateLimit, getClientAddress } from "@/lib/rate-limit";
 
+const STACKS_RATE_LIMIT = 30;
+const STACKS_RATE_WINDOW_MS = 60 * 1000;
+const DEFAULT_STACKS_LIMIT = 20;
+const MAX_STACKS_LIMIT = 50;
 export async function GET(
-	_request: NextRequest,
+	request: NextRequest,
 	_context: RouteContext<"/api/stacks">,
 ) {
+	const rateLimit = checkRateLimit(
+		`stacks:${getClientAddress(request)}`,
+		STACKS_RATE_LIMIT,
+		STACKS_RATE_WINDOW_MS,
+	);
+	if (!rateLimit.allowed) {
+		return createTooManyRequestsResponse(rateLimit.retryAfterSeconds);
+	}
 	try {
 		const userId = await requireCurrentUserId();
-		const stacks = await db
-			.select({
-				id: savedStacks.id,
-				name: savedStacks.name,
-				description: savedStacks.description,
-				createdAt: savedStacks.createdAt,
-				updatedAt: savedStacks.updatedAt,
-			})
-			.from(savedStacks)
-			.where(eq(savedStacks.userId, userId))
-			.orderBy(desc(savedStacks.updatedAt), asc(savedStacks.name));
+		const { searchParams } = new URL(request.url);
+		const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10) || 1);
+		const rawLimit = parseInt(searchParams.get("limit") || `${DEFAULT_STACKS_LIMIT}`, 10) || DEFAULT_STACKS_LIMIT;
+		const limit = Math.min(MAX_STACKS_LIMIT, Math.max(1, rawLimit));
+		const offset = (page - 1) * limit;
+
+		const [stacks, totalResult] = await Promise.all([
+			db
+				.select({
+					id: savedStacks.id,
+					name: savedStacks.name,
+					description: savedStacks.description,
+					createdAt: savedStacks.createdAt,
+					updatedAt: savedStacks.updatedAt,
+				})
+				.from(savedStacks)
+				.where(eq(savedStacks.userId, userId))
+				.orderBy(desc(savedStacks.updatedAt), asc(savedStacks.name))
+				.limit(limit)
+				.offset(offset),
+			db
+				.select({ total: sql<number>`count(*)` })
+				.from(savedStacks)
+				.where(eq(savedStacks.userId, userId)),
+		]);
+
+		const total = Number(totalResult[0]?.total ?? 0);
+		const totalPages = total === 0 ? 0 : Math.ceil(total / limit);
 
 		const stackIds = stacks.map((stack) => stack.id);
 		const [stackItems, stackTargets] = stackIds.length
 			? await Promise.all([
 					db
-						.select({
-							stackId: savedStackItems.stackId,
-							catalogItemId: savedStackItems.catalogItemId,
-							snapshotDisplayName: savedStackItems.snapshotDisplayName,
-							catalogItemType: savedStackItems.catalogItemType,
-							position: savedStackItems.position,
-						})
+						.select({ stackId: savedStackItems.stackId })
 						.from(savedStackItems)
-						.where(inArray(savedStackItems.stackId, stackIds))
-						.orderBy(asc(savedStackItems.position)),
+						.where(inArray(savedStackItems.stackId, stackIds)),
 					db
-						.select({
-							stackId: savedStackTargets.stackId,
-							targetId: savedStackTargets.targetId,
-							position: savedStackTargets.position,
-						})
+						.select({ stackId: savedStackTargets.stackId, targetId: savedStackTargets.targetId })
 						.from(savedStackTargets)
-						.where(inArray(savedStackTargets.stackId, stackIds))
-						.orderBy(asc(savedStackTargets.position)),
+						.where(inArray(savedStackTargets.stackId, stackIds)),
 				])
 			: [[], []];
 
-		const itemsByStackId = new Map<string, typeof stackItems>();
+		const itemCounts = new Map<string, number>();
 		for (const item of stackItems) {
-			const items = itemsByStackId.get(item.stackId) ?? [];
-			items.push(item);
-			itemsByStackId.set(item.stackId, items);
+			itemCounts.set(item.stackId, (itemCounts.get(item.stackId) ?? 0) + 1);
 		}
-
-		const targetsByStackId = new Map<string, typeof stackTargets>();
-		for (const target of stackTargets) {
-			const targets = targetsByStackId.get(target.stackId) ?? [];
-			targets.push(target);
-			targetsByStackId.set(target.stackId, targets);
+		const targetMap = new Map<string, string[]>();
+		for (const t of stackTargets) {
+			const arr = targetMap.get(t.stackId) ?? [];
+			arr.push(t.targetId);
+			targetMap.set(t.stackId, arr);
 		}
 
 		return NextResponse.json({
 			stacks: stacks.map((stack) => ({
 				...stack,
-				itemCount: itemsByStackId.get(stack.id)?.length ?? 0,
-				items: itemsByStackId.get(stack.id) ?? [],
-				targetIds: (targetsByStackId.get(stack.id) ?? []).map(
-					(target) => target.targetId,
-				),
+				itemCount: itemCounts.get(stack.id) ?? 0,
+				targetIds: targetMap.get(stack.id) ?? [],
 			})),
+			pagination: { page, limit, total, totalPages, hasNextPage: page < totalPages, hasPreviousPage: page > 1 },
 		});
 	} catch (error) {
 		if (error instanceof SessionRequiredError) {
@@ -103,6 +120,14 @@ export async function POST(
 	request: NextRequest,
 	_context: RouteContext<"/api/stacks">,
 ) {
+	const rateLimit = checkRateLimit(
+		`stacks:${getClientAddress(request)}`,
+		STACKS_RATE_LIMIT,
+		STACKS_RATE_WINDOW_MS,
+	);
+	if (!rateLimit.allowed) {
+		return createTooManyRequestsResponse(rateLimit.retryAfterSeconds);
+	}
 	try {
 		const userId = await requireCurrentUserId();
 		const body = await request.json();

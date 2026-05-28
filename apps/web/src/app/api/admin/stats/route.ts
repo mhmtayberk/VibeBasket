@@ -9,10 +9,26 @@ import {
   catalogItems
 } from "@vibebasket/core";
 import { requireAdminRole, ForbiddenError } from "@/lib/admin-session";
+import { checkRateLimit, getClientAddress } from "@/lib/rate-limit";
+import {
+	applySecurityHeaders,
+	createTooManyRequestsResponse,
+} from "@/lib/security-headers";
+
+const ADMIN_STATS_RATE_LIMIT = 30;
+const ADMIN_STATS_RATE_WINDOW_MS = 60 * 1000;
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(request: Request) {
+	const rateLimit = checkRateLimit(
+		`admin-stats:${getClientAddress(request)}`,
+		ADMIN_STATS_RATE_LIMIT,
+		ADMIN_STATS_RATE_WINDOW_MS,
+	);
+	if (!rateLimit.allowed) {
+		return createTooManyRequestsResponse(rateLimit.retryAfterSeconds);
+	}
   try {
     // Assert authorization first
     await requireAdminRole();

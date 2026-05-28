@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { Check, FileText, Server, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { type BasketItem, useBasketStore } from "@/store/basketStore";
@@ -18,7 +19,7 @@ function ItemIcon({ type }: Pick<BasketItem, "type">) {
 	return <FileText className="h-4 w-4" />;
 }
 
-export function ItemCard({ item }: ItemCardProps) {
+function ItemCardRaw({ item }: ItemCardProps) {
 	const toggleItem = useBasketStore((s) => s.toggleItem);
 	const selected = useBasketStore((s) =>
 		s.items.some((existing) => existing.id === item.id),
@@ -131,3 +132,5 @@ export function ItemCard({ item }: ItemCardProps) {
 		</button>
 	);
 }
+
+export const ItemCard = memo(ItemCardRaw);

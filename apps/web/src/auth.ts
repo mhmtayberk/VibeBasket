@@ -62,10 +62,6 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
 					? process.env.ADMIN_EMAILS.split(",").map((e) => e.trim().toLowerCase())
 					: [];
 
-				const hasVerifiedEmail =
-					emailVerified !== null ||
-					email?.endsWith("@vibebasket.dev");
-
 				const isDevAdmin = email?.toLowerCase() === "admin@vibebasket.dev";
 
 				if (isDevAdmin || (email && adminEmails.includes(email.toLowerCase()))) {

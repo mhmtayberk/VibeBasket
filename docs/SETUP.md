@@ -68,6 +68,14 @@ AUTH_APPLE_ID=...
 AUTH_APPLE_SECRET=...
 ```
 
+Microsoft Entra ID (Azure AD):
+
+```bash
+AUTH_MICROSOFT_ENTRA_ID_ENABLED=true
+AUTH_MICROSOFT_ENTRA_ID_ID=...
+AUTH_MICROSOFT_ENTRA_ID_SECRET=...
+```
+
 Notes:
 
 - Self-hosted deployments can enable any subset of providers.

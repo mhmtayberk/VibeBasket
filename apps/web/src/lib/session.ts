@@ -7,10 +7,6 @@ export class SessionRequiredError extends Error {
 	}
 }
 
-export async function getCurrentSession() {
-	return auth();
-}
-
 export async function requireCurrentSession() {
 	const session = await auth();
 
