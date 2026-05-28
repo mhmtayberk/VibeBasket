@@ -24,7 +24,7 @@ export async function GET(request: Request = new Request("http://localhost")) {
 			STATUS_RATE_WINDOW_MS,
 		);
 		if (!rateLimit.allowed) {
-			return createTooManyRequestsResponse();
+			return createTooManyRequestsResponse(rateLimit.retryAfterSeconds);
 		}
 
 		await ensureDatabaseIndexes();

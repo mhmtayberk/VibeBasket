@@ -8,10 +8,12 @@ import {
 	createStorageBackend,
 	getStorageBackendInfo,
 	getAllBackendsStatus,
-	STORAGE_BACKEND_OPTIONS,
 	loadStorageConfig,
 	saveStorageConfig,
 	deleteStorageConfig,
+	loadScheduleConfig,
+	isScheduleDue,
+	markScheduleComplete,
 	type BackupEntry,
 	type BackendStatus,
 	type StorageConfig,
@@ -234,6 +236,7 @@ export async function getStorageConfigAction() {
 
 	try {
 		const config = await loadStorageConfig();
+		const schedule = await loadScheduleConfig();
 		const backends = getAllBackendsStatus();
 
 		return {
@@ -244,8 +247,10 @@ export async function getStorageConfigAction() {
 						hasS3: Boolean(config.s3),
 						hasAzure: Boolean(config.azure),
 						hasGcs: Boolean(config.gcs),
+						schedule: schedule ?? undefined,
 					}
 				: null,
+			schedule: schedule ?? null,
 			backends,
 		};
 	} catch (error: unknown) {
@@ -308,5 +313,77 @@ export async function removeStorageConfigAction() {
 	} catch (error: unknown) {
 		console.error("Failed to remove storage config:", error);
 		return { success: false, error: "Failed to remove configuration" };
+	}
+}
+
+export async function saveScheduleAction(enabled: boolean, intervalHours: number) {
+	await requireAdminRole();
+
+	try {
+		const config = await loadStorageConfig();
+		if (!config) {
+			return { success: false, error: "No storage config exists." };
+		}
+
+		await saveStorageConfig(config.backend, {
+			s3: config.s3,
+			azure: config.azure,
+			gcs: config.gcs,
+			schedule: {
+				enabled,
+				intervalHours: Math.max(1, Math.floor(intervalHours)),
+				lastScheduledAt: config.schedule?.lastScheduledAt,
+			},
+		});
+
+		revalidatePath("/admin");
+		return { success: true };
+	} catch (error: unknown) {
+		return { success: false, error: error instanceof Error ? error.message : "Failed to save schedule." };
+	}
+}
+
+export async function checkScheduledBackupAction() {
+	await requireAdminRole();
+
+	try {
+		const due = await isScheduleDue();
+		return { success: true, due };
+	} catch {
+		return { success: true, due: false };
+	}
+}
+
+export async function triggerScheduledBackupAction() {
+	await requireAdminRole();
+
+	try {
+		const due = await isScheduleDue();
+		if (!due) {
+			return { success: true, triggered: false, message: "Not yet due." };
+		}
+
+		const dbPath = (process.env.DATABASE_URL ?? "file:vibebasket.db").startsWith("file:")
+			? (process.env.DATABASE_URL ?? "file:vibebasket.db").slice(5)
+			: "vibebasket.db";
+
+		const path = await import("node:path");
+		const fs = await import("node:fs");
+
+		const backend = await createStorageBackend();
+		const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+		const key = `vibebasket-scheduled-${timestamp}.db`;
+
+		const result = await backend.createBackup(path.resolve(dbPath), key);
+		await markScheduleComplete();
+
+		return {
+			success: true,
+			triggered: true,
+			backup: { key: result.key, sizeBytes: result.sizeBytes, storageLabel: backend.label },
+		};
+	} catch (error: unknown) {
+		console.error("Scheduled backup failed:", error);
+		return { success: false, triggered: false, error: error instanceof Error ? error.message : "Failed" };
 	}
 }

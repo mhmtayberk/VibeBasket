@@ -1,29 +1,22 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
-import { Check, Settings, Trash2, X } from "lucide-react";
+import { Check, Clock, Loader2, Settings, Trash2, X } from "lucide-react";
 import {
 	backupDatabaseAction,
 	deleteBackupAction,
-	getBackupStorageInfo,
 	getStorageConfigAction,
 	listBackupsAction,
 	removeStorageConfigAction,
 	restoreBackupAction,
 	saveStorageConfigAction,
+	saveScheduleAction,
 } from "./actions";
 
 interface BackupEntry {
 	key: string;
 	sizeBytes: number;
 	lastModified: string;
-}
-
-interface StorageInfo {
-	id: string;
-	label: string;
-	configuredId: string;
-	isConfigured: boolean;
 }
 
 interface DbConfig {
@@ -43,10 +36,7 @@ interface BackendStatus {
 	envPrefix: string;
 }
 
-type ConfigMode = {
-	backend: string;
-	label: string;
-} | null;
+type ConfigMode = { backend: string; label: string } | null;
 
 const FIELD_LABELS: Record<string, string> = {
 	endpoint: "Endpoint URL",
@@ -80,7 +70,6 @@ export function BackupSection() {
 		success: boolean;
 		message: string;
 	} | null>(null);
-	const [storageInfo, setStorageInfo] = useState<StorageInfo | null>(null);
 	const [backends, setBackends] = useState<BackendStatus[]>([]);
 	const [dbConfig, setDbConfig] = useState<DbConfig | null>(null);
 	const [backups, setBackups] = useState<BackupEntry[]>([]);
@@ -88,12 +77,22 @@ export function BackupSection() {
 	const [restoringKey, setRestoringKey] = useState<string | null>(null);
 	const [configMode, setConfigMode] = useState<ConfigMode>(null);
 	const [formValues, setFormValues] = useState<Record<string, string>>({});
+	const [pendingBackups, setPendingBackups] = useState<Set<string>>(new Set());
+	const [scheduleEnabled, setScheduleEnabled] = useState(false);
+	const [scheduleHours, setScheduleHours] = useState(24);
 
 	const refreshAll = () => {
 		getStorageConfigAction().then((res) => {
 			if (res.success) {
 				setDbConfig(res.config);
 				setBackends(res.backends);
+				if (res.schedule) {
+					setScheduleEnabled(res.schedule.enabled);
+					setScheduleHours(res.schedule.intervalHours);
+				} else {
+					setScheduleEnabled(false);
+					setScheduleHours(24);
+				}
 			}
 		});
 		refreshBackups();
@@ -119,9 +118,12 @@ export function BackupSection() {
 		});
 	};
 
-	const handleBackup = () => {
+	const handleBackup = (label: string) => {
 		setResult(null);
-		startTransition(async () => {
+		const opKey = `backup-${Date.now()}`;
+		setPendingBackups((prev) => new Set(prev).add(opKey));
+
+		(async () => {
 			try {
 				const response = await backupDatabaseAction();
 				if (response.success && response.backup) {
@@ -139,11 +141,18 @@ export function BackupSection() {
 			} catch (err: unknown) {
 				setResult({
 					success: false,
-					message:
-						err instanceof Error ? err.message : "Backup failed.",
+					message: err instanceof Error ? err.message : "Backup failed.",
+				});
+			} finally {
+				setPendingBackups((prev) => {
+					const next = new Set(prev);
+					next.delete(opKey);
+					return next;
 				});
 			}
-		});
+		})();
+
+		return opKey;
 	};
 
 	const handleDelete = (key: string) => {
@@ -152,9 +161,7 @@ export function BackupSection() {
 				const response = await deleteBackupAction(key);
 				setResult({
 					success: response.success,
-					message: response.success
-						? `Deleted: ${key}`
-						: response.error ?? "Delete failed.",
+					message: response.success ? `Deleted: ${key}` : response.error ?? "Delete failed.",
 				});
 				if (response.success) refreshBackups();
 			} catch {
@@ -164,17 +171,14 @@ export function BackupSection() {
 	};
 
 	const handleRestore = (key: string) => {
-		if (!window.confirm(`Restore from "${key}"? Overwrites current DB.`))
-			return;
+		if (!window.confirm(`Restore from "${key}"? Overwrites current DB.`)) return;
 		setRestoringKey(key);
 		startTransition(async () => {
 			try {
 				const response = await restoreBackupAction(key);
 				setResult({
 					success: response.success,
-					message: response.success
-						? response.message ?? "Restored."
-						: response.error ?? "Restore failed.",
+					message: response.success ? response.message ?? "Restored." : response.error ?? "Restore failed.",
 				});
 			} catch {
 				setResult({ success: false, message: "Restore failed." });
@@ -189,22 +193,13 @@ export function BackupSection() {
 		setResult(null);
 		startTransition(async () => {
 			try {
-				const response = await saveStorageConfigAction(
-					configMode.backend,
-					formValues,
-				);
+				const response = await saveStorageConfigAction(configMode.backend, formValues);
 				if (response.success) {
-					setResult({
-						success: true,
-						message: `Switched to ${configMode.label}.`,
-					});
+					setResult({ success: true, message: `Switched to ${configMode.label}.` });
 					setConfigMode(null);
 					refreshAll();
 				} else {
-					setResult({
-						success: false,
-						message: response.error ?? "Failed to save.",
-					});
+					setResult({ success: false, message: response.error ?? "Failed to save." });
 				}
 			} catch {
 				setResult({ success: false, message: "Save failed." });
@@ -213,16 +208,12 @@ export function BackupSection() {
 	};
 
 	const handleRemoveConfig = () => {
-		if (!window.confirm("Remove stored configuration? Falls back to env vars or local."))
-			return;
+		if (!window.confirm("Remove stored configuration? Falls back to env vars or local.")) return;
 		startTransition(async () => {
 			try {
 				const response = await removeStorageConfigAction();
 				if (response.success) {
-					setResult({
-						success: true,
-						message: "Configuration removed.",
-					});
+					setResult({ success: true, message: "Configuration removed." });
 					refreshAll();
 				}
 			} catch {
@@ -232,10 +223,11 @@ export function BackupSection() {
 	};
 
 	const isDbConfigured = dbConfig && dbConfig.backend !== "local";
+	const hasPendingBackups = pendingBackups.size > 0;
 
 	return (
 		<div className="space-y-8">
-			{/* ── Config Form (when active) ── */}
+			{/* ── Config Form ── */}
 			{configMode && (
 				<div className="border border-accent/40 bg-accent/5 p-5 space-y-4">
 					<div className="flex items-center justify-between">
@@ -245,7 +237,7 @@ export function BackupSection() {
 						<button
 							type="button"
 							onClick={() => setConfigMode(null)}
-							className="inline-flex h-8 items-center border border-border/70 bg-background/40 px-3 font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground transition-colors hover:border-destructive/40 hover:text-destructive"
+							className="inline-flex h-8 items-center border border-border/60 bg-background/40 px-3 font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground transition-all hover:border-destructive/60 hover:bg-destructive/10 hover:text-destructive"
 						>
 							Cancel
 						</button>
@@ -261,10 +253,7 @@ export function BackupSection() {
 									type={field === "secretKey" ? "password" : "text"}
 									value={formValues[field] ?? ""}
 									onChange={(e) =>
-										setFormValues((prev) => ({
-											...prev,
-											[field]: e.target.value,
-										}))
+										setFormValues((prev) => ({ ...prev, [field]: e.target.value }))
 									}
 									className="w-full border border-border/70 bg-background/50 px-3 py-2 font-mono text-[11px] text-foreground outline-none focus:border-accent/50"
 									placeholder={field}
@@ -273,25 +262,24 @@ export function BackupSection() {
 						))}
 					</div>
 
-				<div className="flex gap-2 pt-2">
-					<button
-						type="button"
-						onClick={handleSaveConfig}
-						disabled={isPending}
-						className="inline-flex h-10 items-center justify-center gap-2 border border-accent bg-accent px-6 font-mono text-[11px] uppercase tracking-[0.18em] text-accent-foreground transition-colors hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-50"
-					>
-						{isPending ? "Saving..." : "Save & Activate"}
-					</button>
+					<div className="flex gap-2 pt-2">
+						<button
+							type="button"
+							onClick={handleSaveConfig}
+							disabled={isPending}
+							className="inline-flex h-10 items-center justify-center gap-2 border border-accent bg-accent px-6 font-mono text-[11px] uppercase tracking-[0.18em] text-accent-foreground transition-all hover:bg-accent/90 hover:shadow-[0_0_20px_rgba(160,253,218,0.15)] disabled:cursor-not-allowed disabled:opacity-50"
+						>
+							{isPending ? "Saving..." : "Save & Activate"}
+						</button>
 					</div>
 
 					<p className="font-mono text-[9px] text-muted-foreground/70 leading-relaxed">
-						Credentials are encrypted with AES-256-GCM before storage.
-						Never stored in plaintext.
+						Credentials are encrypted with AES-256-GCM. Never stored in plaintext.
 					</p>
 				</div>
 			)}
 
-			{/* ── Storage Backend Selector ── */}
+			{/* ── Backend Table ── */}
 			<div>
 				<div className="flex items-center justify-between mb-4">
 					<span className="font-mono text-[11px] uppercase tracking-[0.18em] text-accent">
@@ -302,16 +290,14 @@ export function BackupSection() {
 							<button
 								type="button"
 								onClick={handleRemoveConfig}
-								className="inline-flex items-center gap-1 border border-border/50 bg-background/30 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.16em] text-muted-foreground transition-colors hover:border-destructive/40 hover:text-destructive"
+								className="inline-flex items-center gap-1 border border-border/50 bg-background/30 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.16em] text-muted-foreground transition-all hover:border-destructive/50 hover:bg-destructive/10 hover:text-destructive"
 							>
 								<Trash2 className="h-3 w-3" />
 								Reset to Env
 							</button>
 						)}
 						<span className="font-mono text-[9px] uppercase tracking-[0.16em] text-muted-foreground/60">
-							{isDbConfigured
-								? "DB-managed"
-								: "ENV-managed"}
+							{isDbConfigured ? "DB-managed" : "ENV-managed"}
 						</span>
 					</div>
 				</div>
@@ -321,26 +307,14 @@ export function BackupSection() {
 						<thead>
 							<tr className="border-b border-border/70">
 								<th className="pb-3 pr-4 font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground w-8" />
-								<th className="pb-3 pr-4 font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-									Backend
-								</th>
-								<th className="pb-3 pr-4 font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground hidden sm:table-cell">
-									Status
-								</th>
-								<th className="pb-3 pr-4 font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground hidden sm:table-cell">
-									Source
-								</th>
+								<th className="pb-3 pr-4 font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">Backend</th>
+								<th className="pb-3 pr-4 font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground hidden sm:table-cell">Status</th>
 								<th className="pb-3 font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground w-20" />
 							</tr>
 						</thead>
 						<tbody>
 							{backends.map((backend) => (
-								<tr
-									key={backend.id}
-									className={`border-b border-border/50 last:border-b-0 ${
-										backend.isActive ? "bg-accent/5" : ""
-									}`}
-								>
+								<tr key={backend.id} className={`border-b border-border/50 last:border-b-0 ${backend.isActive ? "bg-accent/5" : ""}`}>
 									<td className="py-2.5 pr-4">
 										{backend.isActive ? (
 											<span className="inline-flex items-center justify-center h-5 w-5 border border-accent/50 bg-accent/10">
@@ -349,68 +323,99 @@ export function BackupSection() {
 										) : null}
 									</td>
 									<td className="py-2.5 pr-4">
-										<div className="text-sm font-medium text-foreground">
-											{backend.label}
-										</div>
-										<div className="mt-0.5 font-mono text-[10px] text-muted-foreground">
-											{backend.description}
-										</div>
+										<div className="text-sm font-medium text-foreground">{backend.label}</div>
+										<div className="mt-0.5 font-mono text-[10px] text-muted-foreground">{backend.description}</div>
 									</td>
 									<td className="py-2.5 pr-4 hidden sm:table-cell">
-										<span
-											className={`inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-[0.16em] px-2 py-0.5 border ${
-												backend.isConfigured
-													? "border-accent/30 bg-accent/10 text-accent"
-													: "border-border/50 bg-background/30 text-muted-foreground"
-											}`}
-										>
-											{backend.isConfigured ? (
-												<Check className="h-3 w-3" />
-											) : (
-												<X className="h-3 w-3" />
-											)}
-											{backend.id === "local"
-												? "Always Ready"
-												: backend.isConfigured
-													? "Ready"
-													: "Missing"}
+										<span className={`inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-[0.16em] px-2 py-0.5 border ${
+											backend.isConfigured ? "border-accent/30 bg-accent/10 text-accent" : "border-border/50 bg-background/30 text-muted-foreground"
+										}`}>
+											{backend.isConfigured ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />}
+											{backend.id === "local" ? "Always Ready" : backend.isConfigured ? "Ready" : "Missing"}
 										</span>
 									</td>
-									<td className="py-2.5 pr-4 hidden sm:table-cell font-mono text-[10px] text-muted-foreground">
-										{isDbConfigured ? "Database" : "Env Vars"}
-									</td>
 									<td className="py-2.5">
-									{backend.id !== "local" ? (
-										configMode?.backend === backend.id ? (
-											<span className="inline-flex items-center gap-1 font-mono text-[9px] uppercase tracking-[0.16em] text-accent px-1.5 py-1">
-												<Settings className="h-3 w-3" />
-												Active
-											</span>
-										) : (
-											<button
-												type="button"
-												onClick={() => {
-													setConfigMode({
-														backend: backend.id,
-														label: backend.label,
-													});
-													setFormValues({});
-												}}
-												className="inline-flex items-center gap-1 border border-border/60 bg-background/40 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.16em] text-muted-foreground transition-colors hover:border-accent/50 hover:text-accent hover:bg-accent/10"
-											>
-												<Settings className="h-3 w-3" />
-												{backend.isConfigured
-													? "Edit"
-													: "Setup"}
-											</button>
-										)
-									) : null}
-								</td>
+										{backend.id !== "local" ? (
+											configMode && configMode.backend === backend.id ? (
+												<span className="inline-flex items-center gap-1 font-mono text-[9px] uppercase tracking-[0.16em] text-accent px-1.5 py-1">Active</span>
+											) : (
+												<button
+													type="button"
+													onClick={() => { setConfigMode({ backend: backend.id, label: backend.label }); setFormValues({}); }}
+													className="inline-flex items-center gap-1 border border-border/50 bg-background/30 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.16em] text-muted-foreground transition-all hover:border-accent/60 hover:bg-accent/10 hover:text-accent"
+												>
+													<Settings className="h-3 w-3" />
+													{backend.isConfigured ? "Edit" : "Setup"}
+												</button>
+											)
+										) : null}
+									</td>
 								</tr>
 							))}
 						</tbody>
 					</table>
 				</div>
+			</div>
+
+			{/* ── Schedule ── */}
+			<div className="border-t border-border/70 pt-6">
+				<div className="flex items-center justify-between mb-4">
+					<span className="font-mono text-[11px] uppercase tracking-[0.18em] text-accent">
+						Scheduled Backups
+					</span>
+					<span className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+						Automated periodic snapshots
+					</span>
+				</div>
+
+				<div className="flex flex-wrap items-center gap-4">
+					<label className="flex items-center gap-2 cursor-pointer">
+						<input
+							type="checkbox"
+							checked={scheduleEnabled}
+							onChange={(e) => setScheduleEnabled(e.target.checked)}
+							className="h-4 w-4 border border-border/70 bg-background accent-accent"
+						/>
+						<span className="font-mono text-[11px] uppercase tracking-[0.16em] text-foreground">
+							Enable
+						</span>
+					</label>
+
+					<div className="flex items-center gap-2">
+						<span className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">Every</span>
+						<input
+							type="number"
+							min={1}
+							max={720}
+							value={scheduleHours}
+							onChange={(e) => setScheduleHours(Number(e.target.value))}
+							disabled={!scheduleEnabled}
+							className="w-20 border border-border/70 bg-background/50 px-2 py-1.5 font-mono text-[11px] text-foreground text-center outline-none focus:border-accent/50 disabled:opacity-40"
+						/>
+						<span className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">hours</span>
+					</div>
+
+					<button
+						type="button"
+						onClick={() => {
+							setResult(null);
+							startTransition(async () => {
+								const response = await saveScheduleAction(scheduleEnabled, scheduleHours);
+								setResult({ success: response.success, message: response.success ? "Schedule saved." : response.error ?? "Failed." });
+							});
+						}}
+						disabled={isPending || !scheduleEnabled}
+						className="inline-flex h-9 items-center gap-1.5 border border-border/60 bg-background/40 px-3 font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground transition-all hover:border-accent/40 hover:text-accent hover:bg-accent/5 disabled:opacity-30 disabled:cursor-not-allowed"
+					>
+						<Clock className="h-3.5 w-3.5" />
+						Save Schedule
+					</button>
+				</div>
+
+				<p className="mt-3 font-mono text-[9px] text-muted-foreground/70 leading-relaxed">
+					When enabled, a backup is automatically created every {scheduleHours} hour{scheduleHours !== 1 ? "s" : ""}.
+					The check runs when the admin dashboard is visited. Schedule state persists across restarts.
+				</p>
 			</div>
 
 			{/* ── Backup Operations ── */}
@@ -420,52 +425,45 @@ export function BackupSection() {
 						Backup Operations
 					</span>
 					<span className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-						{backends.find((b) => b.isActive)?.label ??
-							"Local Filesystem"}
+						{backends.find((b) => b.isActive)?.label ?? "Local Filesystem"}
+						{hasPendingBackups ? ` (${pendingBackups.size} active)` : ""}
 					</span>
 				</div>
 
 				<div className="flex flex-wrap gap-2 mb-4">
 					<button
 						type="button"
-						onClick={handleBackup}
+						onClick={() => handleBackup("create")}
 						disabled={isPending}
-						className={`inline-flex h-10 items-center justify-center gap-2 border px-4 font-mono text-[11px] uppercase tracking-[0.18em] transition-colors ${
+						className={`inline-flex h-10 items-center justify-center gap-2 border px-4 font-mono text-[11px] uppercase tracking-[0.18em] transition-all ${
 							isPending
 								? "border-border/50 bg-background/30 text-muted-foreground cursor-not-allowed"
-								: "border-accent bg-accent text-accent-foreground hover:bg-accent/90"
+								: "border-accent bg-accent text-accent-foreground hover:bg-accent/90 hover:shadow-[0_0_20px_rgba(160,253,218,0.15)]"
 						}`}
 					>
-						{isPending ? "Creating..." : "Create Backup"}
+						{hasPendingBackups ? (
+							<><Loader2 className="h-3.5 w-3.5 animate-spin" /> Creating...</>
+						) : (
+							"Create Backup"
+						)}
 					</button>
 
 					{backups.length > 0 && (
 						<button
 							type="button"
-							onClick={() => {
-								setShowBackups(!showBackups);
-								if (!showBackups) refreshBackups();
-							}}
-							className="inline-flex h-10 items-center justify-center gap-2 border border-border/70 bg-background/40 px-4 font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:text-foreground"
+							onClick={() => { setShowBackups(!showBackups); if (!showBackups) refreshBackups(); }}
+							className="inline-flex h-10 items-center justify-center gap-2 border border-border/70 bg-background/40 px-4 font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground transition-all hover:border-accent/40 hover:text-accent hover:bg-accent/5"
 						>
-							{showBackups
-								? "Hide Backups"
-								: `Show Backups (${backups.length})`}
+							{showBackups ? "Hide Backups" : `Show Backups (${backups.length})`}
 						</button>
 					)}
 				</div>
 
 				{result && (
-					<div
-						className={`border p-3 font-mono text-[10px] leading-relaxed mb-4 ${
-							result.success
-								? "border-accent/30 bg-accent/10 text-accent"
-								: "border-destructive/30 bg-destructive/10 text-destructive"
-						}`}
-					>
-						<span className="font-bold">
-							{result.success ? "[OK]" : "[ERR]"}
-						</span>{" "}
+					<div className={`border p-3 font-mono text-[10px] leading-relaxed mb-4 ${
+						result.success ? "border-accent/30 bg-accent/10 text-accent" : "border-destructive/30 bg-destructive/10 text-destructive"
+					}`}>
+						<span className="font-bold">{result.success ? "[OK]" : "[ERR]"}</span>{" "}
 						{result.message}
 					</div>
 				)}
@@ -473,18 +471,11 @@ export function BackupSection() {
 				{showBackups && backups.length > 0 && (
 					<div className="max-h-80 overflow-y-auto space-y-1 border border-border/50">
 						{backups.map((backup) => (
-							<div
-								key={backup.key}
-								className="flex items-center justify-between gap-2 border-b border-border/40 py-2 px-3 last:border-b-0"
-							>
+							<div key={backup.key} className="flex items-center justify-between gap-2 border-b border-border/40 py-2 px-3 last:border-b-0">
 								<div className="min-w-0 flex-1">
-									<div className="truncate font-mono text-[11px] text-foreground">
-										{backup.key}
-									</div>
+									<div className="truncate font-mono text-[11px] text-foreground">{backup.key}</div>
 									<div className="font-mono text-[9px] text-muted-foreground mt-0.5">
-										{(backup.sizeBytes / 1024).toFixed(1)} KB
-										{" · "}
-										{new Date(backup.lastModified).toLocaleString()}
+										{(backup.sizeBytes / 1024).toFixed(1)} KB · {new Date(backup.lastModified).toLocaleString()}
 									</div>
 								</div>
 								<div className="flex gap-2 shrink-0">
@@ -494,21 +485,11 @@ export function BackupSection() {
 										disabled={!!restoringKey}
 										className="font-mono text-[9px] uppercase tracking-[0.16em] text-accent hover:text-foreground transition-colors"
 									>
-										{restoringKey === backup.key
-											? "..."
-											: "Restore"}
+										{restoringKey === backup.key ? "..." : "Restore"}
 									</button>
 									<button
 										type="button"
-										onClick={() => {
-											if (
-												window.confirm(
-													`Delete "${backup.key}"?`,
-												)
-											) {
-												handleDelete(backup.key);
-											}
-										}}
+										onClick={() => { if (window.confirm(`Delete "${backup.key}"?`)) handleDelete(backup.key); }}
 										disabled={isPending}
 										className="font-mono text-[9px] uppercase tracking-[0.16em] text-muted-foreground hover:text-destructive transition-colors"
 									>

@@ -1,7 +1,7 @@
 export type { BackupEntry, CreateBackupResult, StorageBackend, StorageBackendId } from "./types";
 export type { BackendStatus } from "./factory";
 export type { StorageConfig } from "./db-config";
-export { LocalStorageBackend, resolveLocalBackupDir } from "./local";
+export { LocalStorageBackend } from "./local";
 export {
 	createStorageBackend,
 	getStorageBackendInfo,
@@ -13,4 +13,7 @@ export {
 	saveStorageConfig,
 	deleteStorageConfig,
 	resolveBackendId,
+	loadScheduleConfig,
+	isScheduleDue,
+	markScheduleComplete,
 } from "./db-config";

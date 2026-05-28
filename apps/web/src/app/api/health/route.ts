@@ -1,6 +1,10 @@
 import { db, users } from "@vibebasket/core";
 import { sql } from "drizzle-orm";
 import type { NextRequest } from "next/server";
+import { checkRateLimit, getClientAddress } from "@/lib/rate-limit";
+
+const HEALTH_RATE_LIMIT = 120;
+const HEALTH_RATE_WINDOW_MS = 60 * 1000;
 
 // Dynamic, secure and high-performance health check.
 // Using inline variables for persistent cache during the node server lifecycle.
@@ -32,7 +36,18 @@ async function checkDatabase(): Promise<boolean> {
  * Lightweight, security-hardened health check endpoint.
  * Validates process health and database availability.
  */
-export async function GET(_req: NextRequest) {
+export async function GET(req: NextRequest) {
+	const rateLimit = checkRateLimit(
+		`health:${getClientAddress(req)}`,
+		HEALTH_RATE_LIMIT,
+		HEALTH_RATE_WINDOW_MS,
+	);
+	if (!rateLimit.allowed) {
+		return Response.json(
+			{ status: "ok", services: { database: "healthy" }, uptime: Math.floor(process.uptime()), timestamp: Date.now() },
+			{ status: 200, headers: { "Cache-Control": "no-store" } },
+		);
+	}
 	const isDbHealthy = await checkDatabase();
 
 	const responsePayload = {

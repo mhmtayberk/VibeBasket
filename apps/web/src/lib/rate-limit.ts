@@ -1,40 +1,32 @@
-type Bucket = {
-	count: number;
-	resetAt: number;
+type BucketEntry = {
+	timestamps: number[];
 };
 
-const buckets = new Map<string, Bucket>();
+const buckets = new Map<string, BucketEntry>();
 let cleanupCounter = 0;
 
-/**
- * Periodically purges expired rate limit buckets from memory to prevent memory leaks.
- */
 function cleanupExpiredBuckets(now: number) {
 	cleanupCounter++;
-	if (cleanupCounter < 50) return; // Run cleanup once every 50 rate limit checks
+	if (cleanupCounter < 50) return;
 	cleanupCounter = 0;
 
-	for (const [key, bucket] of buckets.entries()) {
-		if (bucket.resetAt <= now) {
+	for (const [key, entry] of buckets.entries()) {
+		entry.timestamps = entry.timestamps.filter((ts) => ts > now - 60_000);
+		if (entry.timestamps.length === 0) {
 			buckets.delete(key);
 		}
 	}
 }
 
-/**
- * Highly secure, hybrid client IP address resolver supporting Cloudflare, Nginx trust proxies,
- * and standard socket interfaces. Blocks client-side header spoofing attacks.
- */
 export function getClientAddress(request: Request) {
-	// 1. Cloudflare direct client IP validation
 	const cfIp = request.headers.get("cf-connecting-ip");
 	if (cfIp) {
 		return cfIp.trim();
 	}
 
-	// 2. Trust proxy validation via process.env.TRUST_PROXY
 	const trustProxyEnv = process.env.TRUST_PROXY;
-	const isTrustProxyEnabled = trustProxyEnv === "true" || trustProxyEnv === "1";
+	const isTrustProxyEnabled =
+		trustProxyEnv === "true" || trustProxyEnv === "1";
 
 	if (isTrustProxyEnabled) {
 		const forwardedFor = request.headers.get("x-forwarded-for");
@@ -44,7 +36,6 @@ export function getClientAddress(request: Request) {
 		}
 	}
 
-	// 3. Fallback to standard x-real-ip or local connection identifier
 	const realIp = request.headers.get("x-real-ip");
 	if (realIp) {
 		return realIp.trim();
@@ -53,29 +44,54 @@ export function getClientAddress(request: Request) {
 	return "local";
 }
 
-export function checkRateLimit(key: string, limit: number, windowMs: number) {
+export interface RateLimitResult {
+	allowed: boolean;
+	remaining: number;
+	resetAt: number;
+	retryAfterSeconds: number;
+}
+
+export function checkRateLimit(
+	key: string,
+	limit: number,
+	windowMs: number,
+): RateLimitResult {
 	const now = Date.now();
-	
-	// Safely clean expired entries from Map memory
+	const windowStart = now - windowMs;
+
 	cleanupExpiredBuckets(now);
 
-	const current = buckets.get(key);
+	let entry = buckets.get(key);
 
-	if (!current || current.resetAt <= now) {
-		const next = { count: 1, resetAt: now + windowMs };
-		buckets.set(key, next);
-		return { allowed: true, remaining: limit - 1, resetAt: next.resetAt };
+	if (!entry) {
+		entry = { timestamps: [] };
+		buckets.set(key, entry);
 	}
 
-	if (current.count >= limit) {
-		return { allowed: false, remaining: 0, resetAt: current.resetAt };
+	entry.timestamps = entry.timestamps.filter((ts) => ts > windowStart);
+	const currentCount = entry.timestamps.length;
+
+	if (currentCount >= limit) {
+		const oldestInWindow = entry.timestamps[0];
+		const resetAt = oldestInWindow + windowMs;
+		const retryAfterSeconds = Math.ceil((resetAt - now) / 1000);
+		return {
+			allowed: false,
+			remaining: 0,
+			resetAt,
+			retryAfterSeconds: Math.max(1, retryAfterSeconds),
+		};
 	}
 
-	current.count += 1;
+	entry.timestamps.push(now);
+	const nextCount = entry.timestamps.length;
+	const resetAt = entry.timestamps[0] + windowMs;
+
 	return {
 		allowed: true,
-		remaining: Math.max(0, limit - current.count),
-		resetAt: current.resetAt,
+		remaining: Math.max(0, limit - nextCount),
+		resetAt,
+		retryAfterSeconds: 0,
 	};
 }
 

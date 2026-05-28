@@ -4,7 +4,7 @@
 We use `pnpm workspaces` to manage the project.
 
 - `packages/core`: Holds Zod schemas defining the data shape (bundles, MCPs, skills, etc.).
-- `packages/adapters`: Contains IDE adapters (Cursor, VS Code/Cline, Windsurf, Antigravity, Claude Code, DeepSeek-TUI, Zed, Codex CLI, Gemini CLI, Junie, Kiro, Cline CLI, Continue, Roo Code, Hermes, and OpenClaw) that handle config generation, backups, and idempotency.
+- `packages/adapters`: Contains IDE adapters (Cursor, Windsurf, VS Code/Cline, Antigravity, Claude Code, DeepSeek-TUI, Zed, Codex CLI, Gemini CLI, Junie, Kiro, Cline CLI, Continue, Roo Code, Hermes, OpenClaw, GitHub Copilot, Void Editor, and Aider) that handle config generation, backups, and idempotency.
 - `packages/registry`: Automated catalog synchronization logic from trusted external sources and local curated data, including the semver deduplication engine for official upstream MCP servers.
 - `apps/web`: Next.js 16 App Router providing the catalog and selection UI, `/docs` documentation hub, `/stacks` saved-stack management, and the `/admin` stats dashboard.
 - `apps/cli`: Node.js CLI tool running the execution environment.
@@ -40,6 +40,16 @@ To keep the catalog fresh without relying on mostly manual entry, VibeBasket imp
 7. **Source isolation**
    - one broken upstream source should not fail the entire sync run
    - sync summary now surfaces source-level errors explicitly
+
+## Backup & Storage System
+The admin panel provides a multi-cloud storage system for database backups with six backends:
+
+- **Local**: Default filesystem backup in a configurable directory.
+- **S3-compatible**: AWS S3, Cloudflare R2, and DigitalOcean Spaces — all share one implementation via `@aws-sdk/client-s3`.
+- **Azure Blob Storage**: Via `@azure/storage-blob`.
+- **Google Cloud Storage**: Via `@google-cloud/storage`.
+
+Cloud SDKs are lazily loaded via dynamic `await import()` to prevent Next.js build-time module resolution errors. Storage credentials are encrypted with AES-256-GCM (key derived from `AUTH_SECRET` via `scryptSync`) and stored in the `backup_storage_config` SQLite table. Configuration is managed through the admin panel UI — changing backends does not require a server restart. Scheduled backups can be configured with configurable hourly intervals.
 
 ## Performance & Scalability
 - **Server-Side Search**: Global search currently uses SQL `LIKE` over `display_name` and `description`.

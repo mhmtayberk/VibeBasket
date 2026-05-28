@@ -92,7 +92,7 @@ export async function POST(req: Request) {
 			BUNDLE_RATE_WINDOW_MS,
 		);
 		if (!rateLimit.allowed) {
-			return createTooManyRequestsResponse();
+			return createTooManyRequestsResponse(rateLimit.retryAfterSeconds);
 		}
 
 		const contentLength = req.headers.get("content-length");
