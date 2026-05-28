@@ -26,9 +26,15 @@ export const updateStackSchema = z
 			.max(280)
 			.optional()
 			.transform((value) => value || undefined),
+		itemIds: z.array(z.string().trim().min(1)).min(1).max(MAX_STACK_ITEMS).optional(),
+		targetIds: z.array(z.string().trim().min(1)).min(1).max(MAX_STACK_TARGETS).optional(),
 	})
 	.refine(
-		(value) => value.name !== undefined || value.description !== undefined,
+		(value) =>
+			value.name !== undefined ||
+			value.description !== undefined ||
+			value.itemIds !== undefined ||
+			value.targetIds !== undefined,
 		{
 			message: "Provide at least one field to update.",
 		},

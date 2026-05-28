@@ -405,6 +405,14 @@ async function bootstrapDatabase(targetClient: SqlExecutor) {
       completed_at INTEGER NOT NULL
     )
   `);
+  await targetClient.execute(`
+    CREATE TABLE IF NOT EXISTS backup_storage_config (
+      id TEXT PRIMARY KEY NOT NULL DEFAULT 'default',
+      backend TEXT NOT NULL DEFAULT 'local',
+      encrypted_config TEXT,
+      updated_at INTEGER
+    )
+  `);
   const foreignKeyStatus = await targetClient.execute("PRAGMA foreign_keys");
   const foreignKeysWereEnabled = String((foreignKeyStatus as any).rows?.[0]?.foreign_keys ?? "1") !== "0";
 

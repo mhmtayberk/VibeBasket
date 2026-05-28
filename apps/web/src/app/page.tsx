@@ -409,6 +409,7 @@ export default async function Home() {
 					initialCatalog={initialCatalog}
 					isSignedIn={Boolean(session?.user)}
 					enabledProviders={enabledProviders}
+					userRole={session?.user?.role}
 				/>
 			</section>
 
@@ -483,6 +484,7 @@ export default async function Home() {
 			<FloatingBasket
 				isSignedIn={Boolean(session?.user)}
 				enabledProviders={enabledProviders}
+				userRole={session?.user?.role}
 			/>
 			<TopToTopButton />
 		</main>

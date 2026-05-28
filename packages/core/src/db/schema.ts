@@ -37,5 +37,12 @@ export const catalogSyncRuns = sqliteTable("catalog_sync_runs", {
   completedAt: integer("completed_at", { mode: "timestamp" }).notNull(),
 });
 
+export const backupStorageConfig = sqliteTable("backup_storage_config", {
+  id: text("id").primaryKey().default("default"),
+  backend: text("backend").notNull().default("local"),
+  encryptedConfig: text("encrypted_config"),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+});
+
 export * from "./auth-schema";
 export * from "./stacks-schema";

@@ -51,6 +51,7 @@ interface CatalogGridProps {
 	initialCatalog?: CatalogResponse;
 	isSignedIn?: boolean;
 	enabledProviders?: EnabledAuthProvider[];
+	userRole?: string;
 }
 
 type CatalogApiItem = {
@@ -178,6 +179,7 @@ export function CatalogGrid({
 	initialCatalog,
 	isSignedIn = false,
 	enabledProviders = [],
+	userRole,
 }: CatalogGridProps) {
 	const defaultDiscovery = getCatalogDiscoveryDefaults();
 	const [items, setItems] = useState<BasketItem[]>(initialCatalog?.items ?? []);
@@ -587,6 +589,7 @@ export function CatalogGrid({
 						className="hidden lg:block"
 						isSignedIn={isSignedIn}
 						enabledProviders={enabledProviders}
+						userRole={userRole}
 					/>
 				</div>
 			</div>
