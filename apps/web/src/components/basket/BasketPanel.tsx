@@ -60,6 +60,13 @@ export function BasketPanel({
 		},
 		{} as Record<string, number>,
 	);
+	const hasSkills = Boolean(itemCounts.skill);
+	const hasRules = Boolean(itemCounts.rule);
+	const incompatibleTargets = supportedTargets.filter((t) => {
+		if (hasSkills && !t.capabilities.supportsSkills) return true;
+		if (hasRules && !t.capabilities.supportsRules) return true;
+		return false;
+	});
 
 	const handleBuild = async () => {
 		if (items.length === 0 || targets.length === 0) {
@@ -316,11 +323,14 @@ export function BasketPanel({
 						) : null}
 					</div>
 
-					<p className="text-xs leading-6 text-muted-foreground">
-						Installed targets stay clickable only when the adapter exists, and
-						the bundle API validates the same supported set before generating
-						install commands.
-					</p>
+					{incompatibleTargets.length > 0 && (
+						<p className="text-xs leading-6 text-amber-300/90">
+							{incompatibleTargets.map((t) => t.label).join(", ")}: doesn&apos;t support {[
+								hasSkills ? "Skills" : "",
+								hasRules ? "Rules" : "",
+							].filter(Boolean).join(" or ")}. These will be skipped during apply.
+						</p>
+					)}
 				</div>
 
 				<div className="space-y-3 border-t border-border/70 pt-5">
@@ -352,6 +362,25 @@ export function BasketPanel({
 						refreshToken={savedStacksVersion}
 						userRole={userRole}
 					/>
+				</div>
+
+				<div className="space-y-3 border-t border-border/70 pt-5">
+					<p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+						Bundle Preview
+					</p>
+					<div className="border border-border/70 bg-background/60 p-4 font-mono text-[11px] leading-6 text-muted-foreground space-y-1">
+						{items.length === 0 ? (
+							<p>Select items to preview your bundle.</p>
+						) : (
+							<>
+								<p>{items.length} item{items.length !== 1 ? "s" : ""}: {(["mcp", "skill", "rule"] as const).filter((t) => itemCounts[t]).map((t) => `${itemCounts[t]} ${t}${itemCounts[t] !== 1 ? "s" : ""}`).join(", ")}</p>
+								<p>→ {targets.length} target{targets.length !== 1 ? "s" : ""}</p>
+								{incompatibleTargets.length > 0 && (
+									<p className="text-amber-300/90">→ {incompatibleTargets.map((t) => t.label).join(", ")}: skills/rules skipped</p>
+								)}
+							</>
+						)}
+					</div>
 				</div>
 
 				<div className="space-y-3 border-t border-border/70 pt-5">

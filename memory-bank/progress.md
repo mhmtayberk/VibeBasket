@@ -1,118 +1,47 @@
 # Progress
 
 ## Completed
-- Defined project spec and architecture.
-- Initialized monorepo configuration (package.json, pnpm-workspace.yaml, tsconfig.base.json, biome.json).
-- Implemented `@vibebasket/core` (Zod schemas).
 - [x] Monorepo Infrastructure (pnpm)
 - [x] Core Manifest Validation (Zod)
-- [x] IDE Adapters (Cursor, VSCode, Windsurf, Antigravity, Continue, Roo Code, Hermes, OpenClaw)
+- [x] 23 IDE Adapters (all implement applyMcps, 11 implement applySkills, 5 implement applyRules)
 - [x] Web Dashboard UI (Tailwind v4, Shadcn, independent desktop scrolling)
-- [x] Secure Admin Panel & Stats Dashboard (OAuth verified, dynamic roles, server actions sync)
+- [x] Catalog Detail View with responsive modal
+- [x] Trust System (3-tier: Verified/Official/Community)
+- [x] Bundle Preview in Basket Panel
+- [x] Cross-Target Capability Warnings (web + CLI)
+- [x] Secure Admin Panel & Stats Dashboard
+- [x] Backup & Storage System (6 backends, encrypted credentials, scheduled backups)
+- [x] Security: CSRF middleware, CSP (production), path sanitization, rate limiting (9 endpoints)
 - [x] Responsive Design & Mobile Optimization
 - [x] SEO Meta Tags Enhancement
-- [x] Backend APIs (Catalog, Bundle Management, Admin Stats)
-- [x] CLI Core Architecture
-- [x] CLI `apply` command logic
-- [x] CLI Interactive Secrets Prompt
-- [x] ESM/Build stabilization across monorepository and hide private directories via `.git/info/exclude`.
-- [x] SQLite WAL (Write-Ahead Logging) Mode Integration for Reader-Writer Concurrency
-- [x] Drizzle Atomic DB Transactions for Ingestion Sync Performance Boost
-- [x] Rate Limiter Memory Leak Map Garbage Cleanup Sweeper
-- [x] Secure Hybrid IP Rate Limiter Spoofing Prevention with Cloudflare & `TRUST_PROXY` Support
-- [x] Idempotent Delimiter-Based Rule/Skill Updating Engine inside Roo Code, Hermes, and OpenClaw Adapters
-- [x] Comprehensive rate-limit and delimiter unit testing verifying 120 green Vitest tests.
-- Scaffolded Next.js 15 Web Application (`apps/web`).
-- Integrated Tailwind v4 and Shadcn UI (OLED Dark Mode Minimal Design).
-- Resolved Next.js Turbopack PostCSS issues via `.npmrc` hoisting configuration.
-- Implemented Web Application UI/UX (OLED Dark Mode, Bento Grid Catalog, Floating Basket, Zustand Store).
-- Integrated Drizzle ORM and LibSQL (SQLite) into `@vibebasket/core`.
-- Implemented `/api/catalog` and `/api/bundle` (POST/GET) endpoints.
-- Seeded the database with initial catalog metadata.
-- Implemented live trusted-source registry sync for official MCP and skills sources.
-- Added source-isolated sync behavior so upstream failures degrade gracefully.
-- Expanded the catalog from seed-scale data to large real datasets.
-- Fixed visible selection state and unselect behavior in the catalog UI.
-- Added server/client pagination for the catalog browsing experience.
-- Added runtime DB indexes and a single-flight sync guard for catalog reads.
-- Redesigned the homepage and builder experience to align much more closely with the Stitch reference system.
-- Reworked the basket UX into a desktop side panel plus mobile floating entry point.
-- Promoted Claude Code, Zed, Gemini CLI, Junie, Kiro, and Cline CLI from watchlist-only visibility into real adapter-backed bundle targets.
-- Added a Codex CLI adapter and closed the project-scope path propagation bug in the CLI apply flow.
-- Seeding verified catalog data immediately on the first empty request and moving full upstream sync work behind the request path.
-- Ingested sitemap-backed `skills.sh` sync for full catalog offline completeness.
-- Dynamic `role: "admin"` session assignment with strict verified-email validation to prevent spoofing attacks.
-- Server-rendered Admin Stats Bento Grid Page `/admin` querying aggregated user/stack metrics.
-- Next.js Server Action `triggerSyncAction` manual catalog sync trigger entirely server-side.
-- Added dynamic Admin Panel navigation link inside `AuthMenu` for admin sessions.
-- Added **Continue, Roo Code, Hermes, and OpenClaw** IDE/Agent adapters with full MCP and Skills (Prompts & Rules) support.
-- Added independent desktop grid scroll for the Catalog grid and Basket columns with smooth custom-scrollbar styles.
-- Re-verified full monorepository compilation, typechecks, and vitest passes successfully.
-- [x] Premium OLED-dark Documentation Hub `/docs` page reflecting `vibebasket_docs_hub` UI spec perfectly
-- [x] Implemented professional systems-grade technical documentation sections (CLI, Delimiters, Security, Self-Hosting)
-- [x] Separated detailed guides into dynamic Next.js 15 `searchParams` query tabs for perfect layout hygiene
-- [x] Eliminated nested rounded outlines in the sidebar, replacing with a clean flat Setup Builder segment and edge-to-edge menu rows
-- [x] Added fluid edge-to-edge slide-in hover transitions (`hover:pl-6 duration-300`) and active mint vertical border indicators in the sidebar
-- [x] Implemented high-contrast glowing card borders (`hover:border-[#a0fdda]`) and soft mint outer shadow drops (`hover:shadow-[0_0_30px_rgba(160,253,218,0.18)]`)
-- [x] Customized dynamic brand-matched glows for each IDE Adapter card (Cursor orange, Windsurf cyan, Continue mint, Hermes purple)
-- [x] Relaxed vertical page spacing (`space-y-24`) and relaxed grid gap scales (`gap-12 lg:gap-16`) to provide extensive breathing room
-- [x] Added `/docs` route to the header and footer menus for unified system navigation
-- [x] Centered animated "Made with ♥ by Vibe Coding for Vibe Coders" footer signature inside a standalone row at the bottom of the page
-- [x] Overhauled `/docs` vertical/horizontal spacing (py-20, main px-24, bento gap-14, card p-10) eliminating vertical clutter and delivering a deeply spacious visual environment.
-- [x] Implemented a strict global sharp border-radius (2px) by setting `--radius: 0.125rem` in `globals.css`, instantly geometric-polishing all buttons, cards, inputs, and dialogs.
-- [x] Resolved Next.js `missing-data-scroll-behavior` transition warning by conditionalizing globals.css scroll-behavior with `html[data-scroll-behavior="smooth"]`.
-- [x] Fully validated TypeScript typechecks and dynamic static-page production building with zero warnings and zero runtime regressions.
-- [x] Integrated `compareSemver` utility into `OfficialMcpRegistryCollector` — only the highest semver version of each official MCP server is ingested, eliminating catalog duplication for multi-version packages like `.FAF Context`.
-- [x] Added semver deduplication unit test in `packages/registry/src/index.test.ts`; all 120 Vitest tests remain green.
-- [x] Refreshed all `docs/` files: CHANGELOG promoted to versioned `[0.8.0]` entry, ARCHITECTURE updated with new adapters + semver dedup section, PROJECT_OVERVIEW expanded with docs hub and correct target model, CODING_STANDARDS gained rules 10 & 11.
-- [x] Updated `memory-bank/activeContext.md` and `memory-bank/progress.md` to reflect current state.
+- [x] Backend APIs (Catalog, Bundle Management, Admin Stats, Stacks with pagination)
+- [x] CLI — apply, init, doctor, rollback, list, search
+- [x] SQLite WAL Mode, 15 indexes, VACUUM INTO atomic backup
+- [x] Drizzle Atomic DB Transactions for Ingestion Sync
+- [x] Rate Limiter: Sliding window with Retry-After
+- [x] Idempotent Delimiter-Based Rule/Skill Updating
+- [x] Multi-Cloud Backup Storage with DB-backed config
 
-- [x] Multi-stage Production Dockerfile based on Node.js 22 Alpine using standalone build outputs.
-- [x] Production docker-compose.yml configuration with persistence, health checks, and full inline documentation.
-- [x] Fully-implemented secure `/api/health` endpoint with lightweight Drizzle connection checks, 5s in-memory caching to guard against database flooding/DoS, and dynamic process uptime tracking.
-- [x] Sitemap.xml generation including `/docs` with strict Information Disclosure safeguards blocking exposure of private bundles.
-- [x] Secured documentation hub with 100-character input restrictions (XSS/ReDoS protection) and a strict whitelist validation for tab routes (LFI/RFI protection).
-- [x] Broadened arama kapsamı by enriching keywords for all guides inside the `/docs` page, making search queries like "Docker" instantly find relevant guides.
-- [x] Added dedicated GitHub OAuth Application Callback URL configuration instructions inside the self-hosting tab of the docs hub.
-- [x] Enforced Git tracking for `.env.example` template with all keys fully documented.
-- [x] Completed full TypeScript check (`tsc --noEmit`) and dynamic production verification with zero errors.
-- [x] Completed monorepo-wide security audit and functionality sweep across all components (Landing Page, Catalog, Auth, Admin, CLI, APIs).
-- [x] Resolved TypeScript errors in Aider, Void, and GitHub Copilot adapters and test mocks. Verified 148/148 Vitest tests are green.
-- [x] Hardened Zod schemas in `manifest.ts` with strict regex validation to eliminate CLI Path Traversal and Arbitrary File Write vulnerabilities.
-- [x] Implemented "Copy NPX" command kopyalama aracı, "Update Content" (sepet içeriğini stack'e atomik yazan) PATCH API transaction'ı ve silme onayı (window.confirm).
-- [x] Secured admin layout inside basket panel by disabling saved stacks lists for administrators and embedding a direct Admin Panel redirection card.
+## Completed (Latest Batch — June 12, 2026)
+- [x] 4 new IDE adapters: Cortex Code, Goose, IBM Bob, CodeBuddy (23 total)
+- [x] CLI `list` command: scan installed MCP/skills/rules per IDE
+- [x] CLI `search` command: search catalog from terminal
+- [x] Cross-target capability handling: warn + continue in CLI, warning in web UI
+- [x] Adapter accuracy fixes: Claude Code skills, Cursor rules
+- [x] 18 new adapter tests (90 total)
+- [x] CSRF middleware with Origin validation
+- [x] Bundle preview in basket panel
+- [x] .env.example: backup storage env vars documented
+- [x] Version bump: 0.1.0 → 0.9.0
+- [x] Security: path traversal fix, error message sanitization, security headers coverage
+- [x] CHANGELOG: duplicate removed, [0.9.0] release header added
+- [x] Documentation: all files audited and corrected
 
 ## In Progress
-- CLI tarafında `list` ve `prune` komutlarının implementasyonu.
-- Playwright E2E testlerine rate limit ve storage management akışlarının entegrasyonu.
-
-## Completed (Latest Batch — May 28, 2026)
-
-- [x] Trust score simplified: removed arbitrary numbers, pure 3-tier system
-- [x] Catalog detail view: "Details →" button + responsive modal
-- [x] Landing page: unified SVG icons (16 targets), removed simple-icons, badge update
-- [x] Health endpoint: proper 429 on rate limit (was fake 200)
-- [x] ADMIN_EMAILS mismatch: code accepts both ADMIN_OAUTH_EMAILS and ADMIN_EMAILS
-- [x] Bundle TTL: anonymous 48h, registered 365d, auto-cleanup
-- [x] CLI docs: removed non-existent flags, added actual --scope/--dry-run
-- [x] ErrorBoundary component created
-- [x] Dead code removed: community.json, unused imports/variables
-- [x] DB: idx_bundles_expires_user, .gitignore *.db files
-- [x] Test paths: dynamic resolveRepoRoot() instead of hardcoded paths
-- [x] Bundle schema: user_id + expires_at columns, cleanup index
-- [x] Atomic backup: VACUUM INTO for local backend
-- [x] Microsoft Entra ID (Azure AD) OAuth provider added (4th provider: GitHub, Google, Apple, Microsoft)
-- [x] Multi-cloud backup storage system with 6 backends: Local, S3, R2, Spaces, Azure, GCS
-- [x] AES-256-GCM encrypted credential storage in SQLite `backup_storage_config` table
-- [x] DB-first configuration with env and local fallback (no restart needed to switch backends)
-- [x] Lazy-loaded cloud SDKs to avoid Next.js build-time module resolution errors
-- [x] Admin panel storage management UI: backend selector table, credential forms, backup operations
-- [x] Admin panel full redesign: design-token-consistent colors, sharp corners, proper tables
-- [x] `triggerSyncAction` hardened: dynamic import for registry, null-safe, error-type-aware catch
-- [x] 18 sync edge case tests + 25 storage unit/chaos tests (93 total passing)
-- [x] `.env.example` updated with all 4 providers + backup storage vars
-- [x] TypeScript strict mode: zero errors. All Vitest tests green. Browser verification: zero console errors.
+- CLI `prune` command implementation
+- Mobile responsive improvements
+- Search improvements (FTS5)
+- E2E test suite
 
 ## Blockers
 - None.
-
