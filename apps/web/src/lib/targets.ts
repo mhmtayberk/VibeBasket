@@ -179,6 +179,38 @@ const UNSORTED_TARGET_OPTIONS: TargetOptionSeed[] = [
 		note: "Idempotent project-level .aider.conf.yml and .aiderinstructions.md supported.",
 		vendor: "Aider",
 	},
+	{
+		id: "cortex-code",
+		label: "Cortex Code",
+		status: "supported",
+		kind: "terminal",
+		note: "Backed by ~/.snowflake/cortex/mcp.json and .cortex/skills/ directory.",
+		vendor: "Snowflake",
+	},
+	{
+		id: "goose",
+		label: "Goose",
+		status: "supported",
+		kind: "terminal",
+		note: "Backed by ~/.config/goose/config.yaml MCP extensions.",
+		vendor: "Block / Linux Foundation",
+	},
+	{
+		id: "ibm-bob",
+		label: "IBM Bob",
+		status: "supported",
+		kind: "editor",
+		note: "Backed by ~/.bob/mcp_settings.json and .bob/mcp.json project config.",
+		vendor: "IBM",
+	},
+	{
+		id: "codebuddy",
+		label: "CodeBuddy",
+		status: "supported",
+		kind: "editor",
+		note: "Backed by ~/.codebuddy/.mcp.json and .mcp.json project config.",
+		vendor: "Tencent Cloud",
+	},
 ];
 
 function deriveTargetStatus(id: IdeId): TargetStatus {

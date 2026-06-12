@@ -1,7 +1,8 @@
+import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import type { IdeAdapter } from "./types";
-import type { IdeId, McpEntry, Scope } from "@vibebasket/core";
+import type { IdeId, McpEntry, Scope, SkillEntry } from "@vibebasket/core";
 import {
   mergeStandardMcpServers,
   readJsonFileOrDefault,
@@ -65,6 +66,21 @@ export class ClaudeCodeAdapter implements IdeAdapter {
       ...projectConfig,
       mcpServers: mergeStandardMcpServers(projectConfig.mcpServers, mcps, secrets, opts),
     };
+  }
+
+  async applySkills(skills: SkillEntry[], scope: Scope, projectRoot?: string): Promise<void> {
+    const baseDir = scope === "project" && projectRoot
+      ? path.join(projectRoot, ".claude", "skills")
+      : path.join(os.homedir(), ".claude", "skills");
+    await fs.mkdir(baseDir, { recursive: true });
+    for (const skill of skills) {
+      const skillDir = path.join(baseDir, skill.id);
+      await fs.mkdir(skillDir, { recursive: true });
+      const body = skill.source.type === "inline" ? skill.source.content
+        : skill.source.type === "github" ? `Source: github.com/${skill.source.repo}${skill.source.path ? `/${skill.source.path}` : ""}`
+        : `Source: npm ${skill.source.type === "npm" ? skill.source.package : "inline"}`;
+      await fs.writeFile(path.join(skillDir, "SKILL.md"), `# ${skill.displayName}\n\n${body}`, "utf8");
+    }
   }
 
   async writeConfig(scope: Scope, config: unknown, projectRoot?: string): Promise<void> {

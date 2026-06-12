@@ -7,6 +7,8 @@ import { toErrorMessage } from "./errors.js";
 import { initProject } from "./init.js";
 import { runDoctor } from "./doctor.js";
 import { runRollback } from "./rollback.js";
+import { runList } from "./list.js";
+import { runSearch } from "./search.js";
 
 const program = new Command();
 
@@ -61,6 +63,30 @@ program
   .action(async () => {
     try {
       await runRollback();
+    } catch (error) {
+      console.error(chalk.red(`\n❌ Error: ${toErrorMessage(error)}`));
+      process.exit(1);
+    }
+  });
+
+program
+  .command("list")
+  .description("List installed MCP servers, skills, and rules per IDE")
+  .action(async () => {
+    try {
+      await runList();
+    } catch (error) {
+      console.error(chalk.red(`\n❌ Error: ${toErrorMessage(error)}`));
+      process.exit(1);
+    }
+  });
+
+program
+  .command("search <query>")
+  .description("Search the VibeBasket catalog from the terminal")
+  .action(async (query: string) => {
+    try {
+      await runSearch(query);
     } catch (error) {
       console.error(chalk.red(`\n❌ Error: ${toErrorMessage(error)}`));
       process.exit(1);

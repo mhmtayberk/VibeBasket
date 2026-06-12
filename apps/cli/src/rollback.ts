@@ -23,6 +23,10 @@ import {
   GitHubCopilotAdapter,
   VoidAdapter,
   AiderAdapter,
+  CortexCodeAdapter,
+  GooseAdapter,
+  IBMBobAdapter,
+  CodeBuddyAdapter,
 } from "@vibebasket/adapters";
 
 const ADAPTERS = {
@@ -45,6 +49,10 @@ const ADAPTERS = {
   "github-copilot": new GitHubCopilotAdapter(),
   void: new VoidAdapter(),
   aider: new AiderAdapter(),
+  "cortex-code": new CortexCodeAdapter(),
+  goose: new GooseAdapter(),
+  "ibm-bob": new IBMBobAdapter(),
+  codebuddy: new CodeBuddyAdapter(),
 } as const;
 
 function getRollbackAdapter(targetId: string): IdeAdapter | undefined {

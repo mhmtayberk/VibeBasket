@@ -89,7 +89,7 @@ export async function GET(request: Request) {
       }
     }
 
-    return NextResponse.json({
+    return applySecurityHeaders(NextResponse.json({
       success: true,
       stats: {
         totalUsers,
@@ -98,7 +98,7 @@ export async function GET(request: Request) {
         lastSync,
         catalogStats
       }
-    });
+    }));
 
   } catch (error) {
     if (error instanceof ForbiddenError) {

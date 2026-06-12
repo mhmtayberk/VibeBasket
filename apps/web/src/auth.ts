@@ -61,7 +61,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
 				const adminEmails = (process.env.ADMIN_OAUTH_EMAILS || process.env.ADMIN_EMAILS || "")
 					.split(",").map((e) => e.trim().toLowerCase()).filter(Boolean);
 
-				const isDevAdmin = email?.toLowerCase() === "admin@vibebasket.dev";
+				const isDevAdmin = process.env.NODE_ENV !== "production" && email?.toLowerCase() === "admin@vibebasket.dev";
 
 				if (isDevAdmin || (email && adminEmails.includes(email.toLowerCase()))) {
 					session.user.role = "admin";
