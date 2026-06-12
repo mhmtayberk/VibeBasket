@@ -211,11 +211,11 @@ export async function restoreBackupAction(key: string) {
 		);
 
 		try {
-			// For local backend, just copy from backups dir
+			const safeKey = path.basename(key).replace(/[^a-zA-Z0-9._-]/g, "_");
 			if (backend.id === "local") {
 				const backupPath = path.join(
 					process.env.BACKUP_LOCAL_DIR ?? path.join(process.cwd(), "backups"),
-					key,
+					safeKey,
 				);
 				await fs.promises.copyFile(backupPath, tempPath);
 			} else {

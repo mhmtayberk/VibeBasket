@@ -4,7 +4,7 @@
 We use `pnpm workspaces` to manage the project.
 
 - `packages/core`: Holds Zod schemas defining the data shape (bundles, MCPs, skills, etc.).
-- `packages/adapters`: Contains IDE adapters (Cursor, Windsurf, VS Code/Cline, Antigravity, Claude Code, DeepSeek-TUI, Zed, Codex CLI, Gemini CLI, Junie, Kiro, Cline CLI, Continue, Roo Code, Hermes, OpenClaw, GitHub Copilot, Void Editor, and Aider) that handle config generation, backups, and idempotency.
+- `packages/adapters`: Contains IDE adapters (Cursor, Windsurf, VS Code/Cline, Antigravity, Claude Code, DeepSeek-TUI, Zed, Codex CLI, Gemini CLI, Junie, Kiro, Cline CLI, Continue, Roo Code, Hermes, OpenClaw, GitHub Copilot, Void Editor, Aider, Cortex Code, Goose, IBM Bob, and CodeBuddy) that handle config generation, backups, and idempotency.
 - `packages/registry`: Automated catalog synchronization logic from trusted external sources and local curated data, including the semver deduplication engine for official upstream MCP servers.
 - `apps/web`: Next.js 16 App Router providing the catalog and selection UI, `/docs` documentation hub, `/stacks` saved-stack management, and the `/admin` stats dashboard.
 - `apps/cli`: Node.js CLI tool running the execution environment.

@@ -1,30 +1,36 @@
 # Active Context
 
-## Current State
+## Current State (June 12, 2026)
 
-- **Catalog Detail View**: Each catalog card now has a "Details →" button that opens a responsive modal showing item metadata (trust tier, source provenance, install command for MCPs, GitHub repo info for skills, freshness). All data sourced from our own SQLite DB ingested from skills.sh and MCP Registry.
+- **23 IDE Adapters**: Full coverage across Cursor, Windsurf, VS Code, Antigravity, Claude Code, DeepSeek-TUI, Zed, Codex CLI, Gemini CLI, Junie, Kiro, Cline CLI, Continue, Roo Code, Hermes, OpenClaw, GitHub Copilot, Void Editor, Aider, Cortex Code, Goose, IBM Bob, CodeBuddy. 11 support skills auto-apply. 4 support rules (Cursor, Roo Code, GitHub Copilot, Void Editor).
 
-- **Trust Score Simplified**: Removed arbitrary numeric scoring (100/82/60-75). Now three pure tiers: Verified (hand-curated), Official (from official-mcp-registry or skills-sh-official), Community (all other sources). Score field removed from both CatalogTrust and BasketItemTrust types.
+- **Catalog Detail View**: Each catalog card has a "Details →" button opening a responsive modal with trust tier, source provenance, install command (MCP), GitHub repo info (skills), and freshness data.
 
-- **Landing Page Polish**: Badge changed from "Public beta" to "Open source · 19 IDE targets". Marquee icons unified — all 16 targets use consistent SVG files from /public/targets/. Removed simple-icons dependency (~12MB savings). Outdated "Today's apply engine..." text removed. Dead `hasNonMcpItems` variable cleaned up.
+- **Trust System**: Simplified to pure 3-tier (Verified/Official/Community) without arbitrary numeric scores.
 
-- **Security Fixes**: Health endpoint now returns proper 429 when rate-limited (was returning fake 200). ADMIN_EMAILS env var mismatch resolved (code now accepts both ADMIN_OAUTH_EMAILS and ADMIN_EMAILS). Bundle TTL: anonymous 48h, registered 365d. Expired bundles auto-cleaned.
+- **Bundle Preview**: Basket panel shows item count, target count, and warns about incompatible targets before generating the install command.
 
-- **CLI Docs Corrected**: Removed non-existent `--project-root`/`--yes` flags from docs. Replaced with actual flags: `--scope`/`--dry-run`.
+- **Cross-Target Capability Handling**: CLI warns and continues when some targets don't support all selected content. Web UI shows incompatible target warnings.
 
-- **Error Boundary**: `ErrorBoundary.tsx` created — reusable React error boundary with retry button.
+- **Backup & Storage**: 6 backends (Local, S3, R2, Spaces, Azure, GCS). AES-256-GCM encrypted credentials. Scheduled backups with admin panel UI.
 
-- **Dead Code Removed**: Empty `community.json`, unused imports, dead variables.
+- **Rate Limiting**: Sliding window on 9 endpoints. Retry-After header on 429 responses.
 
-- **DB Hardening**: `idx_bundles_expires_user` index added. `*.db` files added to `.gitignore`. Test paths made dynamic (no more hardcoded user paths).
+- **Middlelware**: Global CSRF protection via Origin validation. Security headers (CSP in production, X-Frame-Options, X-Content-Type-Options) applied globally.
 
-- **Test Coverage**: 93 Vitest tests (web) + 72 (adapters) = 165 total all passing. TypeScript strict mode with zero errors.
+- **CLI**: 6 commands — apply, init, doctor, rollback, list (new), search (new).
+
+- **Test Coverage**: 187 tests (93 web + 4 CLI + 90 adapters). TypeScript strict mode, zero errors.
 
 ## Next Steps
-- CLI `list` and `prune` command implementation.
-- VACUUM schedule for DB maintenance.
+- CLI `prune` command.
+- Mobile responsive improvements.
+- Search improvements (FTS5, typo tolerance).
+- Adapter base class extraction.
+- E2E test suite.
 
 ## Considerations
-- **Trust System**: Pure tier-based. No misleading numeric scores. Documented in code with source provenance.
-- **Bundle Lifecycle**: Anonymous 48h TTL, registered 365d. Cleanup runs every 60s on bundle fetch.
-- **CSP**: Production-only. Dev mode bypasses for Turbopack compatibility.
+- **CSP**: Production-only. Dev bypasses for Turbopack.
+- **Bundle TTL**: Anonymous 48h, registered 365d.
+- **DB**: WAL mode, 15 indexes, .gitignore for *.db files.
+- **Middleware**: Origin validation on POST/PATCH/DELETE/PUT.

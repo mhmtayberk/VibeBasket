@@ -22,6 +22,10 @@ export const IdeIdSchema = z.enum([
   "github-copilot",
   "void",
   "aider",
+  "cortex-code",
+  "goose",
+  "ibm-bob",
+  "codebuddy",
 ]);
 export type IdeId = z.infer<typeof IdeIdSchema>;
 

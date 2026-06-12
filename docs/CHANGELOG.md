@@ -2,7 +2,58 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.9.0] — 2026-06-12
+
+### 4 New IDE Targets (23 total)
+- **Cortex Code** (Snowflake): CLI terminal agent. MCP at `~/.snowflake/cortex/mcp.json`, skills at `.cortex/skills/`. Supports user and project scopes.
+- **Goose** (Block / Linux Foundation): CLI/Desktop agent. MCP at `~/.config/goose/config.yaml`. User scope. MCP-only today.
+- **IBM Bob** (IBM): Standalone IDE + Bob Shell. MCP at `~/.bob/mcp_settings.json` (global) and `.bob/mcp.json` (project). Skills at `.bob/skills/`.
+- **CodeBuddy** (Tencent Cloud): IDE + VS Code/JetBrains plugin + CLI. MCP at `~/.codebuddy/.mcp.json` (user) and `.mcp.json` (project). Skills at `.codebuddy/skills/`.
+
+### CLI Enhancements
+- **`vibebasket list`**: New command that scans all 23 IDE targets for installed MCP servers, skills, and rules. Shows per-IDE summary with colored output.
+- **`vibebasket search <query>`**: New command that searches the VibeBasket catalog API from the terminal. Returns up to 10 matching MCP servers, skills, or rules with their names, descriptions, and type badges.
+- **Cross-target capability handling**: When a bundle contains skills/rules but not all selected targets support them, the CLI now warns and continues instead of failing. MCP is applied to all targets; skills/rules are only applied to targets that support them.
+
+### Adapter Accuracy Fixes
+- **Claude Code** now declares `supportsSkills: true` — skills are written to `~/.claude/skills/<id>/SKILL.md` or `./claude/skills/<id>/SKILL.md` for project scope.
+- **Cursor** now declares `supportsRules: true` — rules are written to `.cursor/rules/<id>.md`.
+
+### Documentation Updates
+- ARCHITECTURE.md and PROJECT_OVERVIEW.md updated to reflect 23 IDE targets and 11 skills-capable adapters.
+- CLI docs updated with `list`, `search` commands and `--scope` / `--dry-run` flags.
+
+### Test Coverage
+- 18 new adapter tests for Cortex Code, Goose, IBM Bob, and CodeBuddy
+- 187 total tests (93 web + 4 CLI + 90 adapters) — all passing.
+
+---
+
 ## [Unreleased]
+
+### 4 New IDE Targets (23 total)
+- **Cortex Code** (Snowflake): CLI terminal agent. MCP at `~/.snowflake/cortex/mcp.json`, skills at `.cortex/skills/`. Supports user and project scopes.
+- **Goose** (Block / Linux Foundation): CLI/Desktop agent. MCP at `~/.config/goose/config.yaml`. User scope. MCP-only today.
+- **IBM Bob** (IBM): Standalone IDE + Bob Shell. MCP at `~/.bob/mcp_settings.json` (global) and `.bob/mcp.json` (project). Skills at `.bob/skills/`.
+- **CodeBuddy** (Tencent Cloud): IDE + VS Code/JetBrains plugin + CLI. MCP at `~/.codebuddy/.mcp.json` (user) and `.mcp.json` (project). Skills at `.codebuddy/skills/`.
+- 3 tools could not be added due to lack of public documentation: ForgeCode, CodeArts Agent (Huawei), CodeMaker.
+
+### CLI Enhancements
+- **`vibebasket list`**: New command that scans all 23 IDE targets for installed MCP servers, skills, and rules. Shows per-IDE summary with colored output.
+- **`vibebasket search <query>`**: New command that searches the VibeBasket catalog API from the terminal. Returns top 10 results with type badges and descriptions.
+- **Cross-target capability handling**: When a bundle contains skills/rules but not all selected targets support them, the CLI now warns and continues instead of failing. MCP is applied to all targets; skills/rules are only applied to targets that support them.
+
+### Adapter Accuracy Fixes
+- **Claude Code** now declares `supportsSkills: true` — skills are written to `~/.claude/skills/<id>/SKILL.md` or `./claude/skills/<id>/SKILL.md` for project scope.
+- **Cursor** now declares `supportsRules: true` — rules are written to `.cursor/rules/<id>.md`.
+
+### Documentation Updates
+- ARCHITECTURE.md and PROJECT_OVERVIEW.md updated to reflect 23 IDE targets and 11 skills-capable adapters.
+- CLI docs updated with `--scope` and `--dry-run` flags (replaced non-existent `--project-root` and `--yes`).
+
+### Test Coverage
+- 18 new adapter tests for Cortex Code, Goose, IBM Bob, and CodeBuddy
+- 187 total tests (93 web + 4 CLI + 90 adapters) — all passing.
 
 ### Multi-Cloud Backup Storage System with DB-Backed Config
 - **Six storage backends**: Local Filesystem, AWS S3, Cloudflare R2, DigitalOcean Spaces, Azure Blob Storage, Google Cloud Storage — all with a unified `StorageBackend` interface.
@@ -56,34 +107,6 @@ All notable changes to this project will be documented in this file.
 
 ### Documentation & UI Improvements
 - **Expanded Search Scope**: Enriched keywords mapping was added to all guides inside the `/docs` hub, allowing users to successfully search long-tail terms like "Docker", "compose", "volume", "security", "credentials" and locate relevant architectural articles instantly.
-- **GitHub OAuth Redirect Spec**: Expanded the self-hosting documentation inside `/docs?tab=self-hosting` with a dedicated callout explaining how to correctly declare the GitHub OAuth application callback URL (`${NEXTAUTH_URL}/api/auth/callback/github`) in developer environments.
-
-### Saved Stack & Profile Enhancements
-- **Interactive Stack Editing**: Replaced the primitive `window.prompt` rename dialog with a fully featured, custom `EditStackDialog` modal. Normal users can now edit stack name and description, add/remove components directly (synced dynamically with their active basket), and toggle target IDEs in a geometric grid. Expanded screen utilization to `max-w-7xl` / `w-[95vw]` to deliver a spacious two-column layout (Components on the left, Target IDEs on the right) with strict **English-only** arayüz copy.
-- **Admin Layout and Navigation Hiding**: Admin users are no longer shown a saved stacks list or the `Save Stack` panel triggers, preventing all administrative footprinting. In its place, we introduced a premium systems widget with a direct redirection action link to the `/admin` console. Dynamically hid the `My Stacks` navigation link from the `AuthMenu` header for administrators, displaying exclusively the `Admin Panel` action button.
-- **Mock Admin Session Insertion**: Safe database fixtures were populated in the local SQLite db, restoring the ability to log in as an administrator using the `mock-admin-token-12345` token.
-
-### IDE Targets & Automation Upgrades
-- **Integrated Aider, Void, and GitHub Copilot Targets**: Added native adapter integrations for these highly popular coding tools:
-  - **GitHub Copilot**: Supports project-scoped rules and skills inside `.github/copilot-instructions.md` using high-fidelity delimiters.
-  - **Void Editor**: Supports global/project mcp config merging in `mcp_servers.json` and rules/skills inside both `.voidrules` and `.clinerules`.
-  - **Aider**: Supports zero-dependency idempotent `.aider.conf.yml` YAML config mutations (injecting the `read` flag) and rules/skills inside `.aiderinstructions.md`.
-- **CLI Auto-Apply for Skills & Rules**: Reworked the CLI execution pipeline (`apply.ts`, `rollback.ts`) to automatically apply and compile rules and skills right after base config writes, delivering 100% feature-complete automation.
-- **Ecosystem Watchlist Sync**: Registered and dökümante edildi all 19 supported targets inside `apps/web/src/lib/targets.ts` and the `/docs` adapters layout tab.
-
-### Security & Hardening
-- **Secure Health Check Endpoint**: Implemented a live `/api/health` API route that queries the database via a lightweight Drizzle select (`db.select().from(users).limit(1)`) to verify real system connectivity. Mitigated Denial of Service (DoS) and request flooding risks via an in-memory database status cache with 5s TTL, and enforced strict HTTP no-cache headers. Enjected process uptime tracking in seconds (`uptime` field).
-
-- **Information Disclosure Mitigation in Sitemap**: Added `/docs` route to the intelligent `sitemap.ts` generator, and verified that no private user-scoped bundle pages (`/bundle/[id]`) or administrative routes (`/admin`) are exposed to search engine bots, keeping user data confidential.
-- **XSS & LFI/RFI Defenses**: Secured the `/docs` routing context against Local/Remote File Inclusion (LFI/RFI) by strictly validating the tab query parameter against a secure whitelist of allowed sekmeler. Shielded search inputs from ReDoS and Cross-Site Scripting (XSS) by enforcing a 100-character constraint on the query parameter.
-
-### Self-Hosting & Docker Integration
-- **Multi-stage Production Dockerfile**: Created a lean multi-stage `Dockerfile` based on Node.js 22 Alpine, optimizing image size via Next.js standalone build output, running as a non-root user, and supporting SQLite database persistence via Docker volume mounts.
-- **Docker Compose Setup**: Designed a production-ready `docker-compose.yml` configuration with custom named volume persistence, automated container health checks utilizing the `/api/health` endpoint, and comprehensive inline environment documentation.
-- **Structured .env.example**: Produced a clean, secure `.env.example` template covering all key parameters (Next-Auth secrets, OAuth credentials, trust proxies), tracked it under Git, and updated the `.dockerignore` to block accidental secret leaks.
-
-### Documentation & UI Improvements
-- **Expanded Search Scope**: Zenginleştirilmiş keywords mapping was added to all guides inside the `/docs` hub, allowing users to successfully search long-tail terms like "Docker", "compose", "volume", "security", "credentials" and locate relevant architectural articles instantly.
 - **GitHub OAuth Redirect Spec**: Expanded the self-hosting documentation inside `/docs?tab=self-hosting` with a dedicated callout explaining how to correctly declare the GitHub OAuth application callback URL (`${NEXTAUTH_URL}/api/auth/callback/github`) in developer environments.
 
 ---

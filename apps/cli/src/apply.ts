@@ -22,6 +22,10 @@ import {
   GitHubCopilotAdapter,
   VoidAdapter,
   AiderAdapter,
+  CortexCodeAdapter,
+  GooseAdapter,
+  IBMBobAdapter,
+  CodeBuddyAdapter,
 } from "@vibebasket/adapters";
 import { confirm } from "@inquirer/prompts";
 import chalk from "chalk";
@@ -50,6 +54,10 @@ const ADAPTERS = {
   "github-copilot": new GitHubCopilotAdapter(),
   void: new VoidAdapter(),
   aider: new AiderAdapter(),
+  "cortex-code": new CortexCodeAdapter(),
+  goose: new GooseAdapter(),
+  "ibm-bob": new IBMBobAdapter(),
+  codebuddy: new CodeBuddyAdapter(),
 } as const;
 
 function getAdapter(targetId: IdeId): IdeAdapter | undefined {
@@ -114,9 +122,11 @@ export async function applyBundle(
   }
 
   if (unsupportedFeatureMessages.length > 0) {
-    throw new Error(
-      `This bundle contains content the current apply engine cannot install yet.\n${unsupportedFeatureMessages.join("\n")}\n\nRight now VibeBasket can safely auto-apply MCP configuration only for these targets.`
-    );
+    console.log(chalk.yellow("⚠️  Some targets don't support all bundle content:"));
+    for (const msg of unsupportedFeatureMessages) {
+      console.log(chalk.yellow(`   ${msg}`));
+    }
+    console.log(chalk.gray("   MCP will be applied to all targets. Skills/rules will be applied only to targets that support them.\n"));
   }
 
   if (!options.force) {
