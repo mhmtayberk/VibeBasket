@@ -19,4 +19,8 @@ export * from "./openclaw";
 export * from "./github-copilot";
 export * from "./void";
 export * from "./aider";
+export * from "./cortex-code";
+export * from "./goose";
+export * from "./ibm-bob";
+export * from "./codebuddy";
 

@@ -23,7 +23,7 @@ export const TARGET_CAPABILITIES = defineCapabilities({
   },
   "claude-code": {
     supportsMcp: true,
-    supportsSkills: false,
+    supportsSkills: true,
     supportsRules: false,
     supportedScopes: ["user", "project"],
     autoApply: true,
@@ -59,7 +59,7 @@ export const TARGET_CAPABILITIES = defineCapabilities({
   cursor: {
     supportsMcp: true,
     supportsSkills: false,
-    supportsRules: false,
+    supportsRules: true,
     supportedScopes: ["user", "project"],
     autoApply: true,
   },
@@ -145,6 +145,34 @@ export const TARGET_CAPABILITIES = defineCapabilities({
     supportsSkills: true,
     supportsRules: true,
     supportedScopes: ["project"],
+    autoApply: true,
+  },
+  "cortex-code": {
+    supportsMcp: true,
+    supportsSkills: true,
+    supportsRules: false,
+    supportedScopes: ["user", "project"],
+    autoApply: true,
+  },
+  goose: {
+    supportsMcp: true,
+    supportsSkills: false,
+    supportsRules: false,
+    supportedScopes: ["user"],
+    autoApply: true,
+  },
+  "ibm-bob": {
+    supportsMcp: true,
+    supportsSkills: true,
+    supportsRules: false,
+    supportedScopes: ["user", "project"],
+    autoApply: true,
+  },
+  codebuddy: {
+    supportsMcp: true,
+    supportsSkills: true,
+    supportsRules: false,
+    supportedScopes: ["user", "project"],
     autoApply: true,
   },
 });

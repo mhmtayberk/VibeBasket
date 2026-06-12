@@ -48,10 +48,9 @@ function createBundleTooLargeResponse() {
 }
 
 function getErrorMessage(error: unknown) {
-	if (error instanceof Error && error.message) {
+	if (process.env.NODE_ENV !== "production" && error instanceof Error) {
 		return error.message;
 	}
-
 	return "Internal Server Error";
 }
 

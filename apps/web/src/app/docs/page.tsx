@@ -89,7 +89,7 @@ export default async function DocsPage({
 		{
 			title: "IDE Adapters",
 			description:
-				"All 19 supported targets: Cursor, Windsurf, VS Code, Claude Code, Gemini CLI, Codex CLI, Zed, Junie, Kiro, DeepSeek-TUI, Continue, Roo Code, Hermes, OpenClaw, Cline CLI, Antigravity, GitHub Copilot, Void Editor, and Aider.",
+				"								All 23 supported targets: Cursor, Windsurf, VS Code, Claude Code, Gemini CLI, Codex CLI, Zed, Junie, Kiro, DeepSeek-TUI, Continue, Roo Code, Hermes, OpenClaw, Cline CLI, Antigravity, GitHub Copilot, Void Editor, Aider, Cortex Code, Goose, IBM Bob, and CodeBuddy.",
 			icon: <Power className="h-5 w-5 text-[#ff5722]" />,
 			linkText: "Explore adapters",
 			tabKey: "adapters",
@@ -291,7 +291,7 @@ export default async function DocsPage({
 					{/* Sidebar Footer — back-to-builder shortcut */}
 					<div className="border-t border-[#3e4944]/60 p-4">
 						<p className="font-mono text-[9px] uppercase tracking-[0.25em] text-[#bdc9c2]/35 mb-2 pl-2">
-							v0.9 · 19 adapters
+							v0.9 · 23 adapters
 						</p>
 					</div>
 				</aside>
@@ -537,6 +537,27 @@ export default async function DocsPage({
 									</div>
 								</section>
 							</div>
+
+								<section id="other-commands" className="scroll-mt-28">
+									<div className="flex items-center gap-2.5 mb-8">
+										<TerminalSquare className="h-6 w-6 text-[#a0fdda]" />
+										<h2 className="text-2xl font-semibold tracking-tight text-foreground">Other Commands</h2>
+									</div>
+									<div className="space-y-6">
+										<div className="border border-[#3e4944] p-6">
+											<h3 className="font-mono text-[#a0fdda] text-xs font-semibold mb-3">vibebasket list</h3>
+											<p className="text-sm text-[#bdc9c2] leading-relaxed max-w-3xl">Scans all 23 IDE targets and reports installed MCP servers, skills, and rules per target.</p>
+										</div>
+										<div className="border border-[#3e4944] p-6">
+											<h3 className="font-mono text-[#a0fdda] text-xs font-semibold mb-3">vibebasket search &lt;query&gt;</h3>
+											<p className="text-sm text-[#bdc9c2] leading-relaxed max-w-3xl">Searches the VibeBasket catalog from the terminal. Returns up to 10 matching items.</p>
+										</div>
+										<div className="border border-[#3e4944] p-6">
+											<h3 className="font-mono text-[#a0fdda] text-xs font-semibold mb-3">vibebasket init · doctor · rollback</h3>
+											<p className="text-sm text-[#bdc9c2] leading-relaxed max-w-3xl">Project scaffolding, environment diagnostics, and backup restoration.</p>
+										</div>
+									</div>
+								</section>
 						</div>
 					)}
 
@@ -554,7 +575,7 @@ export default async function DocsPage({
 									IDE Adapters
 								</h1>
 								<p className="text-base sm:text-lg text-[#bdc9c2] max-w-3xl leading-relaxed">
-									19 supported targets, each with its own adapter that reads the target&apos;s config format, merges entries idempotently, and backs up the original file before writing. MCP configuration is supported on every adapter. Skills and rules are additionally supported on Continue, Roo Code, Hermes, OpenClaw, GitHub Copilot, Void Editor, and Aider.
+									23 supported targets, each with its own adapter that reads the target&apos;s config format, merges entries idempotently, and backs up the original file before writing. MCP configuration is supported on every adapter. Skills and rules are additionally supported on Continue, Roo Code, Hermes, OpenClaw, GitHub Copilot, Void Editor, and Aider.
 								</p>
 							</div>
 

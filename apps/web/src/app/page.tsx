@@ -70,6 +70,10 @@ export default async function Home() {
 			"deepseek-tui": "/targets/deepseek.svg",
 			zed: "/targets/zed.svg",
 			junie: "/targets/junie.svg",
+			"cortex-code": "/targets/cortex-code.svg",
+			goose: "/targets/goose.svg",
+			"ibm-bob": "/targets/ibm-bob.svg",
+			codebuddy: "/targets/codebuddy.svg",
 		};
 
 		const src = iconMap[targetId];
@@ -157,7 +161,7 @@ export default async function Home() {
 						<div className="inline-flex w-fit items-center gap-2 border border-border/80 bg-card/70 px-3 py-1.5">
 							<span className="h-2 w-2 rounded-full bg-accent animate-pulse" />
 							<span className="font-mono text-[11px] uppercase tracking-[0.18em] text-accent">
-								Open source · 19 IDE targets
+								Open source · 23 IDE targets
 							</span>
 						</div>
 

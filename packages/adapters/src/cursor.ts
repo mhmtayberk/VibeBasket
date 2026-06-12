@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import type { IdeAdapter } from "./types";
-import type { IdeId, McpEntry, Scope } from "@vibebasket/core";
+import type { IdeId, McpEntry, RuleEntry, Scope } from "@vibebasket/core";
 import { mergeStandardMcpServers } from "./mcp-utils";
 import { getTargetCapabilities } from "./target-capabilities";
 
@@ -59,6 +59,16 @@ export class CursorAdapter implements IdeAdapter {
       ...current,
       mcpServers: mergeStandardMcpServers(current.mcpServers, mcps, secrets, opts),
     };
+  }
+
+  async applyRules(rules: RuleEntry[], scope: Scope, projectRoot?: string): Promise<void> {
+    const baseDir = scope === "project" && projectRoot
+      ? path.join(projectRoot, ".cursor", "rules")
+      : path.join(os.homedir(), ".cursor", "rules");
+    await fs.mkdir(baseDir, { recursive: true });
+    for (const rule of rules) {
+      await fs.writeFile(path.join(baseDir, `${rule.id}.md`), `# ${rule.displayName}\n\n${rule.content}`, "utf8");
+    }
   }
 
   async writeConfig(scope: Scope, config: unknown, projectRoot?: string): Promise<void> {

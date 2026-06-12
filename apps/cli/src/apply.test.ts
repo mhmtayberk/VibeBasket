@@ -61,6 +61,10 @@ vi.mock("@vibebasket/adapters", () => ({
 	GitHubCopilotAdapter: FakeAdapter,
 	VoidAdapter: FakeAdapter,
 	AiderAdapter: FakeAdapter,
+	CortexCodeAdapter: FakeAdapter,
+	GooseAdapter: FakeAdapter,
+	IBMBobAdapter: FakeAdapter,
+	CodeBuddyAdapter: FakeAdapter,
 }));
 
 describe("applyBundle", () => {
