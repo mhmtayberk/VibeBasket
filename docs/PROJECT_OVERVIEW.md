@@ -38,15 +38,17 @@ When multiple sources describe the same item, VibeBasket deduplicates by canonic
 Recent work significantly changed the catalog behavior, deployment, and security baseline:
 
 - **Dockerization & Production Config:** Multi-stage production `Dockerfile` based on Node.js 22 Alpine utilizing lean Next.js standalone build outputs, root privilege isolation, and SQLite volume persistence. Added `docker-compose.yml` with automated container health probes and `.dockerignore` shielding.
-- **Performanslı ve Güvenli Health Check (`/api/health`):** Real-time database connectivity check through a lightweight Drizzle select. Safeguarded against flooding/DoS attacks via a 5-second in-memory status cache, with explicit HTTP no-cache headers.
-- **Information Disclosure Mitigation in Sitemap:** Dynamic sitemap.ts generator updated to index `/docs` under weekly changeFrequency, strictly auditing sitemap queries to prevent accidental leakage of private user bundle paths or admin roots.
-- **XSS, LFI/RFI Defenses & Whitelisting:** Secured `/docs` tab-based rendering by pre-verifying queries against an allowed whitelist. Shielded search input from ReDoS/XSS payloads by restricting inputs to 100 characters.
-- **Expanded Search Scope:** Enriched keywords map for all guides in the `/docs` bento grid, enabling users to search long-tail keywords like "Docker", "compose", "volume", and "security" instantly.
-- **GitHub OAuth Redirect Spec:** Added a dedicated callout spec in `/docs?tab=self-hosting` and registered `.env.example` under Git tracking.
+- **Kubernetes Helm Chart:** Chart at `charts/vibebasket/` with Recreate strategy, securityContext uid 1001, existingSecret support, PVC-backed SQLite persistence, and `/api/health`-based liveness/readiness probes.
+- **Health Check (`/api/health`):** Real-time database connectivity check through a lightweight Drizzle select. Safeguarded against flooding/DoS attacks via a 5-second in-memory status cache, with explicit HTTP no-cache headers. Used by Docker HEALTHCHECK and Kubernetes probes.
+- **Information Disclosure Mitigation:** Dynamic `sitemap.ts` indexes `/docs`, `/`, and `/stacks` but excludes user bundles (`/bundle/[id]`) and admin routes. `robots.ts` and `llms.txt` provide crawl guidance.
+- **XSS, LFI/RFI Defenses:** Secured `/docs` tab-based rendering by pre-verifying queries against an allowed whitelist. Shielded search input from ReDoS/XSS payloads by restricting inputs to 100 characters.
 - **Idempotent Delimiter Engine:** Roo Code (`.clinerules`), Hermes (`.hermesrules`), and OpenClaw (`.openclawrules`) IDE adapters use `>>> VIBEBASKET START/END <<<` block delimiters for idempotent rule/skill writes.
 - **Semver Deduplication Engine:** `OfficialMcpRegistryCollector` groups servers by `server.name` and ingests only the highest semver release, eliminating multi-version catalog duplicates (e.g. FAF Context).
 - **Install Verification:** `vibebasket apply` now performs a readback verification step after writes, confirming expected MCP entries and deterministic skill/rule artifacts when the adapter supports them.
-- **Operational Visibility:** The admin dashboard now surfaces catalog freshness, sync resilience, collector health, and recent sync runs without forcing a heavy observability stack into the product.
+- **Operational Visibility:** The admin dashboard now surfaces catalog freshness, sync resilience, collector health, FTS5 health/rebuild, DB health, force cleanup, user overview, and admin email management.
+- **Performance:** Count cache (60s TTL) avoids expensive `COUNT(*)` on every page. Catalog API uses `Cache-Control: max-age=60, stale-while-revalidate=300`. Compound indexes on type + trust + name. FTS5 data column removed to reduce index size.
+- **Mobile:** Basket FAB + bottom sheet on small viewports. Responsive catalog grid with adaptive column count.
+- **Homepage:** "Who is this for" section, "How it works" section, marquee IDE icon strip. Server-rendered first catalog page.
 
 ## Current Constraints
 

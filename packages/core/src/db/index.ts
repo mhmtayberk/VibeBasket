@@ -346,6 +346,10 @@ async function bootstrapDatabase(targetClient: SqlExecutor) {
   await targetClient.execute("PRAGMA journal_mode = WAL");
   await targetClient.execute("PRAGMA foreign_keys = ON");
   await targetClient.execute("PRAGMA busy_timeout = 5000");
+  await targetClient.execute("PRAGMA cache_size = -64000");
+  await targetClient.execute("PRAGMA synchronous = NORMAL");
+  await targetClient.execute("PRAGMA journal_size_limit = 67108864");
+  await targetClient.execute("PRAGMA temp_store = MEMORY");
   await targetClient.execute(`
     CREATE TABLE IF NOT EXISTS catalog_items (
       id TEXT PRIMARY KEY NOT NULL,
@@ -466,8 +470,14 @@ async function bootstrapDatabase(targetClient: SqlExecutor) {
     ON catalog_items(created_at)
   `);
   await targetClient.execute(`
-    CREATE INDEX IF NOT EXISTS idx_catalog_items_last_synced_at
-    ON catalog_items(last_synced_at)
+    CREATE INDEX IF NOT EXISTS idx_catalog_items_sync
+    ON catalog_items(source_name, verified, last_synced_at)
+  `);
+
+  // Compound index for recommended sort (avoids temp b-tree)
+  await targetClient.execute(`
+    CREATE INDEX IF NOT EXISTS idx_catalog_items_rec_sort
+    ON catalog_items(type, verified, source_name, last_synced_at DESC, display_name ASC)
   `);
   await targetClient.execute(`
     CREATE INDEX IF NOT EXISTS idx_catalog_sync_runs_completed_at
@@ -520,7 +530,6 @@ async function bootstrapDatabase(targetClient: SqlExecutor) {
       display_name,
       description,
       source_url,
-      data,
       content='catalog_items',
       content_rowid='rowid'
     )
@@ -529,22 +538,22 @@ async function bootstrapDatabase(targetClient: SqlExecutor) {
   // Keep FTS5 index in sync with catalog_items via triggers
   await targetClient.execute(`
     CREATE TRIGGER IF NOT EXISTS catalog_items_ai AFTER INSERT ON catalog_items BEGIN
-      INSERT INTO catalog_items_fts(rowid, display_name, description, source_url, data)
-      VALUES (new.rowid, new.display_name, new.description, new.source_url, new.data);
+      INSERT INTO catalog_items_fts(rowid, display_name, description, source_url)
+      VALUES (new.rowid, new.display_name, new.description, new.source_url);
     END
   `);
   await targetClient.execute(`
     CREATE TRIGGER IF NOT EXISTS catalog_items_ad AFTER DELETE ON catalog_items BEGIN
-      INSERT INTO catalog_items_fts(catalog_items_fts, rowid, display_name, description, source_url, data)
-      VALUES ('delete', old.rowid, old.display_name, old.description, old.source_url, old.data);
+      INSERT INTO catalog_items_fts(catalog_items_fts, rowid, display_name, description, source_url)
+      VALUES ('delete', old.rowid, old.display_name, old.description, old.source_url);
     END
   `);
   await targetClient.execute(`
     CREATE TRIGGER IF NOT EXISTS catalog_items_au AFTER UPDATE ON catalog_items BEGIN
-      INSERT INTO catalog_items_fts(catalog_items_fts, rowid, display_name, description, source_url, data)
-      VALUES ('delete', old.rowid, old.display_name, old.description, old.source_url, old.data);
-      INSERT INTO catalog_items_fts(rowid, display_name, description, source_url, data)
-      VALUES (new.rowid, new.display_name, new.description, new.source_url, new.data);
+      INSERT INTO catalog_items_fts(catalog_items_fts, rowid, display_name, description, source_url)
+      VALUES ('delete', old.rowid, old.display_name, old.description, old.source_url);
+      INSERT INTO catalog_items_fts(rowid, display_name, description, source_url)
+      VALUES (new.rowid, new.display_name, new.description, new.source_url);
     END
   `);
 
@@ -554,7 +563,7 @@ async function bootstrapDatabase(targetClient: SqlExecutor) {
   )) as { rows: Array<{ cnt: number }> };
   if (ftsCount.rows[0]?.cnt === 0) {
     await targetClient.execute(
-      "INSERT INTO catalog_items_fts(rowid, display_name, description, source_url, data) SELECT rowid, display_name, description, source_url, data FROM catalog_items"
+      "INSERT INTO catalog_items_fts(rowid, display_name, description, source_url) SELECT rowid, display_name, description, source_url FROM catalog_items"
     );
   }
 }

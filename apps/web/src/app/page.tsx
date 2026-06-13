@@ -31,6 +31,7 @@ export default async function Home() {
   };
   const sectionIds = {
     heroTitle: "hero-title",
+    who: "who",
     how: "how",
     catalog: "catalog",
     command: "command",
@@ -94,23 +95,33 @@ export default async function Home() {
 
             <nav className="hidden items-center gap-6 lg:flex">
               <a
+                href={`#${sectionIds.who}`}
+                className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:text-accent"
+              >
+                Who it's for
+              </a>
+              <span className="text-border/60 select-none">|</span>
+              <a
                 href={`#${sectionIds.how}`}
                 className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:text-accent"
               >
                 How it works
               </a>
+              <span className="text-border/60 select-none">|</span>
               <a
                 href={`#${sectionIds.catalog}`}
                 className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:text-accent"
               >
                 Catalog
               </a>
+              <span className="text-border/60 select-none">|</span>
               <a
                 href={`#${sectionIds.command}`}
                 className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:text-accent cursor-pointer"
               >
                 Install flow
               </a>
+              <span className="text-border/60 select-none">|</span>
               <Link
                 href="/docs"
                 className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:text-accent cursor-pointer"
@@ -294,8 +305,68 @@ export default async function Home() {
         </div>
       </section>
 
+      <section id={sectionIds.who} className="border-b border-border/80">
+        <div className="mx-auto max-w-[1440px] px-4 py-14 sm:px-6 lg:px-8">
+          <div className="max-w-3xl">
+            <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-accent">
+              Who is this for
+            </p>
+            <h2 className="mt-5 text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
+              Built for teams that move fast.
+            </h2>
+            <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground">
+              Whether you work solo or run a team, VibeBasket eliminates the friction of setting up AI coding tools one machine at a time.
+            </p>
+          </div>
+
+          <div className="mt-10 grid gap-6 lg:grid-cols-3">
+            {[
+              {
+                tag: "Solo Developer",
+                headline: "One command, every editor.",
+                body: "Stop copy-pasting MCP configs across Cursor, Windsurf, and VS Code. Build a bundle once and apply it everywhere with a single npx command.",
+              },
+              {
+                tag: "Startup Team",
+                headline: "Onboard in minutes, not hours.",
+                body: "Share a bundle URL with new hires. They run one command and get the exact same MCPs, skills, and rules as the rest of the team — no manual setup.",
+              },
+              {
+                tag: "Platform Maintainer",
+                headline: "Curate trusted defaults.",
+                body: "Publish verified MCP servers and project rules your users can install with zero configuration. Control what goes into every environment without shipping config files.",
+              },
+            ].map((audience) => (
+              <article key={audience.tag} className="border border-border/80 bg-card/60 p-6 group">
+                <span className="inline-flex border border-border/70 bg-background/40 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground group-hover:border-accent/40 group-hover:text-accent transition-colors">
+                  {audience.tag}
+                </span>
+                <h3 className="mt-5 text-xl font-semibold text-foreground">
+                  {audience.headline}
+                </h3>
+                <p className="mt-3 text-sm leading-7 text-muted-foreground">
+                  {audience.body}
+                </p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section id={sectionIds.how} className="border-b border-border/80">
         <div className="mx-auto max-w-[1440px] px-4 py-14 sm:px-6 lg:px-8">
+          <div className="max-w-3xl mb-10">
+            <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-accent">
+              How it works
+            </p>
+            <h2 className="mt-5 text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
+              Three steps from zero to configured.
+            </h2>
+            <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground">
+              No config files to copy. No IDE settings to hunt down. Just browse, bundle, and apply.
+            </p>
+          </div>
+
           <div className="grid gap-6 lg:grid-cols-3">
             {[
               {
@@ -368,25 +439,35 @@ export default async function Home() {
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-5 font-mono text-[11px] uppercase tracking-[0.18em]">
+          <div className="flex flex-wrap gap-x-1 gap-y-2 font-mono text-[11px] uppercase tracking-[0.18em] items-center">
+            <a
+              href={`#${sectionIds.who}`}
+              className="transition-colors hover:text-accent cursor-pointer"
+            >
+              Who it's for
+            </a>
+            <span className="text-border/60 select-none">|</span>
             <a
               href={`#${sectionIds.how}`}
               className="transition-colors hover:text-accent cursor-pointer"
             >
               Workflow
             </a>
+            <span className="text-border/60 select-none">|</span>
             <a
               href={`#${sectionIds.catalog}`}
               className="transition-colors hover:text-accent cursor-pointer"
             >
               Catalog
             </a>
+            <span className="text-border/60 select-none">|</span>
             <a
               href={`#${sectionIds.command}`}
               className="transition-colors hover:text-accent cursor-pointer"
             >
               Install flow
             </a>
+            <span className="text-border/60 select-none">|</span>
             <Link href="/docs" className="transition-colors hover:text-accent cursor-pointer">
               Documentation
             </Link>

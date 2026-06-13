@@ -20,7 +20,7 @@ All notable changes to this project will be documented in this file.
 - **Cursor** now declares `supportsRules: true` — rules are written to `.cursor/rules/<id>.md`.
 
 ### Documentation Updates
-- ARCHITECTURE.md and PROJECT_OVERVIEW.md updated to reflect 23 IDE targets and 11 skills-capable adapters.
+- ARCHITECTURE.md and PROJECT_OVERVIEW.md updated to reflect 24 IDE targets and 11 skills-capable adapters.
 - CLI docs updated with `list`, `search` commands and `--scope` / `--dry-run` flags.
 
 ### Test Coverage
@@ -54,7 +54,7 @@ All notable changes to this project will be documented in this file.
 - **Cursor** now declares `supportsRules: true` — rules are written to `.cursor/rules/<id>.md`.
 
 ### Documentation Updates
-- ARCHITECTURE.md and PROJECT_OVERVIEW.md updated to reflect 23 IDE targets and 11 skills-capable adapters.
+- ARCHITECTURE.md and PROJECT_OVERVIEW.md updated to reflect 24 IDE targets and 11 skills-capable adapters.
 - CLI docs updated with `--scope` and `--dry-run` flags (replaced non-existent `--project-root` and `--yes`).
 
 ### Test Coverage
