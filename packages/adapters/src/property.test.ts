@@ -20,6 +20,11 @@ import { GitHubCopilotAdapter } from "./github-copilot.js";
 import { VoidAdapter } from "./void.js";
 import { AiderAdapter } from "./aider.js";
 import { TARGET_CAPABILITIES } from "./target-capabilities.js";
+import { OpenCodeAdapter } from "./opencode.js";
+import { CortexCodeAdapter } from "./cortex-code.js";
+import { GooseAdapter } from "./goose.js";
+import { IBMBobAdapter } from "./ibm-bob.js";
+import { CodeBuddyAdapter } from "./codebuddy.js";
 
 const adapters = [
   new CursorAdapter(),
@@ -41,6 +46,11 @@ const adapters = [
   new GitHubCopilotAdapter(),
   new VoidAdapter(),
   new AiderAdapter(),
+  new CortexCodeAdapter(),
+  new GooseAdapter(),
+  new IBMBobAdapter(),
+  new CodeBuddyAdapter(),
+  new OpenCodeAdapter(),
 ];
 
 describe("Adapter Idempotency Law", () => {
@@ -54,12 +64,12 @@ describe("Adapter Idempotency Law", () => {
               fc.record({
                 command: fc.string(),
                 args: fc.array(fc.string()),
-              })
+              }),
             ),
           }),
           fc.array(
             fc.record({
-              id: fc.string({ minLength: 1 }).filter(s => /^[a-z0-9-]+$/.test(s)),
+              id: fc.string({ minLength: 1 }).filter((s) => /^[a-z0-9-]+$/.test(s)),
               displayName: fc.string(),
               runtime: fc.constant("npx" as const),
               command: fc.string(),
@@ -67,16 +77,33 @@ describe("Adapter Idempotency Law", () => {
               env: fc.dictionary(fc.string(), fc.string()),
               requiredSecrets: fc.array(fc.string()),
               verified: fc.boolean(),
-            })
+            }),
           ),
           (config, items) => {
             const firstApply = adapter.applyMcps(config, items as any, {}, { force: false });
             const secondApply = adapter.applyMcps(firstApply, items as any, {}, { force: false });
-            
+
             expect(secondApply).toEqual(firstApply);
-          }
-        )
+          },
+        ),
       );
+    });
+  }
+});
+
+describe("Adapter feature-method contract", () => {
+  for (const adapter of adapters) {
+    it(`${adapter.displayName} exposes methods for every advertised optional capability`, () => {
+      const optionalAdapter = adapter as {
+        applySkills?: unknown;
+        applyRules?: unknown;
+      };
+      if (adapter.supportsSkills) {
+        expect(typeof optionalAdapter.applySkills).toBe("function");
+      }
+      if (adapter.supportsRules) {
+        expect(typeof optionalAdapter.applyRules).toBe("function");
+      }
     });
   }
 });

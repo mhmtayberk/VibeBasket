@@ -31,6 +31,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Catalog Integrity & Install Reporting
+- **skills.sh fallback hardening**: When sitemap-based discovery is unavailable and the directory page does not expose its embedded skill payload, VibeBasket now falls back to repo crawling for both official and community skills instead of silently collapsing to official-only coverage.
+- **Source-tag normalization**: skills synced from `skills.sh` fallback paths now persist as `skills-sh-official` or `skills-sh-community`, keeping trust badges and source provenance consistent with the UI model.
+- **Collector health accuracy**: Admin operational visibility now groups persisted `skills-sh-official` and `skills-sh-community` rows under the single `skills.sh Directory` collector so coverage counts match reality.
+- **`vibebasket list` install accuracy**: The CLI now inspects adapter-specific skill/rule install surfaces instead of scanning generic shared folders, so reported installs better match each IDE’s real integration path.
+
 ### 4 New IDE Targets (23 total)
 - **Cortex Code** (Snowflake): CLI terminal agent. MCP at `~/.snowflake/cortex/mcp.json`, skills at `.cortex/skills/`. Supports user and project scopes.
 - **Goose** (Block / Linux Foundation): CLI/Desktop agent. MCP at `~/.config/goose/config.yaml`. User scope. MCP-only today.

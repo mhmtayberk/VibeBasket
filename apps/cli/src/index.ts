@@ -24,6 +24,7 @@ program
   .option("-s, --scope <scope>", "Override scope (user or project)")
   .option("-f, --force", "Apply without trust prompt")
   .option("-d, --dry-run", "Preview changes without applying")
+  .option("--no-verify", "Skip post-install verification checks")
   .action(async (input, options) => {
     try {
       await applyBundle(input, options);

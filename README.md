@@ -1,6 +1,6 @@
 # VibeBasket
 
-**The Ninite for Vibe Coding.** Bundle trusted MCP servers, agent skills, and project rules into one shareable install command. Apply across 23 AI IDEs and CLI tools with a single link.
+**The Ninite for Vibe Coding.** Bundle trusted MCP servers, agent skills, and project rules into one shareable install command. Apply across 24 AI IDEs and CLI tools with a single link.
 
 [![Version](https://img.shields.io/badge/version-0.9.0-blue)](package.json)
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue)](tsconfig.base.json)
@@ -17,7 +17,7 @@ Stop manually configuring MCP servers one IDE at a time. Browse a trusted catalo
 npx vibebasket apply https://vibebasket.dev/api/bundle/cj2k9x
 ```
 
-## Supported IDEs (23 Targets)
+## Supported IDEs (24 Targets)
 
 | IDE | MCP | Skills | Rules |
 |-----|:---:|:------:|:-----:|
@@ -30,7 +30,13 @@ npx vibebasket apply https://vibebasket.dev/api/bundle/cj2k9x
 | Roo Code | ✅ | ✅ | ✅ |
 | Codex CLI | ✅ | — | — |
 | Gemini CLI | ✅ | — | — |
+| Antigravity | ✅ | — | — |
+| JetBrains Junie | ✅ | — | — |
+| Kiro | ✅ | — | — |
+| Cline CLI | ✅ | — | — |
 | Zed | ✅ | — | — |
+| Hermes | ✅ | ✅ | — |
+| OpenClaw | ✅ | ✅ | — |
 | Void Editor | ✅ | ✅ | ✅ |
 | Aider | — | ✅ | ✅ |
 | DeepSeek-TUI | ✅ | — | — |
@@ -38,9 +44,9 @@ npx vibebasket apply https://vibebasket.dev/api/bundle/cj2k9x
 | Goose | ✅ | — | — |
 | IBM Bob | ✅ | ✅ | — |
 | CodeBuddy | ✅ | ✅ | — |
-| Junie · Kiro · Cline CLI · Antigravity · Hermes · OpenClaw | ✅ | ✅ | — |
+| OpenCode | ✅ | — | — |
 
-**11 adapters auto-install Skills. 5 adapters auto-install Rules.** All adapters auto-install MCP servers.
+**11 adapters auto-install Skills. 5 adapters auto-install Rules.** All MCP-capable adapters auto-install MCP servers.
 
 ## Features
 
@@ -53,7 +59,7 @@ npx vibebasket apply https://vibebasket.dev/api/bundle/cj2k9x
 
 ### CLI
 - **`apply`** — Install bundles from URLs or local files
-- **`list`** — Scan all 23 IDEs for installed MCPs, skills, and rules
+- **`list`** — Scan all 24 IDEs for installed MCPs, skills, and rules
 - **`search`** — Search the catalog from the terminal
 - **`doctor`** — Diagnose IDE configurations across all targets
 - **`init`** — Scaffold a new VibeBasket project
@@ -168,7 +174,7 @@ See [`.env.example`](.env.example) for the complete list.
 ```
 packages/
 ├── core/          Zod schemas, Drizzle ORM, SQLite bootstrap
-├── adapters/      23 IDE adapters (Cursor, Windsurf, Claude Code, etc.)
+├── adapters/      24 IDE adapters (Cursor, Windsurf, Claude Code, etc.)
 ├── registry/      Catalog sync from MCP Registry + skills.sh + verified.yaml
 apps/
 ├── web/           Next.js 16 App Router — catalog UI, API, admin dashboard
