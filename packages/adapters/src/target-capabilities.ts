@@ -175,6 +175,13 @@ export const TARGET_CAPABILITIES = defineCapabilities({
     supportedScopes: ["user", "project"],
     autoApply: true,
   },
+  opencode: {
+    supportsMcp: true,
+    supportsSkills: true,
+    supportsRules: false,
+    supportedScopes: ["user", "project"],
+    autoApply: true,
+  },
 });
 
 export const SUPPORTED_TARGET_IDS = Object.entries(TARGET_CAPABILITIES)

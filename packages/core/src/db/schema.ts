@@ -46,5 +46,11 @@ export const backupStorageConfig = sqliteTable("backup_storage_config", {
   updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
 });
 
+export const siteConfig = sqliteTable("site_config", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+});
+
 export * from "./auth-schema";
 export * from "./stacks-schema";

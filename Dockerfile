@@ -71,7 +71,9 @@ EXPOSE 3000
 ENV NODE_ENV=production
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
-# DATABASE_URL should point to the volume: file:/data/vibebasket.db
-# Set via docker-compose.yml or -e flags at runtime
+
+# Health check using the built-in /api/health endpoint
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 --start-period=5s \
+  CMD node -e "fetch('http://localhost:3000/api/health').then(r => r.ok ? process.exit(0) : process.exit(1))"
 
 CMD ["node", "apps/web/server.js"]

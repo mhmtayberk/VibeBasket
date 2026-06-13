@@ -18,6 +18,11 @@ import {
 	type BackendStatus,
 	type StorageConfig,
 } from "@/lib/storage";
+import {
+	deleteSiteConfig,
+	getAdminEmails,
+	setSiteConfig,
+} from "@/lib/site-config";
 
 export async function triggerSyncAction() {
 	await requireAdminRole();
@@ -407,5 +412,31 @@ export async function triggerScheduledBackupAction() {
 	} catch (error: unknown) {
 		console.error("Scheduled backup failed:", error);
 		return { success: false, triggered: false, error: error instanceof Error ? error.message : "Failed" };
+	}
+}
+
+export async function getAdminEmailsAction() {
+	await requireAdminRole();
+	try {
+		const emails = await getAdminEmails();
+		return { success: true, emails: emails.join(", ") };
+	} catch {
+		return { success: true, emails: "" };
+	}
+}
+
+export async function saveAdminEmailsAction(emails: string) {
+	await requireAdminRole();
+	try {
+		const trimmed = emails.trim();
+		if (trimmed) {
+			await setSiteConfig("admin_emails", trimmed);
+		} else {
+			await deleteSiteConfig("admin_emails");
+		}
+		revalidatePath("/admin");
+		return { success: true };
+	} catch (error: unknown) {
+		return { success: false, error: error instanceof Error ? error.message : "Failed" };
 	}
 }

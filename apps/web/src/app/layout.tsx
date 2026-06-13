@@ -4,7 +4,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
-	metadataBase: new URL("https://vibebasket.dev"),
+	metadataBase: new URL(process.env.NEXTAUTH_URL || "http://localhost:3000"),
 	applicationName: "VibeBasket",
 	title: "VibeBasket | The Ninite for Vibe Coding",
 	description:
