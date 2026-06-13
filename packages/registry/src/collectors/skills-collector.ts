@@ -66,6 +66,11 @@ export class SkillsShCuratedCollector implements SourceCollector {
       return items;
     }
 
+    const repoPaths = this.parseDirectoryRepoPaths(normalizedHtml);
+    if (repoPaths.size > 0) {
+      return this.fetchRepoSkillEntries(repoPaths, officialRepoPaths);
+    }
+
     return this.fetchOfficialSkillEntries(officialRepoPaths);
   }
 
@@ -201,7 +206,7 @@ export class SkillsShCuratedCollector implements SourceCollector {
     }
 
     for (const repoPath of officialRepoPaths) {
-      const repoSkills = await this.fetchRepoSkills(repoPath);
+      const repoSkills = await this.fetchRepoSkills(repoPath, true);
       for (const skill of repoSkills) {
         items.push(skill);
       }
@@ -238,10 +243,10 @@ export class SkillsShCuratedCollector implements SourceCollector {
 
         items.push({
           canonicalKey: canonicalSkillKey(entry),
-          sourceName: this.name,
+          sourceName: "skills-sh-official",
           catalogItem: buildSkillCatalogItem(entry, {
             description: `Official skill from ${owner}/${repo} on skills.sh`,
-            sourceName: this.name,
+            sourceName: "skills-sh-official",
             sourceUrl: "https://www.skills.sh/official",
           }),
         });
@@ -251,11 +256,46 @@ export class SkillsShCuratedCollector implements SourceCollector {
     return items;
   }
 
-  private async fetchRepoSkills(repoPath: string) {
+  private parseDirectoryRepoPaths(html: string) {
+    const repoPaths = new Set<string>();
+
+    for (const match of html.matchAll(hrefAttributePattern)) {
+      const href = normalizeCatalogText(match[1] ?? "");
+      if (!href.startsWith("/")) continue;
+
+      const segments = href.split("/").filter(Boolean);
+      if (segments.length !== 2) continue;
+
+      const [owner, repo] = segments;
+      if (!owner || !repo || owner === "docs" || owner === "topic" || owner === "agent") continue;
+      repoPaths.add(`${owner}/${repo}`.toLowerCase());
+    }
+
+    return repoPaths;
+  }
+
+  private async fetchRepoSkillEntries(repoPaths: Set<string>, officialRepoPaths: Set<string>) {
+    const items: SourceCollectedItem[] = [];
+
+    for (const repoPath of repoPaths) {
+      const repoSkills = await this.fetchRepoSkills(
+        repoPath,
+        officialRepoPaths.has(repoPath.toLowerCase())
+      );
+      for (const skill of repoSkills) {
+        items.push(skill);
+      }
+    }
+
+    return items;
+  }
+
+  private async fetchRepoSkills(repoPath: string, isOfficial: boolean) {
     const html = await this.fetchText(`https://www.skills.sh/${repoPath}`, `skills.sh repo ${repoPath}`);
     const [owner, repo] = repoPath.split("/");
     const items: SourceCollectedItem[] = [];
     const seen = new Set<string>();
+    const sourceName = isOfficial ? "skills-sh-official" : "skills-sh-community";
 
     for (const match of html.matchAll(anchorPattern)) {
       const href = match[1];
@@ -283,10 +323,10 @@ export class SkillsShCuratedCollector implements SourceCollector {
 
       items.push({
         canonicalKey: canonicalSkillKey(entry),
-        sourceName: this.name,
+        sourceName,
         catalogItem: buildSkillCatalogItem(entry, {
-          description: `Official skill from ${owner}/${repo} on skills.sh`,
-          sourceName: this.name,
+          description: `${isOfficial ? "Official" : "Community"} skill from ${owner}/${repo} on skills.sh`,
+          sourceName,
           sourceUrl: `https://www.skills.sh/${repoPath}`,
         }),
       });

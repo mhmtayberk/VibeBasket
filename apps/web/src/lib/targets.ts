@@ -1,6 +1,6 @@
 import {
-	SUPPORTED_TARGET_IDS as ADAPTER_SUPPORTED_TARGET_IDS,
-	TARGET_CAPABILITIES,
+  SUPPORTED_TARGET_IDS as ADAPTER_SUPPORTED_TARGET_IDS,
+  TARGET_CAPABILITIES,
 } from "@vibebasket/adapters/target-capabilities";
 import type { IdeAdapterCapabilities } from "@vibebasket/adapters/types";
 import type { IdeId } from "@vibebasket/core";
@@ -8,245 +8,249 @@ import type { IdeId } from "@vibebasket/core";
 export type TargetStatus = "supported" | "coming-soon";
 
 export interface TargetOption {
-	id: IdeId;
-	label: string;
-	status: TargetStatus;
-	kind: "editor" | "terminal";
-	note: string;
-	vendor?: string;
-	capabilities: IdeAdapterCapabilities;
+  id: IdeId;
+  label: string;
+  status: TargetStatus;
+  kind: "editor" | "terminal";
+  note: string;
+  vendor?: string;
+  capabilities: IdeAdapterCapabilities;
 }
 
 interface TargetOptionSeed {
-	id: IdeId;
-	label: string;
-	status?: TargetStatus;
-	kind: "editor" | "terminal";
-	note: string;
-	vendor?: string;
+  id: IdeId;
+  label: string;
+  status?: TargetStatus;
+  kind: "editor" | "terminal";
+  note: string;
+  vendor?: string;
 }
 
 const UNSORTED_TARGET_OPTIONS: TargetOptionSeed[] = [
-	{
-		id: "cursor",
-		label: "Cursor",
-		status: "supported",
-		kind: "editor",
-		note: "Native MCP config supported today.",
-		vendor: "Cursor",
-	},
-	{
-		id: "windsurf",
-		label: "Windsurf",
-		status: "supported",
-		kind: "editor",
-		note: "Native MCP config supported today.",
-		vendor: "Windsurf",
-	},
-	{
-		id: "vscode",
-		label: "VS Code / Cline",
-		status: "supported",
-		kind: "editor",
-		note: "Targets the local Cline MCP settings file.",
-		vendor: "Microsoft / Cline",
-	},
-	{
-		id: "antigravity",
-		label: "Antigravity",
-		status: "supported",
-		kind: "editor",
-		note: "Applies through the Gemini Antigravity config path.",
-		vendor: "Google",
-	},
-	{
-		id: "claude-code",
-		label: "Claude Code",
-		status: "supported",
-		kind: "terminal",
-		note: "Backed by Claude Code MCP configuration files.",
-		vendor: "Anthropic",
-	},
-	{
-		id: "zed",
-		label: "Zed",
-		status: "supported",
-		kind: "editor",
-		note: "Backed by Zed context server settings.",
-		vendor: "Zed Industries",
-	},
-	{
-		id: "codex",
-		label: "Codex CLI",
-		status: "supported",
-		kind: "terminal",
-		note: "Backed by Codex CLI config.toml MCP configuration.",
-		vendor: "OpenAI",
-	},
-	{
-		id: "deepseek-tui",
-		label: "DeepSeek-TUI",
-		status: "supported",
-		kind: "terminal",
-		note: "Backed by ~/.deepseek/mcp.json today; auto-apply currently covers MCP config only.",
-		vendor: "DeepSeek-TUI",
-	},
-	{
-		id: "gemini-cli",
-		label: "Gemini CLI",
-		status: "supported",
-		kind: "terminal",
-		note: "Backed by Gemini CLI settings.json MCP configuration.",
-		vendor: "Google",
-	},
-	{
-		id: "junie",
-		label: "JetBrains Junie",
-		status: "supported",
-		kind: "editor",
-		note: "Backed by Junie MCP configuration files.",
-		vendor: "JetBrains",
-	},
-	{
-		id: "kiro",
-		label: "Kiro",
-		status: "supported",
-		kind: "editor",
-		note: "Backed by Kiro MCP configuration files.",
-		vendor: "Kiro",
-	},
-	{
-		id: "cline-cli",
-		label: "Cline CLI",
-		status: "supported",
-		kind: "terminal",
-		note: "Backed by the Cline CLI MCP settings file.",
-		vendor: "Cline",
-	},
-	{
-		id: "continue",
-		label: "Continue",
-		status: "supported",
-		kind: "editor",
-		note: "Backed by ~/.continue/config.json MCP configuration and custom Markdown prompts.",
-		vendor: "Continue",
-	},
-	{
-		id: "roocode",
-		label: "Roo Code",
-		status: "supported",
-		kind: "editor",
-		note: "Backed by local roocode_mcp_settings.json MCP configuration and workspace-level .clinerules integration.",
-		vendor: "Roo Code",
-	},
-	{
-		id: "hermes",
-		label: "Hermes",
-		status: "supported",
-		kind: "terminal",
-		note: "Backed by ~/.hermes/config.yaml MCP configuration and project-level .hermesrules rules.",
-		vendor: "Hermes",
-	},
-	{
-		id: "openclaw",
-		label: "OpenClaw",
-		status: "supported",
-		kind: "terminal",
-		note: "Backed by ~/.openclaw/openclaw.json MCP configuration and project-level .openclawrules rules.",
-		vendor: "OpenClaw",
-	},
-	{
-		id: "github-copilot",
-		label: "GitHub Copilot",
-		status: "supported",
-		kind: "editor",
-		note: "Idempotent project-level .github/copilot-instructions.md skills & rules supported.",
-		vendor: "GitHub / Microsoft",
-	},
-	{
-		id: "void",
-		label: "Void Editor",
-		status: "supported",
-		kind: "editor",
-		note: "Standard MCP servers and idempotent skills & rules (.voidrules) supported.",
-		vendor: "Void",
-	},
-	{
-		id: "aider",
-		label: "Aider",
-		status: "supported",
-		kind: "terminal",
-		note: "Idempotent project-level .aider.conf.yml and .aiderinstructions.md supported.",
-		vendor: "Aider",
-	},
-	{
-		id: "cortex-code",
-		label: "Cortex Code",
-		status: "supported",
-		kind: "terminal",
-		note: "Backed by ~/.snowflake/cortex/mcp.json and .cortex/skills/ directory.",
-		vendor: "Snowflake",
-	},
-	{
-		id: "goose",
-		label: "Goose",
-		status: "supported",
-		kind: "terminal",
-		note: "Backed by ~/.config/goose/config.yaml MCP extensions.",
-		vendor: "Block / Linux Foundation",
-	},
-	{
-		id: "ibm-bob",
-		label: "IBM Bob",
-		status: "supported",
-		kind: "editor",
-		note: "Backed by ~/.bob/mcp_settings.json and .bob/mcp.json project config.",
-		vendor: "IBM",
-	},
-	{
-		id: "codebuddy",
-		label: "CodeBuddy",
-		status: "supported",
-		kind: "editor",
-		note: "Backed by ~/.codebuddy/.mcp.json and .mcp.json project config.",
-		vendor: "Tencent Cloud",
-	},
-	{
-		id: "opencode",
-		label: "OpenCode",
-		status: "supported",
-		kind: "terminal",
-		note: "Backed by ~/.config/opencode/opencode.json and project opencode.json.",
-		vendor: "Anomaly",
-	},
+  {
+    id: "cursor",
+    label: "Cursor",
+    status: "supported",
+    kind: "editor",
+    note: "Native MCP config supported today.",
+    vendor: "Cursor",
+  },
+  {
+    id: "windsurf",
+    label: "Windsurf",
+    status: "supported",
+    kind: "editor",
+    note: "Native MCP config supported today.",
+    vendor: "Windsurf",
+  },
+  {
+    id: "vscode",
+    label: "VS Code / Cline",
+    status: "supported",
+    kind: "editor",
+    note: "Targets the local Cline MCP settings file.",
+    vendor: "Microsoft / Cline",
+  },
+  {
+    id: "antigravity",
+    label: "Antigravity",
+    status: "supported",
+    kind: "editor",
+    note: "Applies through the Gemini Antigravity config path.",
+    vendor: "Google",
+  },
+  {
+    id: "claude-code",
+    label: "Claude Code",
+    status: "supported",
+    kind: "terminal",
+    note: "Backed by Claude Code MCP configuration files.",
+    vendor: "Anthropic",
+  },
+  {
+    id: "zed",
+    label: "Zed",
+    status: "supported",
+    kind: "editor",
+    note: "Backed by Zed context server settings.",
+    vendor: "Zed Industries",
+  },
+  {
+    id: "codex",
+    label: "Codex CLI",
+    status: "supported",
+    kind: "terminal",
+    note: "Backed by Codex CLI config.toml MCP configuration.",
+    vendor: "OpenAI",
+  },
+  {
+    id: "deepseek-tui",
+    label: "DeepSeek-TUI",
+    status: "supported",
+    kind: "terminal",
+    note: "Backed by ~/.deepseek/mcp.json today; auto-apply currently covers MCP config only.",
+    vendor: "DeepSeek-TUI",
+  },
+  {
+    id: "gemini-cli",
+    label: "Gemini CLI",
+    status: "supported",
+    kind: "terminal",
+    note: "Backed by Gemini CLI settings.json MCP configuration.",
+    vendor: "Google",
+  },
+  {
+    id: "junie",
+    label: "JetBrains Junie",
+    status: "supported",
+    kind: "editor",
+    note: "Backed by Junie MCP configuration files.",
+    vendor: "JetBrains",
+  },
+  {
+    id: "kiro",
+    label: "Kiro",
+    status: "supported",
+    kind: "editor",
+    note: "Backed by Kiro MCP configuration files.",
+    vendor: "Kiro",
+  },
+  {
+    id: "cline-cli",
+    label: "Cline CLI",
+    status: "supported",
+    kind: "terminal",
+    note: "Backed by the Cline CLI MCP settings file.",
+    vendor: "Cline",
+  },
+  {
+    id: "continue",
+    label: "Continue",
+    status: "supported",
+    kind: "editor",
+    note: "Backed by ~/.continue/config.json MCP configuration and custom Markdown prompts.",
+    vendor: "Continue",
+  },
+  {
+    id: "roocode",
+    label: "Roo Code",
+    status: "supported",
+    kind: "editor",
+    note: "Backed by local roocode_mcp_settings.json MCP configuration and workspace-level .clinerules integration.",
+    vendor: "Roo Code",
+  },
+  {
+    id: "hermes",
+    label: "Hermes",
+    status: "supported",
+    kind: "terminal",
+    note: "Backed by ~/.hermes/config.yaml MCP configuration and project-level .hermesrules rules.",
+    vendor: "Hermes",
+  },
+  {
+    id: "openclaw",
+    label: "OpenClaw",
+    status: "supported",
+    kind: "terminal",
+    note: "Backed by ~/.openclaw/openclaw.json MCP configuration and project-level .openclawrules rules.",
+    vendor: "OpenClaw",
+  },
+  {
+    id: "github-copilot",
+    label: "GitHub Copilot",
+    status: "supported",
+    kind: "editor",
+    note: "Idempotent project-level .github/copilot-instructions.md skills & rules supported.",
+    vendor: "GitHub / Microsoft",
+  },
+  {
+    id: "void",
+    label: "Void Editor",
+    status: "supported",
+    kind: "editor",
+    note: "Standard MCP servers and idempotent skills & rules (.voidrules) supported.",
+    vendor: "Void",
+  },
+  {
+    id: "aider",
+    label: "Aider",
+    status: "supported",
+    kind: "terminal",
+    note: "Idempotent project-level .aider.conf.yml and .aiderinstructions.md supported.",
+    vendor: "Aider",
+  },
+  {
+    id: "cortex-code",
+    label: "Cortex Code",
+    status: "supported",
+    kind: "terminal",
+    note: "Backed by ~/.snowflake/cortex/mcp.json and .cortex/skills/ directory.",
+    vendor: "Snowflake",
+  },
+  {
+    id: "goose",
+    label: "Goose",
+    status: "supported",
+    kind: "terminal",
+    note: "Backed by ~/.config/goose/config.yaml MCP extensions.",
+    vendor: "Block / Linux Foundation",
+  },
+  {
+    id: "ibm-bob",
+    label: "IBM Bob",
+    status: "supported",
+    kind: "editor",
+    note: "Backed by ~/.bob/mcp_settings.json and .bob/mcp.json project config.",
+    vendor: "IBM",
+  },
+  {
+    id: "codebuddy",
+    label: "CodeBuddy",
+    status: "supported",
+    kind: "editor",
+    note: "Backed by ~/.codebuddy/.mcp.json and .mcp.json project config.",
+    vendor: "Tencent Cloud",
+  },
+  {
+    id: "opencode",
+    label: "OpenCode",
+    status: "supported",
+    kind: "terminal",
+    note: "Backed by ~/.config/opencode/opencode.json and project opencode.json.",
+    vendor: "Anomaly",
+  },
 ];
 
 function deriveTargetStatus(id: IdeId): TargetStatus {
-	return TARGET_CAPABILITIES[id].autoApply ? "supported" : "coming-soon";
+  return TARGET_CAPABILITIES[id].autoApply ? "supported" : "coming-soon";
 }
 
-export const TARGET_OPTIONS: TargetOption[] = UNSORTED_TARGET_OPTIONS.map(
-	(target) => ({
-		...target,
-		status: deriveTargetStatus(target.id),
-		capabilities: TARGET_CAPABILITIES[target.id],
-	}),
-).sort((left, right) => left.label.localeCompare(right.label));
+export const TARGET_OPTIONS: TargetOption[] = UNSORTED_TARGET_OPTIONS.map((target) => ({
+  ...target,
+  status: deriveTargetStatus(target.id),
+  capabilities: TARGET_CAPABILITIES[target.id],
+})).sort((left, right) => left.label.localeCompare(right.label));
 
-export const SUPPORTED_TARGET_IDS = [...ADAPTER_SUPPORTED_TARGET_IDS].sort(
-	(left, right) => {
-		const leftLabel =
-			TARGET_OPTIONS.find((target) => target.id === left)?.label ?? left;
-		const rightLabel =
-			TARGET_OPTIONS.find((target) => target.id === right)?.label ?? right;
-		return leftLabel.localeCompare(rightLabel);
-	},
-);
+export const SUPPORTED_TARGET_IDS = [...ADAPTER_SUPPORTED_TARGET_IDS].sort((left, right) => {
+  const leftLabel = TARGET_OPTIONS.find((target) => target.id === left)?.label ?? left;
+  const rightLabel = TARGET_OPTIONS.find((target) => target.id === right)?.label ?? right;
+  return leftLabel.localeCompare(rightLabel);
+});
+
+export const SUPPORTED_TARGET_COUNT = SUPPORTED_TARGET_IDS.length;
+
+export const SKILLS_SUPPORTED_TARGET_COUNT = TARGET_OPTIONS.filter(
+  (target) => target.status === "supported" && target.capabilities.supportsSkills,
+).length;
+
+export const RULES_SUPPORTED_TARGET_COUNT = TARGET_OPTIONS.filter(
+  (target) => target.status === "supported" && target.capabilities.supportsRules,
+).length;
 
 export const DEFAULT_TARGET_IDS = ["claude-code"] as const;
 
 const supportedTargetIdSet = new Set<IdeId>(SUPPORTED_TARGET_IDS);
 
 export function isSupportedTargetId(targetId: string): targetId is IdeId {
-	return supportedTargetIdSet.has(targetId as IdeId);
+  return supportedTargetIdSet.has(targetId as IdeId);
 }

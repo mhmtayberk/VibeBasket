@@ -7,9 +7,7 @@ export interface TargetCapabilityDescriptor extends IdeAdapterCapabilities {
 
 type TargetCapabilityRegistry = Record<IdeId, TargetCapabilityDescriptor>;
 
-function defineCapabilities(
-  capabilities: TargetCapabilityRegistry
-): TargetCapabilityRegistry {
+function defineCapabilities(capabilities: TargetCapabilityRegistry): TargetCapabilityRegistry {
   return capabilities;
 }
 
@@ -177,7 +175,7 @@ export const TARGET_CAPABILITIES = defineCapabilities({
   },
   opencode: {
     supportsMcp: true,
-    supportsSkills: true,
+    supportsSkills: false,
     supportsRules: false,
     supportedScopes: ["user", "project"],
     autoApply: true,

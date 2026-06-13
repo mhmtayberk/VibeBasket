@@ -697,6 +697,81 @@ workflowPacks: []
     ).toBe("skills-sh-official");
   });
 
+  it("falls back to repo crawling for both official and community skills when directory blobs are unavailable", async () => {
+    const verifiedPath = await createVerifiedCatalog(`
+mcps: []
+skills: []
+workflowPacks: []
+`);
+
+    const fetchImpl: typeof fetch = async (input) => {
+      const url = typeof input === "string" ? input : input.toString();
+      if (url === "https://registry.modelcontextprotocol.io/v0.1/servers?limit=100") {
+        return new Response(JSON.stringify({ servers: [], metadata: {} }), { status: 200 });
+      }
+      if (url === "https://www.skills.sh/official") {
+        return new Response(`
+          <a href="/supabase/agent-skills">Supabase Agent Skills</a>
+        `, {
+          status: 200,
+          headers: { "Content-Type": "text/html" },
+        });
+      }
+      if (url === "https://www.skills.sh/sitemap.xml") {
+        return new Response(`
+          <?xml version="1.0" encoding="UTF-8"?>
+          <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></sitemapindex>
+        `, {
+          status: 200,
+          headers: { "Content-Type": "application/xml" },
+        });
+      }
+      if (url === "https://www.skills.sh/") {
+        return new Response(`
+          <a href="/supabase/agent-skills">Supabase Agent Skills</a>
+          <a href="/community/repo">Community Repo</a>
+        `, {
+          status: 200,
+          headers: { "Content-Type": "text/html" },
+        });
+      }
+      if (url === "https://www.skills.sh/supabase/agent-skills") {
+        return new Response(`
+          <a href="/supabase/agent-skills/supabase-postgres-best-practices">Supabase Postgres Best Practices</a>
+        `, {
+          status: 200,
+          headers: { "Content-Type": "text/html" },
+        });
+      }
+      if (url === "https://www.skills.sh/community/repo") {
+        return new Response(`
+          <a href="/community/repo/postgresql-helper">Postgresql Helper</a>
+        `, {
+          status: 200,
+          headers: { "Content-Type": "text/html" },
+        });
+      }
+      throw new Error(`Unexpected URL ${url}`);
+    };
+
+    const items = await new RegistrySyncService({
+      fetchImpl,
+      persist: false,
+      verifiedPath,
+    }).collectCatalogItems();
+
+    expect(
+      items.find((item) => item.id === "skill-supabase-agent-skills-supabase-postgres-best-practices")
+    ).toMatchObject({
+      sourceName: "skills-sh-official",
+      sourceUrl: "https://www.skills.sh/supabase/agent-skills",
+    });
+    expect(items.find((item) => item.id === "skill-community-repo-postgresql-helper")).toMatchObject({
+      sourceName: "skills-sh-community",
+      sourceUrl: "https://www.skills.sh/community/repo",
+    });
+  });
+
   it("dedupes github skills when one source omits ref and another uses main", async () => {
     const verifiedPath = await createVerifiedCatalog(`
 mcps: []

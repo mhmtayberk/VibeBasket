@@ -2,10 +2,10 @@ import fs from "node:fs";
 import { BundleSchema } from "@vibebasket/core";
 import type { Bundle, IdeId, Scope } from "@vibebasket/core";
 import type { IdeAdapter } from "@vibebasket/adapters";
-import { 
-  CursorAdapter, 
-  AntigravityAdapter, 
-  WindsurfAdapter, 
+import {
+  CursorAdapter,
+  AntigravityAdapter,
+  WindsurfAdapter,
   VSCodeAdapter,
   ClaudeCodeAdapter,
   DeepSeekTuiAdapter,
@@ -34,6 +34,7 @@ import { resolveSecrets } from "./secrets.js";
 import { createBackup } from "./backup.js";
 import { toErrorMessage } from "./errors.js";
 import { flattenBundleContent, getUnsupportedTargetContent } from "./apply-helpers.js";
+import { formatVerificationSummary, verifyTargetInstall } from "./install-verification.js";
 
 const ADAPTERS = {
   cursor: new CursorAdapter(),
@@ -68,7 +69,7 @@ function getAdapter(targetId: IdeId): IdeAdapter | undefined {
 
 export async function applyBundle(
   input: string,
-  options: { scope?: string; force?: boolean; dryRun?: boolean }
+  options: { scope?: string; force?: boolean; dryRun?: boolean; verify?: boolean },
 ) {
   let manifest: unknown;
 
@@ -97,7 +98,7 @@ export async function applyBundle(
   const unsupportedTargets = bundle.targets.filter((targetId) => !getAdapter(targetId));
   if (unsupportedTargets.length > 0) {
     throw new Error(
-      `This bundle references targets the current apply engine cannot install yet: ${unsupportedTargets.join(", ")}.`
+      `This bundle references targets the current apply engine cannot install yet: ${unsupportedTargets.join(", ")}.`,
     );
   }
 
@@ -107,7 +108,7 @@ export async function applyBundle(
   });
   if (scopeUnsupportedTargets.length > 0) {
     throw new Error(
-      `This bundle cannot be applied at ${scope} scope for: ${scopeUnsupportedTargets.join(", ")}.`
+      `This bundle cannot be applied at ${scope} scope for: ${scopeUnsupportedTargets.join(", ")}.`,
     );
   }
 
@@ -128,11 +129,18 @@ export async function applyBundle(
     for (const msg of unsupportedFeatureMessages) {
       console.log(chalk.yellow(`   ${msg}`));
     }
-    console.log(chalk.gray("   MCP will be applied to all targets. Skills/rules will be applied only to targets that support them.\n"));
+    console.log(
+      chalk.gray(
+        "   MCP will be applied to all targets. Skills/rules will be applied only to targets that support them.\n",
+      ),
+    );
   }
 
   if (!options.force) {
-    const ok = await confirm({ message: "Do you trust this bundle and want to apply it?", default: true });
+    const ok = await confirm({
+      message: "Do you trust this bundle and want to apply it?",
+      default: true,
+    });
     if (!ok) {
       console.log(chalk.red("Aborted."));
       return;
@@ -151,7 +159,9 @@ export async function applyBundle(
 
     try {
       const config = await adapter.readConfig(scope, projectRoot);
-      const pendingConfig = adapter.applyMcps(config, flattened.mcps, secrets, { force: options.force || false });
+      const pendingConfig = adapter.applyMcps(config, flattened.mcps, secrets, {
+        force: options.force || false,
+      });
 
       if (options.dryRun) {
         const diff = await adapter.diff(scope, pendingConfig, projectRoot);
@@ -159,7 +169,7 @@ export async function applyBundle(
       } else {
         const backupPath = await createBackup(targetId, scope, config);
         console.log(chalk.gray(`  - Created backup: ${backupPath}`));
-        
+
         await adapter.writeConfig(scope, pendingConfig, projectRoot);
 
         // Auto-apply rules if supported
@@ -174,6 +184,24 @@ export async function applyBundle(
           console.log(chalk.gray(`  - Successfully applied skills for ${adapter.displayName}`));
         }
 
+        if (options.verify !== false) {
+          const verification = await verifyTargetInstall(targetId, adapter, scope, projectRoot, {
+            mcps: flattened.mcps,
+            skills: adapter.supportsSkills && adapter.applySkills ? flattened.skills : [],
+            rules: adapter.supportsRules && adapter.applyRules ? flattened.rules : [],
+          });
+
+          if (!verification.ok) {
+            throw new Error(
+              `Post-install verification failed (${formatVerificationSummary(verification)})`,
+            );
+          }
+
+          console.log(
+            chalk.gray(`  - Verified install: ${formatVerificationSummary(verification)}`),
+          );
+        }
+
         console.log(chalk.green(`✅ Successfully applied to ${adapter.displayName}`));
         console.log(chalk.cyan(`💡 ${adapter.postInstallHint()}`));
       }
@@ -184,9 +212,7 @@ export async function applyBundle(
   }
 
   if (failedTargets.length > 0) {
-    throw new Error(
-      `Bundle apply was incomplete. Failed targets: ${failedTargets.join(", ")}.`
-    );
+    throw new Error(`Bundle apply was incomplete. Failed targets: ${failedTargets.join(", ")}.`);
   }
 
   console.log(chalk.bold.green("\n✨ VibeBasket apply complete!\n"));

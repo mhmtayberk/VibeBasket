@@ -10,7 +10,7 @@ The product exists to make AI development environments portable, repeatable, and
 
 As of June 13, 2026, the product exposes 24 adapter-backed IDE targets: Cursor, Windsurf, VS Code/Cline, Antigravity, Claude Code, DeepSeek-TUI, Zed, Codex CLI, Gemini CLI, Junie, Kiro, Cline CLI, Continue, Roo Code, Hermes, OpenClaw, GitHub Copilot, Void Editor, Aider, Cortex Code, Goose, IBM Bob, CodeBuddy, and OpenCode.
 
-For targets that support it (11 total: Claude Code, Continue, Roo Code, Hermes, OpenClaw, GitHub Copilot, Void Editor, Aider, Cortex Code, IBM Bob, and CodeBuddy), the CLI adapter also installs Skills and Rules using idempotent block delimiters to avoid corrupting existing developer configurations.
+For targets that support it (11 total: Claude Code, Continue, Roo Code, Hermes, OpenClaw, GitHub Copilot, Void Editor, Aider, Cortex Code, IBM Bob, and CodeBuddy), the CLI adapter also installs Skills and/or Rules using idempotent file writes or block delimiters to avoid corrupting existing developer configurations.
 
 ## Core Experience
 
@@ -19,8 +19,9 @@ For targets that support it (11 total: Claude Code, Continue, Roo Code, Hermes, 
 3. Select or unselect items directly from the catalog UI.
 4. Generate a bundle URL and a CLI apply command.
 5. Apply the bundle locally with idempotent IDE adapters.
+6. Re-read the written target config and verify that expected MCP entries and supported skill/rule artifacts exist.
 
-Automatic local apply is fully supported for MCP configuration across all 16 target adapters. Skills and rules are additionally auto-installed for Continue, Roo Code, Hermes, and OpenClaw using our idempotent block delimiter engine.
+Automatic local apply is fully supported for MCP configuration across all MCP-capable targets. Skills and rules are additionally auto-installed on the adapters that explicitly implement them, and the CLI now performs post-install verification rather than assuming persistence succeeded.
 
 ## Trusted Catalog Model
 
@@ -44,11 +45,13 @@ Recent work significantly changed the catalog behavior, deployment, and security
 - **GitHub OAuth Redirect Spec:** Added a dedicated callout spec in `/docs?tab=self-hosting` and registered `.env.example` under Git tracking.
 - **Idempotent Delimiter Engine:** Roo Code (`.clinerules`), Hermes (`.hermesrules`), and OpenClaw (`.openclawrules`) IDE adapters use `>>> VIBEBASKET START/END <<<` block delimiters for idempotent rule/skill writes.
 - **Semver Deduplication Engine:** `OfficialMcpRegistryCollector` groups servers by `server.name` and ingests only the highest semver release, eliminating multi-version catalog duplicates (e.g. FAF Context).
+- **Install Verification:** `vibebasket apply` now performs a readback verification step after writes, confirming expected MCP entries and deterministic skill/rule artifacts when the adapter supports them.
+- **Operational Visibility:** The admin dashboard now surfaces catalog freshness, sync resilience, collector health, and recent sync runs without forcing a heavy observability stack into the product.
 
 ## Current Constraints
 
 - full-catalog sync is functionally correct but still expensive at large scale; `pnpm catalog:sync` is the recommended hook for periodic refreshes
 - catalog search uses SQL `LIKE`; acceptable for now but not the final search architecture for very large datasets
 - same-name skills from distinct upstream repos are intentionally preserved unless canonical source identity proves they are mirrors; correctness wins over aggressive title-based merging
-- adapter-backed support is MCP-first today; Skills/Rules/Workflow auto-apply is only live for Continue, Roo Code, Hermes, and OpenClaw; even there, the CLI prompts rather than silently overwriting user configurations
+- adapter-backed support is still MCP-first overall; not every target supports Skills or Rules, and capability metadata must remain strictly aligned with real adapter methods
 - the docs hub at `/docs` supports fully-functional interactive search with 300ms client debouncing; versioned documentation is a future improvement
