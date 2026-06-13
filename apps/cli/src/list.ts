@@ -1,173 +1,172 @@
 import fs from "node:fs";
-import path from "node:path";
-import os from "node:os";
 import chalk from "chalk";
+import type { IdeId } from "@vibebasket/core";
 import {
-	CursorAdapter,
-	AntigravityAdapter,
-	WindsurfAdapter,
-	VSCodeAdapter,
-	ClaudeCodeAdapter,
-	DeepSeekTuiAdapter,
-	GeminiCliAdapter,
-	KiroAdapter,
-	JunieAdapter,
-	ClineCliAdapter,
-	ZedAdapter,
-	CodexAdapter,
-	ContinueAdapter,
-	RooCodeAdapter,
-	HermesAdapter,
-	OpenClawAdapter,
-	GitHubCopilotAdapter,
-	VoidAdapter,
-	AiderAdapter,
-	CortexCodeAdapter,
-	GooseAdapter,
-	IBMBobAdapter,
-	CodeBuddyAdapter,
+  CursorAdapter,
+  AntigravityAdapter,
+  WindsurfAdapter,
+  VSCodeAdapter,
+  ClaudeCodeAdapter,
+  DeepSeekTuiAdapter,
+  GeminiCliAdapter,
+  KiroAdapter,
+  JunieAdapter,
+  ClineCliAdapter,
+  ZedAdapter,
+  CodexAdapter,
+  ContinueAdapter,
+  RooCodeAdapter,
+  HermesAdapter,
+  OpenClawAdapter,
+  GitHubCopilotAdapter,
+  VoidAdapter,
+  AiderAdapter,
+  CortexCodeAdapter,
+  GooseAdapter,
+  IBMBobAdapter,
+  CodeBuddyAdapter,
+  OpenCodeAdapter,
 } from "@vibebasket/adapters";
 import type { IdeAdapter } from "@vibebasket/adapters";
+import {
+  extractConfiguredMcpIds,
+  resolveRuleInventoryTargets,
+  resolveSkillInventoryTargets,
+} from "./config-inspection.js";
 
 const ADAPTERS: Record<string, IdeAdapter> = {
-	cursor: new CursorAdapter(),
-	antigravity: new AntigravityAdapter(),
-	windsurf: new WindsurfAdapter(),
-	vscode: new VSCodeAdapter(),
-	"claude-code": new ClaudeCodeAdapter(),
-	"deepseek-tui": new DeepSeekTuiAdapter(),
-	"gemini-cli": new GeminiCliAdapter(),
-	kiro: new KiroAdapter(),
-	junie: new JunieAdapter(),
-	"cline-cli": new ClineCliAdapter(),
-	zed: new ZedAdapter(),
-	codex: new CodexAdapter(),
-	continue: new ContinueAdapter(),
-	roocode: new RooCodeAdapter(),
-	hermes: new HermesAdapter(),
-	openclaw: new OpenClawAdapter(),
-	"github-copilot": new GitHubCopilotAdapter(),
-	void: new VoidAdapter(),
-	aider: new AiderAdapter(),
-	"cortex-code": new CortexCodeAdapter(),
-	goose: new GooseAdapter(),
-	"ibm-bob": new IBMBobAdapter(),
-	codebuddy: new CodeBuddyAdapter(),
+  cursor: new CursorAdapter(),
+  antigravity: new AntigravityAdapter(),
+  windsurf: new WindsurfAdapter(),
+  vscode: new VSCodeAdapter(),
+  "claude-code": new ClaudeCodeAdapter(),
+  "deepseek-tui": new DeepSeekTuiAdapter(),
+  "gemini-cli": new GeminiCliAdapter(),
+  kiro: new KiroAdapter(),
+  junie: new JunieAdapter(),
+  "cline-cli": new ClineCliAdapter(),
+  zed: new ZedAdapter(),
+  codex: new CodexAdapter(),
+  continue: new ContinueAdapter(),
+  roocode: new RooCodeAdapter(),
+  hermes: new HermesAdapter(),
+  openclaw: new OpenClawAdapter(),
+  "github-copilot": new GitHubCopilotAdapter(),
+  void: new VoidAdapter(),
+  aider: new AiderAdapter(),
+  "cortex-code": new CortexCodeAdapter(),
+  goose: new GooseAdapter(),
+  "ibm-bob": new IBMBobAdapter(),
+  codebuddy: new CodeBuddyAdapter(),
+  opencode: new OpenCodeAdapter(),
 };
 
 function fileExists(filePath: string): boolean {
-	try {
-		fs.accessSync(filePath);
-		return true;
-	} catch {
-		return false;
-	}
+  try {
+    fs.accessSync(filePath);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
-function listSkills(dir: string): string[] {
-	if (!fileExists(dir)) return [];
-	try {
-		return fs.readdirSync(dir, { withFileTypes: true })
-			.filter((d) => d.isDirectory())
-			.map((d) => d.name);
-	} catch {
-		return [];
-	}
+function listDirectoryEntries(dir: string, fileExtension?: string): string[] {
+  if (!fileExists(dir)) return [];
+  try {
+    return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+      if (fileExtension) {
+        if (!entry.isFile() || !entry.name.endsWith(fileExtension)) return [];
+        return [entry.name.slice(0, -fileExtension.length)];
+      }
+
+      if (!entry.isDirectory()) return [];
+      return [entry.name];
+    });
+  } catch {
+    return [];
+  }
 }
 
-function listRules(dir: string): string[] {
-	if (!fileExists(dir)) return [];
-	try {
-		return fs.readdirSync(dir, { withFileTypes: true })
-			.filter((d) => d.isFile() && d.name.endsWith(".md"))
-			.map((d) => d.name.replace(".md", ""));
-	} catch {
-		return [];
-	}
+function listMarkerEntries(filePath: string): string[] {
+  if (!fileExists(filePath)) return [];
+  try {
+    const content = fs.readFileSync(filePath, "utf8");
+    const matches = Array.from(content.matchAll(/vibebasket:([a-z0-9-]+)/gi), (match) => match[1] ?? "");
+    return matches.filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
+function listInventory(targets: ReturnType<typeof resolveSkillInventoryTargets>): string[] {
+  const names = targets.flatMap((target) =>
+    target.kind === "marker-file"
+      ? listMarkerEntries(target.path)
+      : listDirectoryEntries(target.path, target.fileExtension)
+  );
+  return [...new Set(names)];
 }
 
 export async function runList() {
-	console.log(chalk.bold("\n📋 Installed IDE Configurations\n"));
+  console.log(chalk.bold("\n📋 Installed IDE Configurations\n"));
+  const projectRoot = process.cwd();
 
-	for (const [targetId, adapter] of Object.entries(ADAPTERS)) {
-		let hasContent = false;
-		const lines: string[] = [];
-		lines.push(chalk.bold.cyan(`${adapter.displayName} (${targetId})`));
+  for (const [targetId, adapter] of Object.entries(ADAPTERS)) {
+    let hasContent = false;
+    const lines: string[] = [];
+    lines.push(chalk.bold.cyan(`${adapter.displayName} (${targetId})`));
 
-		if (adapter.supportsMcp) {
-			let mcps: string[] = [];
-			try {
-				const config = await adapter.readConfig("user");
-				const mcpServers = (config as Record<string, unknown>)?.mcpServers as Record<string, unknown> | undefined;
-				if (mcpServers) {
-					mcps = Object.keys(mcpServers);
-				}
-			} catch {
-				mcps = [];
-			}
-			if (mcps.length > 0) {
-				hasContent = true;
-				lines.push(`  MCP Servers (${mcps.length}): ${mcps.map((m) => chalk.green(m)).join(", ")}`);
-			} else {
-				lines.push(`  MCP Servers: ${chalk.gray("none")}`);
-			}
-		}
+    if (adapter.supportsMcp) {
+      let mcps: string[] = [];
+      try {
+        const config = await adapter.readConfig("user");
+        mcps = extractConfiguredMcpIds(config);
+      } catch {
+        mcps = [];
+      }
+      if (mcps.length > 0) {
+        hasContent = true;
+        lines.push(`  MCP Servers (${mcps.length}): ${mcps.map((m) => chalk.green(m)).join(", ")}`);
+      } else {
+        lines.push(`  MCP Servers: ${chalk.gray("none")}`);
+      }
+    }
 
-		if (adapter.supportsSkills) {
-			const skillsDir = adapter.configPath("user").includes(os.homedir())
-				? path.join(os.homedir(), ".claude", "skills")
-				: undefined;
-			// Use common skills paths
-			let skills: string[] = [];
-			const commonSkillsPaths = [
-				path.join(os.homedir(), ".claude", "skills"),
-				path.join(os.homedir(), ".cursor", "skills"),
-				path.join(os.homedir(), ".continue", "prompts"),
-				path.join(os.homedir(), ".codebuddy", "skills"),
-				path.join(os.homedir(), ".bob", "skills"),
-				path.join(os.homedir(), ".snowflake", "cortex", "skills"),
-			];
-			for (const p of commonSkillsPaths) {
-				skills.push(...listSkills(p));
-			}
-			const unique = [...new Set(skills)];
-			if (unique.length > 0) {
-				hasContent = true;
-				lines.push(`  Skills (${unique.length}): ${unique.map((s) => chalk.yellow(s)).join(", ")}`);
-			} else {
-				lines.push(`  Skills: ${chalk.gray("none")}`);
-			}
-		}
+    const ideId = targetId as IdeId;
 
-		if (adapter.supportsRules) {
-			let rules: string[] = [];
-			const commonRulesPaths = [
-				path.join(os.homedir(), ".cursor", "rules"),
-				path.join(os.homedir(), ".claude", "rules"),
-			];
-			const projPaths = [
-				path.join(process.cwd(), ".cursor", "rules"),
-				path.join(process.cwd(), ".github", "copilot-instructions.md"),
-			];
-			for (const p of [...commonRulesPaths, ...projPaths]) {
-				if (fileExists(p)) {
-					rules.push(...listRules(p));
-				}
-			}
-			const unique = [...new Set(rules)];
-			if (unique.length > 0) {
-				hasContent = true;
-				lines.push(`  Rules (${unique.length}): ${unique.map((r) => chalk.magenta(r)).join(", ")}`);
-			} else {
-				lines.push(`  Rules: ${chalk.gray("none")}`);
-			}
-		}
+    if (adapter.supportsSkills) {
+      const skills = [
+        ...listInventory(resolveSkillInventoryTargets(ideId, "user")),
+        ...listInventory(resolveSkillInventoryTargets(ideId, "project", projectRoot)),
+      ];
+      const unique = [...new Set(skills)];
+      if (unique.length > 0) {
+        hasContent = true;
+        lines.push(`  Skills (${unique.length}): ${unique.map((s) => chalk.yellow(s)).join(", ")}`);
+      } else {
+        lines.push(`  Skills: ${chalk.gray("none")}`);
+      }
+    }
 
-		if (!hasContent) {
-			lines.push(`  ${chalk.gray("No VibeBasket-managed content found.")}`);
-		}
+    if (adapter.supportsRules) {
+      const rules = [
+        ...listInventory(resolveRuleInventoryTargets(ideId, "user")),
+        ...listInventory(resolveRuleInventoryTargets(ideId, "project", projectRoot)),
+      ];
+      const unique = [...new Set(rules)];
+      if (unique.length > 0) {
+        hasContent = true;
+        lines.push(`  Rules (${unique.length}): ${unique.map((r) => chalk.magenta(r)).join(", ")}`);
+      } else {
+        lines.push(`  Rules: ${chalk.gray("none")}`);
+      }
+    }
 
-		console.log(lines.join("\n"));
-		console.log();
-	}
+    if (!hasContent) {
+      lines.push(`  ${chalk.gray("No VibeBasket-managed content found.")}`);
+    }
+
+    console.log(lines.join("\n"));
+    console.log();
+  }
 }

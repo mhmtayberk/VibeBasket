@@ -4,7 +4,7 @@
 We use `pnpm workspaces` to manage the project.
 
 - `packages/core`: Holds Zod schemas defining the data shape (bundles, MCPs, skills, etc.).
-- `packages/adapters`: Contains 24 IDE adapters (Cursor, Windsurf, VS Code/Cline, Antigravity, Claude Code, DeepSeek-TUI, Zed, Codex CLI, Gemini CLI, Junie, Kiro, Cline CLI, Continue, Roo Code, Hermes, OpenClaw, GitHub Copilot, Void Editor, Aider, Cortex Code, Goose, IBM Bob, CodeBuddy, and OpenCode) that handle config generation, backups, and idempotency. 15 adapters extend BaseAdapter for shared readConfig/applyMcps/writeConfig/diff logic.
+- `packages/adapters`: Contains 24 IDE adapters (Cursor, Windsurf, VS Code/Cline, Antigravity, Claude Code, DeepSeek-TUI, Zed, Codex CLI, Gemini CLI, Junie, Kiro, Cline CLI, Continue, Roo Code, Hermes, OpenClaw, GitHub Copilot, Void Editor, Aider, Cortex Code, Goose, IBM Bob, CodeBuddy, and OpenCode) that handle config generation, backups, and idempotency. 16 adapters extend BaseAdapter for shared readConfig/applyMcps/writeConfig/diff logic.
 - `packages/registry`: Automated catalog synchronization logic from trusted external sources and local curated data, including the semver deduplication engine for official upstream MCP servers.
 - `apps/web`: Next.js 16 App Router providing the catalog and selection UI, `/docs` documentation hub, `/stacks` saved-stack management, and the `/admin` stats dashboard.
 - `apps/cli`: Node.js CLI tool running the execution environment.
@@ -14,6 +14,7 @@ We use `pnpm workspaces` to manage the project.
 2. The bundle is verified via Zod (`manifest.ts`).
 3. CLI fetches the bundle, resolves secrets locally (never sent to the cloud).
 4. Adapters modify IDE configuration files incrementally and idempotently.
+5. The CLI re-reads the target configuration and verifies deterministic artifacts after writes when verification is enabled (default).
 
 ## Registry Sync System
 To keep the catalog fresh without relying on mostly manual entry, VibeBasket implements an automated sync layer:
@@ -62,6 +63,7 @@ Cloud SDKs are lazily loaded via dynamic `await import()` to prevent Next.js bui
 - **Debounced Input**: Frontend uses a 300ms debounce to minimize API pressure while maintaining a responsive feel.
 - **Single-Flight Sync Guard**: when the catalog is stale, concurrent requests share one sync job instead of starting duplicates.
 - **Automatic SQLite Indexes**: catalog reads ensure query indexes exist for the active access pattern.
+- **Operational Visibility Without Heavy Infra**: admin health signals are derived from `catalog_sync_runs` and catalog source counts instead of introducing a separate telemetry service.
 
 ## Catalog API
 
@@ -128,4 +130,3 @@ Returns current catalog counts, freshness derived from the newest catalog row, a
 ### 🗺️ Sitemap & Query Hardening
 - **Information Leak Protection:** `sitemap.ts` includes `/docs` alongside `/` and `/stacks` but intentionally excludes user-created stack pages (`/bundle/[id]`) and `/admin` routes. This guards against search engines indexing personal development context profiles (Information Disclosure defense).
 - **docs Route Boundaries:** Protects against Local/Remote File Inclusion (LFI/RFI) by validating the docs `tab` search parameter against an allowed whitelist. The arama search parameter is capped at 100 characters to prevent ReDoS (Regular Expression Denial of Service) and XSS enjections.
-
