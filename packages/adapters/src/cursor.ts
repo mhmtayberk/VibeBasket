@@ -1,99 +1,32 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import type { IdeAdapter } from "./types";
-import type { IdeId, McpEntry, RuleEntry, Scope } from "@vibebasket/core";
-import { mergeStandardMcpServers } from "./mcp-utils";
-import { getTargetCapabilities } from "./target-capabilities";
+import type { RuleEntry, Scope } from "@vibebasket/core";
+import { BaseAdapter } from "./base-adapter";
 
-export interface CursorMcpConfig {
-  mcpServers: Record<
-    string,
-    {
-      command: string;
-      args?: string[];
-      env?: Record<string, string>;
-    }
-  >;
-}
+export class CursorAdapter extends BaseAdapter {
+	readonly id = "cursor" as const;
+	readonly displayName = "Cursor";
 
-export class CursorAdapter implements IdeAdapter {
-  private static readonly capabilities = getTargetCapabilities("cursor");
-  readonly id: IdeId = "cursor";
-  readonly displayName = "Cursor";
-  readonly supportsMcp = CursorAdapter.capabilities.supportsMcp;
-  readonly supportsSkills = CursorAdapter.capabilities.supportsSkills;
-  readonly supportsRules = CursorAdapter.capabilities.supportsRules;
-  readonly supportedScopes: readonly Scope[] = CursorAdapter.capabilities.supportedScopes;
+	configPath(scope: Scope, projectRoot?: string): string {
+		if (scope === "project") {
+			if (!projectRoot) throw new Error("projectRoot required for project scope");
+			return path.join(projectRoot, ".cursor", "mcp.json");
+		}
+		return path.join(os.homedir(), ".cursor", "mcp.json");
+	}
 
-  configPath(scope: Scope, projectRoot?: string): string {
-    if (scope === "project") {
-      if (!projectRoot) throw new Error("projectRoot required for project scope");
-      return path.join(projectRoot, ".cursor", "mcp.json");
-    }
+	async applyRules(rules: RuleEntry[], scope: Scope, projectRoot?: string): Promise<void> {
+		const baseDir = scope === "project" && projectRoot
+			? path.join(projectRoot, ".cursor", "rules")
+			: path.join(os.homedir(), ".cursor", "rules");
+		await fs.mkdir(baseDir, { recursive: true });
+		for (const rule of rules) {
+			await fs.writeFile(path.join(baseDir, `${rule.id}.md`), `# ${rule.displayName}\n\n${rule.content}`, "utf8");
+		}
+	}
 
-    return path.join(os.homedir(), ".cursor", "mcp.json");
-  }
-
-  async readConfig(scope: Scope, projectRoot?: string): Promise<unknown> {
-    const file = this.configPath(scope, projectRoot);
-    try {
-      const content = await fs.readFile(file, "utf8");
-      return JSON.parse(content);
-    } catch (e: any) {
-      if (e.code === "ENOENT") {
-        return { mcpServers: {} };
-      }
-      throw e;
-    }
-  }
-
-  applyMcps(
-    config: unknown,
-    mcps: McpEntry[],
-    secrets: Record<string, string>,
-    opts: { force: boolean }
-  ): unknown {
-    const current = (config as CursorMcpConfig) || { mcpServers: {} };
-    return {
-      ...current,
-      mcpServers: mergeStandardMcpServers(current.mcpServers, mcps, secrets, opts),
-    };
-  }
-
-  async applyRules(rules: RuleEntry[], scope: Scope, projectRoot?: string): Promise<void> {
-    const baseDir = scope === "project" && projectRoot
-      ? path.join(projectRoot, ".cursor", "rules")
-      : path.join(os.homedir(), ".cursor", "rules");
-    await fs.mkdir(baseDir, { recursive: true });
-    for (const rule of rules) {
-      await fs.writeFile(path.join(baseDir, `${rule.id}.md`), `# ${rule.displayName}\n\n${rule.content}`, "utf8");
-    }
-  }
-
-  async writeConfig(scope: Scope, config: unknown, projectRoot?: string): Promise<void> {
-    const file = this.configPath(scope, projectRoot);
-    const dir = path.dirname(file);
-    await fs.mkdir(dir, { recursive: true });
-
-    // Backup
-    try {
-      const content = await fs.readFile(file, "utf8");
-      await fs.writeFile(`${file}.bak.${Date.now()}`, content, "utf8");
-    } catch (e: any) {
-      if (e.code !== "ENOENT") throw e;
-    }
-
-    await fs.writeFile(file, JSON.stringify(config, null, 2), "utf8");
-  }
-
-  async diff(scope: Scope, pending: unknown, projectRoot?: string): Promise<string> {
-    const current = await this.readConfig(scope, projectRoot);
-    // Real implementation would use something like diff package. For now, stringify comparison.
-    return JSON.stringify(pending, null, 2);
-  }
-
-  postInstallHint(): string {
-    return "Restart Cursor or reload the window for MCP changes to take effect.";
-  }
+	postInstallHint(): string {
+		return "Restart Cursor or reload the window for MCP changes to take effect.";
+	}
 }
