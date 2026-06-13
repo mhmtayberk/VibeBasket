@@ -20,11 +20,11 @@ pnpm install
 
 ```
 apps/
-  web/          Next.js 16 App Router — the catalog UI and API
-  cli/          Node.js CLI — `vibebasket apply`, `list`, `search`, `doctor`
+  web/          Next.js 16.2.9 App Router — the catalog UI and API
+  cli/          Node.js CLI — `vibebasket apply`, `list`, `search`, `doctor`, `init`, `rollback`
 packages/
   core/         Shared DB schema, bundle manifest types, SQLite client
-  adapters/     24 IDE adapters with BaseAdapter pattern
+  adapters/     24 IDE adapters (16 on BaseAdapter, 8 custom)
   registry/     Catalog sync engine — merges verified + upstream sources
 ```
 

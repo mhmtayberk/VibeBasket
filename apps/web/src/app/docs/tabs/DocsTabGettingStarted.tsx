@@ -16,7 +16,16 @@ export function DocsTabGettingStarted() {
 			<div className="space-y-28 border-t border-[#3e4944]/50 pt-20">
 				<section id="overview" className="scroll-mt-28">
 					<h2 className="text-2xl font-semibold tracking-tight text-foreground mb-6">Core Methodology</h2>
-					<p className="text-sm text-[#bdc9c2] leading-relaxed max-w-3xl">VibeBasket functions as the Ninite for Vibe Coding. It solves the friction of manually configuring developer toolchains, local agent rules, and Model Context Protocol (MCP) servers across different AI-assisted IDEs. By selecting custom components inside the web catalog, you curate an anonymous, reproducible bundle that consolidates all settings under a single immutable hash.</p>
+            <p className="text-sm text-[#bdc9c2] leading-relaxed max-w-3xl">VibeBasket functions as the Ninite for Vibe Coding. It solves the friction of manually configuring developer toolchains, local agent rules, and Model Context Protocol (MCP) servers across different AI-assisted IDEs. By selecting custom components inside the web catalog, you curate an anonymous, reproducible bundle that consolidates all settings under a single immutable hash.</p>
+            <div className="flex gap-4 p-8 border-l-2 border-[#33bbc5] bg-[#33bbc5]/5 rounded-r-[2px] my-10">
+              <Info className="h-5 w-5 text-[#33bbc5] shrink-0 mt-0.5" />
+              <div>
+                <h4 className="font-mono text-[11px] uppercase tracking-widest text-[#33bbc5] font-semibold mb-3">Bundle Lifecycle</h4>
+                <p className="text-xs text-[#bdc9c2] leading-relaxed">
+                  Anonymous bundles created without an account expire after <strong className="text-foreground">48 hours</strong>. Registered user bundles persist for <strong className="text-foreground">365 days</strong>. Expired bundles are automatically purged by the platform&apos;s periodic cleanup job. Sign in via GitHub, Google, Apple, or Microsoft Entra ID to preserve your bundles long-term.
+                </p>
+              </div>
+            </div>
 				</section>
 				<section id="installation" className="scroll-mt-28">
 					<div className="flex items-center gap-2.5 mb-8">

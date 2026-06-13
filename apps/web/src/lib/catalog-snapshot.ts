@@ -10,14 +10,17 @@ export const CATALOG_PAGE_SIZE = 24;
 function mapCatalogItemToBasketItem(
 	item: typeof catalogItems.$inferSelect,
 ): BasketItem {
+	const itemType = item.type as BasketItem["type"];
 	return withCatalogTrust(
 		{
 			id: item.id,
-			type: item.type as BasketItem["type"],
+			type: itemType,
 			name: item.displayName,
 			description: item.description ?? "",
 			icon: item.icon ?? undefined,
-			mcpData: item.data as BasketItem["mcpData"],
+			mcpData: itemType === "mcp" ? item.data as BasketItem["mcpData"] : undefined,
+			skillData: itemType === "skill" ? item.data as BasketItem["skillData"] : undefined,
+			ruleData: itemType === "rule" ? item.data as BasketItem["ruleData"] : undefined,
 		},
 		item,
 	);

@@ -35,7 +35,37 @@ const SYNC_INTERVAL_MS = 60 * 60 * 1000;
 const DEFAULT_LIMIT = 24;
 const MAX_LIMIT = 100;
 const MAX_SEARCH_LENGTH = 120;
+const COUNT_CACHE_TTL_MS = 60_000;
 const VALID_CATALOG_TYPES = new Set(["mcp", "skill", "rule", "workflow"]);
+
+interface CountCacheEntry {
+	count: number;
+	expiresAt: number;
+}
+
+const countCache = new Map<string, CountCacheEntry>();
+
+function getCachedCount(key: string): number | null {
+	const entry = countCache.get(key);
+	if (entry && entry.expiresAt > Date.now()) {
+		return entry.count;
+	}
+	if (entry) {
+		countCache.delete(key);
+	}
+	return null;
+}
+
+function setCachedCount(key: string, count: number) {
+	countCache.set(key, { count, expiresAt: Date.now() + COUNT_CACHE_TTL_MS });
+	// Prune expired entries occasionally
+	if (countCache.size > 200) {
+		const now = Date.now();
+		for (const [k, v] of countCache) {
+			if (v.expiresAt <= now) countCache.delete(k);
+		}
+	}
+}
 const CATALOG_RATE_LIMIT = 120;
 const CATALOG_RATE_WINDOW_MS = 60 * 1000;
 
@@ -322,10 +352,19 @@ export async function GET(request: Request) {
 				.orderBy(...orderByClause)
 				.limit(limit)
 				.offset(offset),
-			db
-				.select({ total: sql<number>`count(*)` })
-				.from(catalogItems)
-				.where(whereClause),
+			(async () => {
+				const cacheKey = `${type ?? ""}|${discovery.trust}|${discovery.freshness}|${search ? "1" : "0"}`;
+				const cached = getCachedCount(cacheKey);
+				if (cached !== null) {
+					return [{ total: cached }];
+				}
+				const result = await db
+					.select({ total: sql<number>`count(*)` })
+					.from(catalogItems)
+					.where(whereClause);
+				setCachedCount(cacheKey, Number(result[0]?.total ?? 0));
+				return result;
+			})(),
 		]);
 
 		const total = Number(totalResult[0]?.total ?? 0);
@@ -345,6 +384,8 @@ export async function GET(request: Request) {
 				},
 			}),
 		);
+
+		response.headers.set("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
 
 		if (shouldScheduleBackgroundSync) {
 			scheduleBackgroundCatalogSync();

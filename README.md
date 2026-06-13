@@ -68,7 +68,7 @@ npx vibebasket apply https://vibebasket.dev/api/bundle/cj2k9x
 ### Security
 - **Zero-knowledge**: API keys and secrets never sent to our servers. Prompted locally by CLI.
 - **AES-256-GCM encryption**: Cloud storage credentials encrypted at rest in SQLite
-- **Rate limiting**: Sliding window on all 9 API endpoints with Retry-After headers
+- **Rate limiting**: Sliding window on 8 API endpoints with Retry-After headers
 - **CSP + security headers**: Production Content-Security-Policy, X-Frame-Options, nosniff
 - **Path sanitization**: All file operations use `path.basename()` + character whitelists
 - **4 OAuth providers**: GitHub, Google, Apple, Microsoft Entra ID — independently gateable
@@ -79,14 +79,25 @@ npx vibebasket apply https://vibebasket.dev/api/bundle/cj2k9x
 - **Admin panel**: Manage storage config, trigger syncs, view metrics — no restart needed
 - **Encrypted credentials**: Cloud API keys encrypted before DB storage
 
+### Performance
+- **Count cache**: 60s TTL on catalog counts to avoid expensive COUNT(*) on every page render
+- **Compound indexes**: Covering indexes on main catalog query paths (type + trust + name)
+- **FTS5**: Data column removed from FTS5 content to reduce index size; prefix-matching for partial queries
+- **Catalog API**: `Cache-Control: max-age=60, stale-while-revalidate=300` on public catalog responses
+- **Health cache**: 5s in-memory TTL on `/api/health` DB probe to survive orchestrator floods
+
 ### Admin Dashboard
 - Real-time metrics: registered users, saved stacks, popular integrations
 - Manual catalog sync trigger with audit trail
-- Backup management: create, list, restore, delete
+- Backup management: create, list, restore, delete, configurable schedule intervals
 - Storage backend configuration with credential forms
 - FTS5 health monitoring and rebuild
 - Database health checks and force cleanup
 - User overview and admin email management
+
+### Mobile
+- Basket FAB (floating action button) with bottom sheet on mobile viewports
+- Responsive catalog grid with adaptive column count
 
 ## Quick Start
 
@@ -176,15 +187,17 @@ See [`.env.example`](.env.example) for the complete list.
 
 ```
 packages/
-├── core/          Zod schemas, Drizzle ORM, SQLite bootstrap
-├── adapters/      24 IDE adapters (Cursor, Windsurf, Claude Code, etc.)
+├── core/          Zod schemas, Drizzle ORM, SQLite bootstrap (WAL, 64MB cache)
+├── adapters/      24 IDE adapters (16 on BaseAdapter, 8 custom)
 ├── registry/      Catalog sync from MCP Registry + skills.sh + verified.yaml
 apps/
-├── web/           Next.js 16 App Router — catalog UI, API, admin dashboard
+├── web/           Next.js 16.2.9 App Router — catalog UI, API, admin dashboard
 └── cli/           Node.js CLI — apply, list, search, doctor, init, rollback
+charts/
+└── vibebasket/    Helm chart (Recreate strategy, uid 1001, existingSecret)
 ```
 
-**Key patterns**: Idempotent config writes, immutable bundles, DB-first configuration, lazy-loaded cloud SDKs, BaseAdapter class hierarchy, Strategy pattern for storage backends.
+**Key patterns**: Idempotent config writes, immutable bundles, DB-first configuration, lazy-loaded cloud SDKs, BaseAdapter class hierarchy, Strategy pattern for storage backends, FTS5 with trigger-based content sync.
 
 ## Important Notes
 
