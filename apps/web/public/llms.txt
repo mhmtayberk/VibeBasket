@@ -11,7 +11,7 @@
 - [Database](https://vibebasket.dev/docs?tab=security): SQLite via libSQL with Drizzle ORM. Tables: catalog_items (40K+), bundles, catalog_sync_runs, sessions, accounts, verification_tokens, saved_stacks, backup_config, site_config. FTS5 full-text search index on catalog.
 - [Adapter Pattern](https://vibebasket.dev/docs?tab=adapters): BaseAdapter class with shared readConfig, applyMcps, writeConfig, diff methods. 16 adapters use BaseAdapter; 8 with custom logic (Hermes YAML, Codex TOML, RooCode/Void delimiters, Aider/GitHub Copilot no-MCP targets).
 - [Block Delimiter Engine](https://vibebasket.dev/docs?tab=delimiters): `# >>> VIBEBASKET START: id <<<` / `# >>> VIBEBASKET END: id <<<` markers for idempotent file merging. Supports shell comments (#), HTML comments (<!-- -->), and YAML comments (#).
-- [Security Model](https://vibebasket.dev/docs?tab=security): Zero-secret policy — no API keys stored or transmitted. CLI prompts locally. Rate limiting on 9 API endpoints. CSP, CSRF (SameSite cookies), security headers on all responses.
+- [Security Model](https://vibebasket.dev/docs?tab=security): Zero-secret policy — no API keys stored or transmitted. CLI prompts locally. Rate limiting on 8 API endpoints. CSP, CSRF (SameSite cookies), security headers on all responses.
 
 ## API Reference
 - [GET /api/catalog](https://vibebasket.dev/api/catalog?type=mcp&limit=24): Paginated catalog with type, trust, freshness, and sort filters. FTS5 full-text search via `?q=` param.
@@ -29,8 +29,8 @@
 - [init](https://vibebasket.dev/docs?tab=cli): Scaffold a new VibeBasket project with example config and bundle.
 
 ## Self-Hosting
-- [Deployment Guide](https://vibebasket.dev/docs?tab=self-hosting): Docker Compose, manual Node.js install, Helm chart for Kubernetes. Env vars: NEXTAUTH_URL, AUTH_SECRET, OAuth providers, backup storage backends (S3, R2, Azure, GCS, Spaces, Local).
-- [Configuration](https://vibebasket.dev/docs?tab=self-hosting): 15+ environment variables for auth, storage, and operational settings. SQLite WAL mode with single-writer constraint noted.
+- [Deployment Guide](https://vibebasket.dev/docs?tab=self-hosting): Docker Compose, manual Node.js install, Helm chart for Kubernetes (Recreate strategy, uid 1001, existingSecret). Env vars: NEXTAUTH_URL, AUTH_SECRET, OAuth providers, backup storage backends (S3, R2, Azure, GCS, Spaces, Local).
+- [Configuration](https://vibebasket.dev/docs?tab=self-hosting): 15+ environment variables for auth, storage, and operational settings. SQLite WAL mode with single-writer constraint noted. Helm chart supports existingSecret for credentials.
 
 ## Contributing
 - [Source](https://github.com/vibebasket/vibebasket): MIT licensed. TypeScript strict mode. pnpm >= 9, Node >= 20.

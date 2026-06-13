@@ -155,6 +155,14 @@ async function fetchCatalog(
 							item.type === "mcp"
 								? (item.data as BasketItem["mcpData"])
 								: undefined,
+						skillData:
+							item.type === "skill"
+								? (item.data as BasketItem["skillData"])
+								: undefined,
+						ruleData:
+							item.type === "rule"
+								? (item.data as BasketItem["ruleData"])
+								: undefined,
 						sourceMeta: {
 							hint: deriveSourceHint(item),
 						},
@@ -368,7 +376,7 @@ export function CatalogGrid({
 										</div>
 									</div>
 
-									<div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-end">
+									<div className="grid gap-3">
 										<div className="grid gap-3">
 											<div className="flex flex-wrap items-center gap-3">
 												<button

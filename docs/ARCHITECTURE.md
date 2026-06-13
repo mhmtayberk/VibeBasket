@@ -6,7 +6,7 @@ We use `pnpm workspaces` to manage the project.
 - `packages/core`: Holds Zod schemas defining the data shape (bundles, MCPs, skills, etc.).
 - `packages/adapters`: Contains 24 IDE adapters (Cursor, Windsurf, VS Code/Cline, Antigravity, Claude Code, DeepSeek-TUI, Zed, Codex CLI, Gemini CLI, Junie, Kiro, Cline CLI, Continue, Roo Code, Hermes, OpenClaw, GitHub Copilot, Void Editor, Aider, Cortex Code, Goose, IBM Bob, CodeBuddy, and OpenCode) that handle config generation, backups, and idempotency. 16 adapters extend BaseAdapter for shared readConfig/applyMcps/writeConfig/diff logic.
 - `packages/registry`: Automated catalog synchronization logic from trusted external sources and local curated data, including the semver deduplication engine for official upstream MCP servers.
-- `apps/web`: Next.js 16 App Router providing the catalog and selection UI, `/docs` documentation hub, `/stacks` saved-stack management, and the `/admin` stats dashboard.
+- `apps/web`: Next.js 16.2.9 App Router providing the catalog and selection UI, `/docs` documentation hub, `/stacks` saved-stack management, and the `/admin` stats dashboard.
 - `apps/cli`: Node.js CLI tool running the execution environment.
 
 ## Data Flow
@@ -53,7 +53,9 @@ The admin panel provides a multi-cloud storage system for database backups with 
 Cloud SDKs are lazily loaded via dynamic `await import()` to prevent Next.js build-time module resolution errors. Storage credentials are encrypted with AES-256-GCM (key derived from `AUTH_SECRET` via `scryptSync`) and stored in the `backup_storage_config` SQLite table. Configuration is managed through the admin panel UI — changing backends does not require a server restart. Scheduled backups can be configured with configurable hourly intervals.
 
 ## Performance & Scalability
-- **Full-Text Search**: Global catalog search uses FTS5 virtual tables with automatic trigger-based content sync and rebuild support. Queries are run through parameterized SQL to prevent injection.
+- **Full-Text Search**: Global catalog search uses FTS5 virtual tables with automatic trigger-based content sync and rebuild support. Queries are run through parameterized SQL to prevent injection. FTS5 data column removed to reduce index size; prefix-matching enabled for partial word queries (e.g. "postgr" matches "postgresql").
+- **Count Cache**: Catalog counts cached in-memory with 60s TTL to avoid expensive `COUNT(*)` on every page render. Cache is invalidated automatically.
+- **Catalog API Cache**: Public catalog responses carry `Cache-Control: max-age=60, stale-while-revalidate=300` so CDNs and browsers can serve slightly stale data while the background revalidation completes.
 - **Batched Persistence**: registry sync persists catalog rows in batches instead of one row at a time, which reduces write pressure during large syncs.
 - **Page-Based Pagination**: `/api/catalog` returns `items + pagination` and the web UI only fetches the active tab and current page.
 - **Server-Rendered Initial Catalog**: the homepage reads the first MCP page from SQLite on the server and passes it into the catalog client component, so first paint is not dependent on client hydration or an initial `/api/catalog` fetch.
@@ -62,7 +64,7 @@ Cloud SDKs are lazily loaded via dynamic `await import()` to prevent Next.js bui
 - **Reasonable Limits**: API defaults to `24` items per page and caps page size at `100`.
 - **Debounced Input**: Frontend uses a 300ms debounce to minimize API pressure while maintaining a responsive feel.
 - **Single-Flight Sync Guard**: when the catalog is stale, concurrent requests share one sync job instead of starting duplicates.
-- **Automatic SQLite Indexes**: catalog reads ensure query indexes exist for the active access pattern.
+- **Automatic SQLite Indexes**: catalog reads ensure query indexes exist for the active access pattern (including compound indexes on type + trust + name).
 - **Operational Visibility Without Heavy Infra**: admin health signals are derived from `catalog_sync_runs` and catalog source counts instead of introducing a separate telemetry service.
 
 ## Catalog API
@@ -99,6 +101,30 @@ Response shape:
 `GET /api/catalog/status`
 
 Returns current catalog counts, freshness derived from the newest catalog row, and the latest recorded sync run summary from `catalog_sync_runs`.
+
+## Helm Chart (Kubernetes)
+
+The `charts/vibebasket/` chart provides a production Kubernetes deployment:
+
+- **Strategy**: `Recreate` — single-replica to avoid SQLite write conflicts.
+- **Security Context**: `runAsUser: 1001`, `runAsGroup: 1001`, `fsGroup: 1001` for non-root operation.
+- **Secret Management**: Supports `existingSecret` for credentials. Uses `env` and `envFrom` values for `AUTH_SECRET`, `NEXTAUTH_URL`, and OAuth provider credentials.
+- **Persistence**: PVC-backed volume mount for SQLite at `/data`.
+- **Health Check**: Docker-style `livenessProbe` and `readinessProbe` via `/api/health`.
+
+## Mobile & Responsive UI
+
+- **Basket FAB**: Floating action button on mobile viewports opens a bottom sheet for basket contents and bundle generation.
+- **Responsive Grid**: Catalog items use a CSS Grid that adapts column count by viewport width (`grid-cols-1` to `grid-cols-3`).
+- **Desktop**: Persistent side panel for basket on wider viewports. Mobile: FAB + bottom sheet pattern.
+
+## Homepage Structure
+
+The homepage (`/`) is `force-dynamic` and server-renders:
+1. **Hero**: Tagline with marquee strip of 24 IDE icons (`targets/` SVGs).
+2. **"Who is this for"**: Three-card section targeting AI developers, vibe coders, and teams.
+3. **"How it works"**: Three-step flow — Browse, Bundle, Apply — with code snippets.
+4. **Catalog Preview**: First MCP page server-rendered from SQLite.
 
 ## Important Technical Notes
 

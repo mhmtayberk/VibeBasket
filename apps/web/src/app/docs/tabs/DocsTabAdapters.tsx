@@ -190,6 +190,41 @@ export function DocsTabAdapters() {
                   skills: true,
                   note: "Registers .aiderinstructions.md via the read flag in .aider.conf.yml. Rules and skills are written into the instructions Markdown file.",
                 },
+                {
+                  name: "Cortex Code",
+                  color: "#29B6F6",
+                  config: "~/.snowflake/cortex/mcp.json + .cortex/skills/",
+                  skills: true,
+                  note: "Snowflake's Cortex Code agent. MCP entries merge into the cortex JSON config. Skills are written as individual Markdown files under .cortex/skills/.",
+                },
+                {
+                  name: "Goose",
+                  color: "#FF6F00",
+                  config: "~/.config/goose/config.yaml",
+                  skills: false,
+                  note: "Block/Anthropic's Goose agent reads MCP extensions from its YAML config file. Restart Goose after applying.",
+                },
+                {
+                  name: "IBM Bob",
+                  color: "#052FAD",
+                  config: "~/.bob/mcp_settings.json or .bob/mcp.json",
+                  skills: true,
+                  note: "IBM Bob supports both user-global and project-scoped MCP config. Skills are written under .bob/skills/ as Markdown files.",
+                },
+                {
+                  name: "CodeBuddy",
+                  color: "#00BCD4",
+                  config: "~/.codebuddy/.mcp.json or .mcp.json",
+                  skills: true,
+                  note: "Tencent Cloud CodeBuddy reads MCP config from user or project scope. Skills are written under .codebuddy/skills/ as Markdown files.",
+                },
+                {
+                  name: "OpenCode",
+                  color: "#8BC34A",
+                  config: "~/.config/opencode/opencode.json or opencode.json",
+                  skills: false,
+                  note: "Anomaly's OpenCode CLI agent. MCP servers merge into opencode.json at the user or project scope. Reload the TUI after applying.",
+                },
               ] as { name: string; color: string; config: string; skills: boolean; note: string }[]
             ).map((adapter) => (
               <div

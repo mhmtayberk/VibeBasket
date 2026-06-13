@@ -18,7 +18,7 @@ export async function cleanupStaleData(force = false) {
 		const totalResult = await db.select({ count: sql<number>`count(*)` }).from(catalogSyncRuns);
 
 		await db.delete(bundles).where(
-			sql`${bundles.expiresAt} < ${Math.floor(Date.now() / 1000)} AND ${bundles.userId} IS NOT NULL`
+			sql`${bundles.expiresAt} < ${Math.floor(Date.now() / 1000)}`
 		);
 		const total = Number(totalResult[0]?.count ?? 0);
 		if (total > MAX_CATALOG_SYNC_ROWS) {
