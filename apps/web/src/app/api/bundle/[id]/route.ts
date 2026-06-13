@@ -2,6 +2,7 @@ import { bundles, db } from "@vibebasket/core";
 import { and, eq, lt, or, isNull } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { checkRateLimit, getClientAddress } from "@/lib/rate-limit";
+import { cleanupStaleData } from "@/lib/data-cleanup";
 import {
 	applySecurityHeaders,
 	createTooManyRequestsResponse,
@@ -63,6 +64,7 @@ export async function GET(
 		}
 
 		void cleanupExpiredBundles();
+		void cleanupStaleData();
 
 		return applySecurityHeaders(
 			NextResponse.json(bundle.manifest, {

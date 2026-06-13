@@ -1,36 +1,31 @@
-# Active Context
+# Active Context (June 13, 2026)
 
-## Current State (June 12, 2026)
+## Current State
 
-- **23 IDE Adapters**: Full coverage across Cursor, Windsurf, VS Code, Antigravity, Claude Code, DeepSeek-TUI, Zed, Codex CLI, Gemini CLI, Junie, Kiro, Cline CLI, Continue, Roo Code, Hermes, OpenClaw, GitHub Copilot, Void Editor, Aider, Cortex Code, Goose, IBM Bob, CodeBuddy. 11 support skills auto-apply. 4 support rules (Cursor, Roo Code, GitHub Copilot, Void Editor).
+- **23 IDE Adapters**: 15 extended from BaseAdapter (code reduced 49%). 8 kept with custom logic. Zero tests broken.
 
-- **Catalog Detail View**: Each catalog card has a "Details →" button opening a responsive modal with trust tier, source provenance, install command (MCP), GitHub repo info (skills), and freshness data.
+- **Registry Split**: 1346-line monolith → 6 modules. Clean imports, no logic changes.
 
-- **Trust System**: Simplified to pure 3-tier (Verified/Official/Community) without arbitrary numeric scores.
+- **Docs Split**: 1022-line page.tsx → 368-line shell + 7 tab components. Zero errors.
 
-- **Bundle Preview**: Basket panel shows item count, target count, and warns about incompatible targets before generating the install command.
+- **Drizzle Kit**: Migration system configured. Existing bootstrap kept as fallback. PRAGMA auto_vacuum + mmap_size added.
 
-- **Cross-Target Capability Handling**: CLI warns and continues when some targets don't support all selected content. Web UI shows incompatible target warnings.
+- **DB Quality**: cleanupStaleData() runs hourly — sessions, verification_tokens, sync_runs (200 retention), expired registered bundles (365d), incremental_vacuum.
 
-- **Backup & Storage**: 6 backends (Local, S3, R2, Spaces, Azure, GCS). AES-256-GCM encrypted credentials. Scheduled backups with admin panel UI.
+- **Shared UI**: Chip (4 variants), MonoLabel — available for new code.
 
-- **Rate Limiting**: Sliding window on 9 endpoints. Retry-After header on 429 responses.
+- **Test Coverage**: 100 tests (web). TypeScript strict mode, zero errors. All adapter + CLI tests pass.
 
-- **Middlelware**: Global CSRF protection via Origin validation. Security headers (CSP in production, X-Frame-Options, X-Content-Type-Options) applied globally.
+- **Security**: next.config.ts global headers + CSP (production). 9 endpoints rate-limited (sliding window). SameSite CSRF.
 
-- **CLI**: 6 commands — apply, init, doctor, rollback, list (new), search (new).
-
-- **Test Coverage**: 187 tests (93 web + 4 CLI + 90 adapters). TypeScript strict mode, zero errors.
+## Architecture Notes
+- **DB-first config**: Storage credentials encrypted. Resolution: DB → env → local.
+- **Lazy-loaded cloud SDKs**: Dynamic import prevents Next.js build errors.
+- **BaseAdapter**: Shared readConfig, applyMcps, writeConfig, diff for 15 adapters.
+- **Security headers**: next.config.ts async headers() applies globally. CSP production-only.
 
 ## Next Steps
-- CLI `prune` command.
-- Mobile responsive improvements.
-- Search improvements (FTS5, typo tolerance).
-- Adapter base class extraction.
-- E2E test suite.
-
-## Considerations
-- **CSP**: Production-only. Dev bypasses for Turbopack.
-- **Bundle TTL**: Anonymous 48h, registered 365d.
-- **DB**: WAL mode, 15 indexes, .gitignore for *.db files.
-- **Middleware**: Origin validation on POST/PATCH/DELETE/PUT.
+- CLI `prune` command
+- Mobile responsive improvements
+- Search improvements (FTS5)
+- E2E test suite
