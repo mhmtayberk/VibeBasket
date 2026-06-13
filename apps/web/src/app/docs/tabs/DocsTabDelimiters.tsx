@@ -29,9 +29,9 @@ export function DocsTabDelimiters() {
 					</div>
 
 					<div className="prose prose-invert max-w-none text-sm text-[#bdc9c2] leading-relaxed space-y-8">
-						<p className="max-w-3xl">
-							When writing rulesets, instructions, or custom skill profiles into codebases (for files like <code className="font-mono text-[11px] text-foreground bg-card px-1.5 py-0.5 rounded-[2px] border border-[#3e4944]">.clinerules</code> or <code className="font-mono text-[11px] text-foreground bg-card px-1.5 py-0.5 rounded-[2px] border border-[#3e4944]">.hermesrules</code>), the CLI prevents code pollution by wrapping updates inside strict delimiters:
-						</p>
+            <p className="max-w-3xl">
+              When writing rulesets, instructions, or custom skill profiles into codebases (for files like <code className="font-mono text-[11px] text-foreground bg-card px-1.5 py-0.5 rounded-[2px] border border-[#3e4944]">.clinerules</code>, <code className="font-mono text-[11px] text-foreground bg-card px-1.5 py-0.5 rounded-[2px] border border-[#3e4944]">.hermesrules</code>, <code className="font-mono text-[11px] text-foreground bg-card px-1.5 py-0.5 rounded-[2px] border border-[#3e4944]">.voidrules</code>, <code className="font-mono text-[11px] text-foreground bg-card px-1.5 py-0.5 rounded-[2px] border border-[#3e4944]">.openclawrules</code>, or <code className="font-mono text-[11px] text-foreground bg-card px-1.5 py-0.5 rounded-[2px] border border-[#3e4944]">.aiderinstructions.md</code>), the CLI prevents code pollution by wrapping updates inside strict delimiters:
+            </p>
 
 						<div className="border border-[#3e4944] rounded-[2px] overflow-hidden bg-[#101412] shadow-xl group relative my-10">
 							<div className="flex items-center justify-between px-6 py-4 border-b border-[#3e4944] bg-[#1c211e] select-none">

@@ -18,7 +18,14 @@
 - [x] Operational visibility: admin dashboard now surfaces freshness, sync resilience, collector health, and recent sync runs
 - [x] Catalog integrity: skills.sh fallback now keeps community skills, normalizes official/community source tags, and aligns admin collector health with persisted source names
 - [x] CLI inventory accuracy: `vibebasket list` now reads adapter-native skill/rule locations instead of guessing shared folders
-- [x] FTS5 full-text search: virtual table with trigger-based sync, admin health check, and rebuild support
+- [x] FTS5 full-text search: virtual table with trigger-based sync, admin health check, rebuild support, prefix-matching, data column removed
+- [x] Count cache: 60s TTL in-memory cache for catalog aggregate queries to avoid expensive COUNT(*)
+- [x] Catalog API cache: `Cache-Control: max-age=60, stale-while-revalidate=300` on public catalog responses
+- [x] Compound indexes: covering indexes on type + trust + name for main catalog query paths
+- [x] Helm chart: Recreate strategy, securityContext uid 1001, existingSecret, PVC persistence
+- [x] Mobile: basket FAB with bottom sheet, responsive catalog grid
+- [x] Homepage: "Who is this for" section, "How it works" section, marquee IDE icon strip
+- [x] Rate limiting: 8 endpoints with sliding window (corrected from previously documented 9)
 
 ## Test Coverage
 - Focused CLI, adapter, and web/admin suites covering install verification and operational visibility are passing
@@ -26,5 +33,4 @@
 
 ## Next Steps
 - CLI `prune` command
-- Mobile responsive improvements
-- E2E test suite
+- Expanded E2E test suite

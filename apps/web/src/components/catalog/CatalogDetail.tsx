@@ -9,11 +9,11 @@ interface CatalogDetailProps {
 	onClose: () => void;
 }
 
-function isGithubSource(data: unknown): data is Record<string, string> {
+function isGithubSource(data: unknown): data is { type: "github"; repo: string; path?: string; ref?: string } {
 	return Boolean(data && typeof data === "object" && "type" in (data as Record<string, unknown>) && (data as Record<string, unknown>).type === "github");
 }
 
-function isNpmSource(data: unknown): data is Record<string, string> {
+function isNpmSource(data: unknown): data is { type: "npm"; package: string; version?: string } {
 	return Boolean(data && typeof data === "object" && "type" in (data as Record<string, unknown>) && (data as Record<string, unknown>).type === "npm");
 }
 
@@ -21,7 +21,9 @@ export function CatalogDetail({ item, open, onClose }: CatalogDetailProps) {
 	if (!open) return null;
 
 	const mcpData = item.mcpData;
-	const skillSource = mcpData && "source" in (mcpData as Record<string, unknown>) ? (mcpData as Record<string, unknown>).source as Record<string, string> | undefined : null;
+	const ruleData = item.ruleData;
+	const skillData = item.skillData;
+	const skillSource = skillData?.source;
 
 	return (
 		<div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center" onClick={onClose}>
@@ -84,6 +86,14 @@ export function CatalogDetail({ item, open, onClose }: CatalogDetailProps) {
 											className="text-accent hover:underline break-all">{mcpData.url as string}</a>
 									</div>
 								)}
+								{mcpData.env && Object.keys(mcpData.env).length > 0 && (
+									<div className="mt-2 pt-2 border-t border-border/30">
+										<span className="text-muted-foreground">env:</span>
+										{Object.entries(mcpData.env).map(([k, v]) => (
+											<div key={k} className="ml-2"><span className="text-accent">{k}</span>=<span className="text-muted-foreground">{v}</span></div>
+										))}
+									</div>
+								)}
 							</div>
 							{mcpData.requiredSecrets?.length ? (
 								<p className="text-[10px] text-muted-foreground/70 leading-relaxed">
@@ -115,6 +125,18 @@ export function CatalogDetail({ item, open, onClose }: CatalogDetailProps) {
 										<span className="text-foreground">{skillSource.package}{skillSource.version && skillSource.version !== "latest" ? `@${skillSource.version}` : ""}</span>
 									</div>
 								)}
+							</div>
+						</div>
+					)}
+
+					{/* Rule Content */}
+					{ruleData && item.type === "rule" && (
+						<div className="space-y-2">
+							<h3 className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">Rule Content</h3>
+							<div className="border border-border/50 bg-background/30 p-4">
+								<pre className="font-mono text-[11px] text-foreground whitespace-pre-wrap break-words leading-relaxed max-h-64 overflow-y-auto custom-scrollbar">
+									{ruleData.content}
+								</pre>
 							</div>
 						</div>
 					)}

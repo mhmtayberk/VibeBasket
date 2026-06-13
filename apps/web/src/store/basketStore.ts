@@ -1,4 +1,4 @@
-import type { McpEntry } from "@vibebasket/core";
+import type { McpEntry, RuleEntry, SkillEntry } from "@vibebasket/core";
 import { create } from "zustand";
 import {
 	createJSONStorage,
@@ -25,7 +25,9 @@ export interface BasketItem {
 	name: string;
 	description: string;
 	icon?: string;
-	mcpData?: McpEntry; // Populated if type === "mcp"
+	mcpData?: McpEntry;
+	skillData?: SkillEntry;
+	ruleData?: RuleEntry;
 	trust?: BasketItemTrust;
 	sourceMeta?: BasketItemSourceMeta;
 }

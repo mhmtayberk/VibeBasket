@@ -18,8 +18,12 @@
 - **Page-Based Catalog Access**: The UI should browse the catalog in pages, not by loading the entire dataset into the client.
 - **Single-Flight Sync**: When the catalog is stale, one request performs the sync and others wait for the same promise.
 - **Health Cache Shielding (DoS Prevention)**: Lightweight connection endpoints or system status checks (e.g. `/api/health`) must be protected behind memory-persistent cache limits (5s TTL) to prevent SQLite/server flooding.
+- **Count Cache**: Expensive aggregate queries (catalog `COUNT(*)`) are cached in-memory with 60s TTL to keep page renders fast.
+- **Catalog API Caching**: Public catalog responses carry `Cache-Control: max-age=60, stale-while-revalidate=300` to allow CDN/browser caching with background revalidation.
 - **Whitelisting Route Boundaries**: User-controlled parameters (docs tab, search query) are bound to whitelists and constrained by length to protect against LFI/RFI directory traversal, ReDoS, and XSS.
 - **DB-First Configuration with Encrypted Fallback**: Storage backend credentials are stored encrypted (AES-256-GCM) in SQLite. Resolution order: DB config → env vars → local. Changing config does not require server restart.
 - **Lazy Cloud SDK Loading**: Cloud provider SDKs are dynamically imported only when their backend is activated. Barrel files avoid static re-exports to prevent Next.js build-time module resolution errors.
 - **Strategy Pattern for Storage Backends**: All six storage backends implement the same `StorageBackend` interface, making them interchangeable at runtime. Adding a new provider requires only a new class implementation.
+- **Mobile-First Basket UI**: Mobile uses FAB + bottom sheet pattern; desktop uses persistent side panel. Catalog grid uses responsive column count.
+- **Kubernetes Deployment**: Helm chart with Recreate strategy (single-replica SQLite), non-root security context (uid 1001), existingSecret support, and PVC persistence.
 

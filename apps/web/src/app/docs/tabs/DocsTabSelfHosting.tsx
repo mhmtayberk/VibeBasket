@@ -62,6 +62,30 @@ docker compose up -d --build`}</pre>
 					</div>
 				</section>
 
+				<section id="helm" className="scroll-mt-28">
+					<div className="flex items-center gap-2.5 mb-8">
+						<Server className="h-6 w-6 text-[#33bbc5]" />
+						<h2 className="text-2xl font-semibold tracking-tight text-foreground">Helm (Kubernetes)</h2>
+					</div>
+					<p className="text-sm text-[#bdc9c2] leading-relaxed max-w-3xl mb-8">
+						A fully-featured Helm chart is available in{" "}
+						<code className="font-mono text-[11px] text-foreground bg-card px-1.5 py-0.5 rounded-[2px] border border-[#3e4944]">charts/vibebasket/</code>
+						. The chart deploys a single-replica Deployment with a ClusterIP Service, optional Ingress, and a PersistentVolumeClaim for the SQLite database.
+						All environment variables in the table below can be set under <code className="font-mono text-[11px] text-foreground bg-card px-1.5 py-0.5 rounded-[2px] border border-[#3e4944]">.Values.env</code>.
+					</p>
+					<pre className="bg-[#0a0f0d] p-6 border border-[#3e4944] font-mono text-xs text-[#bdc9c2] overflow-x-auto rounded-[2px] leading-relaxed">{`helm repo add vibebasket https://charts.vibebasket.dev
+helm install vibebasket vibebasket/vibebasket \\
+  --set env.NEXTAUTH_URL=https://vibebasket.example.com \\
+  --set env.AUTH_SECRET=$(openssl rand -base64 32) \\
+  --set env.AUTH_GITHUB_ID=your-client-id \\
+  --set env.AUTH_GITHUB_SECRET=your-client-secret \\
+  --set env.AUTH_GITHUB_ENABLED=true \\
+  --set persistence.size=5Gi
+
+# Or install with a custom values file
+helm install vibebasket ./charts/vibebasket -f my-values.yaml`}</pre>
+				</section>
+
 				<section id="manual" className="scroll-mt-28">
 					<div className="flex items-center gap-2.5 mb-8">
 						<TerminalSquare className="h-6 w-6 text-[#33bbc5]" />
@@ -88,16 +112,28 @@ pnpm --filter web start        # production server on :3000`}</pre>
 						<Info className="h-5 w-5 text-[#33bbc5] shrink-0 mt-0.5" />
 						<div>
 							<h4 className="font-mono text-[11px] uppercase tracking-widest text-[#33bbc5] font-semibold mb-3">
-								GitHub OAuth Callback URL
+								OAuth Callback URLs
 							</h4>
 							<p className="text-xs text-muted-foreground/90 leading-relaxed mb-3">
-								When enabling GitHub authentication, you must configure the exact redirect callback URL in your GitHub Developer Application settings:
+								When enabling OAuth authentication, you must configure the exact redirect callback URL in each provider&apos;s developer console:
 							</p>
-							<pre className="bg-[#0a0f0d] p-4 border border-[#3e4944] font-mono text-[11px] text-[#a0fdda] overflow-x-auto rounded-[2px] leading-relaxed">
-								{"${NEXTAUTH_URL}/api/auth/callback/github"}
-							</pre>
+							<div className="space-y-2">
+								{[
+									{ provider: "GitHub", path: "github" },
+									{ provider: "Google", path: "google" },
+									{ provider: "Apple", path: "apple" },
+									{ provider: "Microsoft Entra ID", path: "microsoft-entra-id" },
+								].map((p) => (
+									<div key={p.provider} className="flex items-baseline gap-2">
+										<span className="font-mono text-[10px] text-[#bdc9c2]/60 w-28 shrink-0">{p.provider}</span>
+										<pre className="bg-[#0a0f0d] px-3 py-1 border border-[#3e4944] font-mono text-[10px] text-[#a0fdda] rounded-[2px] leading-relaxed">
+											{`\${NEXTAUTH_URL}/api/auth/callback/${p.path}`}
+										</pre>
+									</div>
+								))}
+							</div>
 							<p className="text-[10px] text-[#bdc9c2]/60 mt-3">
-								For local development, this defaults to <code className="font-mono text-[10px] text-foreground bg-card px-1 py-0.5 rounded-[2px] border border-border/50">http://localhost:3000/api/auth/callback/github</code>.
+								For local development, replace <code className="font-mono text-[10px] text-foreground bg-card px-1 py-0.5 rounded-[2px] border border-border/50">{"${NEXTAUTH_URL}"}</code> with <code className="font-mono text-[10px] text-foreground bg-card px-1 py-0.5 rounded-[2px] border border-border/50">http://localhost:3000</code>.
 							</p>
 						</div>
 					</div>
@@ -153,11 +189,54 @@ pnpm --filter web start        # production server on :3000`}</pre>
 					</div>
 				</section>
 
-				<section id="concurrency" className="scroll-mt-28">
+				<section id="bundle-ttl" className="scroll-mt-28">
+					<div className="flex items-center gap-2.5 mb-8">
+						<Info className="h-6 w-6 text-[#a0fdda]" />
+						<h2 className="text-2xl font-semibold tracking-tight text-foreground">Bundle TTL & Cleanup</h2>
+					</div>
+					<p className="text-sm text-[#bdc9c2] leading-relaxed max-w-3xl mb-8">
+						Anonymous bundles expire after 48 hours. Registered user bundles persist for 365 days.
+						The platform periodically purges expired bundles and stale session tokens. Administrators can trigger a manual force cleanup from the admin dashboard under System Health.
+					</p>
+					<div className="flex gap-4 p-6 border-l-2 border-[#33bbc5] bg-[#33bbc5]/5 rounded-r-[2px]">
+						<Info className="h-5 w-5 text-[#33bbc5] shrink-0 mt-0.5" />
+						<div>
+							<h4 className="font-mono text-[11px] uppercase tracking-widest text-[#33bbc5] font-semibold mb-2">
+								Admin Dashboard
+							</h4>
+							<p className="text-xs text-muted-foreground/90 leading-relaxed">
+								The admin panel at <code className="font-mono text-[10px] text-foreground bg-card px-1.5 py-0.5 rounded-[2px] border border-[#3e4944]">/admin</code> provides catalog sync controls, backup management, FTS5 index health checks, database integrity diagnostics, force cleanup utilities, user overview telemetry, and admin email configuration. Access is gated by the <code className="font-mono text-[10px] text-foreground bg-card px-1.5 py-0.5 rounded-[2px] border border-[#3e4944]">ADMIN_OAUTH_EMAILS</code> environment variable.
+							</p>
+						</div>
+					</div>
+				</section>
+
+				<section id="helm" className="scroll-mt-28">
+					<div className="flex items-center gap-2.5 mb-8">
+						<Server className="h-6 w-6 text-[#a0fdda]" />
+						<h2 className="text-2xl font-semibold tracking-tight text-foreground">Helm Deployment</h2>
+					</div>
+					<p className="text-sm text-[#bdc9c2] leading-relaxed max-w-3xl mb-6">
+						A Helm chart is available at <code className="font-mono text-[10px] text-foreground bg-card px-1.5 py-0.5 rounded-[2px] border border-[#3e4944]">charts/vibebasket/</code> for Kubernetes deployments. The chart includes a Deployment, Service, Ingress, and PersistentVolumeClaim for SQLite storage.
+					</p>
+					<div className="border border-[#3e4944] bg-[#101412]/80 p-4 font-mono text-[11px] text-[#bdc9c2] mb-6">
+						<div><span className="text-[#a0fdda]">$</span> helm install vibebasket ./charts/vibebasket \</div>
+						<div>  --set env.NEXTAUTH_URL=https://vibebasket.example.com \</div>
+						<div>  --set env.AUTH_SECRET=&lt;generated-secret&gt;</div>
+					</div>
+					<p className="text-sm text-[#bdc9c2] leading-relaxed max-w-3xl mb-4">
+						The deployment uses <code className="font-mono text-[10px] text-foreground bg-card px-1.5 py-0.5 rounded-[2px] border border-[#3e4944]">strategy: Recreate</code> to prevent SQLite corruption during updates. Pod <code className="font-mono text-[10px] text-foreground bg-card px-1.5 py-0.5 rounded-[2px] border border-[#3e4944]">securityContext</code> runs as non-root user 1001 with all capabilities dropped. Production secrets should use <code className="font-mono text-[10px] text-foreground bg-card px-1.5 py-0.5 rounded-[2px] border border-[#3e4944]">existingSecret</code> instead of embedding credentials in values.
+					</p>
+				</section>
+
+				<section id="wal-mode" className="scroll-mt-28">
+					<div className="flex items-center gap-2.5 mb-8">
+						<AlertTriangle className="h-6 w-6 text-amber-400" />
+						<h2 className="text-2xl font-semibold tracking-tight text-foreground">SQLite WAL Mode</h2>
+					</div>
 					<div className="flex gap-4 p-8 border-l-2 border-amber-400 bg-amber-400/5 rounded-r-[2px]">
 						<AlertTriangle className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
 						<div>
-							<h4 className="font-mono text-[11px] uppercase tracking-widest text-amber-400 font-semibold mb-3">SQLite WAL Mode</h4>
 							<p className="text-xs text-muted-foreground/90 leading-relaxed">
 								VibeBasket enables SQLite WAL (Write-Ahead Logging) mode on startup. This allows concurrent reads during writes and is required for the catalog sync process.
 								Do <strong className="text-foreground">not</strong> mount the database file on a network filesystem (NFS, CIFS) — WAL locking relies on local OS primitives.

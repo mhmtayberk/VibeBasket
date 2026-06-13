@@ -6,13 +6,17 @@ VibeBasket is the "Ninite for vibe coding". It provides a centralized, web-based
 ## Core Requirements
 - Shareable anonymous bundles of configuration.
 - Single command execution (`npx vibebasket apply <url>`).
-- Seamless multi-IDE adapter system (Cursor, Windsurf, VS Code/Cline, Antigravity, Claude Code, Zed, Codex CLI, Gemini CLI, Junie, Kiro, Cline CLI, etc.).
-- Honest target visibility: popular AI IDEs can appear in the product surface before full installer support exists, but unsupported targets must never silently generate broken bundles.
+- Seamless multi-IDE adapter system (24 targets: Cursor, Windsurf, VS Code/Cline, Antigravity, Claude Code, Zed, Codex CLI, Gemini CLI, Junie, Kiro, Cline CLI, DeepSeek-TUI, Continue, Roo Code, Hermes, OpenClaw, GitHub Copilot, Void Editor, Aider, Cortex Code, Goose, IBM Bob, CodeBuddy, OpenCode).
+- Honest target visibility: all listed targets have real adapter-backed support.
 - Strict JSON validation with Zod.
 - Securely prompt for secrets without storing them.
 - Idempotent writes with timestamped backups.
 - Trusted federated catalog ingestion from curated data and official upstream registries.
 - Catalog UX that remains usable even when the dataset grows to thousands of items.
+- FTS5 full-text catalog search with prefix-matching.
+- 6 backup storage backends with AES-256-GCM encrypted credentials.
+- Helm chart for Kubernetes deployments.
+- Mobile-responsive with FAB bottom sheet basket UI.
 
 ## Target Audience
 AI developers and "vibe coders" using multiple LLM-assisted IDEs who want to rapidly bootstrap their toolchains.
