@@ -294,7 +294,7 @@ export default async function DocsPage({
 					{/* Sidebar Footer — back-to-builder shortcut */}
 					<div className="border-t border-[#3e4944]/60 p-4">
 						<p className="font-mono text-[9px] uppercase tracking-[0.25em] text-[#bdc9c2]/35 mb-2 pl-2">
-							v0.9 · 23 adapters
+							v0.9 · 24 adapters
 						</p>
 					</div>
 				</aside>

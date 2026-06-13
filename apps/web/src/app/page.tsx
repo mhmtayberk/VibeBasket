@@ -1,7 +1,6 @@
 import {
 	ArrowRight,
 	BadgeCheck,
-	Command,
 	Lock,
 	Sparkles,
 	TerminalSquare,
@@ -40,11 +39,6 @@ export default async function Home() {
 			priceCurrency: "USD",
 		},
 	};
-
-	const marqueeTargets = [
-		...TARGET_OPTIONS.filter((target) => target.status === "supported"),
-		...TARGET_OPTIONS.filter((target) => target.status === "supported"),
-	];
 	const sectionIds = {
 		heroTitle: "hero-title",
 		how: "how",
@@ -52,40 +46,42 @@ export default async function Home() {
 		command: "command",
 	} as const;
 
-	const renderTargetIcon = (targetId: string) => {
-		const iconMap: Record<string, string> = {
-			cursor: "/targets/cursor.svg",
-			windsurf: "/targets/windsurf.svg",
-			vscode: "/targets/vscode.svg",
-			antigravity: "/targets/antigravity.svg",
-			"claude-code": "/targets/claude-code.svg",
-			codex: "/targets/codex.svg",
-			"gemini-cli": "/targets/gemini.svg",
-			"cline-cli": "/targets/cline.svg",
-			kiro: "/targets/kiro-cli.svg",
-			continue: "/targets/continue.svg",
-			roocode: "/targets/roocode.svg",
-			hermes: "/targets/hermes.svg",
-			openclaw: "/targets/openclaw.svg",
-			"deepseek-tui": "/targets/deepseek.svg",
-			zed: "/targets/zed.svg",
-			junie: "/targets/junie.svg",
-			"cortex-code": "/targets/cortex-code.svg",
-			goose: "/targets/goose.svg",
-			"ibm-bob": "/targets/ibm-bob.svg",
-			codebuddy: "/targets/codebuddy.svg",
-		};
+	const iconMap: Record<string, string | undefined> = {
+		cursor: "/targets/cursor.svg",
+		windsurf: "/targets/windsurf.svg",
+		antigravity: "/targets/antigravity.svg",
+		"claude-code": "/targets/claudecode.svg",
+		codex: "/targets/codex.svg",
+		"cline-cli": "/targets/cline.svg",
+		kiro: "/targets/kiro.svg",
+		roocode: "/targets/roocode.svg",
+		hermes: "/targets/hermesagent.svg",
+		openclaw: "/targets/openclaw.svg",
+		"deepseek-tui": "/targets/deepseek.svg",
+		goose: "/targets/goose.svg",
+		codebuddy: "/targets/codebuddy.svg",
+		"github-copilot": "/targets/copilot.svg",
+ttopencode: undefined,
+	};
 
+	const marqueeTargets = [
+		...TARGET_OPTIONS.filter((target) => target.status === "supported" && iconMap[target.id]),
+		...TARGET_OPTIONS.filter((target) => target.status === "supported" && iconMap[target.id]),
+	];
+
+	const renderTargetIcon = (targetId: string) => {
 		const src = iconMap[targetId];
+
 		if (src) {
 			return (
-				<Image src={src} alt={targetId} width={28} height={28} className="h-7 w-auto object-contain" />
+				<span className="text-muted-foreground">
+					<Image src={src} alt={targetId} width={28} height={28} className="h-7 w-auto object-contain" />
+				</span>
 			);
 		}
 
-		return <Command className="h-4 w-4 text-accent" />;
+		return null;
 	};
-
 	return (
 		<main className="min-h-screen bg-background text-foreground">
 			<header className="sticky top-0 z-50 border-b border-border/80 bg-background/85 backdrop-blur-md">

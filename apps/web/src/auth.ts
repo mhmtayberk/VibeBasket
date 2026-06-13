@@ -9,6 +9,7 @@ import {
 import { eq } from "drizzle-orm";
 import NextAuth, { type DefaultSession } from "next-auth";
 import { authConfig, getEnabledAuthProviders } from "@/auth.config";
+import { getAdminEmails } from "@/lib/site-config";
 
 declare module "next-auth" {
 	interface Session {
@@ -58,8 +59,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
 					}
 				}
 
-				const adminEmails = (process.env.ADMIN_OAUTH_EMAILS || process.env.ADMIN_EMAILS || "")
-					.split(",").map((e) => e.trim().toLowerCase()).filter(Boolean);
+				const adminEmails = await getAdminEmails().catch(() => [] as string[]);
 
 				const isDevAdmin = process.env.NODE_ENV !== "production" && email?.toLowerCase() === "admin@vibebasket.dev";
 

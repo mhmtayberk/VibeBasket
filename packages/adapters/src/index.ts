@@ -25,3 +25,4 @@ export * from "./ibm-bob";
 export * from "./codebuddy";
 
 export * from "./base-adapter";
+export * from "./opencode";

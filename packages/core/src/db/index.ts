@@ -428,6 +428,13 @@ async function bootstrapDatabase(targetClient: SqlExecutor) {
       updated_at INTEGER
     )
   `);
+  await targetClient.execute(`
+    CREATE TABLE IF NOT EXISTS site_config (
+      key TEXT PRIMARY KEY NOT NULL,
+      value TEXT NOT NULL,
+      updated_at INTEGER
+    )
+  `);
   const foreignKeyStatus = await targetClient.execute("PRAGMA foreign_keys");
   const foreignKeysWereEnabled = String((foreignKeyStatus as any).rows?.[0]?.foreign_keys ?? "1") !== "0";
 
