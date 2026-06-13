@@ -3,8 +3,8 @@
 **The Ninite for Vibe Coding.** Bundle trusted MCP servers, agent skills, and project rules into one shareable install command. Apply across 24 AI IDEs and CLI tools with a single link.
 
 [![Version](https://img.shields.io/badge/version-0.9.0-blue)](package.json)
-[![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue)](tsconfig.base.json)
-[![Tests](https://img.shields.io/badge/tests-187-green)](.)
+[![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue)](.)
+[![Tests](https://img.shields.io/badge/tests-340%2B-green)](.)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 ---
@@ -53,7 +53,7 @@ npx vibebasket apply https://vibebasket.dev/api/bundle/cj2k9x
 ### Web Catalog
 - **40K+ items** from official MCP Registry, skills.sh, and VibeBasket curated sources
 - **Trust tiers**: Verified (curated), Official (upstream), Community — no misleading scores
-- **Search + Filter**: By type, trust tier, source, and text search
+- **Search + Filter**: By type, trust tier, source, and FTS5 full-text search
 - **Catalog Detail**: Click any item to see installation command, GitHub repo, freshness
 - **Bundle Preview**: See exactly what will be installed before generating
 
@@ -84,7 +84,9 @@ npx vibebasket apply https://vibebasket.dev/api/bundle/cj2k9x
 - Manual catalog sync trigger with audit trail
 - Backup management: create, list, restore, delete
 - Storage backend configuration with credential forms
-- Admin email management (DB-stored, no restart)
+- FTS5 health monitoring and rebuild
+- Database health checks and force cleanup
+- User overview and admin email management
 
 ## Quick Start
 
@@ -162,6 +164,7 @@ npx vibebasket rollback
 |---|---|
 | `AUTH_GITHUB_ENABLED/ID/SECRET` | GitHub OAuth |
 | `AUTH_GOOGLE_ENABLED/ID/SECRET` | Google OAuth |
+| `AUTH_APPLE_ENABLED/ID/SECRET` | Apple OAuth |
 | `AUTH_MICROSOFT_ENTRA_ID_ENABLED/ID/SECRET` | Microsoft Entra ID |
 | `BACKUP_STORAGE_BACKEND` | local, s3, r2, spaces, azure, gcs |
 | `TRUST_PROXY` | true behind reverse proxy |

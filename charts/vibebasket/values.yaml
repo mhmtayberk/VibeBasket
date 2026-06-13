@@ -31,6 +31,17 @@ resources:
     cpu: 200m
     memory: 256Mi
 
+existingSecret: ""
+
+podSecurityContext:
+  fsGroup: 1001
+
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1001
+  capabilities:
+    drop: [ALL]
+
 persistence:
   enabled: true
   storageClassName: ""
@@ -40,7 +51,9 @@ persistence:
 # Environment variables
 env:
   NEXTAUTH_URL: "https://vibebasket.example.com"
+  # REQUIRED. Generate: openssl rand -base64 32
   AUTH_SECRET: ""
+  ADMIN_OAUTH_EMAILS: ""
   # OAuth providers (optional)
   AUTH_GITHUB_ENABLED: "false"
   AUTH_GITHUB_ID: ""

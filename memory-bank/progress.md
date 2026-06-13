@@ -7,7 +7,7 @@
 - [x] Drizzle Kit: config + migration generated (drizzle/0000_flaky_millenium_guard.sql)
 - [x] DB Quality: auto_vacuum INCREMENTAL, mmap_size 256MB, cleanupStaleData()
 - [x] UI Components: Chip (4 variants), MonoLabel
-- [x] New tests: bundle lifecycle (5) + data cleanup (2) = 100 web tests
+- [x] New tests: bundle lifecycle (5) + data cleanup (2). Web test suite now at 165 tests.
 - [x] 5 new IDE adapters: Cortex Code, Goose, IBM Bob, CodeBuddy, OpenCode (24 total)
 - [x] CLI: list + search commands (6 total)
 - [x] Cross-target capability: warn + continue in CLI, warning in web UI
@@ -18,6 +18,7 @@
 - [x] Operational visibility: admin dashboard now surfaces freshness, sync resilience, collector health, and recent sync runs
 - [x] Catalog integrity: skills.sh fallback now keeps community skills, normalizes official/community source tags, and aligns admin collector health with persisted source names
 - [x] CLI inventory accuracy: `vibebasket list` now reads adapter-native skill/rule locations instead of guessing shared folders
+- [x] FTS5 full-text search: virtual table with trigger-based sync, admin health check, and rebuild support
 
 ## Test Coverage
 - Focused CLI, adapter, and web/admin suites covering install verification and operational visibility are passing
@@ -26,5 +27,4 @@
 ## Next Steps
 - CLI `prune` command
 - Mobile responsive improvements
-- Search improvements (FTS5)
 - E2E test suite

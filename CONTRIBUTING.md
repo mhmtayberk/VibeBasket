@@ -1,35 +1,84 @@
 # Contributing to VibeBasket
 
-Thank you for your interest in contributing to VibeBasket! We are an open-source project dedicated to making AI development environments easier to manage and share.
+Thanks for contributing. This guide covers setup, conventions, and the PR workflow.
 
-## Developer Certificate of Origin (DCO)
+## Prerequisites
 
-To better track contributions and ensure that we have the necessary rights to use and distribute your contributions, we require that all commits be signed off using the `git commit -s` command.
+- **Node.js** >= 20
+- **pnpm** >= 9
+- **Git**
 
-By adding a "Signed-off-by" line to your commit message, you certify that you have the right to submit the work and that you agree to the terms of the Developer Certificate of Origin.
-
-### How to sign off
-
-When committing your changes, use the `-s` or `--signoff` flag:
+## Setup
 
 ```bash
-git commit -s -m "feat: add new feature"
+git clone https://github.com/vibebasket/vibebasket.git
+cd vibebasket
+pnpm install
 ```
 
-## Getting Started
+## Project Structure
 
-1. Fork the repository.
-2. Create a new branch for your feature or bug fix.
-3. Make your changes and ensure that all tests pass.
-4. Commit your changes with a descriptive commit message and the required sign-off.
-5. Push your changes to your fork and submit a pull request.
+```
+apps/
+  web/          Next.js 16 App Router — the catalog UI and API
+  cli/          Node.js CLI — `vibebasket apply`, `list`, `search`, `doctor`
+packages/
+  core/         Shared DB schema, bundle manifest types, SQLite client
+  adapters/     24 IDE adapters with BaseAdapter pattern
+  registry/     Catalog sync engine — merges verified + upstream sources
+```
 
-## Coding Standards
+## Development
 
-- We use **Biome** for linting and formatting.
-- We use **Vitest** for testing.
-- We follow **Conventional Commits**.
+```bash
+# Start the web app
+pnpm --filter web dev
 
-## License
+# Run tests for a package
+pnpm --filter web test
+pnpm --filter cli test
+pnpm --filter adapters test
 
-By contributing to VibeBasket, you agree that your contributions will be licensed under the MIT License.
+# TypeScript check
+pnpm --filter web typecheck
+pnpm --filter cli typecheck
+
+# Production build
+pnpm --filter web build
+```
+
+## Testing
+
+- **Unit/Integration**: Vitest. Run per-package. ~340 tests total (web 165, CLI 50, adapters 125).
+- **E2E**: Playwright in `apps/web/e2e/`. Requires production build first. ~70 scenarios.
+- **Property-based**: fast-check for adapter idempotency in `packages/adapters`.
+
+## Adding a New IDE Adapter
+
+1. Create `packages/adapters/src/<ide-id>.ts`
+2. Extend `BaseAdapter` for standard config paths + MCP apply. Use custom logic for non-standard formats (YAML, TOML, delimiters).
+3. Add capabilities in `packages/adapters/src/target-capabilities.ts`
+4. Add to `UNSORTED_TARGET_OPTIONS` in `apps/web/src/lib/targets.ts`
+5. Add a test in `packages/adapters/src/<ide-id>.test.ts`
+6. Add an SVG icon to `apps/web/public/targets/<ide-id>.svg` (white fill for dark theme)
+
+## Conventions
+
+- TypeScript strict mode — no `any` without explicit reason
+- English-only UI copy
+- Tailwind for styling — no CSS modules
+- Server Components by default; `"use client"` only when needed
+- Drizzle ORM for all DB access — no raw SQL except migrations
+- Run `pnpm --filter web typecheck` before pushing
+
+## Pull Requests
+
+1. Fork and create a feature branch
+2. Add tests for new functionality
+3. Ensure all existing tests pass
+4. Run `pnpm --filter web typecheck`
+5. Open a PR with a clear description
+
+## Questions?
+
+Open a [GitHub Discussion](https://github.com/vibebasket/vibebasket/discussions) or an issue.

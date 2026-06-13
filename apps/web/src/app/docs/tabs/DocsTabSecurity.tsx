@@ -34,7 +34,7 @@ export function DocsTabSecurity() {
 						</p>
 
 						<div className="flex gap-4 p-8 border-l-2 border-red-500 bg-red-500/5 rounded-r-[2px] my-10">
-							<ShieldAlert className="h-5.5 w-5.5 text-red-500 shrink-0 mt-0.5" />
+							<ShieldAlert className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
 							<div>
 								<h4 className="font-mono text-[11px] uppercase tracking-widest text-red-400 font-semibold mb-3">
 									Zero-Trust Cloud Policy
@@ -59,7 +59,8 @@ export function DocsTabSecurity() {
 					<div className="prose prose-invert max-w-none text-sm text-[#bdc9c2] leading-relaxed space-y-8">
 						<p className="max-w-3xl">All public API endpoints are protected by a sliding-window rate limiter with per-IP tracking and automatic garbage collection.</p>
 						<div className="overflow-x-auto">
-							<table className="w-full border border-[#3e4944]">
+							<table className="w-full border border-[#3e4944]" aria-label="API rate limiting endpoints">
+								<caption className="sr-only">API endpoint rate limits</caption>
 								<thead className="bg-[#181d1a]"><tr className="text-left font-mono text-[10px] uppercase tracking-widest text-[#bdc9c2]"><th className="p-3 border-b border-[#3e4944] pl-4">Endpoint</th><th className="p-3 border-b border-[#3e4944]">Limit</th></tr></thead>
 								<tbody className="divide-y divide-[#3e4944] font-mono text-[#bdc9c2]">
 									{[["/api/health","120/min"],["/api/catalog","120/min"],["/api/auth/*","60/min"],["/api/bundle/[id]","60/min"],["/api/stacks","30/min"],["/api/admin/stats","30/min"],["/api/catalog/status","5/min"],["/api/bundle POST","20/min"]].map(([ep,lim]) => (<tr key={ep} className="hover:bg-[#1c211e]/40 transition-colors"><td className="p-3 pl-4 text-[#a0fdda]">{ep}</td><td className="p-3">{lim}</td></tr>))}
@@ -77,7 +78,8 @@ export function DocsTabSecurity() {
 					<div className="prose prose-invert max-w-none text-sm text-[#bdc9c2] leading-relaxed space-y-8">
 						<p className="max-w-3xl">All API responses include hardened headers. In production, a Content-Security-Policy is also enforced.</p>
 						<div className="overflow-x-auto">
-							<table className="w-full border border-[#3e4944]">
+							<table className="w-full border border-[#3e4944]" aria-label="HTTP security headers">
+								<caption className="sr-only">Security response headers</caption>
 								<thead className="bg-[#181d1a]"><tr className="text-left font-mono text-[10px] uppercase tracking-widest text-[#bdc9c2]"><th className="p-3 border-b border-[#3e4944] pl-4">Header</th><th className="p-3 border-b border-[#3e4944]">Value</th></tr></thead>
 								<tbody className="divide-y divide-[#3e4944] font-mono text-[#bdc9c2]">
 									{[["X-Frame-Options","DENY"],["X-Content-Type-Options","nosniff"],["Referrer-Policy","strict-origin-when-cross-origin"],["Permissions-Policy","camera=(), microphone=(), geolocation=()"],["Content-Security-Policy","default-src 'self'; frame-ancestors 'none'"]].map(([h,v]) => (<tr key={h} className="hover:bg-[#1c211e]/40 transition-colors"><td className="p-3 pl-4 text-[#a0fdda]">{h}</td><td className="p-3 text-[10px]">{v}</td></tr>))}

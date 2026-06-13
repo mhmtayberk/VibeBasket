@@ -1,11 +1,38 @@
 node_modules/
 dist/
 .env
+.env.*
+!.env.example
 .pnpm-store/
 playwright-report/
 test-results/
+coverage/
+*.log
+
+# Next.js
+.next/
+next-env.d.ts
+
+# Turborepo
+.turbo
+
+# macOS
+.DS_Store
+.AppleDouble
+
+# Playwright MCP session recordings
+.playwright-mcp/
+
+# TypeScript incremental build info
+*.tsbuildinfo
 
 # SQLite database files (contains user data, never commit)
 *.db
 *.db-wal
 *.db-shm
+
+# Stitch design tool output
+stitch_vibebasket_design_system_ui_specification/
+
+# Package tarballs
+*.tgz

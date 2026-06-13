@@ -82,8 +82,9 @@ export function buildAdminSourceHealth(
   sourceCounts: AdminOpsSourceCountLike[],
 ): AdminSourceHealthRow[] {
   return SOURCE_DEFINITIONS.map((source) => {
+    const keys = source.sourceKeys as readonly string[];
     const itemCount = sourceCounts
-      .filter((row) => source.sourceKeys.includes(row.sourceName ?? ""))
+      .filter((row) => keys.includes(row.sourceName ?? ""))
       .reduce((sum, row) => sum + row.count, 0);
 
     const sourceErrors = runs.flatMap((run) =>
