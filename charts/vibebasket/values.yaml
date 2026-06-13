@@ -1,0 +1,64 @@
+replicaCount: 1
+
+image:
+  repository: vibebasket
+  tag: latest
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+
+service:
+  type: ClusterIP
+  port: 3000
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: vibebasket.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 512Mi
+  requests:
+    cpu: 200m
+    memory: 256Mi
+
+persistence:
+  enabled: true
+  storageClassName: ""
+  accessMode: ReadWriteOnce
+  size: 1Gi
+
+# Environment variables
+env:
+  NEXTAUTH_URL: "https://vibebasket.example.com"
+  AUTH_SECRET: ""
+  # OAuth providers (optional)
+  AUTH_GITHUB_ENABLED: "false"
+  AUTH_GITHUB_ID: ""
+  AUTH_GITHUB_SECRET: ""
+  AUTH_GOOGLE_ENABLED: "false"
+  AUTH_GOOGLE_ID: ""
+  AUTH_GOOGLE_SECRET: ""
+  AUTH_MICROSOFT_ENTRA_ID_ENABLED: "false"
+  AUTH_MICROSOFT_ENTRA_ID_ID: ""
+  AUTH_MICROSOFT_ENTRA_ID_SECRET: ""
+  # Trust proxy for reverse proxy setups
+  TRUST_PROXY: "true"
+  AUTH_TRUST_HOST: "true"
+  # Backup storage (defaults to local)
+  BACKUP_STORAGE_BACKEND: "local"
+  # Optional: catalog refresh token for production
+  CATALOG_REFRESH_TOKEN: ""
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

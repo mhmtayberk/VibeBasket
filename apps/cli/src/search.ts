@@ -1,5 +1,9 @@
 import chalk from "chalk";
 
+function getApiBaseUrl(): string {
+	return process.env.VIBEBASKET_API_URL || "https://vibebasket.dev";
+}
+
 export async function runSearch(query: string) {
 	const q = encodeURIComponent(query.trim());
 	if (!q) {
@@ -7,11 +11,12 @@ export async function runSearch(query: string) {
 		return;
 	}
 
+	const baseUrl = getApiBaseUrl();
 	console.log(chalk.bold(`\n🔍 Searching VibeBasket catalog for "${query}"...\n`));
 
 	try {
 		const res = await fetch(
-			`https://vibebasket.dev/api/catalog?type=mcp&q=${q}&limit=10`,
+			`${baseUrl}/api/catalog?type=mcp&q=${q}&limit=10`,
 			{ signal: AbortSignal.timeout(10000) },
 		);
 
@@ -37,10 +42,10 @@ export async function runSearch(query: string) {
 		}
 
 		if (data.pagination?.total > data.items.length) {
-			console.log(chalk.gray(`  (${data.pagination.total} total results. Visit https://vibebasket.dev for more)`));
+			console.log(chalk.gray(`  (${data.pagination.total} total results. Visit ${baseUrl} for more)`));
 		}
 	} catch {
 		console.log(chalk.red("Could not reach the catalog API."));
-		console.log(chalk.gray("  Make sure you have internet access, or visit https://vibebasket.dev"));
+		console.log(chalk.gray(`  Make sure you have internet access, or visit ${baseUrl}`));
 	}
 }

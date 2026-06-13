@@ -27,6 +27,7 @@ import {
   GooseAdapter,
   IBMBobAdapter,
   CodeBuddyAdapter,
+  OpenCodeAdapter,
 } from "@vibebasket/adapters";
 
 const ADAPTERS = {
@@ -53,6 +54,7 @@ const ADAPTERS = {
   goose: new GooseAdapter(),
   "ibm-bob": new IBMBobAdapter(),
   codebuddy: new CodeBuddyAdapter(),
+  opencode: new OpenCodeAdapter(),
 } as const;
 
 function getRollbackAdapter(targetId: string): IdeAdapter | undefined {

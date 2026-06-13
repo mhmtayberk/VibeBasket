@@ -8,7 +8,7 @@ The product exists to make AI development environments portable, repeatable, and
 
 ## Current Target Model
 
-As of June 12, 2026, the product exposes 23 adapter-backed IDE targets: Cursor, Windsurf, VS Code/Cline, Antigravity, Claude Code, DeepSeek-TUI, Zed, Codex CLI, Gemini CLI, Junie, Kiro, Cline CLI, Continue, Roo Code, Hermes, OpenClaw, GitHub Copilot, Void Editor, Aider, Cortex Code, Goose, IBM Bob, and CodeBuddy.
+As of June 13, 2026, the product exposes 24 adapter-backed IDE targets: Cursor, Windsurf, VS Code/Cline, Antigravity, Claude Code, DeepSeek-TUI, Zed, Codex CLI, Gemini CLI, Junie, Kiro, Cline CLI, Continue, Roo Code, Hermes, OpenClaw, GitHub Copilot, Void Editor, Aider, Cortex Code, Goose, IBM Bob, CodeBuddy, and OpenCode.
 
 For targets that support it (11 total: Claude Code, Continue, Roo Code, Hermes, OpenClaw, GitHub Copilot, Void Editor, Aider, Cortex Code, IBM Bob, and CodeBuddy), the CLI adapter also installs Skills and Rules using idempotent block delimiters to avoid corrupting existing developer configurations.
 
