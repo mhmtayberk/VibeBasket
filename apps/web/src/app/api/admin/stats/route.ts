@@ -102,16 +102,16 @@ export async function GET(request: Request) {
 
   } catch (error) {
     if (error instanceof ForbiddenError) {
-      return new NextResponse(
-        JSON.stringify({ success: false, error: "Forbidden: Admin authorization required" }),
-        { status: 403, headers: { "Content-Type": "application/json" } }
-      );
+      return applySecurityHeaders(NextResponse.json(
+        { success: false, error: "Forbidden: Admin authorization required" },
+        { status: 403 }
+      ));
     }
     
     console.error("Failed to query admin stats:", error);
-    return new NextResponse(
-      JSON.stringify({ success: false, error: "Internal Server Error" }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
-    );
+    return applySecurityHeaders(NextResponse.json(
+      { success: false, error: "Internal Server Error" },
+      { status: 500 }
+    ));
   }
 }

@@ -5,6 +5,8 @@ metadata:
   labels:
     {{- include "vibebasket.labels" . | nindent 4 }}
 spec:
+  strategy:
+    type: Recreate
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
@@ -16,6 +18,8 @@ spec:
         app.kubernetes.io/name: {{ include "vibebasket.name" . }}
         app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -23,6 +27,8 @@ spec:
           ports:
             - containerPort: {{ .Values.service.port }}
               protocol: TCP
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
           env:
             - name: DATABASE_URL
               value: "file:/data/vibebasket.db"
@@ -30,6 +36,13 @@ spec:
             - name: {{ $key }}
               value: {{ $value | quote }}
             {{- end }}
+          envFrom:
+            - secretRef:
+                name: {{ include "vibebasket.fullname" . }}
+          {{- if .Values.existingSecret }}
+            - secretRef:
+                name: {{ .Values.existingSecret }}
+          {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           {{- if .Values.persistence.enabled }}

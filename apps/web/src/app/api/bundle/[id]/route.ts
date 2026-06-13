@@ -1,5 +1,5 @@
 import { bundles, db } from "@vibebasket/core";
-import { and, eq, lt, or, isNull } from "drizzle-orm";
+import { and, eq, lt, isNull } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { checkRateLimit, getClientAddress } from "@/lib/rate-limit";
 import { cleanupStaleData } from "@/lib/data-cleanup";
@@ -51,7 +51,9 @@ export async function GET(
 			.limit(1);
 
 		if (result.length === 0) {
-			return NextResponse.json({ error: "Bundle not found" }, { status: 404 });
+			return applySecurityHeaders(
+				NextResponse.json({ error: "Bundle not found" }, { status: 404 }),
+			);
 		}
 
 		const bundle = result[0];
@@ -60,7 +62,9 @@ export async function GET(
 			try {
 				await db.delete(bundles).where(eq(bundles.id, bundle.id));
 			} catch { /* best-effort */ }
-			return NextResponse.json({ error: "Bundle has expired" }, { status: 410 });
+			return applySecurityHeaders(
+				NextResponse.json({ error: "Bundle has expired" }, { status: 410 }),
+			);
 		}
 
 		void cleanupExpiredBundles();
@@ -77,9 +81,11 @@ export async function GET(
 		);
 	} catch (error) {
 		console.error("Failed to fetch bundle:", error);
-		return NextResponse.json(
-			{ error: "Internal Server Error" },
-			{ status: 500 },
+		return applySecurityHeaders(
+			NextResponse.json(
+				{ error: "Internal Server Error" },
+				{ status: 500 },
+			),
 		);
 	}
 }

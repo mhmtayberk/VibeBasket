@@ -8,7 +8,12 @@ import { desc } from "drizzle-orm";
  * only safe, verified public landing pages with dynamic modification headers.
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-	const baseUrl = process.env.NEXTAUTH_URL || "https://vibebasket.dev";
+	const baseUrl =
+		process.env.NEXTAUTH_URL ||
+		process.env.NEXT_PUBLIC_SITE_URL ||
+		(process.env.NODE_ENV === "production"
+			? "https://vibebasket.dev"
+			: "http://localhost:3000");
 	const normalizedBase = baseUrl.replace(/\/$/, "");
 
 	let latestUpdate = new Date();

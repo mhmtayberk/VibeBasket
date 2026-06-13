@@ -2,16 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.9.0] — 2026-06-12
+## [0.9.0] — 2026-06-13
 
-### 4 New IDE Targets (23 total)
+### 5 New IDE Targets (24 total)
 - **Cortex Code** (Snowflake): CLI terminal agent. MCP at `~/.snowflake/cortex/mcp.json`, skills at `.cortex/skills/`. Supports user and project scopes.
 - **Goose** (Block / Linux Foundation): CLI/Desktop agent. MCP at `~/.config/goose/config.yaml`. User scope. MCP-only today.
 - **IBM Bob** (IBM): Standalone IDE + Bob Shell. MCP at `~/.bob/mcp_settings.json` (global) and `.bob/mcp.json` (project). Skills at `.bob/skills/`.
 - **CodeBuddy** (Tencent Cloud): IDE + VS Code/JetBrains plugin + CLI. MCP at `~/.codebuddy/.mcp.json` (user) and `.mcp.json` (project). Skills at `.codebuddy/skills/`.
 
 ### CLI Enhancements
-- **`vibebasket list`**: New command that scans all 23 IDE targets for installed MCP servers, skills, and rules. Shows per-IDE summary with colored output.
+- **`vibebasket list`**: New command that scans all 24 IDE targets for installed MCP servers, skills, and rules. Shows per-IDE summary with colored output.
 - **`vibebasket search <query>`**: New command that searches the VibeBasket catalog API from the terminal. Returns up to 10 matching MCP servers, skills, or rules with their names, descriptions, and type badges.
 - **Cross-target capability handling**: When a bundle contains skills/rules but not all selected targets support them, the CLI now warns and continues instead of failing. MCP is applied to all targets; skills/rules are only applied to targets that support them.
 
@@ -25,7 +25,7 @@ All notable changes to this project will be documented in this file.
 
 ### Test Coverage
 - 18 new adapter tests for Cortex Code, Goose, IBM Bob, and CodeBuddy
-- 187 total tests (93 web + 4 CLI + 90 adapters) — all passing.
+- 340 total tests (165 web + 50 CLI + 125 adapters) — all passing.
 
 ---
 
@@ -37,7 +37,7 @@ All notable changes to this project will be documented in this file.
 - **Collector health accuracy**: Admin operational visibility now groups persisted `skills-sh-official` and `skills-sh-community` rows under the single `skills.sh Directory` collector so coverage counts match reality.
 - **`vibebasket list` install accuracy**: The CLI now inspects adapter-specific skill/rule install surfaces instead of scanning generic shared folders, so reported installs better match each IDE’s real integration path.
 
-### 4 New IDE Targets (23 total)
+### 5 New IDE Targets (24 total)
 - **Cortex Code** (Snowflake): CLI terminal agent. MCP at `~/.snowflake/cortex/mcp.json`, skills at `.cortex/skills/`. Supports user and project scopes.
 - **Goose** (Block / Linux Foundation): CLI/Desktop agent. MCP at `~/.config/goose/config.yaml`. User scope. MCP-only today.
 - **IBM Bob** (IBM): Standalone IDE + Bob Shell. MCP at `~/.bob/mcp_settings.json` (global) and `.bob/mcp.json` (project). Skills at `.bob/skills/`.
@@ -45,7 +45,7 @@ All notable changes to this project will be documented in this file.
 - 3 tools could not be added due to lack of public documentation: ForgeCode, CodeArts Agent (Huawei), CodeMaker.
 
 ### CLI Enhancements
-- **`vibebasket list`**: New command that scans all 23 IDE targets for installed MCP servers, skills, and rules. Shows per-IDE summary with colored output.
+- **`vibebasket list`**: New command that scans all 24 IDE targets for installed MCP servers, skills, and rules. Shows per-IDE summary with colored output.
 - **`vibebasket search <query>`**: New command that searches the VibeBasket catalog API from the terminal. Returns top 10 results with type badges and descriptions.
 - **Cross-target capability handling**: When a bundle contains skills/rules but not all selected targets support them, the CLI now warns and continues instead of failing. MCP is applied to all targets; skills/rules are only applied to targets that support them.
 
@@ -59,7 +59,7 @@ All notable changes to this project will be documented in this file.
 
 ### Test Coverage
 - 18 new adapter tests for Cortex Code, Goose, IBM Bob, and CodeBuddy
-- 187 total tests (93 web + 4 CLI + 90 adapters) — all passing.
+- 340 total tests (165 web + 50 CLI + 125 adapters) — all passing.
 
 ### Multi-Cloud Backup Storage System with DB-Backed Config
 - **Six storage backends**: Local Filesystem, AWS S3, Cloudflare R2, DigitalOcean Spaces, Azure Blob Storage, Google Cloud Storage — all with a unified `StorageBackend` interface.

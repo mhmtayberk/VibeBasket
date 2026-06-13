@@ -81,7 +81,7 @@ export function DocsTabAdapters() {
                   name: "Claude Code",
                   color: "#D4A574",
                   config: "~/.claude.json",
-                  skills: false,
+                  skills: true,
                   note: "Anthropic's Claude Code CLI reads mcpServers from the root ~/.claude.json file.",
                 },
                 {

@@ -40,7 +40,7 @@ export function DocsTabGettingStarted() {
 							</div>
 						</div>
 						<div className="flex gap-4 p-8 border-l-2 border-[#a0fdda] bg-[#a0fdda]/5 rounded-r-[2px] my-10">
-							<Info className="h-5.5 w-5.5 text-[#a0fdda] shrink-0 mt-0.5" />
+							<Info className="h-5 w-5 text-[#a0fdda] shrink-0 mt-0.5" />
 							<div>
 								<h4 className="font-mono text-[11px] uppercase tracking-widest text-[#a0fdda] font-semibold mb-3">Global CLI Usage</h4>
 								<p className="text-xs text-[#bdc9c2] leading-relaxed">

@@ -16,6 +16,7 @@ import {
 import { requireAdminRole, ForbiddenError } from "@/lib/admin-session";
 import { BackupSection } from "./BackupSection";
 import { SyncButton } from "./SyncButton";
+import { SystemHealthPanel } from "./SystemHealthPanel";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -483,6 +484,8 @@ export default async function AdminDashboardPage() {
             <BackupSection />
           </div>
         </div>
+
+        <SystemHealthPanel />
       </main>
     </div>
   );

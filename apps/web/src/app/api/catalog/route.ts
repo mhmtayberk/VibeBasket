@@ -215,14 +215,32 @@ export async function GET(request: Request) {
 
 		const conditions: SQL[] = [];
 		if (search) {
-			const searchClause = or(
-				like(catalogItems.displayName, `%${search}%`),
-				like(catalogItems.description, `%${search}%`),
-				like(catalogItems.sourceUrl, `%${search}%`),
-				like(catalogItems.data, `%${search}%`),
-			);
-			if (searchClause) {
-				conditions.push(searchClause);
+			const sanitized = search
+				.replace(/[^\w\s-]/g, "")
+				.trim();
+			const ftsTokens = sanitized
+				? sanitized
+						.split(/\s+/)
+						.filter(Boolean)
+						.map((t) => `"${t}"*`)
+						.join(" ")
+				: "";
+
+			if (ftsTokens) {
+				conditions.push(
+					sql`catalog_items.rowid IN (SELECT rowid FROM catalog_items_fts WHERE catalog_items_fts MATCH ${ftsTokens})`,
+				);
+			} else {
+				const fallbackClause = or(
+					like(catalogItems.displayName, `${search}%`),
+					like(catalogItems.displayName, `%${search}%`),
+					like(catalogItems.description, `%${search}%`),
+					like(catalogItems.sourceUrl, `%${search}%`),
+					like(catalogItems.data, `%${search}%`),
+				);
+				if (fallbackClause) {
+					conditions.push(fallbackClause);
+				}
 			}
 		}
 		if (type) {
