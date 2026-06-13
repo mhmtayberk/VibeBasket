@@ -1,47 +1,26 @@
-# Progress
+# Progress — June 13, 2026
 
-## Completed
-- [x] Monorepo Infrastructure (pnpm)
-- [x] Core Manifest Validation (Zod)
-- [x] 23 IDE Adapters (all implement applyMcps, 11 implement applySkills, 5 implement applyRules)
-- [x] Web Dashboard UI (Tailwind v4, Shadcn, independent desktop scrolling)
-- [x] Catalog Detail View with responsive modal
-- [x] Trust System (3-tier: Verified/Official/Community)
-- [x] Bundle Preview in Basket Panel
-- [x] Cross-Target Capability Warnings (web + CLI)
-- [x] Secure Admin Panel & Stats Dashboard
-- [x] Backup & Storage System (6 backends, encrypted credentials, scheduled backups)
-- [x] Security: CSRF middleware, CSP (production), path sanitization, rate limiting (9 endpoints)
-- [x] Responsive Design & Mobile Optimization
-- [x] SEO Meta Tags Enhancement
-- [x] Backend APIs (Catalog, Bundle Management, Admin Stats, Stacks with pagination)
-- [x] CLI — apply, init, doctor, rollback, list, search
-- [x] SQLite WAL Mode, 15 indexes, VACUUM INTO atomic backup
-- [x] Drizzle Atomic DB Transactions for Ingestion Sync
-- [x] Rate Limiter: Sliding window with Retry-After
-- [x] Idempotent Delimiter-Based Rule/Skill Updating
-- [x] Multi-Cloud Backup Storage with DB-backed config
-
-## Completed (Latest Batch — June 12, 2026)
+## Completed This Session
+- [x] Registry split: 1346-line monolith → 6 modules (schemas, utils, 3 collectors, index)
+- [x] Docs split: 1022-line page.tsx → 368-line shell + 7 tab components
+- [x] Adapter refactor: BaseAdapter class + 15/23 adapters converted (-49% code)
+- [x] Drizzle Kit: config + migration generated (drizzle/0000_flaky_millenium_guard.sql)
+- [x] DB Quality: auto_vacuum INCREMENTAL, mmap_size 256MB, cleanupStaleData()
+- [x] UI Components: Chip (4 variants), MonoLabel
+- [x] New tests: bundle lifecycle (5) + data cleanup (2) = 100 web tests
 - [x] 4 new IDE adapters: Cortex Code, Goose, IBM Bob, CodeBuddy (23 total)
-- [x] CLI `list` command: scan installed MCP/skills/rules per IDE
-- [x] CLI `search` command: search catalog from terminal
-- [x] Cross-target capability handling: warn + continue in CLI, warning in web UI
-- [x] Adapter accuracy fixes: Claude Code skills, Cursor rules
-- [x] 18 new adapter tests (90 total)
-- [x] CSRF middleware with Origin validation
+- [x] CLI: list + search commands (6 total)
+- [x] Cross-target capability: warn + continue in CLI, warning in web UI
 - [x] Bundle preview in basket panel
-- [x] .env.example: backup storage env vars documented
-- [x] Version bump: 0.1.0 → 0.9.0
-- [x] Security: path traversal fix, error message sanitization, security headers coverage
-- [x] CHANGELOG: duplicate removed, [0.9.0] release header added
-- [x] Documentation: all files audited and corrected
+- [x] Security: path traversal fix, error message sanitization, global security headers
+- [x] Documentation: full audit completed, all files current
 
-## In Progress
-- CLI `prune` command implementation
+## Test Coverage
+- 100 tests (web) + 4 (CLI) + 83 (adapters) = 187 total — all passing
+- TypeScript strict mode: zero errors
+
+## Next Steps
+- CLI `prune` command
 - Mobile responsive improvements
 - Search improvements (FTS5)
 - E2E test suite
-
-## Blockers
-- None.
