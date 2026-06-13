@@ -3,6 +3,8 @@ import type { IdeAdapter } from "@vibebasket/adapters";
 import chalk from "chalk";
 import fs from "node:fs";
 import { listBackups } from "./backup.js";
+
+const MAX_BACKUPS_SHOWN = 10;
 import { 
   CursorAdapter, 
   AntigravityAdapter, 
@@ -71,7 +73,7 @@ export async function runRollback() {
     return;
   }
 
-  const choices = backups.slice(0, 10).map(b => ({
+  const choices = backups.slice(0, MAX_BACKUPS_SHOWN).map(b => ({
     name: `${b.targetId} (${b.scope}) - ${b.timestamp}`,
     value: b,
   }));

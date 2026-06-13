@@ -218,8 +218,8 @@ export default async function DocsPage({
               </div>
             </div>
 
-            <div className="pb-6">
-              <p className="font-mono text-[9px] uppercase tracking-[0.25em] text-[#bdc9c2]/50 mb-4 pl-6">
+            <div className="py-5">
+              <p className="font-mono text-[9px] uppercase tracking-[0.25em] text-[#bdc9c2]/50 mb-4 ml-6">
                 Core Concepts
               </p>
               <nav className="space-y-1 font-mono text-[11px] uppercase tracking-wider">

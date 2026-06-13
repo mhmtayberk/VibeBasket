@@ -33,7 +33,7 @@ export function DocsTabSelfHosting() {
 					<div className="space-y-10">
 						<div>
 							<p className="font-mono text-[10px] uppercase tracking-widest text-[#a0fdda] mb-3">Step 1 — Clone &amp; configure</p>
-							<pre className="bg-[#0a0f0d] p-6 border border-[#3e4944] font-mono text-xs text-[#bdc9c2] overflow-x-auto rounded-[2px] leading-relaxed">{`git clone https://github.com/your-org/vibebasket.git
+							<pre className="bg-[#0a0f0d] p-6 border border-[#3e4944] font-mono text-xs text-[#bdc9c2] overflow-x-auto rounded-[2px] leading-relaxed">{`git clone https://github.com/vibebasket/vibebasket.git
 cd vibebasket
 
 # Copy the example env file and fill in your values
@@ -70,7 +70,7 @@ docker compose up -d --build`}</pre>
 					<p className="text-sm text-[#bdc9c2] leading-relaxed max-w-3xl mb-8">
 						Requires Node.js &ge;20 and pnpm &ge;9. Suitable for VMs, bare-metal servers, or platforms that don&apos;t run Docker.
 					</p>
-					<pre className="bg-[#0a0f0d] p-6 border border-[#3e4944] font-mono text-xs text-[#bdc9c2] overflow-x-auto rounded-[2px] leading-relaxed">{`git clone https://github.com/your-org/vibebasket.git && cd vibebasket
+					<pre className="bg-[#0a0f0d] p-6 border border-[#3e4944] font-mono text-xs text-[#bdc9c2] overflow-x-auto rounded-[2px] leading-relaxed">{`git clone https://github.com/vibebasket/vibebasket.git && cd vibebasket
 cp .env.example .env          # fill in values (see below)
 pnpm install --frozen-lockfile
 pnpm run build
@@ -85,7 +85,7 @@ pnpm --filter web start        # production server on :3000`}</pre>
 					</div>
 
 					<div className="flex gap-4 p-6 border-l-2 border-[#33bbc5] bg-[#33bbc5]/5 rounded-r-[2px] mb-8">
-						<Info className="h-5.5 w-5.5 text-[#33bbc5] shrink-0 mt-0.5" />
+						<Info className="h-5 w-5 text-[#33bbc5] shrink-0 mt-0.5" />
 						<div>
 							<h4 className="font-mono text-[11px] uppercase tracking-widest text-[#33bbc5] font-semibold mb-3">
 								GitHub OAuth Callback URL

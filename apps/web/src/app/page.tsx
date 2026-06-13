@@ -61,16 +61,18 @@ export default async function Home() {
 
   const renderTargetIcon = (targetId: string) => {
     const src = iconMap[targetId];
+    const label = TARGET_OPTIONS.find((t) => t.id === targetId)?.label ?? targetId;
 
     if (src) {
       return (
         <span className="text-muted-foreground">
           <Image
             src={src}
-            alt={targetId}
+            alt={`${label} IDE icon`}
             width={28}
             height={28}
             className="h-7 w-auto object-contain"
+            loading="eager"
           />
         </span>
       );

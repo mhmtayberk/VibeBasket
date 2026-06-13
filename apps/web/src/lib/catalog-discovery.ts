@@ -47,19 +47,9 @@ interface CatalogDiscoveryLikeItem {
 	lastSyncedAt?: Date | string | number | null;
 }
 
-const TRUST_FILTER_VALUES: CatalogTrustFilter[] = [
-	"all",
-	"verified",
-	"official",
-	"community",
-];
-const FRESHNESS_FILTER_VALUES: CatalogFreshnessFilter[] = [
-	"all",
-	"fresh",
-	"recent",
-	"aging",
-];
-const SORT_OPTION_VALUES: CatalogSort[] = ["recommended", "freshest", "name"];
+const TRUST_FILTER_VALUES = ["all", "verified", "official", "community"] as const;
+const FRESHNESS_FILTER_VALUES = ["all", "fresh", "recent", "aging"] as const;
+const SORT_OPTION_VALUES = ["recommended", "freshest", "name"] as const;
 
 export function getCatalogDiscoveryDefaults(): CatalogDiscoveryState {
 	return {

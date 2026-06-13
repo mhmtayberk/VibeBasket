@@ -19,6 +19,9 @@ import {
   type StorageConfig,
 } from "@/lib/storage";
 import { deleteSiteConfig, getAdminEmails, setSiteConfig } from "@/lib/site-config";
+import { cleanupStaleData } from "@/lib/data-cleanup";
+import { db, catalogItems, bundles, users, savedStacks } from "@vibebasket/core";
+import { eq, sql } from "drizzle-orm";
 
 export async function triggerSyncAction() {
   await requireAdminRole();
@@ -419,17 +422,101 @@ export async function getAdminEmailsAction() {
 }
 
 export async function saveAdminEmailsAction(emails: string) {
-  await requireAdminRole();
-  try {
-    const trimmed = emails.trim();
-    if (trimmed) {
-      await setSiteConfig("admin_emails", trimmed);
-    } else {
-      await deleteSiteConfig("admin_emails");
-    }
-    revalidatePath("/admin");
-    return { success: true };
-  } catch (error: unknown) {
-    return { success: false, error: error instanceof Error ? error.message : "Failed" };
-  }
+	await requireAdminRole();
+	try {
+		const trimmed = emails.trim();
+		if (trimmed) {
+			await setSiteConfig("admin_emails", trimmed);
+		} else {
+			await deleteSiteConfig("admin_emails");
+		}
+		revalidatePath("/admin");
+		return { success: true };
+	} catch (error: unknown) {
+		return { success: false, error: error instanceof Error ? error.message : "Failed" };
+	}
+}
+
+export async function getFts5HealthAction() {
+	await requireAdminRole();
+	try {
+		const [catalogCount, ftsCount] = await Promise.all([
+			db.select({ count: sql<number>`count(*)` }).from(catalogItems),
+			db.all<{ cnt: number }>(sql`SELECT count(*) as cnt FROM catalog_items_fts`),
+		]);
+		const total = Number(catalogCount[0]?.count ?? 0);
+		const ftsTotal = ftsCount[0]?.cnt ?? 0;
+		const healthy = total === ftsTotal;
+		return { success: true, healthy, catalogRows: total, ftsRows: ftsTotal };
+	} catch (error: unknown) {
+		return { success: false, error: error instanceof Error ? error.message : "Failed" };
+	}
+}
+
+export async function rebuildFts5Action() {
+	await requireAdminRole();
+	try {
+		await db.run(sql`INSERT INTO catalog_items_fts(catalog_items_fts) VALUES('rebuild')`);
+		revalidatePath("/admin");
+		return { success: true };
+	} catch (error: unknown) {
+		return { success: false, error: error instanceof Error ? error.message : "Failed" };
+	}
+}
+
+export async function getDbHealthAction() {
+	await requireAdminRole();
+	try {
+		const tableCounts = await Promise.all([
+			db.select({ count: sql<number>`count(*)` }).from(catalogItems),
+			db.select({ count: sql<number>`count(*)` }).from(bundles),
+			db.select({ count: sql<number>`count(*)` }).from(users),
+			db.select({ count: sql<number>`count(*)` }).from(savedStacks),
+		]);
+		const integrity = await db.all<{ ok: string }>(sql`PRAGMA integrity_check`);
+
+		return {
+			success: true,
+			catalogItems: Number(tableCounts[0][0]?.count ?? 0),
+			bundles: Number(tableCounts[1][0]?.count ?? 0),
+			users: Number(tableCounts[2][0]?.count ?? 0),
+			savedStacks: Number(tableCounts[3][0]?.count ?? 0),
+			integrityOk: integrity[0]?.ok === "ok",
+		};
+	} catch (error: unknown) {
+		return { success: false, error: error instanceof Error ? error.message : "Failed" };
+	}
+}
+
+export async function forceCleanupAction() {
+	await requireAdminRole();
+	try {
+		await cleanupStaleData(true);
+		revalidatePath("/admin");
+		return { success: true };
+	} catch (error: unknown) {
+		return { success: false, error: error instanceof Error ? error.message : "Failed" };
+	}
+}
+
+export async function getUserOverviewAction() {
+	await requireAdminRole();
+	try {
+		const [totalUsers, recentUsers, totalStacks] = await Promise.all([
+			db.select({ count: sql<number>`count(*)` }).from(users),
+			db.select({ count: sql<number>`count(*)` }).from(users).where(
+				sql`${users.createdAt} > ${Math.floor(Date.now() / 1000) - 86400 * 7}`
+			),
+			db.select({ count: sql<number>`count(*)` }).from(savedStacks),
+		]);
+
+		return {
+			success: true,
+			totalUsers: Number(totalUsers[0]?.count ?? 0),
+			recentUsers: Number(recentUsers[0]?.count ?? 0),
+			totalStacks: Number(totalStacks[0]?.count ?? 0),
+		};
+	} catch (error: unknown) {
+		return { success: false, error: error instanceof Error ? error.message : "Failed" };
+	}
 }
