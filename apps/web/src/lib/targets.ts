@@ -211,6 +211,14 @@ const UNSORTED_TARGET_OPTIONS: TargetOptionSeed[] = [
 		note: "Backed by ~/.codebuddy/.mcp.json and .mcp.json project config.",
 		vendor: "Tencent Cloud",
 	},
+	{
+		id: "opencode",
+		label: "OpenCode",
+		status: "supported",
+		kind: "terminal",
+		note: "Backed by ~/.config/opencode/opencode.json and project opencode.json.",
+		vendor: "Anomaly",
+	},
 ];
 
 function deriveTargetStatus(id: IdeId): TargetStatus {

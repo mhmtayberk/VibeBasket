@@ -26,6 +26,7 @@ import {
   GooseAdapter,
   IBMBobAdapter,
   CodeBuddyAdapter,
+  OpenCodeAdapter,
 } from "@vibebasket/adapters";
 import { confirm } from "@inquirer/prompts";
 import chalk from "chalk";
@@ -58,6 +59,7 @@ const ADAPTERS = {
   goose: new GooseAdapter(),
   "ibm-bob": new IBMBobAdapter(),
   codebuddy: new CodeBuddyAdapter(),
+  opencode: new OpenCodeAdapter(),
 } as const;
 
 function getAdapter(targetId: IdeId): IdeAdapter | undefined {
