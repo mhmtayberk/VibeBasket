@@ -24,10 +24,9 @@ const DEFAULT_FETCH_RETRIES = 1;
 const PERSIST_BATCH_SIZE = 250;
 const PRUNE_BATCH_SIZE = 500;
 
-const dynamicImport = new Function(
-  "specifier",
-  "return import(specifier)"
-) as <T>(specifier: string) => Promise<T>;
+async function dynamicImport<T>(specifier: string): Promise<T> {
+  return import(specifier) as Promise<T>;
+}
 
 export interface SyncResult {
   added: number;
@@ -274,7 +273,7 @@ export class RegistrySyncService {
         row.displayName.trim().toLowerCase(),
       ].join("|");
 
-      const bucket = Math.max(1, 2) ? (grouped.get(key) ?? []) : [];
+      const bucket = grouped.get(key) ?? [];
       bucket.push({
         id: row.id,
         repo: String(source.repo),

@@ -53,7 +53,7 @@ The admin panel provides a multi-cloud storage system for database backups with 
 Cloud SDKs are lazily loaded via dynamic `await import()` to prevent Next.js build-time module resolution errors. Storage credentials are encrypted with AES-256-GCM (key derived from `AUTH_SECRET` via `scryptSync`) and stored in the `backup_storage_config` SQLite table. Configuration is managed through the admin panel UI — changing backends does not require a server restart. Scheduled backups can be configured with configurable hourly intervals.
 
 ## Performance & Scalability
-- **Server-Side Search**: Global search currently uses SQL `LIKE` over `display_name` and `description`.
+- **Full-Text Search**: Global catalog search uses FTS5 virtual tables with automatic trigger-based content sync and rebuild support. Queries are run through parameterized SQL to prevent injection.
 - **Batched Persistence**: registry sync persists catalog rows in batches instead of one row at a time, which reduces write pressure during large syncs.
 - **Page-Based Pagination**: `/api/catalog` returns `items + pagination` and the web UI only fetches the active tab and current page.
 - **Server-Rendered Initial Catalog**: the homepage reads the first MCP page from SQLite on the server and passes it into the catalog client component, so first paint is not dependent on client hydration or an initial `/api/catalog` fetch.

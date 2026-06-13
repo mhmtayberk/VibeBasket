@@ -2,16 +2,19 @@ type BucketEntry = {
 	timestamps: number[];
 };
 
+const CLEANUP_INTERVAL = 50; // every N checks
+const CLEANUP_WINDOW_MS = 60_000; // 1 minute
+
 const buckets = new Map<string, BucketEntry>();
 let cleanupCounter = 0;
 
 function cleanupExpiredBuckets(now: number) {
 	cleanupCounter++;
-	if (cleanupCounter < 50) return;
+	if (cleanupCounter < CLEANUP_INTERVAL) return;
 	cleanupCounter = 0;
 
 	for (const [key, entry] of buckets.entries()) {
-		entry.timestamps = entry.timestamps.filter((ts) => ts > now - 60_000);
+		entry.timestamps = entry.timestamps.filter((ts) => ts > now - CLEANUP_WINDOW_MS);
 		if (entry.timestamps.length === 0) {
 			buckets.delete(key);
 		}

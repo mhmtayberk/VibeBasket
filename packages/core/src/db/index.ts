@@ -513,6 +513,50 @@ async function bootstrapDatabase(targetClient: SqlExecutor) {
     CREATE INDEX IF NOT EXISTS idx_bundles_expires_user
     ON bundles(expires_at, user_id)
   `);
+
+  // FTS5 full-text search for catalog items (content-sync with triggers)
+  await targetClient.execute(`
+    CREATE VIRTUAL TABLE IF NOT EXISTS catalog_items_fts USING fts5(
+      display_name,
+      description,
+      source_url,
+      data,
+      content='catalog_items',
+      content_rowid='rowid'
+    )
+  `);
+
+  // Keep FTS5 index in sync with catalog_items via triggers
+  await targetClient.execute(`
+    CREATE TRIGGER IF NOT EXISTS catalog_items_ai AFTER INSERT ON catalog_items BEGIN
+      INSERT INTO catalog_items_fts(rowid, display_name, description, source_url, data)
+      VALUES (new.rowid, new.display_name, new.description, new.source_url, new.data);
+    END
+  `);
+  await targetClient.execute(`
+    CREATE TRIGGER IF NOT EXISTS catalog_items_ad AFTER DELETE ON catalog_items BEGIN
+      INSERT INTO catalog_items_fts(catalog_items_fts, rowid, display_name, description, source_url, data)
+      VALUES ('delete', old.rowid, old.display_name, old.description, old.source_url, old.data);
+    END
+  `);
+  await targetClient.execute(`
+    CREATE TRIGGER IF NOT EXISTS catalog_items_au AFTER UPDATE ON catalog_items BEGIN
+      INSERT INTO catalog_items_fts(catalog_items_fts, rowid, display_name, description, source_url, data)
+      VALUES ('delete', old.rowid, old.display_name, old.description, old.source_url, old.data);
+      INSERT INTO catalog_items_fts(rowid, display_name, description, source_url, data)
+      VALUES (new.rowid, new.display_name, new.description, new.source_url, new.data);
+    END
+  `);
+
+  // Populate FTS5 index if empty (first run or migration)
+  const ftsCount = (await targetClient.execute(
+    "SELECT count(*) as cnt FROM catalog_items_fts"
+  )) as { rows: Array<{ cnt: number }> };
+  if (ftsCount.rows[0]?.cnt === 0) {
+    await targetClient.execute(
+      "INSERT INTO catalog_items_fts(rowid, display_name, description, source_url, data) SELECT rowid, display_name, description, source_url, data FROM catalog_items"
+    );
+  }
 }
 
 export function ensureDatabaseSchema(targetClient: SqlExecutor = client) {

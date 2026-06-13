@@ -27,8 +27,9 @@
 - **BaseAdapter**: Shared readConfig, applyMcps, writeConfig, diff for 16 adapters.
 - **Security headers**: next.config.ts async headers() applies globally. CSP production-only.
 
+- **Full-Text Search**: FTS5 virtual tables with trigger-based sync and rebuild support. Admin panel exposes FTS5 health check and rebuild action.
+
 ## Next Steps
 - CLI `prune` command
 - Mobile responsive improvements
-- Search improvements (FTS5)
 - E2E test suite

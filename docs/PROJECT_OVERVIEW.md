@@ -51,7 +51,7 @@ Recent work significantly changed the catalog behavior, deployment, and security
 ## Current Constraints
 
 - full-catalog sync is functionally correct but still expensive at large scale; `pnpm catalog:sync` is the recommended hook for periodic refreshes
-- catalog search uses SQL `LIKE`; acceptable for now but not the final search architecture for very large datasets
+- catalog search uses FTS5 full-text indexing; acceptable for current scale
 - same-name skills from distinct upstream repos are intentionally preserved unless canonical source identity proves they are mirrors; correctness wins over aggressive title-based merging
 - adapter-backed support is still MCP-first overall; not every target supports Skills or Rules, and capability metadata must remain strictly aligned with real adapter methods
 - the docs hub at `/docs` supports fully-functional interactive search with 300ms client debouncing; versioned documentation is a future improvement

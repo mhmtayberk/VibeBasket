@@ -5,7 +5,8 @@ export async function getSiteConfig(key: string): Promise<string | null> {
 	try {
 		const rows = await db.select().from(siteConfig).where(eq(siteConfig.key, key)).limit(1);
 		return rows[0]?.value ?? null;
-	} catch {
+	} catch (error) {
+		console.warn("Failed to read site config:", error);
 		return null;
 	}
 }
@@ -26,7 +27,8 @@ export async function getAdminEmails(): Promise<string[]> {
 
 		const envValue = process.env.ADMIN_OAUTH_EMAILS || process.env.ADMIN_EMAILS || "";
 		return envValue.split(",").map((e) => e.trim().toLowerCase()).filter(Boolean);
-	} catch {
+	} catch (error) {
+		console.warn("Failed to read admin emails:", error);
 		return [];
 	}
 }

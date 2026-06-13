@@ -21,7 +21,7 @@ VibeBasket takes security seriously. This document outlines our threat model and
 
 If you discover a security vulnerability, please report it privately to the maintainers. Do not open a public issue.
 
-You can report vulnerabilities by sending an email to: security@vibebasket.dev (Placeholder)
+You can report vulnerabilities by sending an email to: security@vibebasket.dev
 
 We will acknowledge your report within 48 hours and provide a timeline for resolution.
 

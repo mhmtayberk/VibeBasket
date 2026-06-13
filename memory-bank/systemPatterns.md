@@ -9,7 +9,7 @@
 - **Registry Layer**: `@vibebasket/registry` aggregates curated and trusted upstream sources into the shared catalog table.
 
 ## Key Design Patterns
-- **Idempotency**: CLI config writers must never corrupt existing configurations and always merge safely. Roo Code, Hermes, and OpenClaw adaptörleri `>>> VIBEBASKET START/END <<<` block delimiters kullanarak idempotent rule/skill yazımını destekler.
+- **Idempotency**: CLI config writers must never corrupt existing configurations and always merge safely. Roo Code, Hermes, and OpenClaw adapters use `>>> VIBEBASKET START/END <<<` block delimiters for idempotent rule/skill writes.
 - **Data Immutability**: Bundles are immutable once generated.
 - **Functional Core, Imperative Shell**: Core business logic is isolated from file system calls.
 - **Fail-Safe Processing**: Registry ingestion isolates errors so one bad source doesn't fail the entire job.

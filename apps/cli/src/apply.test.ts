@@ -17,9 +17,15 @@ const verifyTargetInstallMock = vi.fn(async () => ({
   rules: { checked: false, verified: true, missingPaths: [], missingMarkerIds: [] },
 }));
 
+const applySkillsMock = vi.fn(async () => undefined);
+const applyRulesMock = vi.fn(async () => undefined);
+
 class FakeAdapter {
   displayName = "Cursor";
   supportedScopes: readonly string[] = ["user", "project"];
+  supportsMcp = true;
+  supportsSkills = false;
+  supportsRules = false;
   readConfig = readConfigMock;
   applyMcps(config: unknown) {
     return config;
@@ -31,8 +37,16 @@ class FakeAdapter {
   }
 }
 
+class SkillsAndRulesAdapter extends FakeAdapter {
+  override displayName = "Claude Code";
+  override supportsSkills = true;
+  override supportsRules = true;
+  override applySkills = applySkillsMock;
+  override applyRules = applyRulesMock;
+}
+
 class UserOnlyAdapter extends FakeAdapter {
-  override displayName = "Cline CLI";
+  override displayName = "DeepSeek-TUI";
   override supportedScopes: readonly string[] = ["user"];
 }
 
@@ -58,7 +72,7 @@ vi.mock("@vibebasket/adapters", () => ({
   AntigravityAdapter: FakeAdapter,
   WindsurfAdapter: FakeAdapter,
   VSCodeAdapter: FakeAdapter,
-  ClaudeCodeAdapter: FakeAdapter,
+  ClaudeCodeAdapter: SkillsAndRulesAdapter,
   DeepSeekTuiAdapter: UserOnlyAdapter,
   GeminiCliAdapter: FakeAdapter,
   KiroAdapter: FakeAdapter,
@@ -95,6 +109,8 @@ describe("applyBundle", () => {
     resolveSecretsMock.mockClear();
     confirmMock.mockClear();
     verifyTargetInstallMock.mockClear();
+    applySkillsMock.mockClear();
+    applyRulesMock.mockClear();
   });
 
   afterEach(() => {
@@ -190,5 +206,275 @@ describe("applyBundle", () => {
       "Bundle apply was incomplete",
     );
     expect(verifyTargetInstallMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("skips trust prompt when --force flag is set", async () => {
+    const { applyBundle } = await import("./apply.js");
+    fs.writeFileSync(
+      tempFile,
+      JSON.stringify({
+        schemaVersion: "0.1",
+        scope: "user",
+        targets: ["cursor"],
+        mcps: [],
+        skills: [],
+        rules: [],
+        workflowPacks: [],
+      }),
+    );
+
+    await applyBundle(tempFile, { force: true });
+    expect(confirmMock).not.toHaveBeenCalled();
+  });
+
+  it("aborts when user declines trust prompt", async () => {
+    const { applyBundle } = await import("./apply.js");
+    confirmMock.mockResolvedValueOnce(false);
+    fs.writeFileSync(
+      tempFile,
+      JSON.stringify({
+        schemaVersion: "0.1",
+        scope: "user",
+        targets: ["cursor"],
+        mcps: [],
+        skills: [],
+        rules: [],
+        workflowPacks: [],
+      }),
+    );
+
+    await applyBundle(tempFile, {});
+    expect(confirmMock).toHaveBeenCalledTimes(1);
+    expect(writeConfigMock).not.toHaveBeenCalled();
+  });
+
+  it("overrides bundle scope with --scope flag", async () => {
+    const { applyBundle } = await import("./apply.js");
+    fs.writeFileSync(
+      tempFile,
+      JSON.stringify({
+        schemaVersion: "0.1",
+        scope: "user",
+        targets: ["cursor"],
+        mcps: [
+          {
+            id: "github",
+            displayName: "GitHub",
+            runtime: "npx",
+            command: "npx",
+            args: ["-y", "@modelcontextprotocol/server-github"],
+            env: {},
+            requiredSecrets: [],
+            verified: true,
+          },
+        ],
+        skills: [],
+        rules: [],
+        workflowPacks: [],
+      }),
+    );
+
+    await applyBundle(tempFile, { scope: "project", force: true });
+    expect(writeConfigMock).toHaveBeenCalled();
+  });
+
+  it("runs dry-run without writing config or creating backup", async () => {
+    const { applyBundle } = await import("./apply.js");
+    fs.writeFileSync(
+      tempFile,
+      JSON.stringify({
+        schemaVersion: "0.1",
+        scope: "user",
+        targets: ["cursor"],
+        mcps: [
+          {
+            id: "github",
+            displayName: "GitHub",
+            runtime: "npx",
+            command: "npx",
+            args: ["-y", "@modelcontextprotocol/server-github"],
+            env: {},
+            requiredSecrets: [],
+            verified: true,
+          },
+        ],
+        skills: [],
+        rules: [],
+        workflowPacks: [],
+      }),
+    );
+
+    await applyBundle(tempFile, { dryRun: true, force: true });
+    expect(diffMock).toHaveBeenCalled();
+    expect(writeConfigMock).not.toHaveBeenCalled();
+    expect(createBackupMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects when a target is not supported by any adapter (fails at Zod validation)", async () => {
+    const { applyBundle } = await import("./apply.js");
+    fs.writeFileSync(
+      tempFile,
+      JSON.stringify({
+        schemaVersion: "0.1",
+        scope: "user",
+        targets: ["unknown-ide"],
+        mcps: [],
+        skills: [],
+        rules: [],
+        workflowPacks: [],
+      }),
+    );
+
+    await expect(applyBundle(tempFile, { force: true })).rejects.toThrow();
+  });
+
+  it("handles a corrupted local bundle file", async () => {
+    const { applyBundle } = await import("./apply.js");
+    fs.writeFileSync(tempFile, "not valid json {{{");
+
+    await expect(applyBundle(tempFile, { force: true })).rejects.toThrow();
+  });
+
+  it("handles an invalid schema version in bundle", async () => {
+    const { applyBundle } = await import("./apply.js");
+    fs.writeFileSync(
+      tempFile,
+      JSON.stringify({
+        schemaVersion: "99.9",
+        scope: "user",
+        targets: ["cursor"],
+        mcps: [],
+        skills: [],
+        rules: [],
+        workflowPacks: [],
+      }),
+    );
+
+    await expect(applyBundle(tempFile, { force: true })).rejects.toThrow();
+  });
+
+  it("applies all 4 content types successfully", async () => {
+    const { applyBundle } = await import("./apply.js");
+    fs.writeFileSync(
+      tempFile,
+      JSON.stringify({
+        schemaVersion: "0.1",
+        scope: "user",
+        targets: ["claude-code"],
+        mcps: [
+          {
+            id: "github",
+            displayName: "GitHub",
+            runtime: "npx",
+            command: "npx",
+            args: ["-y", "@modelcontextprotocol/server-github"],
+            env: {},
+            requiredSecrets: [],
+            verified: true,
+          },
+        ],
+        skills: [
+          {
+            id: "skill-a",
+            displayName: "Skill A",
+            source: { type: "inline", content: "x" },
+            verified: false,
+          },
+        ],
+        rules: [
+          {
+            id: "rule-a",
+            displayName: "Rule A",
+            content: "always",
+            verified: false,
+          },
+        ],
+        workflowPacks: [
+          {
+            id: "wf-a",
+            displayName: "Workflow A",
+            files: [
+              { path: "test/rules.md", content: "hi", ifExists: "skip" },
+            ],
+            mcps: [],
+            skills: [],
+            rules: [],
+          },
+        ],
+      }),
+    );
+
+    await applyBundle(tempFile, { force: true });
+    expect(applySkillsMock).toHaveBeenCalled();
+    expect(applyRulesMock).toHaveBeenCalled();
+    expect(writeConfigMock).toHaveBeenCalled();
+  });
+
+  it("detects unsupported content and warns without failing", async () => {
+    const { applyBundle } = await import("./apply.js");
+    fs.writeFileSync(
+      tempFile,
+      JSON.stringify({
+        schemaVersion: "0.1",
+        scope: "user",
+        targets: ["cursor"],
+        mcps: [],
+        skills: [
+          {
+            id: "skill-a",
+            displayName: "Skill A",
+            source: { type: "inline", content: "x" },
+            verified: false,
+          },
+        ],
+        rules: [
+          {
+            id: "rule-a",
+            displayName: "Rule A",
+            content: "always",
+            verified: false,
+          },
+        ],
+        workflowPacks: [],
+      }),
+    );
+
+    await applyBundle(tempFile, { force: true });
+    // Cursor adapter doesn't support skills or rules, but it should still succeed
+    expect(writeConfigMock).toHaveBeenCalled();
+  });
+
+  it("handles single target failing while others succeed", async () => {
+    const { applyBundle } = await import("./apply.js");
+    writeConfigMock
+      .mockResolvedValueOnce(undefined)
+      .mockRejectedValueOnce(new Error("disk full"));
+    fs.writeFileSync(
+      tempFile,
+      JSON.stringify({
+        schemaVersion: "0.1",
+        scope: "user",
+        targets: ["cursor", "windsurf"],
+        mcps: [
+          {
+            id: "github",
+            displayName: "GitHub",
+            runtime: "npx",
+            command: "npx",
+            args: ["-y", "@modelcontextprotocol/server-github"],
+            env: {},
+            requiredSecrets: [],
+            verified: true,
+          },
+        ],
+        skills: [],
+        rules: [],
+        workflowPacks: [],
+      }),
+    );
+
+    await expect(applyBundle(tempFile, { force: true })).rejects.toThrow(
+      "Bundle apply was incomplete",
+    );
   });
 });
