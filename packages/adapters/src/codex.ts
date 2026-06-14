@@ -1,13 +1,10 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import type { IdeAdapter } from "./types";
 import type { IdeId, McpEntry, Scope } from "@vibebasket/core";
-import {
-  mergeStandardMcpServers,
-  type BasicMcpServerConfig,
-} from "./mcp-utils";
+import { type BasicMcpServerConfig, hasErrorCode, mergeStandardMcpServers } from "./mcp-utils";
 import { getTargetCapabilities } from "./target-capabilities";
+import type { IdeAdapter } from "./types";
 
 interface CodexMcpConfig {
   mcpServers: Record<string, BasicMcpServerConfig>;
@@ -53,7 +50,7 @@ function parseInlineTable(value: string): Record<string, string> {
           return [];
         }
         return [[rawKey.replace(/^"(.*)"$/, "$1"), rawValue.replace(/^"(.*)"$/, "$1")] as const];
-      })
+      }),
   );
 }
 
@@ -67,7 +64,7 @@ function serializeTomlArray(values: string[]): string {
 
 function serializeTomlInlineTable(record: Record<string, string>): string {
   const entries = Object.entries(record).map(
-    ([key, value]) => `${key} = ${serializeTomlString(value)}`
+    ([key, value]) => `${key} = ${serializeTomlString(value)}`,
   );
   return `{ ${entries.join(", ")} }`;
 }
@@ -130,7 +127,7 @@ function parseCodexToml(content: string): Record<string, BasicMcpServerConfig> {
 
 function renderCodexToml(
   existingContent: string,
-  mcpServers: Record<string, BasicMcpServerConfig>
+  mcpServers: Record<string, BasicMcpServerConfig>,
 ): string {
   const keptLines: string[] = [];
   let skippingMcpSection = false;
@@ -215,8 +212,8 @@ export class CodexAdapter implements IdeAdapter {
         mcpServers: parseCodexToml(content),
         raw: content,
       } satisfies CodexMcpConfig;
-    } catch (error: any) {
-      if (error.code === "ENOENT") {
+    } catch (error: unknown) {
+      if (hasErrorCode(error, "ENOENT")) {
         return { mcpServers: {}, raw: "" } satisfies CodexMcpConfig;
       }
       throw error;
@@ -227,7 +224,7 @@ export class CodexAdapter implements IdeAdapter {
     config: unknown,
     mcps: McpEntry[],
     secrets: Record<string, string>,
-    opts: { force: boolean }
+    opts: { force: boolean },
   ): unknown {
     const current = (config as CodexMcpConfig) || { mcpServers: {}, raw: "" };
     return {
@@ -247,8 +244,8 @@ export class CodexAdapter implements IdeAdapter {
     try {
       const content = await fs.readFile(file, "utf8");
       await fs.writeFile(`${file}.bak.${Date.now()}`, content, "utf8");
-    } catch (error: any) {
-      if (error.code !== "ENOENT") {
+    } catch (error: unknown) {
+      if (!hasErrorCode(error, "ENOENT")) {
         throw error;
       }
     }

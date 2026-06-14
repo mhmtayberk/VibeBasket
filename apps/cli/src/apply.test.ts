@@ -393,9 +393,7 @@ describe("applyBundle", () => {
           {
             id: "wf-a",
             displayName: "Workflow A",
-            files: [
-              { path: "test/rules.md", content: "hi", ifExists: "skip" },
-            ],
+            files: [{ path: "test/rules.md", content: "hi", ifExists: "skip" }],
             mcps: [],
             skills: [],
             rules: [],
@@ -446,9 +444,7 @@ describe("applyBundle", () => {
 
   it("handles single target failing while others succeed", async () => {
     const { applyBundle } = await import("./apply.js");
-    writeConfigMock
-      .mockResolvedValueOnce(undefined)
-      .mockRejectedValueOnce(new Error("disk full"));
+    writeConfigMock.mockResolvedValueOnce(undefined).mockRejectedValueOnce(new Error("disk full"));
     fs.writeFileSync(
       tempFile,
       JSON.stringify({

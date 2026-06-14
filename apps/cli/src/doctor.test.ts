@@ -20,12 +20,30 @@ vi.mock("@vibebasket/adapters", () => {
   }
 
   const names = [
-    "CursorAdapter", "AntigravityAdapter", "WindsurfAdapter", "VSCodeAdapter",
-    "ClaudeCodeAdapter", "DeepSeekTuiAdapter", "GeminiCliAdapter", "KiroAdapter",
-    "JunieAdapter", "ClineCliAdapter", "ZedAdapter", "CodexAdapter",
-    "ContinueAdapter", "RooCodeAdapter", "HermesAdapter", "OpenClawAdapter",
-    "GitHubCopilotAdapter", "VoidAdapter", "AiderAdapter", "CortexCodeAdapter",
-    "GooseAdapter", "IBMBobAdapter", "CodeBuddyAdapter", "OpenCodeAdapter",
+    "CursorAdapter",
+    "AntigravityAdapter",
+    "WindsurfAdapter",
+    "VSCodeAdapter",
+    "ClaudeCodeAdapter",
+    "DeepSeekTuiAdapter",
+    "GeminiCliAdapter",
+    "KiroAdapter",
+    "JunieAdapter",
+    "ClineCliAdapter",
+    "ZedAdapter",
+    "CodexAdapter",
+    "ContinueAdapter",
+    "RooCodeAdapter",
+    "HermesAdapter",
+    "OpenClawAdapter",
+    "GitHubCopilotAdapter",
+    "VoidAdapter",
+    "AiderAdapter",
+    "CortexCodeAdapter",
+    "GooseAdapter",
+    "IBMBobAdapter",
+    "CodeBuddyAdapter",
+    "OpenCodeAdapter",
   ];
 
   const result: Record<string, unknown> = {};

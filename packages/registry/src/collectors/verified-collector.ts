@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import { createRequire } from "node:module";
 import { verifiedCatalogSchema } from "../schemas";
+import type { SourceCollectedItem, SourceCollector } from "../schemas";
 import {
   buildMcpCatalogItem,
   buildRuleCatalogItem,
@@ -9,7 +10,6 @@ import {
   canonicalMcpKey,
   canonicalSkillKey,
 } from "../utils";
-import type { SourceCollectedItem, SourceCollector } from "../schemas";
 
 const require = createRequire(import.meta.url);
 const { load: parseYaml } = require("js-yaml") as {

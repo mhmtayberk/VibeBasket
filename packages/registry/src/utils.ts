@@ -12,12 +12,14 @@ export const DEFAULT_FETCH_RETRIES = 1;
 
 export const hrefAttributePattern = /href="(\/[^"#?]+)"/g;
 export const anchorPattern = /<a\b[^>]*href="([^"#?]+)"[^>]*>([\s\S]*?)<\/a>/gi;
-export const officialSkillRepoPattern = /\{\\?"repo\\?":\\?"([^"]+)\\?",\\?"totalInstalls\\?":\d+,\\?"skills\\?":\[(.*?)\]\}/g;
+export const officialSkillRepoPattern =
+  /\{\\?"repo\\?":\\?"([^"]+)\\?",\\?"totalInstalls\\?":\d+,\\?"skills\\?":\[(.*?)\]\}/g;
 export const officialSkillNamePattern = /\\?"name\\?":\\?"([^"]+)\\?"/g;
-export const skillsShDirectoryEntryPattern = /"source":"([^"]+)","skillId":"([^"]+)","name":"([^"]+)","installs":\d+(?:,"isOfficial":(true|false))?/g;
+export const skillsShDirectoryEntryPattern =
+  /"source":"([^"]+)","skillId":"([^"]+)","name":"([^"]+)","installs":\d+(?:,"isOfficial":(true|false))?/g;
 export const xmlLocPattern = /<loc>([^<]+)<\/loc>/g;
-export const skillsShSkillUrlPattern = /^https:\/\/www\.skills\.sh\/([^/]+)\/([^/]+)\/([^/?#]+)\/?$/i;
-export const CONTROL_AND_ZERO_WIDTH_PATTERN = /[\u0000-\u001f\u007f-\u009f\u200b-\u200d\u2060\ufeff]/g;
+export const skillsShSkillUrlPattern =
+  /^https:\/\/www\.skills\.sh\/([^/]+)\/([^/]+)\/([^/?#]+)\/?$/i;
 export const SKILL_REPO_MIRROR_SUFFIXES = [
   "-agent-skills",
   "-plugins",
@@ -29,7 +31,20 @@ export const SKILL_REPO_MIRROR_SUFFIXES = [
 export function normalizeCatalogText(value: string, fallback = "") {
   const normalized = value
     .normalize("NFKC")
-    .replace(CONTROL_AND_ZERO_WIDTH_PATTERN, " ")
+    .split("")
+    .map((char) => {
+      const codePoint = char.codePointAt(0) ?? 0;
+      const isControl =
+        (codePoint >= 0x0 && codePoint <= 0x1f) || (codePoint >= 0x7f && codePoint <= 0x9f);
+      const isZeroWidth =
+        codePoint === 0x200b ||
+        codePoint === 0x200c ||
+        codePoint === 0x200d ||
+        codePoint === 0x2060 ||
+        codePoint === 0xfeff;
+      return isControl || isZeroWidth ? " " : char;
+    })
+    .join("")
     .replace(/\s+/g, " ")
     .trim();
 
@@ -48,31 +63,31 @@ export function normalizeSkillRepoFamily(repoPath: string) {
     }
   }
 
-	return `${owner}/${family || repo}`;
+  return `${owner}/${family || repo}`;
 }
 
 export function canonicalGithubRef(ref?: string) {
-	const normalizedRef = normalizeCatalogText(ref ?? "").toLowerCase();
-	if (!normalizedRef || normalizedRef === "main") {
-		return "main";
-	}
+  const normalizedRef = normalizeCatalogText(ref ?? "").toLowerCase();
+  if (!normalizedRef || normalizedRef === "main") {
+    return "main";
+  }
 
-	return normalizedRef;
+  return normalizedRef;
 }
 
 export function canonicalSkillsShMirrorKey(entry: SkillEntry) {
-	if (entry.source.type !== "github") {
-		return canonicalSkillKey(entry);
-	}
+  if (entry.source.type !== "github") {
+    return canonicalSkillKey(entry);
+  }
 
-	const pathKey = normalizeCatalogText(entry.source.path ?? "");
-	const refKey = canonicalGithubRef(entry.source.ref);
-	return `github-mirror:${normalizeSkillRepoFamily(entry.source.repo)}:${pathKey}:${refKey}`;
+  const pathKey = normalizeCatalogText(entry.source.path ?? "");
+  const refKey = canonicalGithubRef(entry.source.ref);
+  return `github-mirror:${normalizeSkillRepoFamily(entry.source.repo)}:${pathKey}:${refKey}`;
 }
 
 export function preferSkillMirrorCandidate(
   candidate: SourceCollectedItem,
-  existing: SourceCollectedItem | undefined
+  existing: SourceCollectedItem | undefined,
 ) {
   if (!existing) {
     return candidate;
@@ -121,7 +136,7 @@ export function stripHtml(input: string) {
   return input
     .replace(/<[^>]+>/g, " ")
     .replace(/&amp;/g, "&")
-    .replace(/&quot;/g, "\"")
+    .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
@@ -140,12 +155,12 @@ export function titleFromSlug(slug: string) {
 export function cleanEscapedValue(value: string) {
   return value
     .replace(/\\u([0-9a-fA-F]{4})/g, (_, hex: string) =>
-      String.fromCharCode(Number.parseInt(hex, 16))
+      String.fromCharCode(Number.parseInt(hex, 16)),
     )
     .replace(/\\n/g, "\n")
     .replace(/\\r/g, "\r")
     .replace(/\\t/g, "\t")
-    .replace(/\\"/g, "\"")
+    .replace(/\\"/g, '"')
     .replace(/\\\\/g, "\\")
     .replace(/\\+$/g, "")
     .trim();
@@ -159,8 +174,8 @@ export function withVersion(identifier: string, version?: string) {
 }
 
 export function compareSemver(a: string, b: string): number {
-  const partsA = a.split(".").map((x) => parseInt(x, 10) || 0);
-  const partsB = b.split(".").map((x) => parseInt(x, 10) || 0);
+  const partsA = a.split(".").map((x) => Number.parseInt(x, 10) || 0);
+  const partsB = b.split(".").map((x) => Number.parseInt(x, 10) || 0);
   for (let i = 0; i < Math.max(partsA.length, partsB.length); i++) {
     const valA = partsA[i] ?? 0;
     const valB = partsB[i] ?? 0;
@@ -180,19 +195,25 @@ export function canonicalMcpKey(entry: McpEntry) {
   });
 }
 
-export function officialMcpId(displayName: string, serverName: string, entry: Omit<McpEntry, "id">) {
-  return `mcp-${slugify(displayName)}-${stableHash(`${serverName}:${canonicalMcpKey({
-    ...entry,
-    id: "mcp-temp",
-  })}`).slice(0, 8)}`;
+export function officialMcpId(
+  displayName: string,
+  serverName: string,
+  entry: Omit<McpEntry, "id">,
+) {
+  return `mcp-${slugify(displayName)}-${stableHash(
+    `${serverName}:${canonicalMcpKey({
+      ...entry,
+      id: "mcp-temp",
+    })}`,
+  ).slice(0, 8)}`;
 }
 
 export function canonicalSkillKey(entry: SkillEntry) {
-	if (entry.source.type === "github") {
-		const pathKey = normalizeCatalogText(entry.source.path ?? "");
-		const refKey = canonicalGithubRef(entry.source.ref);
-		return `github:${entry.source.repo.toLowerCase()}:${pathKey}:${refKey}`;
-	}
+  if (entry.source.type === "github") {
+    const pathKey = normalizeCatalogText(entry.source.path ?? "");
+    const refKey = canonicalGithubRef(entry.source.ref);
+    return `github:${entry.source.repo.toLowerCase()}:${pathKey}:${refKey}`;
+  }
 
   if (entry.source.type === "npm") {
     return `npm:${entry.source.package.toLowerCase()}:${entry.source.version.toLowerCase()}`;
@@ -201,7 +222,10 @@ export function canonicalSkillKey(entry: SkillEntry) {
   return `inline:${stableHash(entry.source.content)}`;
 }
 
-export function buildMcpCatalogItem(entry: McpEntry, overrides: Partial<CatalogSeedItem> = {}): CatalogSeedItem {
+export function buildMcpCatalogItem(
+  entry: McpEntry,
+  overrides: Partial<CatalogSeedItem> = {},
+): CatalogSeedItem {
   const item: CatalogSeedItem = {
     id: overrides.id ?? entry.id,
     type: "mcp",
@@ -216,7 +240,10 @@ export function buildMcpCatalogItem(entry: McpEntry, overrides: Partial<CatalogS
   return item;
 }
 
-export function buildSkillCatalogItem(entry: SkillEntry, overrides: Partial<CatalogSeedItem> = {}): CatalogSeedItem {
+export function buildSkillCatalogItem(
+  entry: SkillEntry,
+  overrides: Partial<CatalogSeedItem> = {},
+): CatalogSeedItem {
   const item: CatalogSeedItem = {
     id: overrides.id ?? entry.id,
     type: "skill",
@@ -231,7 +258,10 @@ export function buildSkillCatalogItem(entry: SkillEntry, overrides: Partial<Cata
   return item;
 }
 
-export function buildRuleCatalogItem(entry: RuleEntry, overrides: Partial<CatalogSeedItem> = {}): CatalogSeedItem {
+export function buildRuleCatalogItem(
+  entry: RuleEntry,
+  overrides: Partial<CatalogSeedItem> = {},
+): CatalogSeedItem {
   const item: CatalogSeedItem = {
     id: overrides.id ?? entry.id,
     type: "rule",
@@ -246,7 +276,10 @@ export function buildRuleCatalogItem(entry: RuleEntry, overrides: Partial<Catalo
   return item;
 }
 
-export function buildWorkflowCatalogItem(entry: WorkflowPackEntry, overrides: Partial<CatalogSeedItem> = {}): CatalogSeedItem {
+export function buildWorkflowCatalogItem(
+  entry: WorkflowPackEntry,
+  overrides: Partial<CatalogSeedItem> = {},
+): CatalogSeedItem {
   const item: CatalogSeedItem = {
     id: overrides.id ?? entry.id,
     type: "workflow",
@@ -269,7 +302,7 @@ export async function fetchWithTimeout(
   options: {
     timeoutMs?: number;
     retries?: number;
-  } = {}
+  } = {},
 ) {
   const timeoutMs = options.timeoutMs ?? DEFAULT_FETCH_TIMEOUT_MS;
   const retries = options.retries ?? DEFAULT_FETCH_RETRIES;
@@ -297,7 +330,7 @@ export async function fetchWithTimeout(
 
       if (isAbort) {
         throw new Error(
-          `${label} timed out after ${timeoutMs}ms${retries > 0 ? ` (retried ${retries} time${retries === 1 ? "" : "s"})` : ""}`
+          `${label} timed out after ${timeoutMs}ms${retries > 0 ? ` (retried ${retries} time${retries === 1 ? "" : "s"})` : ""}`,
         );
       }
 
@@ -321,7 +354,7 @@ export function toResult(items: CatalogSeedItem[]) {
 
 export function pickPreferredSkillMirror(
   a: { id: string; repo: string },
-  b: { id: string; repo: string }
+  b: { id: string; repo: string },
 ) {
   if (a.repo.length !== b.repo.length) {
     return a.repo.length < b.repo.length ? a : b;

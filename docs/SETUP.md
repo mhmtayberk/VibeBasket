@@ -23,6 +23,8 @@ cp .env.example .env     # Fill in required Next-Auth and Auth secrets
 docker compose up -d     # Starts non-root containers with automatic SQLite volume mounts
 ```
 
+After startup, either wait for the background catalog bootstrap to finish or run `pnpm catalog:sync`, then check `http://localhost:3000/api/catalog/status`.
+
 
 ## Running the Full Workspace
 ```bash
@@ -40,6 +42,7 @@ Set a session secret for any deployment that enables login:
 
 ```bash
 AUTH_SECRET=replace-with-a-long-random-secret
+AUTH_TRUST_HOST=true
 ```
 
 Each social provider is independently gated. A provider is shown only when its `*_ENABLED` flag is truthy (`1`, `true`, `yes`, or `on`) and its credentials are present.
@@ -82,6 +85,8 @@ Notes:
 - Apple should be treated as optional for self-hosting; if it is not configured, it simply does not appear in the UI.
 - Anonymous catalog browsing still works when all auth providers are disabled.
 - In local development, the app falls back to a dev-only auth secret if `AUTH_SECRET` is missing so Auth.js does not spam the console; production still requires a real `AUTH_SECRET`.
+- In production behind a reverse proxy or CDN, set `AUTH_TRUST_HOST=true` so OAuth callback URL handling trusts the forwarded host correctly.
+- Only set `TRUST_PROXY=true` when the app is actually behind a trusted proxy or CDN that overwrites incoming client IP headers.
 
 ## Running the CLI
 ```bash
@@ -92,6 +97,16 @@ pnpm --filter @vibebasket/cli dev
 ```bash
 pnpm test
 ```
+
+## CI Verification
+
+The main repository verification command is:
+
+```bash
+pnpm verify:ci
+```
+
+This runs linting, shared-package builds, the web app typecheck, the production web build, and the unit/integration test suites used by GitHub Actions.
 
 ## Useful Catalog Debug Commands
 
@@ -142,3 +157,6 @@ pnpm catalog:sync:dry
 - `pnpm catalog:sync` is the safest hook for cron or external schedulers because it records sync audit metadata as well as refreshing catalog rows
 - Catalog rows now carry item-level freshness/source metadata; after a live sync you can inspect `source_name`, `source_url`, `first_seen_at`, `last_seen_at`, and `last_synced_at` in `vibebasket.db`
 - Auth state and saved stacks are stored in the same application database; if you self-host with SQLite, back up `vibebasket.db` accordingly
+- If you configure S3/R2/Spaces/Azure/GCS backups, confirm the admin panel does not show a storage fallback warning before assuming cloud backups are active
+- Cloud backup restore now uses provider-native download flows; validate one full restore cycle in your own environment before relying on it operationally
+- Before exposing a public domain, walk through [Production Readiness Checklist](./PRODUCTION_READINESS_CHECKLIST.md)

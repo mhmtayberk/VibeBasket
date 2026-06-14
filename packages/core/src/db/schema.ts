@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
+import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 export const catalogItems = sqliteTable("catalog_items", {
   id: text("id").primaryKey(),

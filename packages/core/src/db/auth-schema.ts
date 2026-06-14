@@ -20,7 +20,7 @@ export const users = sqliteTable(
   },
   (table) => ({
     emailUnique: uniqueIndex("users_email_unique").on(table.email),
-  })
+  }),
 );
 
 export const accounts = sqliteTable(
@@ -45,7 +45,7 @@ export const accounts = sqliteTable(
       columns: [table.provider, table.providerAccountId],
     }),
     userIdIdx: index("accounts_user_id_idx").on(table.userId),
-  })
+  }),
 );
 
 export const sessions = sqliteTable(
@@ -59,7 +59,7 @@ export const sessions = sqliteTable(
   },
   (table) => ({
     userIdExpiresIdx: index("sessions_user_id_expires_idx").on(table.userId, table.expires),
-  })
+  }),
 );
 
 export const verificationTokens = sqliteTable(
@@ -72,5 +72,5 @@ export const verificationTokens = sqliteTable(
   (table) => ({
     identifierTokenPk: primaryKey({ columns: [table.identifier, table.token] }),
     tokenUnique: uniqueIndex("verification_tokens_token_unique").on(table.token),
-  })
+  }),
 );
