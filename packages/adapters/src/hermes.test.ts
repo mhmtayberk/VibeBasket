@@ -1,9 +1,15 @@
-import { describe, expect, it } from "vitest";
 import fs from "node:fs/promises";
-import path from "node:path";
 import os from "node:os";
-import { HermesAdapter } from "./hermes.js";
+import path from "node:path";
 import type { McpEntry, SkillEntry } from "@vibebasket/core";
+import { describe, expect, it } from "vitest";
+import { HermesAdapter } from "./hermes.js";
+import type { McpConfigResult } from "./mcp-utils";
+
+type HermesInternals = {
+  parseYaml: (input: string) => { mcp_servers: Record<string, unknown> };
+  serializeYaml: (config: unknown, raw: string) => string;
+};
 
 describe("HermesAdapter", () => {
   it("should merge new MCPs into YAML config preserving comments", () => {
@@ -23,16 +29,22 @@ describe("HermesAdapter", () => {
       verified: false,
     };
 
-    const parsedConfig = (adapter as any).parseYaml(existingYaml);
+    const adapterWithInternals = adapter as unknown as HermesInternals;
+    const parsedConfig = adapterWithInternals.parseYaml(existingYaml);
     expect(parsedConfig.mcp_servers.existing).toBeDefined();
     expect(parsedConfig.mcp_servers.existing.command).toBe("node");
 
-    const mergedConfig = adapter.applyMcps(parsedConfig, [newMcp], {}, { force: false }) as any;
+    const mergedConfig = adapter.applyMcps(
+      parsedConfig,
+      [newMcp],
+      {},
+      { force: false },
+    ) as McpConfigResult & { mcp_servers: Record<string, Record<string, string>> };
     expect(mergedConfig.mcp_servers.existing).toBeDefined();
     expect(mergedConfig.mcp_servers["new-mcp"]).toBeDefined();
     expect(mergedConfig.mcp_servers["new-mcp"].command).toBe("npx");
 
-    const serialized = (adapter as any).serializeYaml(mergedConfig, existingYaml);
+    const serialized = adapterWithInternals.serializeYaml(mergedConfig, existingYaml);
     expect(serialized).toContain("# System Hermes Configuration File");
     expect(serialized).toContain("mcp_servers:");
     expect(serialized).toContain("new-mcp:");

@@ -1,10 +1,10 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import type { IdeAdapter } from "./types";
 import type { IdeId, McpEntry, Scope, SkillEntry } from "@vibebasket/core";
-import { mergeStandardMcpServers } from "./mcp-utils";
+import { hasErrorCode, mergeStandardMcpServers } from "./mcp-utils";
 import { getTargetCapabilities } from "./target-capabilities";
+import type { IdeAdapter } from "./types";
 
 export interface OpenClawMcpConfig {
   "mcp.servers"?: Record<
@@ -36,11 +36,11 @@ export class OpenClawAdapter implements IdeAdapter {
     try {
       const content = await fs.readFile(file, "utf8");
       return JSON.parse(content);
-    } catch (e: any) {
-      if (e.code === "ENOENT") {
+    } catch (error: unknown) {
+      if (hasErrorCode(error, "ENOENT")) {
         return { "mcp.servers": {} };
       }
-      throw e;
+      throw error;
     }
   }
 
@@ -48,7 +48,7 @@ export class OpenClawAdapter implements IdeAdapter {
     config: unknown,
     mcps: McpEntry[],
     secrets: Record<string, string>,
-    opts: { force: boolean }
+    opts: { force: boolean },
   ): unknown {
     const current = (config as OpenClawMcpConfig) || { "mcp.servers": {} };
     const standardServers = current["mcp.servers"] || {};
@@ -65,8 +65,8 @@ export class OpenClawAdapter implements IdeAdapter {
       let content = "";
       try {
         content = await fs.readFile(rulesFile, "utf8");
-      } catch (e: any) {
-        if (e.code !== "ENOENT") throw e;
+      } catch (error: unknown) {
+        if (!hasErrorCode(error, "ENOENT")) throw error;
       }
 
       for (const skill of skills) {
@@ -84,8 +84,8 @@ export class OpenClawAdapter implements IdeAdapter {
         const blockContent = `${startTag}\n# Skill: ${skill.displayName} (${skill.id})\n${body}\n${endTag}`;
 
         // Escape helper inline
-        const escapedStart = startTag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const escapedEnd = endTag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const escapedStart = startTag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const escapedEnd = endTag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
         const regex = new RegExp(`${escapedStart}[\\s\\S]*?${escapedEnd}`);
 
         if (regex.test(content)) {
@@ -96,7 +96,7 @@ export class OpenClawAdapter implements IdeAdapter {
       }
 
       await fs.mkdir(path.dirname(rulesFile), { recursive: true });
-      await fs.writeFile(rulesFile, content.trim() + "\n", "utf8");
+      await fs.writeFile(rulesFile, `${content.trim()}\n`, "utf8");
     }
   }
 
@@ -108,8 +108,8 @@ export class OpenClawAdapter implements IdeAdapter {
     try {
       const content = await fs.readFile(file, "utf8");
       await fs.writeFile(`${file}.bak.${Date.now()}`, content, "utf8");
-    } catch (e: any) {
-      if (e.code !== "ENOENT") throw e;
+    } catch (error: unknown) {
+      if (!hasErrorCode(error, "ENOENT")) throw error;
     }
 
     await fs.writeFile(file, JSON.stringify(config, null, 2), "utf8");

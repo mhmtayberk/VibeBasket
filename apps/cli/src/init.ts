@@ -1,7 +1,7 @@
-import { input, confirm } from "@inquirer/prompts";
-import chalk from "chalk";
 import fs from "node:fs";
 import path from "node:path";
+import { confirm, input } from "@inquirer/prompts";
+import chalk from "chalk";
 
 export async function initProject() {
   console.log(chalk.blue("🧺 Welcome to VibeBasket! Let's initialize your project.\n"));
@@ -21,13 +21,13 @@ export async function initProject() {
   }
 
   // 2. Create subdirectories
-  ["rules", "skills", "workflows"].forEach((dir) => {
+  for (const dir of ["rules", "skills", "workflows"]) {
     const dirPath = path.join(vbDir, dir);
     if (!fs.existsSync(dirPath)) {
       fs.mkdirSync(dirPath);
     }
-  });
-  console.log(chalk.green(`✔ Created rules, skills, and workflows subdirectories`));
+  }
+  console.log(chalk.green("✔ Created rules, skills, and workflows subdirectories"));
 
   // 3. Create .vibebasket.env boilerplate
   const envPath = path.join(projectRoot, ".vibebasket.env");

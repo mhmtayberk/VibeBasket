@@ -1,12 +1,15 @@
 import { db } from "./index.js";
 import { catalogItems } from "./schema.js";
 
+type CatalogItemInsert = typeof catalogItems.$inferInsert;
+
 const initialItems = [
   {
     id: "mcp-puppeteer",
     type: "mcp",
     displayName: "Puppeteer (Browser)",
-    description: "Allow the AI to control a headless Chrome browser to scrape data and take screenshots.",
+    description:
+      "Allow the AI to control a headless Chrome browser to scrape data and take screenshots.",
     icon: "Globe",
     verified: true,
     data: {
@@ -16,8 +19,8 @@ const initialItems = [
       args: ["-y", "@modelcontextprotocol/server-puppeteer"],
       env: {},
       requiredSecrets: [],
-      verified: true
-    }
+      verified: true,
+    },
   },
   {
     id: "mcp-postgres",
@@ -33,8 +36,8 @@ const initialItems = [
       args: ["-y", "@modelcontextprotocol/server-postgres", "${secret:POSTGRES_URL}"],
       env: {},
       requiredSecrets: ["POSTGRES_URL"],
-      verified: true
-    }
+      verified: true,
+    },
   },
   {
     id: "mcp-github",
@@ -49,11 +52,11 @@ const initialItems = [
       runtime: "npx",
       args: ["-y", "@modelcontextprotocol/server-github"],
       env: {
-        GITHUB_PERSONAL_ACCESS_TOKEN: "${secret:GITHUB_PAT}"
+        GITHUB_PERSONAL_ACCESS_TOKEN: "${secret:GITHUB_PAT}",
       },
       requiredSecrets: ["GITHUB_PAT"],
-      verified: true
-    }
+      verified: true,
+    },
   },
   {
     id: "mcp-memory",
@@ -69,14 +72,15 @@ const initialItems = [
       args: ["-y", "@modelcontextprotocol/server-memory"],
       env: {},
       requiredSecrets: [],
-      verified: true
-    }
+      verified: true,
+    },
   },
   {
     id: "skill-nextjs-best-practices",
     type: "skill",
     displayName: "Next.js Best Practices",
-    description: "Deep knowledge of App Router, Server Components, caching, and Tailwind optimizations.",
+    description:
+      "Deep knowledge of App Router, Server Components, caching, and Tailwind optimizations.",
     icon: "Code2",
     verified: true,
     data: {
@@ -84,33 +88,35 @@ const initialItems = [
       displayName: "Next.js Best Practices",
       source: {
         type: "inline",
-        content: "Next.js best practices content..."
+        content: "Next.js best practices content...",
       },
-      verified: true
-    }
+      verified: true,
+    },
   },
   {
     id: "rule-memory-bank",
     type: "rule",
     displayName: "Memory Bank Standard",
-    description: "Forces the AI to maintain activeContext.md, progress.md and never guess project state.",
+    description:
+      "Forces the AI to maintain activeContext.md, progress.md and never guess project state.",
     icon: "FileCode2",
     verified: true,
     data: {
       id: "rule-memory-bank",
       displayName: "Memory Bank Standard",
       content: "# Memory Bank Rules...",
-      verified: true
-    }
-  }
+      verified: true,
+    },
+  },
 ];
 
 async function seed() {
   console.log("Seeding catalog...");
   for (const item of initialItems) {
-    await db.insert(catalogItems).values(item as any).onConflictDoUpdate({
+    const catalogItem = item as CatalogItemInsert;
+    await db.insert(catalogItems).values(catalogItem).onConflictDoUpdate({
       target: catalogItems.id,
-      set: item as any
+      set: catalogItem,
     });
   }
   console.log("Seed complete.");

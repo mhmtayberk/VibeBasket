@@ -1,6 +1,3 @@
-import { ArrowRight, BadgeCheck, Lock, Sparkles, TerminalSquare, Workflow } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
 import { auth, getEnabledAuthProviders } from "@/auth";
 import { AuthMenu } from "@/components/auth/AuthMenu";
 import { SignInDialog } from "@/components/auth/SignInDialog";
@@ -9,6 +6,9 @@ import { CatalogGrid } from "@/components/catalog/CatalogGrid";
 import { TopToTopButton } from "@/components/layout/TopToTopButton";
 import { getInitialCatalogSnapshot } from "@/lib/catalog-snapshot";
 import { SUPPORTED_TARGET_COUNT, TARGET_OPTIONS } from "@/lib/targets";
+import { ArrowRight, BadgeCheck, Lock, Sparkles, TerminalSquare, Workflow } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
@@ -315,7 +315,8 @@ export default async function Home() {
               Built for teams that move fast.
             </h2>
             <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground">
-              Whether you work solo or run a team, VibeBasket eliminates the friction of setting up AI coding tools one machine at a time.
+              Whether you work solo or run a team, VibeBasket eliminates the friction of setting up
+              AI coding tools one machine at a time.
             </p>
           </div>
 
@@ -341,12 +342,8 @@ export default async function Home() {
                 <span className="inline-flex border border-border/70 bg-background/40 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground group-hover:border-accent/40 group-hover:text-accent transition-colors">
                   {audience.tag}
                 </span>
-                <h3 className="mt-5 text-xl font-semibold text-foreground">
-                  {audience.headline}
-                </h3>
-                <p className="mt-3 text-sm leading-7 text-muted-foreground">
-                  {audience.body}
-                </p>
+                <h3 className="mt-5 text-xl font-semibold text-foreground">{audience.headline}</h3>
+                <p className="mt-3 text-sm leading-7 text-muted-foreground">{audience.body}</p>
               </article>
             ))}
           </div>

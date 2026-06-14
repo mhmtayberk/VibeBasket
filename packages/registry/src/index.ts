@@ -1,22 +1,27 @@
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { sql } from "drizzle-orm";
-import { VerifiedCatalogCollector } from "./collectors/verified-collector";
+import { inArray, sql } from "drizzle-orm";
+import type {
+  catalogItems as CoreCatalogItemsTable,
+  catalogSyncRuns as CoreCatalogSyncRunsTable,
+  db as CoreDb,
+  ensureDatabaseIndexes as CoreEnsureDatabaseIndexes,
+} from "../../core/src/db";
 import { OfficialMcpRegistryCollector } from "./collectors/mcp-registry-collector";
 import { SkillsShCuratedCollector } from "./collectors/skills-collector";
+import { VerifiedCatalogCollector } from "./collectors/verified-collector";
 import type {
   CatalogSeedItem,
   CollectionRunResult,
+  SkillEntry,
   SourceCollectedItem,
   SourceCollector,
 } from "./schemas";
-import { toResult, normalizeSkillRepoFamily, pickPreferredSkillMirror } from "./utils";
-
-
+import { normalizeSkillRepoFamily, pickPreferredSkillMirror, toResult } from "./utils";
 
 const MODULE_DIR = path.dirname(fileURLToPath(import.meta.url));
 const CORE_SOURCE_ENTRY_URL = pathToFileURL(
-  path.resolve(MODULE_DIR, "../../core/src/index.ts")
+  path.resolve(MODULE_DIR, "../../core/src/index.ts"),
 ).href;
 const DEFAULT_VERIFIED_PATH = path.resolve(MODULE_DIR, "../data/verified.yaml");
 const DEFAULT_MCP_REGISTRY_FETCH_TIMEOUT_MS = 30000;
@@ -52,6 +57,13 @@ export interface SyncOptions {
   mcpRegistryTimeoutMs?: number;
 }
 
+type CoreDatabase = typeof CoreDb;
+type CoreCatalogItems = typeof CoreCatalogItemsTable;
+type CoreCatalogSyncRuns = typeof CoreCatalogSyncRunsTable;
+type EnsureDatabaseIndexes = typeof CoreEnsureDatabaseIndexes;
+type CoreTransaction = Parameters<Parameters<CoreDatabase["transaction"]>[0]>[0];
+type PersistableCatalogItem = CatalogSeedItem & { data: Record<string, unknown> | string };
+
 async function loadCoreModule<T>() {
   try {
     return await dynamicImport<T>("@vibebasket/core");
@@ -81,10 +93,15 @@ export class RegistrySyncService {
     this.persist = options.persist ?? true;
     this.trigger = options.trigger ?? "runtime";
     this.fetchRetries = options.fetchRetries ?? DEFAULT_FETCH_RETRIES;
-    this.mcpRegistryTimeoutMs = options.mcpRegistryTimeoutMs ?? DEFAULT_MCP_REGISTRY_FETCH_TIMEOUT_MS;
+    this.mcpRegistryTimeoutMs =
+      options.mcpRegistryTimeoutMs ?? DEFAULT_MCP_REGISTRY_FETCH_TIMEOUT_MS;
     this.collectors = [
       new VerifiedCatalogCollector(this.verifiedPath),
-      new OfficialMcpRegistryCollector(this.fetchImpl, this.mcpRegistryTimeoutMs, this.fetchRetries),
+      new OfficialMcpRegistryCollector(
+        this.fetchImpl,
+        this.mcpRegistryTimeoutMs,
+        this.fetchRetries,
+      ),
       new SkillsShCuratedCollector(this.fetchImpl, this.fetchRetries),
     ];
   }
@@ -165,53 +182,54 @@ export class RegistrySyncService {
     }
 
     const { db, catalogItems } = await loadCoreModule<{
-      db: any;
-      catalogItems: any;
+      db: CoreDatabase;
+      catalogItems: CoreCatalogItems;
     }>();
-    const [{ inArray }] = await Promise.all([
-      import("drizzle-orm"),
-    ]);
 
     const ids = items.map((item) => item.id);
     const syncTime = new Date();
 
-    await db.transaction(async (tx: any) => {
+    await db.transaction(async (tx: CoreTransaction) => {
       for (let start = 0; start < items.length; start += PERSIST_BATCH_SIZE) {
         const chunk = items.slice(start, start + PERSIST_BATCH_SIZE);
+        const persistableChunk = chunk as PersistableCatalogItem[];
 
-        await tx.insert(catalogItems).values(
-          chunk.map((item) => ({
-            id: item.id,
-            type: item.type,
-            displayName: item.displayName,
-            description: item.description,
-            icon: item.icon,
-            sourceName: item.sourceName,
-            sourceUrl: item.sourceUrl,
-            verified: item.verified,
-            data: item.data as any,
-            firstSeenAt: syncTime,
-            lastSeenAt: syncTime,
-            lastSyncedAt: syncTime,
-            createdAt: syncTime,
-          }))
-        ).onConflictDoUpdate({
-          target: catalogItems.id,
-          set: {
-            type: sql.raw("excluded.type"),
-            displayName: sql.raw("excluded.display_name"),
-            description: sql.raw("excluded.description"),
-            icon: sql.raw("excluded.icon"),
-            sourceName: sql.raw("excluded.source_name"),
-            sourceUrl: sql.raw("excluded.source_url"),
-            verified: sql.raw("excluded.verified"),
-            data: sql.raw("excluded.data"),
-            firstSeenAt: sql`coalesce(${catalogItems.firstSeenAt}, excluded.first_seen_at)`,
-            lastSeenAt: sql.raw("excluded.last_seen_at"),
-            lastSyncedAt: sql.raw("excluded.last_synced_at"),
-            createdAt: sql.raw("excluded.created_at"),
-          },
-        });
+        await tx
+          .insert(catalogItems)
+          .values(
+            persistableChunk.map((item) => ({
+              id: item.id,
+              type: item.type,
+              displayName: item.displayName,
+              description: item.description,
+              icon: item.icon,
+              sourceName: item.sourceName,
+              sourceUrl: item.sourceUrl,
+              verified: item.verified,
+              data: item.data,
+              firstSeenAt: syncTime,
+              lastSeenAt: syncTime,
+              lastSyncedAt: syncTime,
+              createdAt: syncTime,
+            })),
+          )
+          .onConflictDoUpdate({
+            target: catalogItems.id,
+            set: {
+              type: sql.raw("excluded.type"),
+              displayName: sql.raw("excluded.display_name"),
+              description: sql.raw("excluded.description"),
+              icon: sql.raw("excluded.icon"),
+              sourceName: sql.raw("excluded.source_name"),
+              sourceUrl: sql.raw("excluded.source_url"),
+              verified: sql.raw("excluded.verified"),
+              data: sql.raw("excluded.data"),
+              firstSeenAt: sql`coalesce(${catalogItems.firstSeenAt}, excluded.first_seen_at)`,
+              lastSeenAt: sql.raw("excluded.last_seen_at"),
+              lastSyncedAt: sql.raw("excluded.last_synced_at"),
+              createdAt: sql.raw("excluded.created_at"),
+            },
+          });
       }
 
       if (opts.pruneMissing) {
@@ -230,11 +248,11 @@ export class RegistrySyncService {
       }
 
       // Run deep mirror cleanup as part of persistence to keep the database permanently clean
-      await this.cleanupCatalogSkillMirrors(tx, catalogItems, inArray);
+      await this.cleanupCatalogSkillMirrors(tx, catalogItems);
     });
   }
 
-  private async cleanupCatalogSkillMirrors(db: any, catalogItems: any, inArray: any) {
+  private async cleanupCatalogSkillMirrors(db: CoreTransaction, catalogItems: CoreCatalogItems) {
     const rows = await db
       .select({
         id: catalogItems.id,
@@ -244,22 +262,13 @@ export class RegistrySyncService {
       })
       .from(catalogItems)
       .where(
-        sql`${catalogItems.type} = 'skill' AND ${catalogItems.sourceName} = 'skills-sh-official'`
+        sql`${catalogItems.type} = 'skill' AND ${catalogItems.sourceName} = 'skills-sh-official'`,
       );
 
     const grouped = new Map<string, Array<{ id: string; repo: string }>>();
 
     for (const row of rows) {
-      const source = (
-        row.data as {
-          source?: {
-            type?: string;
-            repo?: string;
-            path?: string;
-            ref?: string;
-          };
-        }
-      )?.source;
+      const source = (row.data as SkillEntry).source;
       if (source?.type !== "github" || !source.repo || !source.path) {
         continue;
       }
@@ -289,7 +298,7 @@ export class RegistrySyncService {
       }
 
       const preferred = bucket.reduce((best, candidate) =>
-        pickPreferredSkillMirror(best, candidate)
+        pickPreferredSkillMirror(best, candidate),
       );
       for (const candidate of bucket) {
         if (candidate.id !== preferred.id) {
@@ -308,9 +317,9 @@ export class RegistrySyncService {
 
   private async recordSyncRun(summary: RegistrySyncSummary, startedAt: Date, completedAt: Date) {
     const { db, catalogSyncRuns, ensureDatabaseIndexes } = await loadCoreModule<{
-      db: any;
-      catalogSyncRuns: any;
-      ensureDatabaseIndexes: () => Promise<void>;
+      db: CoreDatabase;
+      catalogSyncRuns: CoreCatalogSyncRuns;
+      ensureDatabaseIndexes: EnsureDatabaseIndexes;
     }>();
 
     await ensureDatabaseIndexes();

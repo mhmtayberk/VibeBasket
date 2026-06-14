@@ -1,9 +1,10 @@
-import { describe, expect, it } from "vitest";
 import fs from "node:fs/promises";
-import path from "node:path";
 import os from "node:os";
-import { RooCodeAdapter } from "./roocode.js";
+import path from "node:path";
 import type { McpEntry, RuleEntry, SkillEntry } from "@vibebasket/core";
+import { describe, expect, it } from "vitest";
+import type { McpConfigResult } from "./mcp-utils";
+import { RooCodeAdapter } from "./roocode.js";
 
 describe("RooCodeAdapter", () => {
   it("should merge new MCPs idempotently", () => {
@@ -28,7 +29,7 @@ describe("RooCodeAdapter", () => {
       verified: false,
     };
 
-    const result = adapter.applyMcps(config, [newMcp], {}, { force: false }) as any;
+    const result = adapter.applyMcps(config, [newMcp], {}, { force: false }) as McpConfigResult;
     expect(result.mcpServers.existing).toBeDefined();
     expect(result.mcpServers["new-mcp"]).toBeDefined();
     expect(result.mcpServers["new-mcp"].command).toBe("npx");
@@ -75,7 +76,7 @@ describe("RooCodeAdapter", () => {
       // Idempotency: Running again should not duplicate
       await adapter.applySkills(skills, "project", projectRoot);
       const afterSecondRun = await fs.readFile(rulesFile, "utf8");
-      
+
       const skillCount = (afterSecondRun.match(/inline-skill/g) || []).length;
       // Should find two matches: one in START tag, one in END tag, and one in header (total 3 matches per block, no duplicate blocks)
       expect(skillCount).toBe(3);

@@ -1,6 +1,6 @@
-import type { IdeId, Scope, SkillEntry, RuleEntry } from "@vibebasket/core";
 import os from "node:os";
 import path from "node:path";
+import type { IdeId, RuleEntry, Scope, SkillEntry } from "@vibebasket/core";
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
@@ -328,11 +328,17 @@ export function resolveSkillInventoryTargets(
         },
       ];
     case "roocode":
-      return projectRoot ? [{ path: path.join(projectRoot, ".clinerules"), kind: "marker-file" }] : [];
+      return projectRoot
+        ? [{ path: path.join(projectRoot, ".clinerules"), kind: "marker-file" }]
+        : [];
     case "hermes":
-      return projectRoot ? [{ path: path.join(projectRoot, ".hermesrules"), kind: "marker-file" }] : [];
+      return projectRoot
+        ? [{ path: path.join(projectRoot, ".hermesrules"), kind: "marker-file" }]
+        : [];
     case "openclaw":
-      return projectRoot ? [{ path: path.join(projectRoot, ".openclawrules"), kind: "marker-file" }] : [];
+      return projectRoot
+        ? [{ path: path.join(projectRoot, ".openclawrules"), kind: "marker-file" }]
+        : [];
     case "void":
       return projectRoot
         ? [
@@ -342,10 +348,17 @@ export function resolveSkillInventoryTargets(
         : [];
     case "github-copilot":
       return projectRoot
-        ? [{ path: path.join(projectRoot, ".github", "copilot-instructions.md"), kind: "marker-file" }]
+        ? [
+            {
+              path: path.join(projectRoot, ".github", "copilot-instructions.md"),
+              kind: "marker-file",
+            },
+          ]
         : [];
     case "aider":
-      return projectRoot ? [{ path: path.join(projectRoot, ".aiderinstructions.md"), kind: "marker-file" }] : [];
+      return projectRoot
+        ? [{ path: path.join(projectRoot, ".aiderinstructions.md"), kind: "marker-file" }]
+        : [];
     default:
       return [];
   }
@@ -371,11 +384,17 @@ export function resolveRuleInventoryTargets(
         },
       ];
     case "roocode":
-      return projectRoot ? [{ path: path.join(projectRoot, ".clinerules"), kind: "marker-file" }] : [];
+      return projectRoot
+        ? [{ path: path.join(projectRoot, ".clinerules"), kind: "marker-file" }]
+        : [];
     case "hermes":
-      return projectRoot ? [{ path: path.join(projectRoot, ".hermesrules"), kind: "marker-file" }] : [];
+      return projectRoot
+        ? [{ path: path.join(projectRoot, ".hermesrules"), kind: "marker-file" }]
+        : [];
     case "openclaw":
-      return projectRoot ? [{ path: path.join(projectRoot, ".openclawrules"), kind: "marker-file" }] : [];
+      return projectRoot
+        ? [{ path: path.join(projectRoot, ".openclawrules"), kind: "marker-file" }]
+        : [];
     case "void":
       return projectRoot
         ? [
@@ -385,10 +404,17 @@ export function resolveRuleInventoryTargets(
         : [];
     case "github-copilot":
       return projectRoot
-        ? [{ path: path.join(projectRoot, ".github", "copilot-instructions.md"), kind: "marker-file" }]
+        ? [
+            {
+              path: path.join(projectRoot, ".github", "copilot-instructions.md"),
+              kind: "marker-file",
+            },
+          ]
         : [];
     case "aider":
-      return projectRoot ? [{ path: path.join(projectRoot, ".aiderinstructions.md"), kind: "marker-file" }] : [];
+      return projectRoot
+        ? [{ path: path.join(projectRoot, ".aiderinstructions.md"), kind: "marker-file" }]
+        : [];
     default:
       return [];
   }

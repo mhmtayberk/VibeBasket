@@ -1,9 +1,10 @@
-import { describe, expect, it } from "vitest";
 import fs from "node:fs/promises";
-import path from "node:path";
 import os from "node:os";
-import { ContinueAdapter } from "./continue.js";
+import path from "node:path";
 import type { McpEntry, SkillEntry } from "@vibebasket/core";
+import { describe, expect, it } from "vitest";
+import { ContinueAdapter } from "./continue.js";
+import type { McpConfigResult } from "./mcp-utils";
 
 describe("ContinueAdapter", () => {
   it("should merge new MCPs idempotently", () => {
@@ -28,7 +29,7 @@ describe("ContinueAdapter", () => {
       verified: false,
     };
 
-    const result = adapter.applyMcps(config, [newMcp], {}, { force: false }) as any;
+    const result = adapter.applyMcps(config, [newMcp], {}, { force: false }) as McpConfigResult;
     expect(result.mcpServers.existing).toBeDefined();
     expect(result.mcpServers["new-mcp"]).toBeDefined();
     expect(result.mcpServers["new-mcp"].command).toBe("npx");

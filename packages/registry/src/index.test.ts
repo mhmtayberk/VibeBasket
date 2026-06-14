@@ -3,13 +3,16 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { RegistrySyncService } from "./index";
+import type { McpEntry } from "./schemas";
 
 const tempFiles: string[] = [];
 
 afterEach(async () => {
-  await Promise.all(tempFiles.map(async (file) => {
-    await fs.rm(file, { force: true });
-  }));
+  await Promise.all(
+    tempFiles.map(async (file) => {
+      await fs.rm(file, { force: true });
+    }),
+  );
   tempFiles.length = 0;
 });
 
@@ -48,50 +51,62 @@ workflowPacks:
 `);
 
     const responses = new Map<string, unknown>([
-      ["https://registry.modelcontextprotocol.io/v0.1/servers?limit=100", {
-        servers: [
-          {
-            name: "io.github.github/github",
-            title: "GitHub",
-            description: "Official GitHub MCP",
-            packages: [
-              {
-                registryType: "npm",
-                identifier: "@modelcontextprotocol/server-github",
-                version: "latest",
-                transport: { type: "stdio" },
-              },
-            ],
-          },
-          {
-            name: "io.github.example/example-remote",
-            title: "Example Remote",
-            description: "Remote MCP",
-            remotes: [{ url: "https://example.com/mcp" }],
-          },
-        ],
-        metadata: {},
-      }],
-      ["https://www.skills.sh/official", `
+      [
+        "https://registry.modelcontextprotocol.io/v0.1/servers?limit=100",
+        {
+          servers: [
+            {
+              name: "io.github.github/github",
+              title: "GitHub",
+              description: "Official GitHub MCP",
+              packages: [
+                {
+                  registryType: "npm",
+                  identifier: "@modelcontextprotocol/server-github",
+                  version: "latest",
+                  transport: { type: "stdio" },
+                },
+              ],
+            },
+            {
+              name: "io.github.example/example-remote",
+              title: "Example Remote",
+              description: "Remote MCP",
+              remotes: [{ url: "https://example.com/mcp" }],
+            },
+          ],
+          metadata: {},
+        },
+      ],
+      [
+        "https://www.skills.sh/official",
+        `
         <html>
           <body>
             <a href="/vercel-labs/agent-skills">Vercel Labs</a>
           </body>
         </html>
-      `],
-      ["https://www.skills.sh/sitemap.xml", `
+      `,
+      ],
+      [
+        "https://www.skills.sh/sitemap.xml",
+        `
         <?xml version="1.0" encoding="UTF-8"?>
         <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
           <sitemap><loc>https://www.skills.sh/sitemap-skills-1.xml</loc></sitemap>
         </sitemapindex>
-      `],
-      ["https://www.skills.sh/sitemap-skills-1.xml", `
+      `,
+      ],
+      [
+        "https://www.skills.sh/sitemap-skills-1.xml",
+        `
         <?xml version="1.0" encoding="UTF-8"?>
         <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
           <url><loc>https://www.skills.sh/vercel-labs/agent-skills/next-js-development</loc></url>
           <url><loc>https://www.skills.sh/copycat/skills/next-js-development</loc></url>
         </urlset>
-      `],
+      `,
+      ],
     ]);
 
     const fetchImpl: typeof fetch = async (input) => {
@@ -129,13 +144,19 @@ workflowPacks:
     expect(ids).toContain("verified-skill");
     expect(items.some((item) => item.displayName === "Example Remote")).toBe(true);
 
-    const githubMcpItems = items.filter((item) => item.displayName === "GitHub" && item.type === "mcp");
+    const githubMcpItems = items.filter(
+      (item) => item.displayName === "GitHub" && item.type === "mcp",
+    );
     expect(githubMcpItems).toHaveLength(1);
     expect(githubMcpItems[0]?.verified).toBe(true);
 
-    const nextSkillItems = items.filter((item) => item.displayName === "Verified Skill" && item.type === "skill");
+    const nextSkillItems = items.filter(
+      (item) => item.displayName === "Verified Skill" && item.type === "skill",
+    );
     expect(nextSkillItems).toHaveLength(1);
-    expect(items.some((item) => item.type === "skill" && item.description?.includes("skills.sh"))).toBe(true);
+    expect(
+      items.some((item) => item.type === "skill" && item.description?.includes("skills.sh")),
+    ).toBe(true);
   });
 
   it("builds a catalog summary without persisting when requested", async () => {
@@ -163,10 +184,13 @@ workflowPacks: []
         });
       }
       if (url === "https://www.skills.sh/sitemap.xml") {
-        return new Response(`<?xml version="1.0" encoding="UTF-8"?><sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></sitemapindex>`, {
-          status: 200,
-          headers: { "Content-Type": "application/xml" },
-        });
+        return new Response(
+          `<?xml version="1.0" encoding="UTF-8"?><sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></sitemapindex>`,
+          {
+            status: 200,
+            headers: { "Content-Type": "application/xml" },
+          },
+        );
       }
       throw new Error(`Unexpected URL ${url}`);
     };
@@ -197,16 +221,19 @@ workflowPacks: []
     const fetchImpl: typeof fetch = async (input) => {
       const url = typeof input === "string" ? input : input.toString();
       if (url === "https://registry.modelcontextprotocol.io/v0.1/servers?limit=100") {
-        return new Response(JSON.stringify({
-          servers: [
-            {
-              name: "io.github.example/example-remote",
-              title: "Example Remote",
-              remotes: [{ url: "https://example.com/mcp" }],
-            },
-          ],
-          metadata: {},
-        }), { status: 200 });
+        return new Response(
+          JSON.stringify({
+            servers: [
+              {
+                name: "io.github.example/example-remote",
+                title: "Example Remote",
+                remotes: [{ url: "https://example.com/mcp" }],
+              },
+            ],
+            metadata: {},
+          }),
+          { status: 200 },
+        );
       }
 
       if (url === "https://www.skills.sh/official") {
@@ -245,35 +272,38 @@ workflowPacks: []
     const fetchImpl: typeof fetch = async (input) => {
       const url = typeof input === "string" ? input : input.toString();
       if (url === "https://registry.modelcontextprotocol.io/v0.1/servers?limit=100") {
-        return new Response(JSON.stringify({
-          servers: [
-            {
-              name: "io.github.example/shared",
-              title: "Shared MCP",
-              packages: [
-                {
-                  registryType: "npm",
-                  identifier: "@example/shared-mcp",
-                  version: "1.0.0",
-                  transport: { type: "stdio" },
-                },
-              ],
-            },
-            {
-              name: "io.github.example/shared",
-              title: "Shared MCP",
-              packages: [
-                {
-                  registryType: "npm",
-                  identifier: "@example/shared-mcp",
-                  version: "2.0.0",
-                  transport: { type: "stdio" },
-                },
-              ],
-            },
-          ],
-          metadata: {},
-        }), { status: 200 });
+        return new Response(
+          JSON.stringify({
+            servers: [
+              {
+                name: "io.github.example/shared",
+                title: "Shared MCP",
+                packages: [
+                  {
+                    registryType: "npm",
+                    identifier: "@example/shared-mcp",
+                    version: "1.0.0",
+                    transport: { type: "stdio" },
+                  },
+                ],
+              },
+              {
+                name: "io.github.example/shared",
+                title: "Shared MCP",
+                packages: [
+                  {
+                    registryType: "npm",
+                    identifier: "@example/shared-mcp",
+                    version: "2.0.0",
+                    transport: { type: "stdio" },
+                  },
+                ],
+              },
+            ],
+            metadata: {},
+          }),
+          { status: 200 },
+        );
       }
       if (url === "https://www.skills.sh/official") {
         return new Response("<html><body></body></html>", {
@@ -282,10 +312,13 @@ workflowPacks: []
         });
       }
       if (url === "https://www.skills.sh/sitemap.xml") {
-        return new Response(`<?xml version="1.0" encoding="UTF-8"?><sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></sitemapindex>`, {
-          status: 200,
-          headers: { "Content-Type": "application/xml" },
-        });
+        return new Response(
+          `<?xml version="1.0" encoding="UTF-8"?><sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></sitemapindex>`,
+          {
+            status: 200,
+            headers: { "Content-Type": "application/xml" },
+          },
+        );
       }
       throw new Error(`Unexpected URL ${url}`);
     };
@@ -297,10 +330,11 @@ workflowPacks: []
     }).collectCatalogItems();
 
     const mcps = items.filter((item) => item.type === "mcp");
+    const sharedMcpData = mcps[0]?.data as McpEntry | undefined;
     expect(mcps).toHaveLength(1);
     expect(mcps[0]?.id).toContain("mcp-shared-mcp");
-    expect((mcps[0]?.data as any).args).toContain("-y");
-    expect((mcps[0]?.data as any).args).toContain("@example/shared-mcp@2.0.0");
+    expect(sharedMcpData?.args).toContain("-y");
+    expect(sharedMcpData?.args).toContain("@example/shared-mcp@2.0.0");
   });
 
   it("surfaces a timeout error for one source while continuing with other trusted sources", async () => {
@@ -324,38 +358,47 @@ workflowPacks: []
       }
 
       if (url === "https://www.skills.sh/official") {
-        return new Response(`
+        return new Response(
+          `
           <html>
             <body>
               <a href="/copycat/skills">Copycat</a>
             </body>
           </html>
-        `, {
-          status: 200,
-          headers: { "Content-Type": "text/html" },
-        });
+        `,
+          {
+            status: 200,
+            headers: { "Content-Type": "text/html" },
+          },
+        );
       }
       if (url === "https://www.skills.sh/sitemap.xml") {
-        return new Response(`
+        return new Response(
+          `
           <?xml version="1.0" encoding="UTF-8"?>
           <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
             <sitemap><loc>https://www.skills.sh/sitemap-skills-1.xml</loc></sitemap>
           </sitemapindex>
-        `, {
-          status: 200,
-          headers: { "Content-Type": "application/xml" },
-        });
+        `,
+          {
+            status: 200,
+            headers: { "Content-Type": "application/xml" },
+          },
+        );
       }
       if (url === "https://www.skills.sh/sitemap-skills-1.xml") {
-        return new Response(`
+        return new Response(
+          `
           <?xml version="1.0" encoding="UTF-8"?>
           <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
             <url><loc>https://www.skills.sh/copycat/skills/next-js-development</loc></url>
           </urlset>
-        `, {
-          status: 200,
-          headers: { "Content-Type": "application/xml" },
-        });
+        `,
+          {
+            status: 200,
+            headers: { "Content-Type": "application/xml" },
+          },
+        );
       }
 
       throw new Error(`Unexpected URL ${url}`);
@@ -414,10 +457,13 @@ workflowPacks: []
         });
       }
       if (url === "https://www.skills.sh/sitemap.xml") {
-        return new Response(`<?xml version="1.0" encoding="UTF-8"?><sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></sitemapindex>`, {
-          status: 200,
-          headers: { "Content-Type": "application/xml" },
-        });
+        return new Response(
+          `<?xml version="1.0" encoding="UTF-8"?><sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></sitemapindex>`,
+          {
+            status: 200,
+            headers: { "Content-Type": "application/xml" },
+          },
+        );
       }
       throw new Error(`Unexpected URL ${url}`);
     };
@@ -446,40 +492,49 @@ workflowPacks: []
         return new Response(JSON.stringify({ servers: [], metadata: {} }), { status: 200 });
       }
       if (url === "https://www.skills.sh/official") {
-        return new Response(`
+        return new Response(
+          `
           <html>
             <body>
               <a href="/anthropics/financial-services">Anthropics</a>
               <a href="/anthropics/financial-services-plugins">Anthropics mirror</a>
             </body>
           </html>
-        `, {
-          status: 200,
-          headers: { "Content-Type": "text/html" },
-        });
+        `,
+          {
+            status: 200,
+            headers: { "Content-Type": "text/html" },
+          },
+        );
       }
       if (url === "https://www.skills.sh/sitemap.xml") {
-        return new Response(`
+        return new Response(
+          `
           <?xml version="1.0" encoding="UTF-8"?>
           <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
             <sitemap><loc>https://www.skills.sh/sitemap-skills-1.xml</loc></sitemap>
           </sitemapindex>
-        `, {
-          status: 200,
-          headers: { "Content-Type": "application/xml" },
-        });
+        `,
+          {
+            status: 200,
+            headers: { "Content-Type": "application/xml" },
+          },
+        );
       }
       if (url === "https://www.skills.sh/sitemap-skills-1.xml") {
-        return new Response(`
+        return new Response(
+          `
           <?xml version="1.0" encoding="UTF-8"?>
           <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
             <url><loc>https://www.skills.sh/anthropics/financial-services/3-statement-model</loc></url>
             <url><loc>https://www.skills.sh/anthropics/financial-services-plugins/3-statement-model</loc></url>
           </urlset>
-        `, {
-          status: 200,
-          headers: { "Content-Type": "application/xml" },
-        });
+        `,
+          {
+            status: 200,
+            headers: { "Content-Type": "application/xml" },
+          },
+        );
       }
       throw new Error(`Unexpected URL ${url}`);
     };
@@ -490,7 +545,9 @@ workflowPacks: []
       verifiedPath,
     }).collectCatalogItems();
 
-    const matchingSkills = items.filter((item) => item.type === "skill" && item.displayName === "3 Statement Model");
+    const matchingSkills = items.filter(
+      (item) => item.type === "skill" && item.displayName === "3 Statement Model",
+    );
     expect(matchingSkills).toHaveLength(1);
     expect(matchingSkills[0]?.id).toBe("skill-anthropics-financial-services-3-statement-model");
   });
@@ -505,50 +562,62 @@ workflowPacks: []
     const fetchImpl: typeof fetch = async (input) => {
       const url = typeof input === "string" ? input : input.toString();
       if (url === "https://registry.modelcontextprotocol.io/v0.1/servers?limit=100") {
-        return new Response(JSON.stringify({
-          servers: [
-            {
-              name: "io.github.example/strange-mcp",
-              title: "  Strange\u200b MCP  ",
-              remotes: [{ url: "https://example.com/mcp" }],
-            },
-          ],
-          metadata: {},
-        }), { status: 200 });
+        return new Response(
+          JSON.stringify({
+            servers: [
+              {
+                name: "io.github.example/strange-mcp",
+                title: "  Strange\u200b MCP  ",
+                remotes: [{ url: "https://example.com/mcp" }],
+              },
+            ],
+            metadata: {},
+          }),
+          { status: 200 },
+        );
       }
       if (url === "https://www.skills.sh/official") {
-        return new Response(`
+        return new Response(
+          `
           <html>
             <body>
               <a href="/acme/skills">Acme</a>
             </body>
           </html>
-        `, {
-          status: 200,
-          headers: { "Content-Type": "text/html" },
-        });
+        `,
+          {
+            status: 200,
+            headers: { "Content-Type": "text/html" },
+          },
+        );
       }
       if (url === "https://www.skills.sh/sitemap.xml") {
-        return new Response(`
+        return new Response(
+          `
           <?xml version="1.0" encoding="UTF-8"?>
           <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
             <sitemap><loc>https://www.skills.sh/sitemap-skills-1.xml</loc></sitemap>
           </sitemapindex>
-        `, {
-          status: 200,
-          headers: { "Content-Type": "application/xml" },
-        });
+        `,
+          {
+            status: 200,
+            headers: { "Content-Type": "application/xml" },
+          },
+        );
       }
       if (url === "https://www.skills.sh/sitemap-skills-1.xml") {
-        return new Response(`
+        return new Response(
+          `
           <?xml version="1.0" encoding="UTF-8"?>
           <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
             <url><loc>https://www.skills.sh/acme/skills/skill-creator</loc></url>
           </urlset>
-        `, {
-          status: 200,
-          headers: { "Content-Type": "application/xml" },
-        });
+        `,
+          {
+            status: 200,
+            headers: { "Content-Type": "application/xml" },
+          },
+        );
       }
       throw new Error(`Unexpected URL ${url}`);
     };
@@ -576,50 +645,62 @@ workflowPacks: []
         return new Response(JSON.stringify({ servers: [], metadata: {} }), { status: 200 });
       }
       if (url === "https://www.skills.sh/official") {
-        return new Response(`
+        return new Response(
+          `
           <html>
             <body>
               <a href="/supabase/agent-skills">Supabase</a>
             </body>
           </html>
-        `, {
-          status: 200,
-          headers: { "Content-Type": "text/html" },
-        });
+        `,
+          {
+            status: 200,
+            headers: { "Content-Type": "text/html" },
+          },
+        );
       }
       if (url === "https://www.skills.sh/sitemap.xml") {
-        return new Response(`
+        return new Response(
+          `
           <?xml version="1.0" encoding="UTF-8"?>
           <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
             <sitemap><loc>https://www.skills.sh/sitemap-skills-1.xml</loc></sitemap>
             <sitemap><loc>https://www.skills.sh/sitemap-skills-2.xml</loc></sitemap>
           </sitemapindex>
-        `, {
-          status: 200,
-          headers: { "Content-Type": "application/xml" },
-        });
+        `,
+          {
+            status: 200,
+            headers: { "Content-Type": "application/xml" },
+          },
+        );
       }
       if (url === "https://www.skills.sh/sitemap-skills-1.xml") {
-        return new Response(`
+        return new Response(
+          `
           <?xml version="1.0" encoding="UTF-8"?>
           <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
             <url><loc>https://www.skills.sh/supabase/agent-skills/supabase-postgres-best-practices</loc></url>
           </urlset>
-        `, {
-          status: 200,
-          headers: { "Content-Type": "application/xml" },
-        });
+        `,
+          {
+            status: 200,
+            headers: { "Content-Type": "application/xml" },
+          },
+        );
       }
       if (url === "https://www.skills.sh/sitemap-skills-2.xml") {
-        return new Response(`
+        return new Response(
+          `
           <?xml version="1.0" encoding="UTF-8"?>
           <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
             <url><loc>https://www.skills.sh/community/repo/postgresql-helper</loc></url>
           </urlset>
-        `, {
-          status: 200,
-          headers: { "Content-Type": "application/xml" },
-        });
+        `,
+          {
+            status: 200,
+            headers: { "Content-Type": "application/xml" },
+          },
+        );
       }
       throw new Error(`Unexpected URL ${url}`);
     };
@@ -630,12 +711,18 @@ workflowPacks: []
       verifiedPath,
     }).collectCatalogItems();
 
-    const officialSkill = items.find((item) => item.id === "skill-supabase-agent-skills-supabase-postgres-best-practices");
-    const communitySkill = items.find((item) => item.id === "skill-community-repo-postgresql-helper");
+    const officialSkill = items.find(
+      (item) => item.id === "skill-supabase-agent-skills-supabase-postgres-best-practices",
+    );
+    const communitySkill = items.find(
+      (item) => item.id === "skill-community-repo-postgresql-helper",
+    );
 
     expect(officialSkill?.sourceName).toBe("skills-sh-official");
     expect(communitySkill?.sourceName).toBe("skills-sh-community");
-    expect(officialSkill?.sourceUrl).toBe("https://www.skills.sh/supabase/agent-skills/supabase-postgres-best-practices");
+    expect(officialSkill?.sourceUrl).toBe(
+      "https://www.skills.sh/supabase/agent-skills/supabase-postgres-best-practices",
+    );
     expect(communitySkill?.displayName).toBe("Postgresql Helper");
   });
 
@@ -652,36 +739,45 @@ workflowPacks: []
         return new Response(JSON.stringify({ servers: [], metadata: {} }), { status: 200 });
       }
       if (url === "https://www.skills.sh/official") {
-        return new Response(`
+        return new Response(
+          `
           <script>
             {"repo":"supabase/agent-skills\\","totalInstalls":123,"skills":[]}
           </script>
-        `, {
-          status: 200,
-          headers: { "Content-Type": "text/html" },
-        });
+        `,
+          {
+            status: 200,
+            headers: { "Content-Type": "text/html" },
+          },
+        );
       }
       if (url === "https://www.skills.sh/sitemap.xml") {
-        return new Response(`
+        return new Response(
+          `
           <?xml version="1.0" encoding="UTF-8"?>
           <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
             <sitemap><loc>https://www.skills.sh/sitemap-skills-1.xml</loc></sitemap>
           </sitemapindex>
-        `, {
-          status: 200,
-          headers: { "Content-Type": "application/xml" },
-        });
+        `,
+          {
+            status: 200,
+            headers: { "Content-Type": "application/xml" },
+          },
+        );
       }
       if (url === "https://www.skills.sh/sitemap-skills-1.xml") {
-        return new Response(`
+        return new Response(
+          `
           <?xml version="1.0" encoding="UTF-8"?>
           <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
             <url><loc>https://www.skills.sh/supabase/agent-skills/supabase-postgres-best-practices</loc></url>
           </urlset>
-        `, {
-          status: 200,
-          headers: { "Content-Type": "application/xml" },
-        });
+        `,
+          {
+            status: 200,
+            headers: { "Content-Type": "application/xml" },
+          },
+        );
       }
       throw new Error(`Unexpected URL ${url}`);
     };
@@ -693,7 +789,9 @@ workflowPacks: []
     }).collectCatalogItems();
 
     expect(
-      items.find((item) => item.id === "skill-supabase-agent-skills-supabase-postgres-best-practices")?.sourceName
+      items.find(
+        (item) => item.id === "skill-supabase-agent-skills-supabase-postgres-best-practices",
+      )?.sourceName,
     ).toBe("skills-sh-official");
   });
 
@@ -710,46 +808,61 @@ workflowPacks: []
         return new Response(JSON.stringify({ servers: [], metadata: {} }), { status: 200 });
       }
       if (url === "https://www.skills.sh/official") {
-        return new Response(`
+        return new Response(
+          `
           <a href="/supabase/agent-skills">Supabase Agent Skills</a>
-        `, {
-          status: 200,
-          headers: { "Content-Type": "text/html" },
-        });
+        `,
+          {
+            status: 200,
+            headers: { "Content-Type": "text/html" },
+          },
+        );
       }
       if (url === "https://www.skills.sh/sitemap.xml") {
-        return new Response(`
+        return new Response(
+          `
           <?xml version="1.0" encoding="UTF-8"?>
           <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></sitemapindex>
-        `, {
-          status: 200,
-          headers: { "Content-Type": "application/xml" },
-        });
+        `,
+          {
+            status: 200,
+            headers: { "Content-Type": "application/xml" },
+          },
+        );
       }
       if (url === "https://www.skills.sh/") {
-        return new Response(`
+        return new Response(
+          `
           <a href="/supabase/agent-skills">Supabase Agent Skills</a>
           <a href="/community/repo">Community Repo</a>
-        `, {
-          status: 200,
-          headers: { "Content-Type": "text/html" },
-        });
+        `,
+          {
+            status: 200,
+            headers: { "Content-Type": "text/html" },
+          },
+        );
       }
       if (url === "https://www.skills.sh/supabase/agent-skills") {
-        return new Response(`
+        return new Response(
+          `
           <a href="/supabase/agent-skills/supabase-postgres-best-practices">Supabase Postgres Best Practices</a>
-        `, {
-          status: 200,
-          headers: { "Content-Type": "text/html" },
-        });
+        `,
+          {
+            status: 200,
+            headers: { "Content-Type": "text/html" },
+          },
+        );
       }
       if (url === "https://www.skills.sh/community/repo") {
-        return new Response(`
+        return new Response(
+          `
           <a href="/community/repo/postgresql-helper">Postgresql Helper</a>
-        `, {
-          status: 200,
-          headers: { "Content-Type": "text/html" },
-        });
+        `,
+          {
+            status: 200,
+            headers: { "Content-Type": "text/html" },
+          },
+        );
       }
       throw new Error(`Unexpected URL ${url}`);
     };
@@ -761,12 +874,16 @@ workflowPacks: []
     }).collectCatalogItems();
 
     expect(
-      items.find((item) => item.id === "skill-supabase-agent-skills-supabase-postgres-best-practices")
+      items.find(
+        (item) => item.id === "skill-supabase-agent-skills-supabase-postgres-best-practices",
+      ),
     ).toMatchObject({
       sourceName: "skills-sh-official",
       sourceUrl: "https://www.skills.sh/supabase/agent-skills",
     });
-    expect(items.find((item) => item.id === "skill-community-repo-postgresql-helper")).toMatchObject({
+    expect(
+      items.find((item) => item.id === "skill-community-repo-postgresql-helper"),
+    ).toMatchObject({
       sourceName: "skills-sh-community",
       sourceUrl: "https://www.skills.sh/community/repo",
     });
@@ -799,26 +916,32 @@ workflowPacks: []
         });
       }
       if (url === "https://www.skills.sh/sitemap.xml") {
-        return new Response(`
+        return new Response(
+          `
           <?xml version="1.0" encoding="UTF-8"?>
           <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
             <sitemap><loc>https://www.skills.sh/sitemap-skills-1.xml</loc></sitemap>
           </sitemapindex>
-        `, {
-          status: 200,
-          headers: { "Content-Type": "application/xml" },
-        });
+        `,
+          {
+            status: 200,
+            headers: { "Content-Type": "application/xml" },
+          },
+        );
       }
       if (url === "https://www.skills.sh/sitemap-skills-1.xml") {
-        return new Response(`
+        return new Response(
+          `
           <?xml version="1.0" encoding="UTF-8"?>
           <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
             <url><loc>https://www.skills.sh/vercel-labs/agent-skills/next-js-development</loc></url>
           </urlset>
-        `, {
-          status: 200,
-          headers: { "Content-Type": "application/xml" },
-        });
+        `,
+          {
+            status: 200,
+            headers: { "Content-Type": "application/xml" },
+          },
+        );
       }
 
       throw new Error(`Unexpected URL ${url}`);
@@ -831,7 +954,7 @@ workflowPacks: []
     }).collectCatalogItems();
 
     const matchingSkills = items.filter(
-      (item) => item.type === "skill" && item.displayName === "Verified Skill"
+      (item) => item.type === "skill" && item.displayName === "Verified Skill",
     );
 
     expect(matchingSkills).toHaveLength(1);

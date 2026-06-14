@@ -1,12 +1,10 @@
 # Contributing to VibeBasket
 
-Thanks for contributing. This guide covers setup, conventions, and the PR workflow.
-
 ## Prerequisites
 
-- **Node.js** >= 20
-- **pnpm** >= 9
-- **Git**
+- Node.js >= 20
+- pnpm >= 9
+- Git
 
 ## Setup
 
@@ -20,8 +18,8 @@ pnpm install
 
 ```
 apps/
-  web/          Next.js 16.2.9 App Router — the catalog UI and API
-  cli/          Node.js CLI — `vibebasket apply`, `list`, `search`, `doctor`, `init`, `rollback`
+  web/          Next.js 16 App Router — catalog UI and API
+  cli/          Node.js CLI — apply, list, search, doctor, init, rollback
 packages/
   core/         Shared DB schema, bundle manifest types, SQLite client
   adapters/     24 IDE adapters (16 on BaseAdapter, 8 custom)
@@ -31,54 +29,51 @@ packages/
 ## Development
 
 ```bash
-# Start the web app
-pnpm --filter web dev
-
-# Run tests for a package
-pnpm --filter web test
-pnpm --filter cli test
-pnpm --filter adapters test
-
-# TypeScript check
-pnpm --filter web typecheck
-pnpm --filter cli typecheck
-
-# Production build
-pnpm --filter web build
+pnpm --filter web dev          # Start web app
+pnpm --filter web test         # Run web tests
+pnpm --filter cli test         # Run CLI tests
+pnpm --filter adapters test    # Run adapter tests
+pnpm --filter web typecheck    # TypeScript check for the web app
+pnpm --filter web build        # Production build
+pnpm verify:ci                 # Main release gate used in CI
 ```
 
 ## Testing
 
-- **Unit/Integration**: Vitest. Run per-package. ~340 tests total (web 165, CLI 50, adapters 125).
-- **E2E**: Playwright in `apps/web/e2e/`. Requires production build first. ~70 scenarios.
+- **Unit/Integration**: Vitest across web, CLI, and shared packages.
+- **E2E**: Playwright in `apps/web/e2e/`. Requires a production build first.
 - **Property-based**: fast-check for adapter idempotency in `packages/adapters`.
 
-## Adding a New IDE Adapter
+Important note:
+
+- The current CI gate is `pnpm verify:ci`, not a monorepo-wide `tsc -b`.
+- There is still TypeScript project-reference debt in `packages/adapters` and `apps/cli`, so avoid claiming that the whole workspace passes a single global typecheck gate unless you verified it explicitly.
+
+## Adding an IDE Adapter
 
 1. Create `packages/adapters/src/<ide-id>.ts`
-2. Extend `BaseAdapter` for standard config paths + MCP apply. Use custom logic for non-standard formats (YAML, TOML, delimiters).
+2. Extend `BaseAdapter` for standard config paths and MCP apply. Use custom logic for YAML, TOML, or delimiter-based formats.
 3. Add capabilities in `packages/adapters/src/target-capabilities.ts`
-4. Add to `UNSORTED_TARGET_OPTIONS` in `apps/web/src/lib/targets.ts`
-5. Add a test in `packages/adapters/src/<ide-id>.test.ts`
-6. Add an SVG icon to `apps/web/public/targets/<ide-id>.svg` (white fill for dark theme)
+4. Register in `UNSORTED_TARGET_OPTIONS` in `apps/web/src/lib/targets.ts`
+5. Export from `packages/adapters/src/index.ts`
+6. Add a test in `packages/adapters/src/<ide-id>.test.ts`
+7. Add an SVG icon to `apps/web/public/targets/<ide-id>.svg` (white fill for dark theme)
 
 ## Conventions
 
-- TypeScript strict mode — no `any` without explicit reason
-- English-only UI copy
-- Tailwind for styling — no CSS modules
-- Server Components by default; `"use client"` only when needed
-- Drizzle ORM for all DB access — no raw SQL except migrations
-- Run `pnpm --filter web typecheck` before pushing
+- TypeScript strict mode. Avoid `any` without explicit reason.
+- English-only UI copy.
+- Tailwind for styling. No CSS modules.
+- Server Components by default. `"use client"` only when interactivity is required.
+- Drizzle ORM for database access.
+- Run `pnpm --filter web typecheck` before pushing.
 
 ## Pull Requests
 
 1. Fork and create a feature branch
 2. Add tests for new functionality
 3. Ensure all existing tests pass
-4. Run `pnpm --filter web typecheck`
+4. Run `pnpm verify:ci`
 5. Open a PR with a clear description
 
-## Questions?
-
-Open a [GitHub Discussion](https://github.com/vibebasket/vibebasket/discussions) or an issue.
+Use the pull request template and call out any manual browser, CLI, or self-hosting checks you ran.

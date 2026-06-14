@@ -1,9 +1,10 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import type { McpEntry, RuleEntry, SkillEntry } from "@vibebasket/core";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import type { McpConfigResult } from "./mcp-utils";
 import { VoidAdapter } from "./void.js";
-import type { McpEntry, SkillEntry, RuleEntry } from "@vibebasket/core";
 
 describe("VoidAdapter", () => {
   let tempDir: string;
@@ -26,8 +27,8 @@ describe("VoidAdapter", () => {
     const adapter = new VoidAdapter();
     const config = {
       mcpServers: {
-        existing: { command: "node" }
-      }
+        existing: { command: "node" },
+      },
     };
     const mcp: McpEntry = {
       id: "test-mcp",
@@ -37,10 +38,10 @@ describe("VoidAdapter", () => {
       args: ["test"],
       env: {},
       requiredSecrets: [],
-      verified: true
+      verified: true,
     };
 
-    const result = adapter.applyMcps(config, [mcp], {}, { force: false }) as any;
+    const result = adapter.applyMcps(config, [mcp], {}, { force: false }) as McpConfigResult;
     expect(result.mcpServers.existing).toBeDefined();
     expect(result.mcpServers["test-mcp"]).toBeDefined();
     expect(result.mcpServers["test-mcp"].command).toBe("npx");
@@ -53,8 +54,8 @@ describe("VoidAdapter", () => {
         id: "void-skill",
         displayName: "Void Skill",
         source: { type: "inline", content: "Void custom flow instructions." },
-        verified: true
-      }
+        verified: true,
+      },
     ];
 
     await adapter.applySkills(skills, "project", tempDir);
@@ -75,12 +76,17 @@ describe("VoidAdapter", () => {
         id: "void-rule",
         displayName: "Void Rule",
         content: "First run rules.",
-        verified: true
-      }
+        verified: true,
+      },
     ];
 
     await adapter.applyRules(rules, "project", tempDir);
-    rules[0]!.content = "Updated second run rules.";
+    const [firstRule] = rules;
+    expect(firstRule).toBeDefined();
+    if (!firstRule) {
+      throw new Error("Expected seeded Void rule");
+    }
+    firstRule.content = "Updated second run rules.";
     await adapter.applyRules(rules, "project", tempDir);
 
     const voidRulesContent = await fs.readFile(path.join(tempDir, ".voidrules"), "utf8");

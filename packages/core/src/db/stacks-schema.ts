@@ -1,10 +1,4 @@
-import {
-  index,
-  integer,
-  sqliteTable,
-  text,
-  uniqueIndex,
-} from "drizzle-orm/sqlite-core";
+import { index, integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 import { users } from "./auth-schema";
 
 export const savedStacks = sqliteTable(
@@ -21,8 +15,11 @@ export const savedStacks = sqliteTable(
   },
   (table) => ({
     userNameUnique: uniqueIndex("saved_stacks_user_name_unique").on(table.userId, table.name),
-    userIdUpdatedAtIdx: index("saved_stacks_user_id_updated_at_idx").on(table.userId, table.updatedAt),
-  })
+    userIdUpdatedAtIdx: index("saved_stacks_user_id_updated_at_idx").on(
+      table.userId,
+      table.updatedAt,
+    ),
+  }),
 );
 
 export const savedStackItems = sqliteTable(
@@ -42,9 +39,9 @@ export const savedStackItems = sqliteTable(
   (table) => ({
     stackIdPositionIdx: index("saved_stack_items_stack_id_position_idx").on(
       table.stackId,
-      table.position
+      table.position,
     ),
-  })
+  }),
 );
 
 export const savedStackTargets = sqliteTable(
@@ -60,7 +57,7 @@ export const savedStackTargets = sqliteTable(
   (table) => ({
     stackIdPositionIdx: index("saved_stack_targets_stack_id_position_idx").on(
       table.stackId,
-      table.position
+      table.position,
     ),
-  })
+  }),
 );

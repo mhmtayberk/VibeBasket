@@ -25,7 +25,7 @@ export function flattenBundleContent(bundle: Bundle): FlattenedBundleContent {
 
 export function getUnsupportedTargetContent(
   adapter: AdapterLike,
-  flattened: FlattenedBundleContent
+  flattened: FlattenedBundleContent,
 ): string[] {
   const unsupported: string[] = [];
 

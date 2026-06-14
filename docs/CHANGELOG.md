@@ -31,6 +31,15 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Open-Source Launch & Prod Readiness
+- **GitHub automation**: Added GitHub Actions CI for linting, shared-package builds, web typecheck/build, unit/integration tests, and a Playwright smoke suite.
+- **Security automation**: Added CodeQL analysis workflow and Dependabot config for npm packages and GitHub Actions.
+- **Community hygiene**: Added a PR template, Code of Conduct, and a production readiness checklist for public releases and self-hosted launches.
+- **Docs honesty pass**: Updated README, CONTRIBUTING, SECURITY, and SETUP docs to reflect the real verification surface, including the current reliance on `pnpm verify:ci` instead of a monorepo-wide `tsc -b` gate.
+- **Pre-prod security/docs hardening**: Corrected public docs that overstated catalog size or implied the hosted app never stores any encrypted admin credentials, added HSTS and stricter response headers in production, and stopped trusting Cloudflare IP headers unless `TRUST_PROXY` is explicitly enabled.
+- **Backup visibility fix**: Corrected async backend-status resolution in the admin storage UI and surfaced a warning when a configured cloud backend is incomplete and runtime falls back to local storage.
+- **Cloud restore support**: Backup restore now uses provider-native download paths for supported cloud storage backends instead of requiring manual out-of-band download.
+
 ### Catalog Integrity & Install Reporting
 - **skills.sh fallback hardening**: When sitemap-based discovery is unavailable and the directory page does not expose its embedded skill payload, VibeBasket now falls back to repo crawling for both official and community skills instead of silently collapsing to official-only coverage.
 - **Source-tag normalization**: skills synced from `skills.sh` fallback paths now persist as `skills-sh-official` or `skills-sh-community`, keeping trust badges and source provenance consistent with the UI model.
@@ -274,3 +283,8 @@ All notable changes to this project will be documented in this file.
 - Re-verified the hardened tree with passing results for `pnpm --filter @vibebasket/adapters test`, `pnpm --filter web test`, `pnpm --filter web lint`, `CI=true pnpm -r run typecheck`, `CI=true pnpm -r run test`, `pnpm --filter web build`, and `pnpm --filter web exec playwright test`.
 - Added DeepSeek-TUI as a real adapter-backed target using the official `~/.deepseek/mcp.json` MCP surface, including CLI apply/rollback wiring and adapter regression coverage.
 - Clarified the product surface so DeepSeek-TUI is presented as MCP-only today; skills/rules remain unsupported for auto-apply there just like the rest of the current target set.
+- Re-ran a pre-production hardening pass: repo-wide Biome lint is green, `@vibebasket/core`, `@vibebasket/registry`, and `@vibebasket/adapters` builds pass, and focused package/web Vitest suites were re-verified.
+- Fixed a real legacy SQLite bootstrap bug where older `catalog_items` tables missing `description` or `icon` caused FTS initialization to fail during auth/saved-stack schema upgrades.
+- Restored the missing `saved_stack_targets(stack_id, position)` index during bootstrap so migrated databases match the declared Drizzle schema and tests.
+- Stopped the `CodeBuddy` adapter test suite from writing into the real user home directory by redirecting user-scope skill writes to a temp home during tests.
+- Cleaned registry, adapter, and DB typing debt so repo-wide lint/type surfaces are stricter again ahead of the public launch.

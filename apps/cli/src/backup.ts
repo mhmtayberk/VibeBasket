@@ -21,9 +21,10 @@ export async function createBackup(targetId: string, scope: string, config: unkn
 
 export function listBackups() {
   if (!fs.existsSync(BACKUP_DIR)) return [];
-  return fs.readdirSync(BACKUP_DIR)
-    .filter(f => f.endsWith(".json"))
-    .map(f => {
+  return fs
+    .readdirSync(BACKUP_DIR)
+    .filter((f) => f.endsWith(".json"))
+    .map((f) => {
       const parts = f.replace(".json", "").split("-");
       const targetId = parts[0];
       const scope = parts[1];

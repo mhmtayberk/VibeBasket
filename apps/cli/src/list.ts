@@ -1,33 +1,33 @@
 import fs from "node:fs";
-import chalk from "chalk";
-import type { IdeId } from "@vibebasket/core";
 import {
-  CursorAdapter,
+  AiderAdapter,
   AntigravityAdapter,
-  WindsurfAdapter,
-  VSCodeAdapter,
   ClaudeCodeAdapter,
-  DeepSeekTuiAdapter,
-  GeminiCliAdapter,
-  KiroAdapter,
-  JunieAdapter,
   ClineCliAdapter,
-  ZedAdapter,
+  CodeBuddyAdapter,
   CodexAdapter,
   ContinueAdapter,
-  RooCodeAdapter,
-  HermesAdapter,
-  OpenClawAdapter,
-  GitHubCopilotAdapter,
-  VoidAdapter,
-  AiderAdapter,
   CortexCodeAdapter,
+  CursorAdapter,
+  DeepSeekTuiAdapter,
+  GeminiCliAdapter,
+  GitHubCopilotAdapter,
   GooseAdapter,
+  HermesAdapter,
   IBMBobAdapter,
-  CodeBuddyAdapter,
+  JunieAdapter,
+  KiroAdapter,
+  OpenClawAdapter,
   OpenCodeAdapter,
+  RooCodeAdapter,
+  VSCodeAdapter,
+  VoidAdapter,
+  WindsurfAdapter,
+  ZedAdapter,
 } from "@vibebasket/adapters";
 import type { IdeAdapter } from "@vibebasket/adapters";
+import type { IdeId } from "@vibebasket/core";
+import chalk from "chalk";
 import {
   extractConfiguredMcpIds,
   resolveRuleInventoryTargets,
@@ -91,7 +91,10 @@ function listMarkerEntries(filePath: string): string[] {
   if (!fileExists(filePath)) return [];
   try {
     const content = fs.readFileSync(filePath, "utf8");
-    const matches = Array.from(content.matchAll(/vibebasket:([a-z0-9-]+)/gi), (match) => match[1] ?? "");
+    const matches = Array.from(
+      content.matchAll(/vibebasket:([a-z0-9-]+)/gi),
+      (match) => match[1] ?? "",
+    );
     return matches.filter(Boolean);
   } catch {
     return [];
@@ -102,7 +105,7 @@ function listInventory(targets: ReturnType<typeof resolveSkillInventoryTargets>)
   const names = targets.flatMap((target) =>
     target.kind === "marker-file"
       ? listMarkerEntries(target.path)
-      : listDirectoryEntries(target.path, target.fileExtension)
+      : listDirectoryEntries(target.path, target.fileExtension),
   );
   return [...new Set(names)];
 }

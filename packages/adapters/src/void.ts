@@ -1,10 +1,10 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import type { IdeAdapter } from "./types";
 import type { IdeId, McpEntry, RuleEntry, Scope, SkillEntry } from "@vibebasket/core";
-import { mergeStandardMcpServers } from "./mcp-utils";
+import { hasErrorCode, mergeStandardMcpServers } from "./mcp-utils";
 import { getTargetCapabilities } from "./target-capabilities";
+import type { IdeAdapter } from "./types";
 
 export interface VoidMcpConfig {
   mcpServers?: Record<
@@ -45,11 +45,11 @@ export class VoidAdapter implements IdeAdapter {
     try {
       const content = await fs.readFile(file, "utf8");
       return JSON.parse(content);
-    } catch (e: any) {
-      if (e.code === "ENOENT") {
+    } catch (error: unknown) {
+      if (hasErrorCode(error, "ENOENT")) {
         return { mcpServers: {} };
       }
-      throw e;
+      throw error;
     }
   }
 
@@ -57,7 +57,7 @@ export class VoidAdapter implements IdeAdapter {
     config: unknown,
     mcps: McpEntry[],
     secrets: Record<string, string>,
-    opts: { force: boolean }
+    opts: { force: boolean },
   ): unknown {
     const current = (config as VoidMcpConfig) || { mcpServers: {} };
     const mergedMcp = mergeStandardMcpServers(current.mcpServers || {}, mcps, secrets, opts);
@@ -70,13 +70,13 @@ export class VoidAdapter implements IdeAdapter {
   private async writeInstructions(
     rulesFile: string,
     skills: SkillEntry[],
-    rules: RuleEntry[]
+    rules: RuleEntry[],
   ): Promise<void> {
     let content = "";
     try {
       content = await fs.readFile(rulesFile, "utf8");
-    } catch (e: any) {
-      if (e.code !== "ENOENT") throw e;
+    } catch (error: unknown) {
+      if (!hasErrorCode(error, "ENOENT")) throw error;
     }
 
     // Write skills
@@ -94,8 +94,8 @@ export class VoidAdapter implements IdeAdapter {
       const endTag = `# >>> VIBEBASKET END: ${skill.id} <<<`;
       const blockContent = `${startTag}\n# Skill: ${skill.displayName} (${skill.id})\n${body}\n${endTag}`;
 
-      const escapedStart = startTag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const escapedEnd = endTag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const escapedStart = startTag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const escapedEnd = endTag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       const regex = new RegExp(`${escapedStart}[\\s\\S]*?${escapedEnd}`);
 
       if (regex.test(content)) {
@@ -111,8 +111,8 @@ export class VoidAdapter implements IdeAdapter {
       const endTag = `# >>> VIBEBASKET END: ${rule.id} <<<`;
       const blockContent = `${startTag}\n# Rule: ${rule.displayName} (${rule.id})\n${rule.content}\n${endTag}`;
 
-      const escapedStart = startTag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const escapedEnd = endTag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const escapedStart = startTag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const escapedEnd = endTag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       const regex = new RegExp(`${escapedStart}[\\s\\S]*?${escapedEnd}`);
 
       if (regex.test(content)) {
@@ -123,7 +123,7 @@ export class VoidAdapter implements IdeAdapter {
     }
 
     await fs.mkdir(path.dirname(rulesFile), { recursive: true });
-    await fs.writeFile(rulesFile, content.trim() + "\n", "utf8");
+    await fs.writeFile(rulesFile, `${content.trim()}\n`, "utf8");
   }
 
   async applySkills(skills: SkillEntry[], scope: Scope, projectRoot?: string): Promise<void> {
@@ -153,8 +153,8 @@ export class VoidAdapter implements IdeAdapter {
     try {
       const content = await fs.readFile(file, "utf8");
       await fs.writeFile(`${file}.bak.${Date.now()}`, content, "utf8");
-    } catch (e: any) {
-      if (e.code !== "ENOENT") throw e;
+    } catch (error: unknown) {
+      if (!hasErrorCode(error, "ENOENT")) throw error;
     }
 
     await fs.writeFile(file, JSON.stringify(config, null, 2), "utf8");

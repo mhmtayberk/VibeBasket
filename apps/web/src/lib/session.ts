@@ -1,29 +1,29 @@
 import { auth } from "@/auth";
 
 export class SessionRequiredError extends Error {
-	constructor(message = "Authentication required.") {
-		super(message);
-		this.name = "SessionRequiredError";
-	}
+  constructor(message = "Authentication required.") {
+    super(message);
+    this.name = "SessionRequiredError";
+  }
 }
 
 export async function requireCurrentSession() {
-	const session = await auth();
+  const session = await auth();
 
-	if (!session?.user?.id) {
-		throw new SessionRequiredError();
-	}
+  if (!session?.user?.id) {
+    throw new SessionRequiredError();
+  }
 
-	return session;
+  return session;
 }
 
 export async function requireCurrentUserId() {
-	const session = await requireCurrentSession();
-	const userId = session.user?.id;
+  const session = await requireCurrentSession();
+  const userId = session.user?.id;
 
-	if (!userId) {
-		throw new SessionRequiredError();
-	}
+  if (!userId) {
+    throw new SessionRequiredError();
+  }
 
-	return userId;
+  return userId;
 }
