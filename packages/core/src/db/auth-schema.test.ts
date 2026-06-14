@@ -15,6 +15,7 @@ import {
 } from "../index";
 
 const tempDirs: string[] = [];
+type SqlRowsResult<Row extends Record<string, unknown>> = { rows?: Row[] };
 
 afterEach(() => {
   for (const tempDir of tempDirs.splice(0)) {
@@ -122,7 +123,9 @@ describe("auth and stack schema", () => {
         )
       ORDER BY name
     `);
-    const tableNames = ((tables as any).rows ?? []).map((row: any) => row.name);
+    const tableNames = ((tables as SqlRowsResult<{ name?: unknown }>).rows ?? []).map(
+      (row) => row.name,
+    );
 
     expect(tableNames).toEqual([
       "accounts",
@@ -135,7 +138,9 @@ describe("auth and stack schema", () => {
     ]);
 
     const userColumns = await client.execute("PRAGMA table_info(users)");
-    const userColumnNames = ((userColumns as any).rows ?? []).map((row: any) => row.name).sort();
+    const userColumnNames = ((userColumns as SqlRowsResult<{ name?: unknown }>).rows ?? [])
+      .map((row) => row.name)
+      .sort();
     expect(userColumnNames).toEqual([
       "created_at",
       "email",
@@ -147,8 +152,10 @@ describe("auth and stack schema", () => {
     ]);
 
     const savedStackColumns = await client.execute("PRAGMA table_info(saved_stacks)");
-    const savedStackColumnNames = ((savedStackColumns as any).rows ?? [])
-      .map((row: any) => row.name)
+    const savedStackColumnNames = (
+      (savedStackColumns as SqlRowsResult<{ name?: unknown }>).rows ?? []
+    )
+      .map((row) => row.name)
       .sort();
     expect(savedStackColumnNames).toEqual([
       "created_at",
@@ -175,18 +182,22 @@ describe("auth and stack schema", () => {
         )
       ORDER BY name
     `);
-    const indexNames = ((indexList as any).rows ?? []).map((row: any) => row.name).sort();
+    const indexNames = ((indexList as SqlRowsResult<{ name?: unknown }>).rows ?? [])
+      .map((row) => row.name)
+      .sort();
 
-    expect(indexNames).toEqual([
-      "accounts_user_id_idx",
-      "saved_stack_items_stack_id_position_idx",
-      "saved_stack_targets_stack_id_position_idx",
-      "saved_stacks_user_name_unique",
-      "saved_stacks_user_id_updated_at_idx",
-      "sessions_user_id_expires_idx",
-      "users_email_unique",
-      "verification_tokens_token_unique",
-    ].sort());
+    expect(indexNames).toEqual(
+      [
+        "accounts_user_id_idx",
+        "saved_stack_items_stack_id_position_idx",
+        "saved_stack_targets_stack_id_position_idx",
+        "saved_stacks_user_name_unique",
+        "saved_stacks_user_id_updated_at_idx",
+        "sessions_user_id_expires_idx",
+        "users_email_unique",
+        "verification_tokens_token_unique",
+      ].sort(),
+    );
 
     const redundantProviderIndex = await client.execute(`
       SELECT name
@@ -195,20 +206,24 @@ describe("auth and stack schema", () => {
         AND name = 'accounts_provider_provider_account_id_idx'
     `);
 
-    expect(((redundantProviderIndex as any).rows ?? []).length).toBe(0);
+    expect(
+      ((redundantProviderIndex as SqlRowsResult<Record<string, unknown>>).rows ?? []).length,
+    ).toBe(0);
 
-    await expect(client.execute(`
+    await expect(
+      client.execute(`
       INSERT INTO saved_stacks (id, user_id, name, created_at, updated_at)
       VALUES ('stack-orphan', 'missing-user', 'Nope', 1710000000, 1710000000)
-    `)).rejects.toThrow();
+    `),
+    ).rejects.toThrow();
 
     await client.execute("DELETE FROM users WHERE id = 'user-1'");
 
     const remainingStacks = await client.execute("SELECT COUNT(*) as count FROM saved_stacks");
     const remainingItems = await client.execute("SELECT COUNT(*) as count FROM saved_stack_items");
 
-    expect((remainingStacks as any).rows?.[0]?.count).toBe(0);
-    expect((remainingItems as any).rows?.[0]?.count).toBe(0);
+    expect((remainingStacks as SqlRowsResult<{ count?: unknown }>).rows?.[0]?.count).toBe(0);
+    expect((remainingItems as SqlRowsResult<{ count?: unknown }>).rows?.[0]?.count).toBe(0);
   });
 
   it("bootstraps a fresh sqlite database without pre-existing catalog tables", async () => {
@@ -227,7 +242,9 @@ describe("auth and stack schema", () => {
         AND name IN ('catalog_items', 'bundles', 'catalog_sync_runs', 'users', 'saved_stacks')
       ORDER BY name
     `);
-    const tableNames = ((tables as any).rows ?? []).map((row: any) => row.name);
+    const tableNames = ((tables as SqlRowsResult<{ name?: unknown }>).rows ?? []).map(
+      (row) => row.name,
+    );
 
     expect(tableNames).toEqual([
       "bundles",
@@ -258,18 +275,20 @@ describe("auth and stack schema", () => {
       VALUES ('item-1', 'stack-1', 'catalog-1', 'mcp', 'Catalog Item', 0, 1710000000)
     `);
 
-    await expect(client.execute(`
+    await expect(
+      client.execute(`
       INSERT INTO saved_stacks (id, user_id, name, created_at, updated_at)
       VALUES ('stack-orphan', 'missing-user', 'Nope', 1710000000, 1710000000)
-    `)).rejects.toThrow();
+    `),
+    ).rejects.toThrow();
 
     await client.execute("DELETE FROM users WHERE id = 'user-1'");
 
     const remainingStacks = await client.execute("SELECT COUNT(*) as count FROM saved_stacks");
     const remainingItems = await client.execute("SELECT COUNT(*) as count FROM saved_stack_items");
 
-    expect((remainingStacks as any).rows?.[0]?.count).toBe(0);
-    expect((remainingItems as any).rows?.[0]?.count).toBe(0);
+    expect((remainingStacks as SqlRowsResult<{ count?: unknown }>).rows?.[0]?.count).toBe(0);
+    expect((remainingItems as SqlRowsResult<{ count?: unknown }>).rows?.[0]?.count).toBe(0);
   });
 
   it("fails with a clear error when duplicate legacy data blocks unique indexes", async () => {
@@ -294,14 +313,18 @@ describe("auth and stack schema", () => {
     `);
 
     await expect(ensureDatabaseSchema(client)).rejects.toThrow(
-      "Cannot enable users_email_unique because duplicate non-null user emails already exist."
+      "Cannot enable users_email_unique because duplicate non-null user emails already exist.",
     );
 
     const foreignKeys = await client.execute("PRAGMA foreign_keys");
-    expect((foreignKeys as any).rows?.[0]?.foreign_keys).toBe(1);
+    expect((foreignKeys as SqlRowsResult<{ foreign_keys?: unknown }>).rows?.[0]?.foreign_keys).toBe(
+      1,
+    );
 
     const userColumns = await client.execute("PRAGMA table_info(users)");
-    const userColumnNames = ((userColumns as any).rows ?? []).map((row: any) => row.name).sort();
+    const userColumnNames = ((userColumns as SqlRowsResult<{ name?: unknown }>).rows ?? [])
+      .map((row) => row.name)
+      .sort();
     expect(userColumnNames).toEqual(["email", "id", "name"]);
   });
 
@@ -328,7 +351,7 @@ describe("auth and stack schema", () => {
     `);
 
     await expect(ensureDatabaseSchema(client)).rejects.toThrow(
-      "Cannot enable verification_tokens_token_unique because duplicate verification tokens already exist."
+      "Cannot enable verification_tokens_token_unique because duplicate verification tokens already exist.",
     );
   });
 });

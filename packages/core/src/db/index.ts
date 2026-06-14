@@ -1,14 +1,16 @@
-import { drizzle } from "drizzle-orm/libsql";
-import { createClient } from "@libsql/client";
-import { like, or, and, eq } from "drizzle-orm";
-import * as schema from "./schema";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { createClient } from "@libsql/client";
+import { and, eq, like, or } from "drizzle-orm";
+import { drizzle } from "drizzle-orm/libsql";
+import * as schema from "./schema";
 
 const MODULE_DIR = path.dirname(fileURLToPath(import.meta.url));
 
 const CATALOG_ITEM_COLUMNS = [
+  "description",
+  "icon",
   "source_name",
   "source_url",
   "first_seen_at",
@@ -18,6 +20,11 @@ const CATALOG_ITEM_COLUMNS = [
 
 type SqlExecutor = {
   execute: (sql: string) => Promise<unknown>;
+};
+
+type SqlRow = Record<string, unknown>;
+type SqlRowsResult<Row extends SqlRow = SqlRow> = {
+  rows?: Row[];
 };
 
 type ColumnSpec = {
@@ -55,7 +62,8 @@ const AUTH_AND_STACK_TABLE_REBUILDS: readonly TableRebuildSpec[] = [
     uniqueChecks: [
       {
         columns: ["email"],
-        errorMessage: "Cannot enable users_email_unique because duplicate non-null user emails already exist.",
+        errorMessage:
+          "Cannot enable users_email_unique because duplicate non-null user emails already exist.",
       },
     ],
   },
@@ -215,18 +223,13 @@ function findWorkspaceRoot(startDir: string): string | null {
   }
 }
 
-export function resolveDatabaseUrl(
-  opts: { cwd?: string; env?: NodeJS.ProcessEnv } = {}
-): string {
+export function resolveDatabaseUrl(opts: { cwd?: string; env?: NodeJS.ProcessEnv } = {}): string {
   const env = opts.env ?? process.env;
   if (env.DATABASE_URL) {
     return env.DATABASE_URL;
   }
 
-  const candidates = [
-    opts.cwd ?? process.cwd(),
-    MODULE_DIR,
-  ];
+  const candidates = [opts.cwd ?? process.cwd(), MODULE_DIR];
 
   for (const candidate of candidates) {
     const workspaceRoot = findWorkspaceRoot(candidate);
@@ -246,7 +249,11 @@ let ensureIndexesPromise: Promise<void> | null = null;
 
 async function getTableColumns(targetClient: SqlExecutor, tableName: string) {
   const tableInfo = await targetClient.execute(`PRAGMA table_info(${tableName})`);
-  return new Set(((tableInfo as any).rows ?? []).map((row: any) => String(row.name ?? "")));
+  return new Set(
+    ((tableInfo as SqlRowsResult<{ name?: unknown }>).rows ?? []).map((row) =>
+      String(row.name ?? ""),
+    ),
+  );
 }
 
 async function tableExists(targetClient: SqlExecutor, tableName: string) {
@@ -258,12 +265,12 @@ async function tableExists(targetClient: SqlExecutor, tableName: string) {
     LIMIT 1
   `);
 
-  return (((result as any).rows ?? []).length ?? 0) > 0;
+  return (((result as SqlRowsResult).rows ?? []).length ?? 0) > 0;
 }
 
 async function countRows(targetClient: SqlExecutor, tableName: string) {
   const result = await targetClient.execute(`SELECT COUNT(*) as count FROM ${tableName}`);
-  const value = (result as any).rows?.[0]?.count;
+  const value = (result as SqlRowsResult<{ count?: unknown }>).rows?.[0]?.count;
   return typeof value === "number" ? value : Number(value ?? 0);
 }
 
@@ -271,7 +278,7 @@ async function assertNoDuplicateRows(
   targetClient: SqlExecutor,
   tableName: string,
   columns: readonly string[],
-  errorMessage: string
+  errorMessage: string,
 ) {
   const duplicateCheck = await targetClient.execute(`
     SELECT 1
@@ -282,7 +289,7 @@ async function assertNoDuplicateRows(
     LIMIT 1
   `);
 
-  if ((((duplicateCheck as any).rows ?? []).length ?? 0) > 0) {
+  if ((((duplicateCheck as SqlRowsResult).rows ?? []).length ?? 0) > 0) {
     throw new Error(errorMessage);
   }
 }
@@ -296,11 +303,13 @@ async function rebuildTable(targetClient: SqlExecutor, spec: TableRebuildSpec) {
   const existingColumns = await getTableColumns(targetClient, spec.tableName);
   const rowCount = await countRows(targetClient, spec.tableName);
   const copyColumns = spec.expectedColumns.filter((column) => existingColumns.has(column));
-  const missingRequiredColumns = spec.requiredColumns.filter((column) => !existingColumns.has(column));
+  const missingRequiredColumns = spec.requiredColumns.filter(
+    (column) => !existingColumns.has(column),
+  );
 
   if (rowCount > 0 && missingRequiredColumns.length > 0) {
     throw new Error(
-      `Cannot safely upgrade ${spec.tableName}: missing required columns ${missingRequiredColumns.join(", ")} on a non-empty table.`
+      `Cannot safely upgrade ${spec.tableName}: missing required columns ${missingRequiredColumns.join(", ")} on a non-empty table.`,
     );
   }
 
@@ -312,7 +321,9 @@ async function rebuildTable(targetClient: SqlExecutor, spec: TableRebuildSpec) {
 
   const tempTableName = `__vb_rebuild_${spec.tableName}`;
   await targetClient.execute(`DROP TABLE IF EXISTS ${tempTableName}`);
-  await targetClient.execute(spec.createSql.replace(`CREATE TABLE ${spec.tableName}`, `CREATE TABLE ${tempTableName}`));
+  await targetClient.execute(
+    spec.createSql.replace(`CREATE TABLE ${spec.tableName}`, `CREATE TABLE ${tempTableName}`),
+  );
 
   if (copyColumns.length > 0) {
     await targetClient.execute(`
@@ -329,7 +340,7 @@ async function rebuildTable(targetClient: SqlExecutor, spec: TableRebuildSpec) {
 async function ensureTableColumns(
   targetClient: SqlExecutor,
   tableName: string,
-  columns: ColumnSpec[]
+  columns: ColumnSpec[],
 ) {
   const existingColumns = await getTableColumns(targetClient, tableName);
 
@@ -391,6 +402,8 @@ async function bootstrapDatabase(targetClient: SqlExecutor) {
   }
 
   const existingCatalogColumns = await ensureTableColumns(targetClient, "catalog_items", [
+    { name: "description", sql: "description TEXT" },
+    { name: "icon", sql: "icon TEXT" },
     { name: "source_name", sql: "source_name TEXT" },
     { name: "source_url", sql: "source_url TEXT" },
     { name: "first_seen_at", sql: "first_seen_at INTEGER" },
@@ -440,7 +453,11 @@ async function bootstrapDatabase(targetClient: SqlExecutor) {
     )
   `);
   const foreignKeyStatus = await targetClient.execute("PRAGMA foreign_keys");
-  const foreignKeysWereEnabled = String((foreignKeyStatus as any).rows?.[0]?.foreign_keys ?? "1") !== "0";
+  const foreignKeysWereEnabled =
+    String(
+      (foreignKeyStatus as SqlRowsResult<{ foreign_keys?: unknown }>).rows?.[0]?.foreign_keys ??
+        "1",
+    ) !== "0";
 
   await targetClient.execute("PRAGMA foreign_keys = OFF");
   await targetClient.execute("BEGIN IMMEDIATE");
@@ -450,7 +467,7 @@ async function bootstrapDatabase(targetClient: SqlExecutor) {
     }
 
     const foreignKeyCheck = await targetClient.execute("PRAGMA foreign_key_check");
-    if ((((foreignKeyCheck as any).rows ?? []).length ?? 0) > 0) {
+    if ((((foreignKeyCheck as SqlRowsResult).rows ?? []).length ?? 0) > 0) {
       throw new Error("Foreign key validation failed while upgrading auth or saved stack tables.");
     }
 
@@ -512,6 +529,10 @@ async function bootstrapDatabase(targetClient: SqlExecutor) {
     ON saved_stack_items(stack_id, position)
   `);
   await targetClient.execute(`
+    CREATE INDEX IF NOT EXISTS saved_stack_targets_stack_id_position_idx
+    ON saved_stack_targets(stack_id, position)
+  `);
+  await targetClient.execute(`
     CREATE INDEX IF NOT EXISTS idx_catalog_items_source_name
     ON catalog_items(source_name)
   `);
@@ -559,11 +580,11 @@ async function bootstrapDatabase(targetClient: SqlExecutor) {
 
   // Populate FTS5 index if empty (first run or migration)
   const ftsCount = (await targetClient.execute(
-    "SELECT count(*) as cnt FROM catalog_items_fts"
+    "SELECT count(*) as cnt FROM catalog_items_fts",
   )) as { rows: Array<{ cnt: number }> };
   if (ftsCount.rows[0]?.cnt === 0) {
     await targetClient.execute(
-      "INSERT INTO catalog_items_fts(rowid, display_name, description, source_url) SELECT rowid, display_name, description, source_url FROM catalog_items"
+      "INSERT INTO catalog_items_fts(rowid, display_name, description, source_url) SELECT rowid, display_name, description, source_url FROM catalog_items",
     );
   }
 }

@@ -1,2 +1,13 @@
-import os from "node:os";import path from "node:path";import { BaseAdapter } from "./base-adapter";
-export class ClineCliAdapter extends BaseAdapter {readonly id="cline-cli" as const;readonly displayName="Cline CLI";configPath():string{return path.join(os.homedir(),".cline","data","settings","cline_mcp_settings.json")}postInstallHint():string{return "Restart Cline CLI or open a new session so the MCP config is reloaded."}}
+import os from "node:os";
+import path from "node:path";
+import { BaseAdapter } from "./base-adapter";
+export class ClineCliAdapter extends BaseAdapter {
+  readonly id = "cline-cli" as const;
+  readonly displayName = "Cline CLI";
+  configPath(): string {
+    return path.join(os.homedir(), ".cline", "data", "settings", "cline_mcp_settings.json");
+  }
+  postInstallHint(): string {
+    return "Restart Cline CLI or open a new session so the MCP config is reloaded.";
+  }
+}

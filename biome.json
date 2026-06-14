@@ -1,5 +1,17 @@
 {
   "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+  "files": {
+    "ignore": [
+      "**/.agents/**",
+      "**/.codex/**",
+      "**/.next/**",
+      "**/dist/**",
+      "**/build/**",
+      "**/playwright-report/**",
+      "**/test-results/**",
+      "**/*.tsbuildinfo"
+    ]
+  },
   "organizeImports": {
     "enabled": true
   },

@@ -33,7 +33,7 @@ describe("runSearch", () => {
   });
 
   it("uses default API URL when env var is not set", async () => {
-    delete process.env.VIBEBASKET_API_URL;
+    process.env.VIBEBASKET_API_URL = undefined;
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({ items: [], pagination: { total: 0 } }),
@@ -147,7 +147,9 @@ describe("runSearch", () => {
     const { runSearch } = await import("./search.js");
     await runSearch("test");
 
-    expect(consoleOutput.some((line) => line.includes("Could not reach the catalog API"))).toBe(true);
+    expect(consoleOutput.some((line) => line.includes("Could not reach the catalog API"))).toBe(
+      true,
+    );
   });
 
   it("uses a 10-second abort timeout for fetch", async () => {

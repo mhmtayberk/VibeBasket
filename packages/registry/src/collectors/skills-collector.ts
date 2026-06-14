@@ -25,7 +25,7 @@ export class SkillsShCuratedCollector implements SourceCollector {
 
   constructor(
     private readonly fetchImpl: typeof fetch,
-    private readonly retries: number
+    private readonly retries: number,
   ) {}
 
   async collect(): Promise<SourceCollectedItem[]> {
@@ -43,10 +43,7 @@ export class SkillsShCuratedCollector implements SourceCollector {
     for (const skill of deduped.values()) {
       const skillData = skill.catalogItem.data as SkillEntry;
       const mirrorKey = canonicalSkillsShMirrorKey(skillData);
-      mirrorDeduped.set(
-        mirrorKey,
-        preferSkillMirrorCandidate(skill, mirrorDeduped.get(mirrorKey))
-      );
+      mirrorDeduped.set(mirrorKey, preferSkillMirrorCandidate(skill, mirrorDeduped.get(mirrorKey)));
     }
 
     return Array.from(mirrorDeduped.values());
@@ -145,7 +142,10 @@ export class SkillsShCuratedCollector implements SourceCollector {
   }
 
   private async fetchSkillsFromSitemaps(officialRepoPaths: Set<string>) {
-    const sitemapIndex = await this.fetchText("https://www.skills.sh/sitemap.xml", "skills.sh sitemap index");
+    const sitemapIndex = await this.fetchText(
+      "https://www.skills.sh/sitemap.xml",
+      "skills.sh sitemap index",
+    );
     const sitemapUrls = Array.from(sitemapIndex.matchAll(xmlLocPattern))
       .map((match) => normalizeCatalogText(match[1] ?? ""))
       .filter((url) => url.includes("sitemap-skills-"));
@@ -153,7 +153,10 @@ export class SkillsShCuratedCollector implements SourceCollector {
     const items: SourceCollectedItem[] = [];
 
     for (const sitemapUrl of sitemapUrls) {
-      const xml = await this.fetchText(sitemapUrl, `skills.sh sitemap ${sitemapUrl.split("/").pop() ?? sitemapUrl}`);
+      const xml = await this.fetchText(
+        sitemapUrl,
+        `skills.sh sitemap ${sitemapUrl.split("/").pop() ?? sitemapUrl}`,
+      );
       for (const match of xml.matchAll(xmlLocPattern)) {
         const skillUrl = normalizeCatalogText(match[1] ?? "");
         const parsed = skillUrl.match(skillsShSkillUrlPattern);
@@ -280,7 +283,7 @@ export class SkillsShCuratedCollector implements SourceCollector {
     for (const repoPath of repoPaths) {
       const repoSkills = await this.fetchRepoSkills(
         repoPath,
-        officialRepoPaths.has(repoPath.toLowerCase())
+        officialRepoPaths.has(repoPath.toLowerCase()),
       );
       for (const skill of repoSkills) {
         items.push(skill);
@@ -291,7 +294,10 @@ export class SkillsShCuratedCollector implements SourceCollector {
   }
 
   private async fetchRepoSkills(repoPath: string, isOfficial: boolean) {
-    const html = await this.fetchText(`https://www.skills.sh/${repoPath}`, `skills.sh repo ${repoPath}`);
+    const html = await this.fetchText(
+      `https://www.skills.sh/${repoPath}`,
+      `skills.sh repo ${repoPath}`,
+    );
     const [owner, repo] = repoPath.split("/");
     const items: SourceCollectedItem[] = [];
     const seen = new Set<string>();
@@ -348,7 +354,7 @@ export class SkillsShCuratedCollector implements SourceCollector {
       label,
       {
         retries: this.retries,
-      }
+      },
     );
 
     if (!res.ok) {

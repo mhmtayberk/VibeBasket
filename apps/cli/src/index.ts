@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 
-import { Command } from "commander";
 import chalk from "chalk";
+import { Command } from "commander";
 import { applyBundle } from "./apply.js";
+import { runDoctor } from "./doctor.js";
 import { toErrorMessage } from "./errors.js";
 import { initProject } from "./init.js";
-import { runDoctor } from "./doctor.js";
-import { runRollback } from "./rollback.js";
 import { runList } from "./list.js";
+import { runRollback } from "./rollback.js";
 import { runSearch } from "./search.js";
 
 const program = new Command();

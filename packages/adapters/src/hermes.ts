@@ -1,10 +1,10 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import type { IdeAdapter } from "./types";
 import type { IdeId, McpEntry, Scope, SkillEntry } from "@vibebasket/core";
-import { mergeStandardMcpServers } from "./mcp-utils";
+import { type BasicMcpServerConfig, hasErrorCode, mergeStandardMcpServers } from "./mcp-utils";
 import { getTargetCapabilities } from "./target-capabilities";
+import type { IdeAdapter } from "./types";
 
 export interface HermesMcpConfig {
   mcp_servers?: Record<
@@ -16,6 +16,12 @@ export interface HermesMcpConfig {
     }
   >;
 }
+
+type HermesMcpServerBlock = {
+  command: string;
+  args: string[];
+  env: Record<string, string>;
+};
 
 export class HermesAdapter implements IdeAdapter {
   private static readonly capabilities = getTargetCapabilities("hermes");
@@ -36,11 +42,11 @@ export class HermesAdapter implements IdeAdapter {
     try {
       const content = await fs.readFile(file, "utf8");
       return this.parseYaml(content);
-    } catch (e: any) {
-      if (e.code === "ENOENT") {
+    } catch (error: unknown) {
+      if (hasErrorCode(error, "ENOENT")) {
         return { mcp_servers: {} };
       }
-      throw e;
+      throw error;
     }
   }
 
@@ -48,7 +54,7 @@ export class HermesAdapter implements IdeAdapter {
     config: unknown,
     mcps: McpEntry[],
     secrets: Record<string, string>,
-    opts: { force: boolean }
+    opts: { force: boolean },
   ): unknown {
     const current = (config as HermesMcpConfig) || { mcp_servers: {} };
     // We will reuse mergeStandardMcpServers by converting key/value mappings
@@ -66,8 +72,8 @@ export class HermesAdapter implements IdeAdapter {
       let content = "";
       try {
         content = await fs.readFile(rulesFile, "utf8");
-      } catch (e: any) {
-        if (e.code !== "ENOENT") throw e;
+      } catch (error: unknown) {
+        if (!hasErrorCode(error, "ENOENT")) throw error;
       }
 
       for (const skill of skills) {
@@ -85,8 +91,8 @@ export class HermesAdapter implements IdeAdapter {
         const blockContent = `${startTag}\n# Skill: ${skill.displayName} (${skill.id})\n${body}\n${endTag}`;
 
         // Escape helper inline
-        const escapedStart = startTag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const escapedEnd = endTag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const escapedStart = startTag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const escapedEnd = endTag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
         const regex = new RegExp(`${escapedStart}[\\s\\S]*?${escapedEnd}`);
 
         if (regex.test(content)) {
@@ -97,7 +103,7 @@ export class HermesAdapter implements IdeAdapter {
       }
 
       await fs.mkdir(path.dirname(rulesFile), { recursive: true });
-      await fs.writeFile(rulesFile, content.trim() + "\n", "utf8");
+      await fs.writeFile(rulesFile, `${content.trim()}\n`, "utf8");
     }
   }
 
@@ -110,8 +116,8 @@ export class HermesAdapter implements IdeAdapter {
     try {
       existingContent = await fs.readFile(file, "utf8");
       await fs.writeFile(`${file}.bak.${Date.now()}`, existingContent, "utf8");
-    } catch (e: any) {
-      if (e.code !== "ENOENT") throw e;
+    } catch (error: unknown) {
+      if (!hasErrorCode(error, "ENOENT")) throw error;
     }
 
     const serialized = this.serializeYaml(config as HermesMcpConfig, existingContent);
@@ -136,7 +142,7 @@ export class HermesAdapter implements IdeAdapter {
     const config: HermesMcpConfig = { mcp_servers: {} };
     let inMcpServers = false;
     let currentServer: string | null = null;
-    let serverBlock: any = null;
+    let serverBlock: HermesMcpServerBlock | null = null;
     let inArgs = false;
     let inEnv = false;
 
@@ -183,14 +189,21 @@ export class HermesAdapter implements IdeAdapter {
           }
         } else if (currentServer && indent === 6 && serverBlock) {
           if (inArgs && trimmed.startsWith("-")) {
-            const argVal = trimmed.slice(1).trim().replace(/^["']|["']$/g, "");
+            const argVal = trimmed
+              .slice(1)
+              .trim()
+              .replace(/^["']|["']$/g, "");
             serverBlock.args.push(argVal);
           } else if (inEnv) {
             const parts = trimmed.split(":");
             const firstPart = parts[0];
             if (firstPart === undefined) continue;
             const key = firstPart.trim();
-            const val = parts.slice(1).join(":").trim().replace(/^["']|["']$/g, "");
+            const val = parts
+              .slice(1)
+              .join(":")
+              .trim()
+              .replace(/^["']|["']$/g, "");
             serverBlock.env[key] = val;
           }
         }
@@ -207,7 +220,7 @@ export class HermesAdapter implements IdeAdapter {
   private serializeYaml(config: HermesMcpConfig, existingYaml: string): string {
     const servers = config.mcp_servers || {};
     let output = "";
-    
+
     // We clean existing mcp_servers block to write a fresh cleanly formatted block
     const lines = existingYaml.split(/\r?\n/);
     let inMcpBlock = false;
@@ -229,7 +242,7 @@ export class HermesAdapter implements IdeAdapter {
     }
 
     // Append fresh mcp_servers block
-    output = output.trim() + "\n\nmcp_servers:\n";
+    output = `${output.trim()}\n\nmcp_servers:\n`;
     for (const [name, server] of Object.entries(servers)) {
       output += `  ${name}:\n`;
       output += `    command: "${server.command}"\n`;

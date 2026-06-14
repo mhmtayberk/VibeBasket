@@ -1,10 +1,10 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import type { IdeAdapter } from "./types";
 import type { IdeId, McpEntry, RuleEntry, Scope, SkillEntry } from "@vibebasket/core";
-import { mergeStandardMcpServers } from "./mcp-utils";
+import { hasErrorCode, mergeStandardMcpServers } from "./mcp-utils";
 import { getTargetCapabilities } from "./target-capabilities";
+import type { IdeAdapter } from "./types";
 
 export interface RooCodeMcpConfig {
   mcpServers?: Record<
@@ -40,7 +40,7 @@ export class RooCodeAdapter implements IdeAdapter {
         "User",
         "globalStorage",
         "roodev.rogue-dev",
-        "settings"
+        "settings",
       );
     } else if (platform === "win32") {
       globalStorageDir = path.join(
@@ -51,7 +51,7 @@ export class RooCodeAdapter implements IdeAdapter {
         "User",
         "globalStorage",
         "roodev.rogue-dev",
-        "settings"
+        "settings",
       );
     } else {
       globalStorageDir = path.join(
@@ -61,7 +61,7 @@ export class RooCodeAdapter implements IdeAdapter {
         "User",
         "globalStorage",
         "roodev.rogue-dev",
-        "settings"
+        "settings",
       );
     }
 
@@ -73,11 +73,11 @@ export class RooCodeAdapter implements IdeAdapter {
     try {
       const content = await fs.readFile(file, "utf8");
       return JSON.parse(content);
-    } catch (e: any) {
-      if (e.code === "ENOENT") {
+    } catch (error: unknown) {
+      if (hasErrorCode(error, "ENOENT")) {
         return { mcpServers: {} };
       }
-      throw e;
+      throw error;
     }
   }
 
@@ -85,7 +85,7 @@ export class RooCodeAdapter implements IdeAdapter {
     config: unknown,
     mcps: McpEntry[],
     secrets: Record<string, string>,
-    opts: { force: boolean }
+    opts: { force: boolean },
   ): unknown {
     const current = (config as RooCodeMcpConfig) || { mcpServers: {} };
     const mergedMcp = mergeStandardMcpServers(current.mcpServers || {}, mcps, secrets, opts);
@@ -101,8 +101,8 @@ export class RooCodeAdapter implements IdeAdapter {
       let content = "";
       try {
         content = await fs.readFile(rulesFile, "utf8");
-      } catch (e: any) {
-        if (e.code !== "ENOENT") throw e;
+      } catch (error: unknown) {
+        if (!hasErrorCode(error, "ENOENT")) throw error;
       }
 
       for (const skill of skills) {
@@ -120,8 +120,8 @@ export class RooCodeAdapter implements IdeAdapter {
         const blockContent = `${startTag}\n# Skill: ${skill.displayName} (${skill.id})\n${body}\n${endTag}`;
 
         // Escape helper inline
-        const escapedStart = startTag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const escapedEnd = endTag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const escapedStart = startTag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const escapedEnd = endTag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
         const regex = new RegExp(`${escapedStart}[\\s\\S]*?${escapedEnd}`);
 
         if (regex.test(content)) {
@@ -132,7 +132,7 @@ export class RooCodeAdapter implements IdeAdapter {
       }
 
       await fs.mkdir(path.dirname(rulesFile), { recursive: true });
-      await fs.writeFile(rulesFile, content.trim() + "\n", "utf8");
+      await fs.writeFile(rulesFile, `${content.trim()}\n`, "utf8");
     }
   }
 
@@ -142,8 +142,8 @@ export class RooCodeAdapter implements IdeAdapter {
       let content = "";
       try {
         content = await fs.readFile(rulesFile, "utf8");
-      } catch (e: any) {
-        if (e.code !== "ENOENT") throw e;
+      } catch (error: unknown) {
+        if (!hasErrorCode(error, "ENOENT")) throw error;
       }
 
       for (const rule of rules) {
@@ -152,8 +152,8 @@ export class RooCodeAdapter implements IdeAdapter {
         const blockContent = `${startTag}\n# Rule: ${rule.displayName} (${rule.id})\n${rule.content}\n${endTag}`;
 
         // Escape helper inline
-        const escapedStart = startTag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const escapedEnd = endTag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const escapedStart = startTag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const escapedEnd = endTag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
         const regex = new RegExp(`${escapedStart}[\\s\\S]*?${escapedEnd}`);
 
         if (regex.test(content)) {
@@ -164,7 +164,7 @@ export class RooCodeAdapter implements IdeAdapter {
       }
 
       await fs.mkdir(path.dirname(rulesFile), { recursive: true });
-      await fs.writeFile(rulesFile, content.trim() + "\n", "utf8");
+      await fs.writeFile(rulesFile, `${content.trim()}\n`, "utf8");
     }
   }
 
@@ -176,8 +176,8 @@ export class RooCodeAdapter implements IdeAdapter {
     try {
       const content = await fs.readFile(file, "utf8");
       await fs.writeFile(`${file}.bak.${Date.now()}`, content, "utf8");
-    } catch (e: any) {
-      if (e.code !== "ENOENT") throw e;
+    } catch (error: unknown) {
+      if (!hasErrorCode(error, "ENOENT")) throw error;
     }
 
     await fs.writeFile(file, JSON.stringify(config, null, 2), "utf8");

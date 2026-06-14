@@ -131,7 +131,9 @@ describe("runRollback", () => {
 
   it("lists backups sorted by timestamp to select", async () => {
     createBackupFile("cursor", "user", "2025-01-01T10:00:00.000Z", { mcpServers: {} });
-    createBackupFile("windsurf", "project", "2025-06-01T12:00:00.000Z", { mcpServers: { github: {} } });
+    createBackupFile("windsurf", "project", "2025-06-01T12:00:00.000Z", {
+      mcpServers: { github: {} },
+    });
 
     const { runRollback } = await import("./rollback.js");
     await runRollback();
@@ -162,7 +164,10 @@ describe("runRollback", () => {
     const { runRollback } = await import("./rollback.js");
     await runRollback();
 
-    expect(writeConfigMock).toHaveBeenCalledWith("user", expect.objectContaining({ mcpServers: { github: { args: ["test"] } } }));
+    expect(writeConfigMock).toHaveBeenCalledWith(
+      "user",
+      expect.objectContaining({ mcpServers: { github: { args: ["test"] } } }),
+    );
     expect(consoleOutput.some((line) => line.includes("Successfully restored"))).toBe(true);
   });
 

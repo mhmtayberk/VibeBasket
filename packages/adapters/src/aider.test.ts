@@ -1,9 +1,9 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import type { RuleEntry, SkillEntry } from "@vibebasket/core";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { AiderAdapter } from "./aider.js";
-import type { SkillEntry, RuleEntry } from "@vibebasket/core";
 
 describe("AiderAdapter", () => {
   let tempDir: string;
@@ -29,8 +29,8 @@ describe("AiderAdapter", () => {
         id: "aider-skill",
         displayName: "Aider Skill",
         source: { type: "inline", content: "Aider specifications content." },
-        verified: true
-      }
+        verified: true,
+      },
     ];
 
     await adapter.applySkills(skills, "project", tempDir);
@@ -43,7 +43,7 @@ describe("AiderAdapter", () => {
 
     expect(instContent).toContain("# >>> VIBEBASKET START: aider-skill <<<");
     expect(instContent).toContain("Aider specifications content.");
-    
+
     expect(configContent).toContain("read:");
     expect(configContent).toContain("- .aiderinstructions.md");
   });
@@ -51,17 +51,21 @@ describe("AiderAdapter", () => {
   it("should merge with existing single-line string read config", async () => {
     const adapter = new AiderAdapter();
     const configFile = path.join(tempDir, ".aider.conf.yml");
-    
+
     // Seed existing config with a single string read flag
-    await fs.writeFile(configFile, "model: gpt-4\nread: my-conventions.md\ndark-mode: true\n", "utf8");
+    await fs.writeFile(
+      configFile,
+      "model: gpt-4\nread: my-conventions.md\ndark-mode: true\n",
+      "utf8",
+    );
 
     const rules: RuleEntry[] = [
       {
         id: "aider-rule",
         displayName: "Aider Rule",
         content: "Rule constraints.",
-        verified: true
-      }
+        verified: true,
+      },
     ];
 
     await adapter.applyRules(rules, "project", tempDir);
@@ -77,7 +81,7 @@ describe("AiderAdapter", () => {
   it("should merge with existing block array read config", async () => {
     const adapter = new AiderAdapter();
     const configFile = path.join(tempDir, ".aider.conf.yml");
-    
+
     // Seed existing config with an array read flag
     await fs.writeFile(configFile, "read:\n  - other-rules.md\n  - styles.md\n", "utf8");
 
@@ -86,8 +90,8 @@ describe("AiderAdapter", () => {
         id: "aider-rule",
         displayName: "Aider Rule",
         content: "Rule constraints.",
-        verified: true
-      }
+        verified: true,
+      },
     ];
 
     await adapter.applyRules(rules, "project", tempDir);
@@ -102,7 +106,7 @@ describe("AiderAdapter", () => {
   it("should be idempotent and not append if already configured", async () => {
     const adapter = new AiderAdapter();
     const configFile = path.join(tempDir, ".aider.conf.yml");
-    
+
     // Seed existing config with target already present
     await fs.writeFile(configFile, "read:\n  - .aiderinstructions.md\n", "utf8");
 
@@ -111,8 +115,8 @@ describe("AiderAdapter", () => {
         id: "aider-rule",
         displayName: "Aider Rule",
         content: "Rule constraints.",
-        verified: true
-      }
+        verified: true,
+      },
     ];
 
     await adapter.applyRules(rules, "project", tempDir);

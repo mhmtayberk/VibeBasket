@@ -1,10 +1,10 @@
-import Link from "next/link";
-import { Power } from "lucide-react";
 import {
   RULES_SUPPORTED_TARGET_COUNT,
   SKILLS_SUPPORTED_TARGET_COUNT,
   SUPPORTED_TARGET_COUNT,
 } from "@/lib/targets";
+import { Power } from "lucide-react";
+import Link from "next/link";
 
 export function DocsTabAdapters() {
   return (

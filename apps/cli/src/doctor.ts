@@ -1,33 +1,33 @@
 import fs from "node:fs";
 import path from "node:path";
-import chalk from "chalk";
 import {
-  CursorAdapter,
+  AiderAdapter,
   AntigravityAdapter,
-  WindsurfAdapter,
-  VSCodeAdapter,
   ClaudeCodeAdapter,
-  DeepSeekTuiAdapter,
-  GeminiCliAdapter,
-  KiroAdapter,
-  JunieAdapter,
   ClineCliAdapter,
-  ZedAdapter,
+  CodeBuddyAdapter,
   CodexAdapter,
   ContinueAdapter,
-  RooCodeAdapter,
-  HermesAdapter,
-  OpenClawAdapter,
-  GitHubCopilotAdapter,
-  VoidAdapter,
-  AiderAdapter,
   CortexCodeAdapter,
+  CursorAdapter,
+  DeepSeekTuiAdapter,
+  GeminiCliAdapter,
+  GitHubCopilotAdapter,
   GooseAdapter,
+  HermesAdapter,
   IBMBobAdapter,
-  CodeBuddyAdapter,
+  JunieAdapter,
+  KiroAdapter,
+  OpenClawAdapter,
   OpenCodeAdapter,
+  RooCodeAdapter,
+  VSCodeAdapter,
+  VoidAdapter,
+  WindsurfAdapter,
+  ZedAdapter,
 } from "@vibebasket/adapters";
 import type { IdeAdapter } from "@vibebasket/adapters";
+import chalk from "chalk";
 import { extractConfiguredMcpIds } from "./config-inspection.js";
 
 const ADAPTERS: [string, IdeAdapter][] = [

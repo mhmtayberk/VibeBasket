@@ -1,30 +1,31 @@
-import { describe, expect, it } from "vitest";
+import type { McpEntry } from "@vibebasket/core";
 import * as fc from "fast-check";
-import { CursorAdapter } from "./cursor.js";
-import { VSCodeAdapter } from "./vscode.js";
-import { WindsurfAdapter } from "./windsurf.js";
+import { describe, expect, it } from "vitest";
+import { AiderAdapter } from "./aider.js";
 import { AntigravityAdapter } from "./antigravity.js";
 import { ClaudeCodeAdapter } from "./claude-code.js";
-import { DeepSeekTuiAdapter } from "./deepseek-tui.js";
-import { GeminiCliAdapter } from "./gemini-cli.js";
-import { KiroAdapter } from "./kiro.js";
-import { JunieAdapter } from "./junie.js";
 import { ClineCliAdapter } from "./cline-cli.js";
-import { ZedAdapter } from "./zed.js";
+import { CodeBuddyAdapter } from "./codebuddy.js";
 import { CodexAdapter } from "./codex.js";
 import { ContinueAdapter } from "./continue.js";
-import { RooCodeAdapter } from "./roocode.js";
-import { HermesAdapter } from "./hermes.js";
-import { OpenClawAdapter } from "./openclaw.js";
-import { GitHubCopilotAdapter } from "./github-copilot.js";
-import { VoidAdapter } from "./void.js";
-import { AiderAdapter } from "./aider.js";
-import { TARGET_CAPABILITIES } from "./target-capabilities.js";
-import { OpenCodeAdapter } from "./opencode.js";
 import { CortexCodeAdapter } from "./cortex-code.js";
+import { CursorAdapter } from "./cursor.js";
+import { DeepSeekTuiAdapter } from "./deepseek-tui.js";
+import { GeminiCliAdapter } from "./gemini-cli.js";
+import { GitHubCopilotAdapter } from "./github-copilot.js";
 import { GooseAdapter } from "./goose.js";
+import { HermesAdapter } from "./hermes.js";
 import { IBMBobAdapter } from "./ibm-bob.js";
-import { CodeBuddyAdapter } from "./codebuddy.js";
+import { JunieAdapter } from "./junie.js";
+import { KiroAdapter } from "./kiro.js";
+import { OpenClawAdapter } from "./openclaw.js";
+import { OpenCodeAdapter } from "./opencode.js";
+import { RooCodeAdapter } from "./roocode.js";
+import { TARGET_CAPABILITIES } from "./target-capabilities.js";
+import { VoidAdapter } from "./void.js";
+import { VSCodeAdapter } from "./vscode.js";
+import { WindsurfAdapter } from "./windsurf.js";
+import { ZedAdapter } from "./zed.js";
 
 const adapters = [
   new CursorAdapter(),
@@ -80,8 +81,9 @@ describe("Adapter Idempotency Law", () => {
             }),
           ),
           (config, items) => {
-            const firstApply = adapter.applyMcps(config, items as any, {}, { force: false });
-            const secondApply = adapter.applyMcps(firstApply, items as any, {}, { force: false });
+            const typedItems = items as McpEntry[];
+            const firstApply = adapter.applyMcps(config, typedItems, {}, { force: false });
+            const secondApply = adapter.applyMcps(firstApply, typedItems, {}, { force: false });
 
             expect(secondApply).toEqual(firstApply);
           },

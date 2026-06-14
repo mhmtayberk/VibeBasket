@@ -1,8 +1,9 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import type { IdeAdapter } from "./types";
 import type { IdeId, McpEntry, RuleEntry, Scope, SkillEntry } from "@vibebasket/core";
+import { hasErrorCode } from "./mcp-utils";
 import { getTargetCapabilities } from "./target-capabilities";
+import type { IdeAdapter } from "./types";
 
 export class GitHubCopilotAdapter implements IdeAdapter {
   private static readonly capabilities = getTargetCapabilities("github-copilot");
@@ -27,11 +28,11 @@ export class GitHubCopilotAdapter implements IdeAdapter {
     const file = this.configPath(scope, projectRoot);
     try {
       return await fs.readFile(file, "utf8");
-    } catch (e: any) {
-      if (e.code === "ENOENT") {
+    } catch (error: unknown) {
+      if (hasErrorCode(error, "ENOENT")) {
         return "";
       }
-      throw e;
+      throw error;
     }
   }
 
@@ -39,7 +40,7 @@ export class GitHubCopilotAdapter implements IdeAdapter {
     config: unknown,
     _mcps: McpEntry[],
     _secrets: Record<string, string>,
-    _opts: { force: boolean }
+    _opts: { force: boolean },
   ): unknown {
     // GitHub Copilot does not support MCP configuration
     return config;
@@ -51,8 +52,8 @@ export class GitHubCopilotAdapter implements IdeAdapter {
       let content = "";
       try {
         content = await fs.readFile(instructionsFile, "utf8");
-      } catch (e: any) {
-        if (e.code !== "ENOENT") throw e;
+      } catch (error: unknown) {
+        if (!hasErrorCode(error, "ENOENT")) throw error;
       }
 
       for (const skill of skills) {
@@ -69,8 +70,8 @@ export class GitHubCopilotAdapter implements IdeAdapter {
         const endTag = `# >>> VIBEBASKET END: ${skill.id} <<<`;
         const blockContent = `${startTag}\n# Skill: ${skill.displayName} (${skill.id})\n${body}\n${endTag}`;
 
-        const escapedStart = startTag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const escapedEnd = endTag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const escapedStart = startTag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const escapedEnd = endTag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
         const regex = new RegExp(`${escapedStart}[\\s\\S]*?${escapedEnd}`);
 
         if (regex.test(content)) {
@@ -81,7 +82,7 @@ export class GitHubCopilotAdapter implements IdeAdapter {
       }
 
       await fs.mkdir(path.dirname(instructionsFile), { recursive: true });
-      await fs.writeFile(instructionsFile, content.trim() + "\n", "utf8");
+      await fs.writeFile(instructionsFile, `${content.trim()}\n`, "utf8");
     }
   }
 
@@ -91,8 +92,8 @@ export class GitHubCopilotAdapter implements IdeAdapter {
       let content = "";
       try {
         content = await fs.readFile(instructionsFile, "utf8");
-      } catch (e: any) {
-        if (e.code !== "ENOENT") throw e;
+      } catch (error: unknown) {
+        if (!hasErrorCode(error, "ENOENT")) throw error;
       }
 
       for (const rule of rules) {
@@ -100,8 +101,8 @@ export class GitHubCopilotAdapter implements IdeAdapter {
         const endTag = `# >>> VIBEBASKET END: ${rule.id} <<<`;
         const blockContent = `${startTag}\n# Rule: ${rule.displayName} (${rule.id})\n${rule.content}\n${endTag}`;
 
-        const escapedStart = startTag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const escapedEnd = endTag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const escapedStart = startTag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const escapedEnd = endTag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
         const regex = new RegExp(`${escapedStart}[\\s\\S]*?${escapedEnd}`);
 
         if (regex.test(content)) {
@@ -112,7 +113,7 @@ export class GitHubCopilotAdapter implements IdeAdapter {
       }
 
       await fs.mkdir(path.dirname(instructionsFile), { recursive: true });
-      await fs.writeFile(instructionsFile, content.trim() + "\n", "utf8");
+      await fs.writeFile(instructionsFile, `${content.trim()}\n`, "utf8");
     }
   }
 
@@ -125,8 +126,8 @@ export class GitHubCopilotAdapter implements IdeAdapter {
     try {
       const content = await fs.readFile(file, "utf8");
       await fs.writeFile(`${file}.bak.${Date.now()}`, content, "utf8");
-    } catch (e: any) {
-      if (e.code !== "ENOENT") throw e;
+    } catch (error: unknown) {
+      if (!hasErrorCode(error, "ENOENT")) throw error;
     }
 
     const contentToWrite = typeof config === "string" ? config : JSON.stringify(config, null, 2);

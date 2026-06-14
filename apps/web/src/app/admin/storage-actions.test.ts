@@ -31,7 +31,7 @@ vi.mock("@/lib/site-config", () => ({
 const { requireAdminRole } = await import("@/lib/admin-session");
 const { revalidatePath } = await import("next/cache");
 const { loadStorageConfig, saveStorageConfig } = await import("@/lib/storage");
-const { saveStorageConfigAction } = await import("./actions");
+const { saveStorageConfigAction } = await import("./backup-actions");
 
 describe("saveStorageConfigAction", () => {
   beforeEach(() => {

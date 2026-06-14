@@ -1,6 +1,7 @@
+import type { McpEntry } from "@vibebasket/core";
 import { describe, expect, it } from "vitest";
 import { CursorAdapter } from "./cursor.js";
-import type { McpEntry } from "@vibebasket/core";
+import type { McpConfigResult } from "./mcp-utils";
 
 describe("CursorAdapter", () => {
   it("should merge new MCPs idempotently", () => {
@@ -25,7 +26,7 @@ describe("CursorAdapter", () => {
       verified: false,
     };
 
-    const result = adapter.applyMcps(config, [newMcp], {}, { force: false }) as any;
+    const result = adapter.applyMcps(config, [newMcp], {}, { force: false }) as McpConfigResult;
     expect(result.mcpServers.existing).toBeDefined();
     expect(result.mcpServers["new-mcp"]).toBeDefined();
     expect(result.mcpServers["new-mcp"].command).toBe("npx");
@@ -53,10 +54,20 @@ describe("CursorAdapter", () => {
       verified: false,
     };
 
-    const resultWithoutForce = adapter.applyMcps(config, [conflictMcp], {}, { force: false }) as any;
+    const resultWithoutForce = adapter.applyMcps(
+      config,
+      [conflictMcp],
+      {},
+      { force: false },
+    ) as McpConfigResult;
     expect(resultWithoutForce.mcpServers.existing.command).toBe("node");
 
-    const resultWithForce = adapter.applyMcps(config, [conflictMcp], {}, { force: true }) as any;
+    const resultWithForce = adapter.applyMcps(
+      config,
+      [conflictMcp],
+      {},
+      { force: true },
+    ) as McpConfigResult;
     expect(resultWithForce.mcpServers.existing.command).toBe("npx");
   });
 
@@ -75,7 +86,12 @@ describe("CursorAdapter", () => {
       verified: false,
     };
 
-    const result = adapter.applyMcps({}, [mcp], { MY_API_KEY: "secret123" }, { force: false }) as any;
+    const result = adapter.applyMcps(
+      {},
+      [mcp],
+      { MY_API_KEY: "secret123" },
+      { force: false },
+    ) as McpConfigResult;
     expect(result.mcpServers.test.env.API_KEY).toBe("secret123");
     expect(result.mcpServers.test.env.OTHER_VAR).toBe("static_value");
   });

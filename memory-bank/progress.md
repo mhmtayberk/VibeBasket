@@ -1,4 +1,4 @@
-# Progress — June 13, 2026
+# Progress — June 15, 2026
 
 ## Completed This Session
 - [x] Registry split: 1346-line monolith → 6 modules (schemas, utils, 3 collectors, index)
@@ -26,11 +26,26 @@
 - [x] Mobile: basket FAB with bottom sheet, responsive catalog grid
 - [x] Homepage: "Who is this for" section, "How it works" section, marquee IDE icon strip
 - [x] Rate limiting: 8 endpoints with sliding window (corrected from previously documented 9)
+- [x] Open-source launch hardening: GitHub Actions CI, CodeQL, Dependabot, PR template, Code of Conduct, and production readiness checklist added
+- [x] Docs honesty pass: README / CONTRIBUTING / SECURITY / SETUP now document the current verification gate more accurately
+- [x] Prod-readiness honesty pass: README, SECURITY.md, docs security content, architecture notes, and llms.txt now reflect the actual catalog scale, secret-handling model, and trust/proxy behavior
+- [x] Rate-limit hardening: `cf-connecting-ip` is only honored when `TRUST_PROXY` is explicitly enabled
+- [x] Production header hardening: HSTS, `X-Permitted-Cross-Domain-Policies`, `X-Download-Options`, and stricter CSP without inline script allowance
+- [x] Admin storage visibility: active backup backend resolution is now async-correct and the UI warns when an incomplete cloud config silently falls back to local storage
+- [x] Cloud backup restore: storage backends now expose provider-native download flows and admin restore no longer requires manual out-of-band cloud download
+- [x] Public-launch docs pass: README, SETUP, SECURITY, ARCHITECTURE, PROJECT_OVERVIEW, and `llms.txt` now better document live catalog scale, `AUTH_TRUST_HOST`, first-sync expectations, and backup credential scope
+- [x] Pre-prod audit hardening: repo-wide lint green again, package builds passing, focused registry/adapters/core/web tests re-verified
+- [x] Migration safety fix: schema bootstrap now restores missing legacy `catalog_items.description` / `icon` columns before FTS initialization, and recreates the saved-stack target position index
+- [x] Test isolation cleanup: adapter tests no longer write into the real user home directory during verification
+- [x] Playwright harness cleanup: E2E webServer now boots the standalone production server instead of `next start`
 
 ## Test Coverage
 - Focused CLI, adapter, and web/admin suites covering install verification and operational visibility are passing
 - Web TypeScript strict mode: zero errors
+- Web production build succeeds in a real shell; Turbopack still reports one non-fatal NFT tracing warning, but it is now narrowed to `next.config.ts` -> `src/app/admin/backup-actions.ts` instead of the older monolithic admin action file
+- Full Playwright browser E2E could not be completed on this machine because the Chromium Playwright binary is not installed locally
 
 ## Next Steps
 - CLI `prune` command
 - Expanded E2E test suite
+- Reduce the remaining Turbopack tracing warning around server-side filesystem/bootstrap imports

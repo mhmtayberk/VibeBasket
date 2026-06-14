@@ -1,246 +1,257 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import {
-	checkRateLimit,
-	getClientAddress,
-	resetRateLimitBuckets,
-} from "./rate-limit";
+import { checkRateLimit, getClientAddress, resetRateLimitBuckets } from "./rate-limit";
 
 describe("rate-limit utilities", () => {
-	beforeEach(() => {
-		resetRateLimitBuckets();
-		vi.unstubAllEnvs();
-	});
+  beforeEach(() => {
+    resetRateLimitBuckets();
+    vi.unstubAllEnvs();
+  });
 
-	describe("getClientAddress resolution", () => {
-		it("should prioritize cf-connecting-ip if present", () => {
-			const req = new Request("https://vibebasket.dev/", {
-				headers: {
-					"cf-connecting-ip": "203.0.113.195",
-					"x-forwarded-for": "198.51.100.42",
-					"x-real-ip": "198.51.100.1",
-				},
-			});
+  describe("getClientAddress resolution", () => {
+    it("should ignore cf-connecting-ip unless TRUST_PROXY is enabled", () => {
+      const req = new Request("https://vibebasket.dev/", {
+        headers: {
+          "cf-connecting-ip": "203.0.113.195",
+          "x-forwarded-for": "198.51.100.42",
+          "x-real-ip": "198.51.100.1",
+        },
+      });
 
-			const ip = getClientAddress(req);
-			expect(ip).toBe("203.0.113.195");
-		});
+      const ip = getClientAddress(req);
+      expect(ip).toBe("198.51.100.1");
+    });
 
-		it("should ignore x-forwarded-for by default to prevent client-side spoofing", () => {
-			const req = new Request("https://vibebasket.dev/", {
-				headers: {
-					"x-forwarded-for": "198.51.100.42",
-					"x-real-ip": "198.51.100.1",
-				},
-			});
+    it("should prioritize cf-connecting-ip when TRUST_PROXY is enabled", () => {
+      vi.stubEnv("TRUST_PROXY", "true");
 
-			const ip = getClientAddress(req);
-			// Should ignore x-forwarded-for and fallback to x-real-ip
-			expect(ip).toBe("198.51.100.1");
-		});
+      const req = new Request("https://vibebasket.dev/", {
+        headers: {
+          "cf-connecting-ip": "203.0.113.195",
+          "x-forwarded-for": "198.51.100.42",
+          "x-real-ip": "198.51.100.1",
+        },
+      });
 
-		it("should trust x-forwarded-for when TRUST_PROXY env is enabled", () => {
-			vi.stubEnv("TRUST_PROXY", "true");
+      const ip = getClientAddress(req);
+      expect(ip).toBe("203.0.113.195");
+    });
 
-			const req = new Request("https://vibebasket.dev/", {
-				headers: {
-					"x-forwarded-for": "198.51.100.42, 192.168.1.1",
-					"x-real-ip": "198.51.100.1",
-				},
-			});
+    it("should ignore x-forwarded-for by default to prevent client-side spoofing", () => {
+      const req = new Request("https://vibebasket.dev/", {
+        headers: {
+          "x-forwarded-for": "198.51.100.42",
+          "x-real-ip": "198.51.100.1",
+        },
+      });
 
-			const ip = getClientAddress(req);
-			// TRUST_PROXY is enabled, so it parses first IP in list
-			expect(ip).toBe("198.51.100.42");
-		});
+      const ip = getClientAddress(req);
+      // Should ignore x-forwarded-for and fallback to x-real-ip
+      expect(ip).toBe("198.51.100.1");
+    });
 
-		it("should fallback to local connection identifier when no headers match", () => {
-			const req = new Request("https://vibebasket.dev/");
-			const ip = getClientAddress(req);
-			expect(ip).toBe("local");
-		});
-	});
+    it("should trust x-forwarded-for when TRUST_PROXY env is enabled", () => {
+      vi.stubEnv("TRUST_PROXY", "true");
 
-	describe("checkRateLimit & memory leak cleanup", () => {
-		it("should allow requests within limits and block beyond limits", () => {
-			const key = "test-client";
-			const limit = 3;
-			const windowMs = 5000;
+      const req = new Request("https://vibebasket.dev/", {
+        headers: {
+          "x-forwarded-for": "198.51.100.42, 192.168.1.1",
+          "x-real-ip": "198.51.100.1",
+        },
+      });
 
-			// First request
-			let res = checkRateLimit(key, limit, windowMs);
-			expect(res.allowed).toBe(true);
-			expect(res.remaining).toBe(2);
+      const ip = getClientAddress(req);
+      // TRUST_PROXY is enabled, so it parses first IP in list
+      expect(ip).toBe("198.51.100.42");
+    });
 
-			// Second request
-			res = checkRateLimit(key, limit, windowMs);
-			expect(res.allowed).toBe(true);
-			expect(res.remaining).toBe(1);
+    it("should fallback to local connection identifier when no headers match", () => {
+      const req = new Request("https://vibebasket.dev/");
+      const ip = getClientAddress(req);
+      expect(ip).toBe("local");
+    });
+  });
 
-			// Third request
-			res = checkRateLimit(key, limit, windowMs);
-			expect(res.allowed).toBe(true);
-			expect(res.remaining).toBe(0);
+  describe("checkRateLimit & memory leak cleanup", () => {
+    it("should allow requests within limits and block beyond limits", () => {
+      const key = "test-client";
+      const limit = 3;
+      const windowMs = 5000;
 
-			// Fourth request should be blocked
-			res = checkRateLimit(key, limit, windowMs);
-			expect(res.allowed).toBe(false);
-			expect(res.remaining).toBe(0);
-		});
+      // First request
+      let res = checkRateLimit(key, limit, windowMs);
+      expect(res.allowed).toBe(true);
+      expect(res.remaining).toBe(2);
 
-		it("should cleanup expired entries from map under active load", () => {
-			const windowMs = 10;
-			const key = "temp-client";
+      // Second request
+      res = checkRateLimit(key, limit, windowMs);
+      expect(res.allowed).toBe(true);
+      expect(res.remaining).toBe(1);
 
-			// Insert a rate-limit bucket
-			checkRateLimit(key, 5, windowMs);
+      // Third request
+      res = checkRateLimit(key, limit, windowMs);
+      expect(res.allowed).toBe(true);
+      expect(res.remaining).toBe(0);
 
-			// Mock time travel to simulate expiration
-			const originalNow = Date.now;
-			Date.now = () => originalNow() + 1000;
+      // Fourth request should be blocked
+      res = checkRateLimit(key, limit, windowMs);
+      expect(res.allowed).toBe(false);
+      expect(res.remaining).toBe(0);
+    });
 
-			// Trigger 55 requests to force rate limit checks and trigger map cleaner
-			for (let i = 0; i < 55; i++) {
-				checkRateLimit(`dummy-client-${i}`, 100, 10000);
-			}
+    it("should cleanup expired entries from map under active load", () => {
+      const windowMs = 10;
+      const key = "temp-client";
 
-			// Restore original time resolver
-			Date.now = originalNow;
-		});
+      // Insert a rate-limit bucket
+      checkRateLimit(key, 5, windowMs);
 
-		it("should differentiate between clients with same limit", () => {
-			resetRateLimitBuckets();
-			const limit = 2;
-			const windowMs = 60000;
+      // Mock time travel to simulate expiration
+      const originalNow = Date.now;
+      Date.now = () => originalNow() + 1000;
 
-			// Client A uses both their requests
-			expect(checkRateLimit("client-a", limit, windowMs).allowed).toBe(true);
-			expect(checkRateLimit("client-a", limit, windowMs).allowed).toBe(true);
-			expect(checkRateLimit("client-a", limit, windowMs).allowed).toBe(false);
+      // Trigger 55 requests to force rate limit checks and trigger map cleaner
+      for (let i = 0; i < 55; i++) {
+        checkRateLimit(`dummy-client-${i}`, 100, 10000);
+      }
 
-			// Client B should still be allowed
-			expect(checkRateLimit("client-b", limit, windowMs).allowed).toBe(true);
-			expect(checkRateLimit("client-b", limit, windowMs).allowed).toBe(true);
-			expect(checkRateLimit("client-b", limit, windowMs).allowed).toBe(false);
-		});
+      // Restore original time resolver
+      Date.now = originalNow;
+    });
 
-		it("should return correct retryAfterSeconds when blocked", () => {
-			resetRateLimitBuckets();
-			const key = "retry-test";
-			const limit = 1;
-			const windowMs = 60000;
+    it("should differentiate between clients with same limit", () => {
+      resetRateLimitBuckets();
+      const limit = 2;
+      const windowMs = 60000;
 
-			checkRateLimit(key, limit, windowMs);
-			const blocked = checkRateLimit(key, limit, windowMs);
+      // Client A uses both their requests
+      expect(checkRateLimit("client-a", limit, windowMs).allowed).toBe(true);
+      expect(checkRateLimit("client-a", limit, windowMs).allowed).toBe(true);
+      expect(checkRateLimit("client-a", limit, windowMs).allowed).toBe(false);
 
-			expect(blocked.allowed).toBe(false);
-			expect(blocked.retryAfterSeconds).toBeGreaterThan(0);
-			expect(blocked.retryAfterSeconds).toBeLessThanOrEqual(60);
-		});
+      // Client B should still be allowed
+      expect(checkRateLimit("client-b", limit, windowMs).allowed).toBe(true);
+      expect(checkRateLimit("client-b", limit, windowMs).allowed).toBe(true);
+      expect(checkRateLimit("client-b", limit, windowMs).allowed).toBe(false);
+    });
 
-		it("should handle zero or negative limits gracefully", () => {
-			resetRateLimitBuckets();
+    it("should return correct retryAfterSeconds when blocked", () => {
+      resetRateLimitBuckets();
+      const key = "retry-test";
+      const limit = 1;
+      const windowMs = 60000;
 
-			// Zero limit — all blocked
-			const zero = checkRateLimit("zero-limit", 0, 60000);
-			expect(zero.allowed).toBe(false);
+      checkRateLimit(key, limit, windowMs);
+      const blocked = checkRateLimit(key, limit, windowMs);
 
-			// Negative limit — treated as zero, all blocked
-			const neg = checkRateLimit("neg-limit", -5, 60000);
-			expect(neg.allowed).toBe(false);
-		});
+      expect(blocked.allowed).toBe(false);
+      expect(blocked.retryAfterSeconds).toBeGreaterThan(0);
+      expect(blocked.retryAfterSeconds).toBeLessThanOrEqual(60);
+    });
 
-		it("should handle very large window", () => {
-			resetRateLimitBuckets();
-			const res = checkRateLimit("large-window", 100, 86400000); // 24 hours
-			expect(res.allowed).toBe(true);
-			expect(res.remaining).toBe(99);
-		});
+    it("should handle zero or negative limits gracefully", () => {
+      resetRateLimitBuckets();
 
-		it("should handle very short window", () => {
-			resetRateLimitBuckets();
-			const res = checkRateLimit("short-window", 50, 1); // 1ms window
-			expect(res.allowed).toBe(true);
-		});
+      // Zero limit — all blocked
+      const zero = checkRateLimit("zero-limit", 0, 60000);
+      expect(zero.allowed).toBe(false);
 
-		it("should handle high limit", () => {
-			resetRateLimitBuckets();
-			const res = checkRateLimit("high-limit", 10000, 60000);
-			expect(res.allowed).toBe(true);
-			expect(res.remaining).toBe(9999);
-		});
+      // Negative limit — treated as zero, all blocked
+      const neg = checkRateLimit("neg-limit", -5, 60000);
+      expect(neg.allowed).toBe(false);
+    });
 
-		it("should handle cleanup without losing active client data", () => {
-			resetRateLimitBuckets();
-			const key = "persistent-client";
-			const limit = 100;
-			const windowMs = 3600000;
+    it("should handle very large window", () => {
+      resetRateLimitBuckets();
+      const res = checkRateLimit("large-window", 100, 86400000); // 24 hours
+      expect(res.allowed).toBe(true);
+      expect(res.remaining).toBe(99);
+    });
 
-			// Use half the requests
-			for (let i = 0; i < 50; i++) {
-				checkRateLimit(key, limit, windowMs);
-			}
+    it("should handle very short window", () => {
+      resetRateLimitBuckets();
+      const res = checkRateLimit("short-window", 50, 1); // 1ms window
+      expect(res.allowed).toBe(true);
+    });
 
-			// Trigger cleanup via many distinct (quick-expiring) clients
-			for (let i = 0; i < 60; i++) {
-				checkRateLimit(`cleanup-trigger-${i}`, 1, 1);
-			}
+    it("should handle high limit", () => {
+      resetRateLimitBuckets();
+      const res = checkRateLimit("high-limit", 10000, 60000);
+      expect(res.allowed).toBe(true);
+      expect(res.remaining).toBe(9999);
+    });
 
-			// Active client should still be tracked
-			const after = checkRateLimit(key, limit, windowMs);
-			expect(after.remaining).toBeGreaterThanOrEqual(49);
-		});
+    it("should handle cleanup without losing active client data", () => {
+      resetRateLimitBuckets();
+      const key = "persistent-client";
+      const limit = 100;
+      const windowMs = 3600000;
 
-		it("should handle concurrent identical keys", () => {
-			resetRateLimitBuckets();
-			const key = "concurrent-same";
-			const limit = 100;
-			const windowMs = 60000;
+      // Use half the requests
+      for (let i = 0; i < 50; i++) {
+        checkRateLimit(key, limit, windowMs);
+      }
 
-			// Simulate concurrent requests from same client
-			const results: boolean[] = [];
-			for (let i = 0; i < 150; i++) {
-				results.push(checkRateLimit(key, limit, windowMs).allowed);
-			}
+      // Trigger cleanup via many distinct (quick-expiring) clients
+      for (let i = 0; i < 60; i++) {
+        checkRateLimit(`cleanup-trigger-${i}`, 1, 1);
+      }
 
-			const allowed = results.filter(Boolean).length;
-			expect(allowed).toBe(100);
-			const blocked = results.filter((r) => !r).length;
-			expect(blocked).toBe(50);
-		});
+      // Active client should still be tracked
+      const after = checkRateLimit(key, limit, windowMs);
+      expect(after.remaining).toBeGreaterThanOrEqual(49);
+    });
 
-		it("should handle empty string key", () => {
-			resetRateLimitBuckets();
-			const res = checkRateLimit("", 5, 60000);
-			expect(res.allowed).toBe(true);
-		});
+    it("should handle concurrent identical keys", () => {
+      resetRateLimitBuckets();
+      const key = "concurrent-same";
+      const limit = 100;
+      const windowMs = 60000;
 
-		it("should handle keys with special characters", () => {
-			resetRateLimitBuckets();
-			const specialKeys = [
-				"catalog:192.168.1.1",
-				"admin:user@example.com",
-				"health:::global",
-				"bundle / create",
-			];
+      // Simulate concurrent requests from same client
+      const results: boolean[] = [];
+      for (let i = 0; i < 150; i++) {
+        results.push(checkRateLimit(key, limit, windowMs).allowed);
+      }
 
-			for (const key of specialKeys) {
-				const res = checkRateLimit(key, 5, 60000);
-				expect(res.allowed).toBe(true);
-			}
-		});
+      const allowed = results.filter(Boolean).length;
+      expect(allowed).toBe(100);
+      const blocked = results.filter((r) => !r).length;
+      expect(blocked).toBe(50);
+    });
 
-		it("should respect custom window per endpoint", () => {
-			resetRateLimitBuckets();
+    it("should handle empty string key", () => {
+      resetRateLimitBuckets();
+      const res = checkRateLimit("", 5, 60000);
+      expect(res.allowed).toBe(true);
+    });
 
-			// Use all 3 requests in a 100ms window
-			const key = "endpoint-test";
-			checkRateLimit(key, 3, 100);
-			checkRateLimit(key, 3, 100);
-			checkRateLimit(key, 3, 100);
-			expect(checkRateLimit(key, 3, 100).allowed).toBe(false);
+    it("should handle keys with special characters", () => {
+      resetRateLimitBuckets();
+      const specialKeys = [
+        "catalog:192.168.1.1",
+        "admin:user@example.com",
+        "health:::global",
+        "bundle / create",
+      ];
 
-			// Different window should have independent limit
-			expect(checkRateLimit("other-endpoint", 10, 60000).allowed).toBe(true);
-		});
-	});
+      for (const key of specialKeys) {
+        const res = checkRateLimit(key, 5, 60000);
+        expect(res.allowed).toBe(true);
+      }
+    });
+
+    it("should respect custom window per endpoint", () => {
+      resetRateLimitBuckets();
+
+      // Use all 3 requests in a 100ms window
+      const key = "endpoint-test";
+      checkRateLimit(key, 3, 100);
+      checkRateLimit(key, 3, 100);
+      checkRateLimit(key, 3, 100);
+      expect(checkRateLimit(key, 3, 100).allowed).toBe(false);
+
+      // Different window should have independent limit
+      expect(checkRateLimit("other-endpoint", 10, 60000).allowed).toBe(true);
+    });
+  });
 });

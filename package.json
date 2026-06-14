@@ -8,13 +8,17 @@
   },
   "scripts": {
     "build": "pnpm -r run build",
+    "build:packages": "pnpm --filter @vibebasket/core build && pnpm --filter @vibebasket/registry build && pnpm --filter @vibebasket/adapters build",
+    "build:web": "pnpm --filter web build",
     "catalog:sync": "pnpm --filter @vibebasket/core build && pnpm --filter @vibebasket/registry build && node scripts/catalog-sync.mjs",
     "catalog:sync:dry": "pnpm --filter @vibebasket/core build && pnpm --filter @vibebasket/registry build && node scripts/catalog-sync.mjs --dry-run",
     "dev": "pnpm -r run dev",
     "test": "pnpm -r run test",
+    "test:e2e": "pnpm --filter web test:e2e",
     "lint": "biome check .",
     "format": "biome format --write .",
-    "typecheck": "pnpm -r run typecheck"
+    "typecheck": "pnpm -r run typecheck",
+    "verify:ci": "pnpm lint && pnpm build:packages && pnpm --filter web typecheck && pnpm build:web && pnpm test"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",

@@ -22,7 +22,7 @@ export interface IdeAdapter extends IdeAdapterCapabilities {
     config: unknown,
     mcps: McpEntry[],
     secrets: Record<string, string>,
-    opts: { force: boolean }
+    opts: { force: boolean },
   ): unknown;
 
   /** Optional, only if supportsSkills. Writes to ~/.claude/skills/<id>/ or project equivalent. */
