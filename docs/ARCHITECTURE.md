@@ -22,7 +22,7 @@ To keep the catalog fresh without relying on mostly manual entry, VibeBasket imp
 1. **Collectors**
    - curated `verified.yaml`
    - official MCP Registry
-   - official `skills.sh` catalog page
+   - public `skills.sh` catalog, including official and community entries
 2. **Normalization**
    - external metadata is transformed into internal Zod-validated `McpEntry`, `SkillEntry`, `RuleEntry`, or `WorkflowPackEntry`
    - item-level freshness metadata is attached during persistence: `sourceName`, `sourceUrl`, `firstSeenAt`, `lastSeenAt`, `lastSyncedAt`
@@ -37,7 +37,7 @@ To keep the catalog fresh without relying on mostly manual entry, VibeBasket imp
 5. **Verified precedence**
    - if a curated verified record conflicts with an upstream record, the verified record wins
 6. **Trust scoring**
-   - trust is currently derived, not stored: `verified`, official source identity, and freshness metadata combine into a visible `verified` / `official` / `community` trust tier
+   - trust is currently derived, not stored: curated `verified.yaml` entries map to `verified`, trusted upstream sources map to `official`, and everything else maps to `community`
 7. **Source isolation**
    - one broken upstream source should not fail the entire sync run
    - sync summary now surfaces source-level errors explicitly
@@ -59,7 +59,7 @@ Cloud SDKs are lazily loaded via dynamic `await import()` to prevent Next.js bui
 - **Batched Persistence**: registry sync persists catalog rows in batches instead of one row at a time, which reduces write pressure during large syncs.
 - **Page-Based Pagination**: `/api/catalog` returns `items + pagination` and the web UI only fetches the active tab and current page.
 - **Server-Rendered Initial Catalog**: the homepage reads the first MCP page from SQLite on the server and passes it into the catalog client component, so first paint is not dependent on client hydration or an initial `/api/catalog` fetch.
-- **Derived Trust Signals**: catalog cards render trust badges and freshness labels from item metadata without needing a second scoring table.
+- **Derived Trust Signals**: catalog cards render trust badges from source provenance and freshness labels from item metadata without needing a second scoring table.
 - **Trust-Aware Discovery**: trust and freshness metadata now participate in filtering and sorting, so recommended results prefer verified, official, and recently synced entries without breaking pagination.
 - **Reasonable Limits**: API defaults to `24` items per page and caps page size at `100`.
 - **Debounced Input**: Frontend uses a 300ms debounce to minimize API pressure while maintaining a responsive feel.
@@ -139,11 +139,12 @@ The homepage (`/`) is `force-dynamic` and server-renders:
 - the installer side still lags behind the manifest surface for some non-MCP entry types
 - the target picker now mirrors the real adapter-backed set instead of keeping a visible roadmap/watchlist tier
 - `project` scope apply now forwards the working directory as `projectRoot`, which closes an earlier bug where project-scoped adapters had the right path logic but were never given the project path at runtime
+- repository automation currently validates linting, shared-package builds, the web typecheck/build path, unit/integration suites, and Playwright smoke coverage; global `tsc -b` remains a cleanup target rather than a hard release gate
 
 ## Production & Deployment Architecture
 
 ### 🐳 Docker & Self-Hosting Pipeline
-- **Next.js Standalone Mode:** Configured `output: 'standalone'` in `next.config.ts`. The Docker build uses this lean, self-contained server layout, only bundling required `node_modules` and files, reducing the production image to under 150MB.
+- **Next.js Standalone Mode:** Configured `output: 'standalone'` in `next.config.ts`. The Docker build uses this lean, self-contained server layout so production images only carry the runtime files they actually need.
 - **Multi-stage Alpine Runtime:** A secure, non-root Node.js 22 Alpine multi-stage `Dockerfile` handles installation, building, and runner optimization stages.
 - **SQLite Persistence:** Mounts a Docker volume at `/data` mapping SQLite `.db` records to keep user stacks and authenticated accounts safe during container updates.
 - **docker-compose.yml Spec:** Integrates an automatic container health check, binds default port `3000`, and provisions named volume mount points securely.
@@ -155,4 +156,4 @@ The homepage (`/`) is `force-dynamic` and server-renders:
 
 ### 🗺️ Sitemap & Query Hardening
 - **Information Leak Protection:** `sitemap.ts` includes `/docs` alongside `/` and `/stacks` but intentionally excludes user-created stack pages (`/bundle/[id]`) and `/admin` routes. This guards against search engines indexing personal development context profiles (Information Disclosure defense).
-- **docs Route Boundaries:** Protects against Local/Remote File Inclusion (LFI/RFI) by validating the docs `tab` search parameter against an allowed whitelist. The arama search parameter is capped at 100 characters to prevent ReDoS (Regular Expression Denial of Service) and XSS enjections.
+- **docs Route Boundaries:** Protects against Local/Remote File Inclusion (LFI/RFI) by validating the docs `tab` search parameter against an allowed whitelist. The search parameter is capped at 100 characters to reduce ReDoS (Regular Expression Denial of Service) and XSS injection risk.

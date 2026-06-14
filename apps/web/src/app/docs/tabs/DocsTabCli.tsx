@@ -1,6 +1,6 @@
-import Link from "next/link";
-import { TerminalSquare } from "lucide-react";
 import { SUPPORTED_TARGET_COUNT } from "@/lib/targets";
+import { TerminalSquare } from "lucide-react";
+import Link from "next/link";
 
 export function DocsTabCli() {
   return (
@@ -164,15 +164,15 @@ export function DocsTabCli() {
               vibebasket search &lt;query&gt;
             </h3>
             <p className="text-sm text-[#bdc9c2] leading-relaxed max-w-3xl">
-              Searches the VibeBasket catalog from the terminal using the FTS5 full-text index. Returns up to 10 matching items with prefix-aware token matching.
+              Searches the VibeBasket catalog from the terminal using the FTS5 full-text index.
+              Returns up to 10 matching items with prefix-aware token matching.
             </p>
           </div>
           <div className="border border-[#3e4944] p-6">
-            <h3 className="font-mono text-[#a0fdda] text-xs font-semibold mb-3">
-              vibebasket init
-            </h3>
+            <h3 className="font-mono text-[#a0fdda] text-xs font-semibold mb-3">vibebasket init</h3>
             <p className="text-sm text-[#bdc9c2] leading-relaxed max-w-3xl">
-              Scaffolds a new VibeBasket-ready project with a local config file, adapter detection, and workspace directory layout.
+              Scaffolds a new VibeBasket-ready project with a local config file, adapter detection,
+              and workspace directory layout.
             </p>
           </div>
           <div className="border border-[#3e4944] p-6">
@@ -180,7 +180,9 @@ export function DocsTabCli() {
               vibebasket doctor
             </h3>
             <p className="text-sm text-[#bdc9c2] leading-relaxed max-w-3xl">
-              Diagnoses the local environment: checks Node.js version, adapter config integrity, file permissions, and SQLite connectivity. Reports a health summary per installed target.
+              Diagnoses the local environment: checks Node.js version, adapter config integrity,
+              file permissions, and SQLite connectivity. Reports a health summary per installed
+              target.
             </p>
           </div>
           <div className="border border-[#3e4944] p-6">
@@ -188,7 +190,8 @@ export function DocsTabCli() {
               vibebasket rollback &lt;bundle-id&gt;
             </h3>
             <p className="text-sm text-[#bdc9c2] leading-relaxed max-w-3xl">
-              Restores adapter config files to their timestamped backup state from the last apply. Writes are backed up before every apply so rollback is always safe.
+              Restores adapter config files to their timestamped backup state from the last apply.
+              Writes are backed up before every apply so rollback is always safe.
             </p>
           </div>
         </div>

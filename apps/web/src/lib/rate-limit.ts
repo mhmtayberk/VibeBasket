@@ -1,5 +1,5 @@
 type BucketEntry = {
-	timestamps: number[];
+  timestamps: number[];
 };
 
 const CLEANUP_INTERVAL = 50; // every N checks
@@ -9,96 +9,91 @@ const buckets = new Map<string, BucketEntry>();
 let cleanupCounter = 0;
 
 function cleanupExpiredBuckets(now: number) {
-	cleanupCounter++;
-	if (cleanupCounter < CLEANUP_INTERVAL) return;
-	cleanupCounter = 0;
+  cleanupCounter++;
+  if (cleanupCounter < CLEANUP_INTERVAL) return;
+  cleanupCounter = 0;
 
-	for (const [key, entry] of buckets.entries()) {
-		entry.timestamps = entry.timestamps.filter((ts) => ts > now - CLEANUP_WINDOW_MS);
-		if (entry.timestamps.length === 0) {
-			buckets.delete(key);
-		}
-	}
+  for (const [key, entry] of buckets.entries()) {
+    entry.timestamps = entry.timestamps.filter((ts) => ts > now - CLEANUP_WINDOW_MS);
+    if (entry.timestamps.length === 0) {
+      buckets.delete(key);
+    }
+  }
 }
 
 export function getClientAddress(request: Request) {
-	const cfIp = request.headers.get("cf-connecting-ip");
-	if (cfIp) {
-		return cfIp.trim();
-	}
+  const trustProxyEnv = process.env.TRUST_PROXY;
+  const isTrustProxyEnabled = trustProxyEnv === "true" || trustProxyEnv === "1";
 
-	const trustProxyEnv = process.env.TRUST_PROXY;
-	const isTrustProxyEnabled =
-		trustProxyEnv === "true" || trustProxyEnv === "1";
+  const cfIp = request.headers.get("cf-connecting-ip");
+  if (isTrustProxyEnabled && cfIp) {
+    return cfIp.trim();
+  }
 
-	if (isTrustProxyEnabled) {
-		const forwardedFor = request.headers.get("x-forwarded-for");
-		if (forwardedFor) {
-			const ip = forwardedFor.split(",")[0]?.trim();
-			if (ip) return ip;
-		}
-	}
+  if (isTrustProxyEnabled) {
+    const forwardedFor = request.headers.get("x-forwarded-for");
+    if (forwardedFor) {
+      const ip = forwardedFor.split(",")[0]?.trim();
+      if (ip) return ip;
+    }
+  }
 
-	const realIp = request.headers.get("x-real-ip");
-	if (realIp) {
-		return realIp.trim();
-	}
+  const realIp = request.headers.get("x-real-ip");
+  if (realIp) {
+    return realIp.trim();
+  }
 
-	return "local";
+  return "local";
 }
 
 export interface RateLimitResult {
-	allowed: boolean;
-	remaining: number;
-	resetAt: number;
-	retryAfterSeconds: number;
+  allowed: boolean;
+  remaining: number;
+  resetAt: number;
+  retryAfterSeconds: number;
 }
 
-export function checkRateLimit(
-	key: string,
-	limit: number,
-	windowMs: number,
-): RateLimitResult {
-	const now = Date.now();
-	const windowStart = now - windowMs;
+export function checkRateLimit(key: string, limit: number, windowMs: number): RateLimitResult {
+  const now = Date.now();
+  const windowStart = now - windowMs;
 
-	cleanupExpiredBuckets(now);
+  cleanupExpiredBuckets(now);
 
-	let entry = buckets.get(key);
+  let entry = buckets.get(key);
 
-	if (!entry) {
-		entry = { timestamps: [] };
-		buckets.set(key, entry);
-	}
+  if (!entry) {
+    entry = { timestamps: [] };
+    buckets.set(key, entry);
+  }
 
-	entry.timestamps = entry.timestamps.filter((ts) => ts > windowStart);
-	const currentCount = entry.timestamps.length;
+  entry.timestamps = entry.timestamps.filter((ts) => ts > windowStart);
+  const currentCount = entry.timestamps.length;
 
-	if (currentCount >= limit) {
-		const oldestInWindow = entry.timestamps[0];
-		const resetAt = oldestInWindow + windowMs;
-		const retryAfterSeconds = Math.ceil((resetAt - now) / 1000);
-		return {
-			allowed: false,
-			remaining: 0,
-			resetAt,
-			retryAfterSeconds: Math.max(1, retryAfterSeconds),
-		};
-	}
+  if (currentCount >= limit) {
+    const oldestInWindow = entry.timestamps[0];
+    const resetAt = oldestInWindow + windowMs;
+    const retryAfterSeconds = Math.ceil((resetAt - now) / 1000);
+    return {
+      allowed: false,
+      remaining: 0,
+      resetAt,
+      retryAfterSeconds: Math.max(1, retryAfterSeconds),
+    };
+  }
 
-	entry.timestamps.push(now);
-	const nextCount = entry.timestamps.length;
-	const resetAt = entry.timestamps[0] + windowMs;
+  entry.timestamps.push(now);
+  const nextCount = entry.timestamps.length;
+  const resetAt = entry.timestamps[0] + windowMs;
 
-	return {
-		allowed: true,
-		remaining: Math.max(0, limit - nextCount),
-		resetAt,
-		retryAfterSeconds: 0,
-	};
+  return {
+    allowed: true,
+    remaining: Math.max(0, limit - nextCount),
+    resetAt,
+    retryAfterSeconds: 0,
+  };
 }
 
 export function resetRateLimitBuckets() {
-	buckets.clear();
-	cleanupCounter = 0;
+  buckets.clear();
+  cleanupCounter = 0;
 }

@@ -1,6 +1,6 @@
+import type { Bundle } from "@vibebasket/core";
 import { describe, expect, it } from "vitest";
 import { flattenBundleContent, getUnsupportedTargetContent } from "./apply-helpers.js";
-import type { Bundle } from "@vibebasket/core";
 
 describe("apply helpers", () => {
   it("flattens workflow pack content into the main apply payload", () => {
@@ -8,7 +8,17 @@ describe("apply helpers", () => {
       schemaVersion: "0.1",
       scope: "user",
       targets: ["cursor"],
-      mcps: [{ id: "mcp-a", displayName: "A", runtime: "npx", args: [], env: {}, requiredSecrets: [], verified: false }],
+      mcps: [
+        {
+          id: "mcp-a",
+          displayName: "A",
+          runtime: "npx",
+          args: [],
+          env: {},
+          requiredSecrets: [],
+          verified: false,
+        },
+      ],
       skills: [],
       rules: [],
       workflowPacks: [
@@ -17,8 +27,25 @@ describe("apply helpers", () => {
           displayName: "Workflow A",
           files: [{ path: ".cursor/rules.md", content: "hi", ifExists: "skip" }],
           rules: [{ id: "rule-a", displayName: "Rule A", content: "always", verified: false }],
-          mcps: [{ id: "mcp-b", displayName: "B", runtime: "npx", args: [], env: {}, requiredSecrets: [], verified: false }],
-          skills: [{ id: "skill-a", displayName: "Skill A", source: { type: "inline", content: "x" }, verified: false }],
+          mcps: [
+            {
+              id: "mcp-b",
+              displayName: "B",
+              runtime: "npx",
+              args: [],
+              env: {},
+              requiredSecrets: [],
+              verified: false,
+            },
+          ],
+          skills: [
+            {
+              id: "skill-a",
+              displayName: "Skill A",
+              source: { type: "inline", content: "x" },
+              verified: false,
+            },
+          ],
         },
       ],
     } satisfies Bundle;
@@ -37,14 +64,21 @@ describe("apply helpers", () => {
       scope: "user",
       targets: ["cursor"],
       mcps: [],
-      skills: [{ id: "skill-a", displayName: "Skill A", source: { type: "inline", content: "x" }, verified: false }],
+      skills: [
+        {
+          id: "skill-a",
+          displayName: "Skill A",
+          source: { type: "inline", content: "x" },
+          verified: false,
+        },
+      ],
       rules: [{ id: "rule-a", displayName: "Rule A", content: "always", verified: false }],
       workflowPacks: [],
     } satisfies Bundle;
 
     const unsupported = getUnsupportedTargetContent(
       { displayName: "Cursor" },
-      flattenBundleContent(bundle)
+      flattenBundleContent(bundle),
     );
 
     expect(unsupported).toEqual(["skills", "rules"]);

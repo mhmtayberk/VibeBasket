@@ -1,40 +1,40 @@
 import fs from "node:fs";
-import { BundleSchema } from "@vibebasket/core";
-import type { Bundle, IdeId, Scope } from "@vibebasket/core";
+import { confirm } from "@inquirer/prompts";
 import type { IdeAdapter } from "@vibebasket/adapters";
 import {
-  CursorAdapter,
+  AiderAdapter,
   AntigravityAdapter,
-  WindsurfAdapter,
-  VSCodeAdapter,
   ClaudeCodeAdapter,
-  DeepSeekTuiAdapter,
-  GeminiCliAdapter,
-  KiroAdapter,
-  JunieAdapter,
   ClineCliAdapter,
-  ZedAdapter,
+  CodeBuddyAdapter,
   CodexAdapter,
   ContinueAdapter,
-  RooCodeAdapter,
-  HermesAdapter,
-  OpenClawAdapter,
-  GitHubCopilotAdapter,
-  VoidAdapter,
-  AiderAdapter,
   CortexCodeAdapter,
+  CursorAdapter,
+  DeepSeekTuiAdapter,
+  GeminiCliAdapter,
+  GitHubCopilotAdapter,
   GooseAdapter,
+  HermesAdapter,
   IBMBobAdapter,
-  CodeBuddyAdapter,
+  JunieAdapter,
+  KiroAdapter,
+  OpenClawAdapter,
   OpenCodeAdapter,
+  RooCodeAdapter,
+  VSCodeAdapter,
+  VoidAdapter,
+  WindsurfAdapter,
+  ZedAdapter,
 } from "@vibebasket/adapters";
-import { confirm } from "@inquirer/prompts";
+import { BundleSchema } from "@vibebasket/core";
+import type { Bundle, IdeId, Scope } from "@vibebasket/core";
 import chalk from "chalk";
-import { resolveSecrets } from "./secrets.js";
+import { flattenBundleContent, getUnsupportedTargetContent } from "./apply-helpers.js";
 import { createBackup } from "./backup.js";
 import { toErrorMessage } from "./errors.js";
-import { flattenBundleContent, getUnsupportedTargetContent } from "./apply-helpers.js";
 import { formatVerificationSummary, verifyTargetInstall } from "./install-verification.js";
+import { resolveSecrets } from "./secrets.js";
 
 const ADAPTERS = {
   cursor: new CursorAdapter(),

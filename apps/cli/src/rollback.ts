@@ -1,35 +1,35 @@
-import { select, confirm } from "@inquirer/prompts";
+import fs from "node:fs";
+import { confirm, select } from "@inquirer/prompts";
 import type { IdeAdapter } from "@vibebasket/adapters";
 import chalk from "chalk";
-import fs from "node:fs";
 import { listBackups } from "./backup.js";
 
 const MAX_BACKUPS_SHOWN = 10;
-import { 
-  CursorAdapter, 
-  AntigravityAdapter, 
-  WindsurfAdapter, 
-  VSCodeAdapter,
+import {
+  AiderAdapter,
+  AntigravityAdapter,
   ClaudeCodeAdapter,
-  DeepSeekTuiAdapter,
-  GeminiCliAdapter,
-  KiroAdapter,
-  JunieAdapter,
   ClineCliAdapter,
-  ZedAdapter,
+  CodeBuddyAdapter,
   CodexAdapter,
   ContinueAdapter,
-  RooCodeAdapter,
-  HermesAdapter,
-  OpenClawAdapter,
-  GitHubCopilotAdapter,
-  VoidAdapter,
-  AiderAdapter,
   CortexCodeAdapter,
+  CursorAdapter,
+  DeepSeekTuiAdapter,
+  GeminiCliAdapter,
+  GitHubCopilotAdapter,
   GooseAdapter,
+  HermesAdapter,
   IBMBobAdapter,
-  CodeBuddyAdapter,
+  JunieAdapter,
+  KiroAdapter,
+  OpenClawAdapter,
   OpenCodeAdapter,
+  RooCodeAdapter,
+  VSCodeAdapter,
+  VoidAdapter,
+  WindsurfAdapter,
+  ZedAdapter,
 } from "@vibebasket/adapters";
 
 const ADAPTERS = {
@@ -73,7 +73,7 @@ export async function runRollback() {
     return;
   }
 
-  const choices = backups.slice(0, MAX_BACKUPS_SHOWN).map(b => ({
+  const choices = backups.slice(0, MAX_BACKUPS_SHOWN).map((b) => ({
     name: `${b.targetId} (${b.scope}) - ${b.timestamp}`,
     value: b,
   }));

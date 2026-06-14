@@ -4,18 +4,18 @@ import type { Scope } from "@vibebasket/core";
 import { BaseAdapter } from "./base-adapter";
 
 export class AntigravityAdapter extends BaseAdapter {
-	readonly id = "antigravity" as const;
-	readonly displayName = "Antigravity";
+  readonly id = "antigravity" as const;
+  readonly displayName = "Antigravity";
 
-	configPath(scope: Scope, projectRoot?: string): string {
-		if (scope === "project") {
-			if (!projectRoot) throw new Error("projectRoot required for project scope");
-			return path.join(projectRoot, ".gemini", "antigravity", "mcp_config.json");
-		}
-		return path.join(os.homedir(), ".gemini", "antigravity", "mcp_config.json");
-	}
+  configPath(scope: Scope, projectRoot?: string): string {
+    if (scope === "project") {
+      if (!projectRoot) throw new Error("projectRoot required for project scope");
+      return path.join(projectRoot, ".gemini", "antigravity", "mcp_config.json");
+    }
+    return path.join(os.homedir(), ".gemini", "antigravity", "mcp_config.json");
+  }
 
-	postInstallHint(): string {
-		return "Restart Antigravity or reload the conversation for MCP changes to take effect.";
-	}
+  postInstallHint(): string {
+    return "Restart Antigravity or reload the conversation for MCP changes to take effect.";
+  }
 }

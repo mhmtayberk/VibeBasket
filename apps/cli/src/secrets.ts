@@ -1,18 +1,18 @@
-import { password } from "@inquirer/prompts";
-import keytar from "keytar";
-import dotenv from "dotenv";
 import fs from "node:fs";
 import path from "node:path";
+import { password } from "@inquirer/prompts";
 import chalk from "chalk";
+import dotenv from "dotenv";
+import keytar from "keytar";
 
 const KEYCHAIN_SERVICE = "vibebasket";
 
 export async function resolveSecrets(
   requiredSecrets: string[],
-  projectRoot: string = process.cwd()
+  projectRoot: string = process.cwd(),
 ): Promise<Record<string, string>> {
   const secrets: Record<string, string> = {};
-  
+
   // 1. Load from .vibebasket.env if exists
   const envPath = path.join(projectRoot, ".vibebasket.env");
   let localEnv: Record<string, string> = {};
@@ -22,8 +22,9 @@ export async function resolveSecrets(
 
   for (const name of requiredSecrets) {
     // 2. Check process.env
-    if (process.env[name]) {
-      secrets[name] = process.env[name]!;
+    const envValue = process.env[name];
+    if (envValue) {
+      secrets[name] = envValue;
       continue;
     }
 

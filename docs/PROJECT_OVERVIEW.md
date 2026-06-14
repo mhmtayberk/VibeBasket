@@ -8,7 +8,7 @@ The product exists to make AI development environments portable, repeatable, and
 
 ## Current Target Model
 
-As of June 13, 2026, the product exposes 24 adapter-backed IDE targets: Cursor, Windsurf, VS Code/Cline, Antigravity, Claude Code, DeepSeek-TUI, Zed, Codex CLI, Gemini CLI, Junie, Kiro, Cline CLI, Continue, Roo Code, Hermes, OpenClaw, GitHub Copilot, Void Editor, Aider, Cortex Code, Goose, IBM Bob, CodeBuddy, and OpenCode.
+The product currently exposes 24 adapter-backed IDE targets: Cursor, Windsurf, VS Code/Cline, Antigravity, Claude Code, DeepSeek-TUI, Zed, Codex CLI, Gemini CLI, Junie, Kiro, Cline CLI, Continue, Roo Code, Hermes, OpenClaw, GitHub Copilot, Void Editor, Aider, Cortex Code, Goose, IBM Bob, CodeBuddy, and OpenCode.
 
 For targets that support it (11 total: Claude Code, Continue, Roo Code, Hermes, OpenClaw, GitHub Copilot, Void Editor, Aider, Cortex Code, IBM Bob, and CodeBuddy), the CLI adapter also installs Skills and/or Rules using idempotent file writes or block delimiters to avoid corrupting existing developer configurations.
 
@@ -57,3 +57,4 @@ Recent work significantly changed the catalog behavior, deployment, and security
 - same-name skills from distinct upstream repos are intentionally preserved unless canonical source identity proves they are mirrors; correctness wins over aggressive title-based merging
 - adapter-backed support is still MCP-first overall; not every target supports Skills or Rules, and capability metadata must remain strictly aligned with real adapter methods
 - the docs hub at `/docs` supports fully-functional interactive search with 300ms client debouncing; versioned documentation is a future improvement
+- repository CI is now centered around `pnpm verify:ci` plus Playwright smoke coverage, not a monorepo-wide `tsc -b` gate yet

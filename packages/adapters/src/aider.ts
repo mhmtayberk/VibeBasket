@@ -1,8 +1,9 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import type { IdeAdapter } from "./types";
 import type { IdeId, McpEntry, RuleEntry, Scope, SkillEntry } from "@vibebasket/core";
+import { hasErrorCode } from "./mcp-utils";
 import { getTargetCapabilities } from "./target-capabilities";
+import type { IdeAdapter } from "./types";
 
 export class AiderAdapter implements IdeAdapter {
   private static readonly capabilities = getTargetCapabilities("aider");
@@ -27,11 +28,11 @@ export class AiderAdapter implements IdeAdapter {
     const file = this.configPath(scope, projectRoot);
     try {
       return await fs.readFile(file, "utf8");
-    } catch (e: any) {
-      if (e.code === "ENOENT") {
+    } catch (error: unknown) {
+      if (hasErrorCode(error, "ENOENT")) {
         return "";
       }
-      throw e;
+      throw error;
     }
   }
 
@@ -39,7 +40,7 @@ export class AiderAdapter implements IdeAdapter {
     config: unknown,
     _mcps: McpEntry[],
     _secrets: Record<string, string>,
-    _opts: { force: boolean }
+    _opts: { force: boolean },
   ): unknown {
     return config;
   }
@@ -65,7 +66,7 @@ export class AiderAdapter implements IdeAdapter {
     const singleLineReadRegex = /^read:\s*['"]?([^'\n\r"]+)['"]?\s*$/m;
     const singleLineMatch = yamlContent.match(singleLineReadRegex);
 
-    if (singleLineMatch && singleLineMatch[1]) {
+    if (singleLineMatch?.[1]) {
       const existingFile = singleLineMatch[1].trim();
       const newBlock = `read:\n  - ${existingFile}\n  - ${targetFile}`;
       return yamlContent.replace(singleLineReadRegex, newBlock);
@@ -88,8 +89,8 @@ export class AiderAdapter implements IdeAdapter {
       let content = "";
       try {
         content = await fs.readFile(instructionsFile, "utf8");
-      } catch (e: any) {
-        if (e.code !== "ENOENT") throw e;
+      } catch (error: unknown) {
+        if (!hasErrorCode(error, "ENOENT")) throw error;
       }
 
       for (const skill of skills) {
@@ -106,8 +107,8 @@ export class AiderAdapter implements IdeAdapter {
         const endTag = `# >>> VIBEBASKET END: ${skill.id} <<<`;
         const blockContent = `${startTag}\n# Skill: ${skill.displayName} (${skill.id})\n${body}\n${endTag}`;
 
-        const escapedStart = startTag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const escapedEnd = endTag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const escapedStart = startTag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const escapedEnd = endTag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
         const regex = new RegExp(`${escapedStart}[\\s\\S]*?${escapedEnd}`);
 
         if (regex.test(content)) {
@@ -118,15 +119,15 @@ export class AiderAdapter implements IdeAdapter {
       }
 
       await fs.mkdir(path.dirname(instructionsFile), { recursive: true });
-      await fs.writeFile(instructionsFile, content.trim() + "\n", "utf8");
+      await fs.writeFile(instructionsFile, `${content.trim()}\n`, "utf8");
 
       // Now configure the .aider.conf.yml file
       const configFile = this.configPath(scope, projectRoot);
       let configContent = "";
       try {
         configContent = await fs.readFile(configFile, "utf8");
-      } catch (e: any) {
-        if (e.code !== "ENOENT") throw e;
+      } catch (error: unknown) {
+        if (!hasErrorCode(error, "ENOENT")) throw error;
       }
 
       const updatedConfig = this.mergeAiderConfig(configContent);
@@ -140,8 +141,8 @@ export class AiderAdapter implements IdeAdapter {
       let content = "";
       try {
         content = await fs.readFile(instructionsFile, "utf8");
-      } catch (e: any) {
-        if (e.code !== "ENOENT") throw e;
+      } catch (error: unknown) {
+        if (!hasErrorCode(error, "ENOENT")) throw error;
       }
 
       for (const rule of rules) {
@@ -149,8 +150,8 @@ export class AiderAdapter implements IdeAdapter {
         const endTag = `# >>> VIBEBASKET END: ${rule.id} <<<`;
         const blockContent = `${startTag}\n# Rule: ${rule.displayName} (${rule.id})\n${rule.content}\n${endTag}`;
 
-        const escapedStart = startTag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const escapedEnd = endTag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const escapedStart = startTag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const escapedEnd = endTag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
         const regex = new RegExp(`${escapedStart}[\\s\\S]*?${escapedEnd}`);
 
         if (regex.test(content)) {
@@ -161,15 +162,15 @@ export class AiderAdapter implements IdeAdapter {
       }
 
       await fs.mkdir(path.dirname(instructionsFile), { recursive: true });
-      await fs.writeFile(instructionsFile, content.trim() + "\n", "utf8");
+      await fs.writeFile(instructionsFile, `${content.trim()}\n`, "utf8");
 
       // Configure .aider.conf.yml
       const configFile = this.configPath(scope, projectRoot);
       let configContent = "";
       try {
         configContent = await fs.readFile(configFile, "utf8");
-      } catch (e: any) {
-        if (e.code !== "ENOENT") throw e;
+      } catch (error: unknown) {
+        if (!hasErrorCode(error, "ENOENT")) throw error;
       }
 
       const updatedConfig = this.mergeAiderConfig(configContent);
@@ -186,8 +187,8 @@ export class AiderAdapter implements IdeAdapter {
     try {
       const content = await fs.readFile(file, "utf8");
       await fs.writeFile(`${file}.bak.${Date.now()}`, content, "utf8");
-    } catch (e: any) {
-      if (e.code !== "ENOENT") throw e;
+    } catch (error: unknown) {
+      if (!hasErrorCode(error, "ENOENT")) throw error;
     }
 
     const contentToWrite = typeof config === "string" ? config : JSON.stringify(config, null, 2);

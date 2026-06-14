@@ -1,17 +1,18 @@
 # VibeBasket
 
-**The Ninite for Vibe Coding.** Bundle trusted MCP servers, agent skills, and project rules into one shareable install command. Apply across 24 AI IDEs and CLI tools with a single link.
+Bundle trusted MCP servers, agent skills, and project rules into one shareable install command. Apply across 24 AI IDEs and CLI tools with a single link.
 
 [![Version](https://img.shields.io/badge/version-0.9.0-blue)](package.json)
-[![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue)](.)
-[![Tests](https://img.shields.io/badge/tests-340%2B-green)](.)
+[![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue)](tsconfig.base.json)
+[![CI](https://img.shields.io/badge/ci-github_actions-green)](https://github.com/vibebasket/vibebasket/actions/workflows/ci.yml)
+[![Security](https://img.shields.io/badge/security-CodeQL%20%2B%20Dependabot-blue)](https://github.com/vibebasket/vibebasket/security)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 ---
 
 ## What is VibeBasket?
 
-Stop manually configuring MCP servers one IDE at a time. Browse a trusted catalog of 40K+ community and official integrations, pick what you need, and generate a single `npx` command that installs everything — idempotently, with automatic backups, across every tool you use.
+Stop manually configuring MCP servers one IDE at a time. Browse a trusted catalog that syncs tens of thousands of community and official integrations, pick what you need, and generate a single `npx` command that installs everything — idempotently, with automatic backups, across every tool you use.
 
 ```
 npx vibebasket apply https://vibebasket.dev/api/bundle/cj2k9x
@@ -46,72 +47,59 @@ npx vibebasket apply https://vibebasket.dev/api/bundle/cj2k9x
 | CodeBuddy | ✅ | ✅ | — |
 | OpenCode | ✅ | — | — |
 
-**11 adapters auto-install Skills. 5 adapters auto-install Rules.** All MCP-capable adapters auto-install MCP servers.
+11 adapters auto-install Skills. 5 auto-install Rules. All MCP-capable adapters auto-install MCP servers.
 
 ## Features
 
 ### Web Catalog
-- **40K+ items** from official MCP Registry, skills.sh, and VibeBasket curated sources
-- **Trust tiers**: Verified (curated), Official (upstream), Community — no misleading scores
-- **Search + Filter**: By type, trust tier, source, and FTS5 full-text search
-- **Catalog Detail**: Click any item to see installation command, GitHub repo, freshness
-- **Bundle Preview**: See exactly what will be installed before generating
+- Tens of thousands of items when synced from the official MCP Registry, the public skills.sh catalog, and curated sources
+- Trust tiers: Verified (curated), Official (upstream), Community — no misleading scores
+- FTS5 full-text search with prefix matching across display name, description, and source URL
+- Filter by type, trust tier, source freshness, and sort order
+- Detail view per item: install command, GitHub repo, sync freshness
 
 ### CLI
-- **`apply`** — Install bundles from URLs or local files
-- **`list`** — Scan all 24 IDEs for installed MCPs, skills, and rules
-- **`search`** — Search the catalog from the terminal
-- **`doctor`** — Diagnose IDE configurations across all targets
-- **`init`** — Scaffold a new VibeBasket project
-- **`rollback`** — Restore previous IDE configurations from backup
+- `apply` — Install bundles from URLs or local files (`--force`, `--scope`, `--dry-run`)
+- `list` — Scan all 24 IDEs for installed MCPs, skills, and rules
+- `search` — Search the catalog from terminal
+- `doctor` — Diagnose IDE configurations across all targets
+- `init` — Scaffold a VibeBasket project
+- `rollback` — Restore from timestamped backups
 
 ### Security
-- **Zero-knowledge**: API keys and secrets never sent to our servers. Prompted locally by CLI.
-- **AES-256-GCM encryption**: Cloud storage credentials encrypted at rest in SQLite
-- **Rate limiting**: Sliding window on 8 API endpoints with Retry-After headers
-- **CSP + security headers**: Production Content-Security-Policy, X-Frame-Options, nosniff
-- **Path sanitization**: All file operations use `path.basename()` + character whitelists
-- **4 OAuth providers**: GitHub, Google, Apple, Microsoft Entra ID — independently gateable
-
-### Backup & Storage
-- **6 backends**: Local filesystem, AWS S3, Cloudflare R2, DigitalOcean Spaces, Azure Blob, GCS
-- **Scheduled backups**: Configurable hourly intervals
-- **Admin panel**: Manage storage config, trigger syncs, view metrics — no restart needed
-- **Encrypted credentials**: Cloud API keys encrypted before DB storage
-
-### Performance
-- **Count cache**: 60s TTL on catalog counts to avoid expensive COUNT(*) on every page render
-- **Compound indexes**: Covering indexes on main catalog query paths (type + trust + name)
-- **FTS5**: Data column removed from FTS5 content to reduce index size; prefix-matching for partial queries
-- **Catalog API**: `Cache-Control: max-age=60, stale-while-revalidate=300` on public catalog responses
-- **Health cache**: 5s in-memory TTL on `/api/health` DB probe to survive orchestrator floods
+- End-user runtime secrets never appear in bundle manifests and are prompted locally by the CLI
+- AES-256-GCM encrypted storage credentials
+- Sliding-window rate limiting on 8 API endpoints with Retry-After headers
+- CSP and security headers enforced in production
+- Path sanitization on all file operations
+- 4 OAuth providers: GitHub, Google, Apple, Microsoft Entra ID
+- GitHub Actions CI, CodeQL scanning, and Dependabot update automation
 
 ### Admin Dashboard
-- Real-time metrics: registered users, saved stacks, popular integrations
-- Manual catalog sync trigger with audit trail
-- Backup management: create, list, restore, delete, configurable schedule intervals
-- Storage backend configuration with credential forms
-- FTS5 health monitoring and rebuild
-- Database health checks and force cleanup
-- User overview and admin email management
+- Catalog sync triggers, backup management (6 backends), storage config
+- FTS5 health monitoring + rebuild, DB integrity checks, force cleanup
+- User overview, admin email management
 
-### Mobile
-- Basket FAB (floating action button) with bottom sheet on mobile viewports
-- Responsive catalog grid with adaptive column count
+### Backup & Storage
+- 6 backends: Local, AWS S3, Cloudflare R2, DigitalOcean Spaces, Azure Blob, GCS
+- Scheduled backups with configurable intervals
+- Encrypted credentials stored in SQLite, never in environment files
+- Backup restore works across local and supported cloud storage backends
 
 ## Quick Start
 
-### Docker (Recommended)
+### Docker
 
 ```bash
 git clone https://github.com/vibebasket/vibebasket.git
 cd vibebasket
 cp .env.example .env
-# Edit .env with your AUTH_SECRET and NEXTAUTH_URL
 docker compose up -d
 ```
 
-### Manual Install
+After first boot, either wait for background catalog bootstrap or run `pnpm catalog:sync`, then verify freshness at `/api/catalog/status`.
+
+### Manual
 
 ```bash
 git clone https://github.com/vibebasket/vibebasket.git
@@ -121,7 +109,23 @@ pnpm install
 pnpm dev
 ```
 
+After first boot, either wait for background catalog bootstrap or run `pnpm catalog:sync`, then verify freshness at `/api/catalog/status`.
+
 Open [http://localhost:3000](http://localhost:3000).
+
+## Production Readiness
+
+VibeBasket is designed for self-hosting as well as the public hosted product.
+
+- Docker and Helm deployment surfaces are included in the repo
+- `/api/health` is safe to use for container and orchestration health checks
+- `/api/catalog/status` exposes catalog freshness and sync health
+- A production checklist lives in [docs/PRODUCTION_READINESS_CHECKLIST.md](docs/PRODUCTION_READINESS_CHECKLIST.md)
+
+Current release-engineering note:
+
+- The repo is verified through `pnpm verify:ci`, targeted web typecheck, build, unit/integration tests, and Playwright smoke coverage.
+- A monorepo-wide `tsc -b` gate is not yet a release requirement; there is still project-reference cleanup to finish in `packages/adapters` and `apps/cli`.
 
 ### Kubernetes
 
@@ -136,9 +140,6 @@ helm install vibebasket ./charts/vibebasket \
 ```bash
 # Install from bundle URL
 npx vibebasket apply https://vibebasket.dev/api/bundle/cj2k9x
-
-# Or from local file
-npx vibebasket apply ./my-bundle.json
 
 # Options
 npx vibebasket apply <url> --scope project --dry-run --force
@@ -155,31 +156,24 @@ npx vibebasket doctor
 # Scaffold project
 npx vibebasket init
 
-# Restore backup
+# Restore from backup
 npx vibebasket rollback
 ```
 
 ## Configuration
 
-### Required Environment Variables
-
-| Variable | Description |
-|---|---|
-| `AUTH_SECRET` | Random 64-char secret for session encryption |
-| `NEXTAUTH_URL` | Public deployment URL |
-| `DATABASE_URL` | SQLite path (default: `file:vibebasket.db`) |
-
-### Optional
-
-| Variable | Description |
-|---|---|
-| `AUTH_GITHUB_ENABLED/ID/SECRET` | GitHub OAuth |
-| `AUTH_GOOGLE_ENABLED/ID/SECRET` | Google OAuth |
-| `AUTH_APPLE_ENABLED/ID/SECRET` | Apple OAuth |
-| `AUTH_MICROSOFT_ENTRA_ID_ENABLED/ID/SECRET` | Microsoft Entra ID |
-| `BACKUP_STORAGE_BACKEND` | local, s3, r2, spaces, azure, gcs |
-| `TRUST_PROXY` | true behind reverse proxy |
-| `VIBEBASKET_API_URL` | CLI catalog search endpoint |
+| Variable | Required | Description |
+|----------|:--------:|-------------|
+| `AUTH_SECRET` | Yes | Session encryption secret. Generate: `openssl rand -base64 32` |
+| `NEXTAUTH_URL` | Yes | Public deployment URL for OAuth callbacks |
+| `AUTH_TRUST_HOST` | No | Set to `true` in production when running behind a trusted proxy or CDN |
+| `AUTH_GITHUB_ID/SECRET` | No | GitHub OAuth credentials |
+| `AUTH_GOOGLE_ID/SECRET` | No | Google OAuth credentials |
+| `AUTH_APPLE_ID/SECRET` | No | Apple Sign-In credentials |
+| `AUTH_MICROSOFT_ENTRA_ID_ID/SECRET` | No | Microsoft Entra ID credentials |
+| `BACKUP_STORAGE_BACKEND` | No | local, s3, r2, spaces, azure, or gcs |
+| `ADMIN_OAUTH_EMAILS` | No | Comma-separated admin emails |
+| `TRUST_PROXY` | No | Set to `true` only when the app is actually behind a trusted reverse proxy |
 
 See [`.env.example`](.env.example) for the complete list.
 
@@ -191,34 +185,35 @@ packages/
 ├── adapters/      24 IDE adapters (16 on BaseAdapter, 8 custom)
 ├── registry/      Catalog sync from MCP Registry + skills.sh + verified.yaml
 apps/
-├── web/           Next.js 16.2.9 App Router — catalog UI, API, admin dashboard
+├── web/           Next.js 16 App Router — catalog UI, API, admin dashboard
 └── cli/           Node.js CLI — apply, list, search, doctor, init, rollback
 charts/
 └── vibebasket/    Helm chart (Recreate strategy, uid 1001, existingSecret)
 ```
 
-**Key patterns**: Idempotent config writes, immutable bundles, DB-first configuration, lazy-loaded cloud SDKs, BaseAdapter class hierarchy, Strategy pattern for storage backends, FTS5 with trigger-based content sync.
+Key patterns: idempotent config writes, immutable bundles, DB-first configuration, BaseAdapter class hierarchy, Strategy pattern for storage backends, FTS5 with trigger-based content sync.
 
-## Important Notes
+## Notes
 
-- **Single-writer SQLite**: WAL mode allows concurrent reads. Use Turso for multi-replica.
-- **Anonymous bundles expire in 48h**. Registered user bundles last 365 days.
-- **OAuth is optional**: Catalog browsing works without login.
-- **Backup storage defaults to local filesystem**. Cloud backends require additional SDK packages.
-- **Admin access**: Set `ADMIN_OAUTH_EMAILS` env var or configure from the admin panel.
+- SQLite with WAL mode. For multi-replica deployments, use Turso.
+- Anonymous bundles expire in 48 hours. Registered user bundles last 365 days.
+- OAuth is optional. Catalog browsing and bundle apply work without login.
+- Admin access: set `ADMIN_OAUTH_EMAILS` or configure from admin panel at `/admin`.
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). We use:
-- **pnpm** workspaces
-- **Biome** for formatting/linting
-- **Vitest** for testing
-- **Conventional Commits**
+See [CONTRIBUTING.md](CONTRIBUTING.md). We use pnpm workspaces, Biome for formatting, Vitest for testing, Playwright for browser coverage, and conventional commits.
+
+## Community
+
+- [Contributing Guide](CONTRIBUTING.md)
+- [Security Policy](SECURITY.md)
+- [Code of Conduct](CODE_OF_CONDUCT.md)
 
 ## Security
 
-Report vulnerabilities to `security@vibebasket.dev`. See [SECURITY.md](SECURITY.md) for our threat model and security practices.
+Report vulnerabilities via [GitHub Security Advisories](https://github.com/vibebasket/vibebasket/security/advisories/new). See [SECURITY.md](SECURITY.md) for the full threat model.
 
 ## License
 
-MIT © VibeBasket Team
+MIT

@@ -1,9 +1,9 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import type { RuleEntry, SkillEntry } from "@vibebasket/core";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { GitHubCopilotAdapter } from "./github-copilot.js";
-import type { SkillEntry, RuleEntry } from "@vibebasket/core";
 
 describe("GitHubCopilotAdapter", () => {
   let tempDir: string;
@@ -64,7 +64,12 @@ describe("GitHubCopilotAdapter", () => {
     await adapter.applySkills(skills, "project", tempDir);
 
     // Modify skill content and apply second time
-    skills[0]!.source = { type: "inline", content: "Always write perfect code." };
+    const [firstSkill] = skills;
+    expect(firstSkill).toBeDefined();
+    if (!firstSkill) {
+      throw new Error("Expected seeded Copilot skill");
+    }
+    firstSkill.source = { type: "inline", content: "Always write perfect code." };
     await adapter.applySkills(skills, "project", tempDir);
 
     const file = adapter.configPath("project", tempDir);

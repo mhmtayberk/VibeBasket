@@ -13,7 +13,7 @@ export class ForbiddenError extends Error {
  */
 export async function requireAdminRole() {
   const session = await auth();
-  
+
   if (!session || !session.user || session.user.role !== "admin") {
     throw new ForbiddenError();
   }

@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, afterEach } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 const { readCfg } = vi.hoisted(() => {
   const fn = vi.fn(async () => ({ mcpServers: {} }));
@@ -29,12 +29,30 @@ vi.mock("@vibebasket/adapters", () => {
   }
 
   const names = [
-    "CursorAdapter", "AntigravityAdapter", "WindsurfAdapter", "VSCodeAdapter",
-    "ClaudeCodeAdapter", "DeepSeekTuiAdapter", "GeminiCliAdapter", "KiroAdapter",
-    "JunieAdapter", "ClineCliAdapter", "ZedAdapter", "CodexAdapter",
-    "ContinueAdapter", "RooCodeAdapter", "HermesAdapter", "OpenClawAdapter",
-    "GitHubCopilotAdapter", "VoidAdapter", "AiderAdapter", "CortexCodeAdapter",
-    "GooseAdapter", "IBMBobAdapter", "CodeBuddyAdapter", "OpenCodeAdapter",
+    "CursorAdapter",
+    "AntigravityAdapter",
+    "WindsurfAdapter",
+    "VSCodeAdapter",
+    "ClaudeCodeAdapter",
+    "DeepSeekTuiAdapter",
+    "GeminiCliAdapter",
+    "KiroAdapter",
+    "JunieAdapter",
+    "ClineCliAdapter",
+    "ZedAdapter",
+    "CodexAdapter",
+    "ContinueAdapter",
+    "RooCodeAdapter",
+    "HermesAdapter",
+    "OpenClawAdapter",
+    "GitHubCopilotAdapter",
+    "VoidAdapter",
+    "AiderAdapter",
+    "CortexCodeAdapter",
+    "GooseAdapter",
+    "IBMBobAdapter",
+    "CodeBuddyAdapter",
+    "OpenCodeAdapter",
   ];
 
   const result: Record<string, unknown> = {};
@@ -92,7 +110,9 @@ describe("runList", () => {
     const { runList } = await import("./list.js");
     await runList();
 
-    expect(consoleOutput.some((line) => line.includes("MCP Servers:") && line.includes("none"))).toBe(true);
+    expect(
+      consoleOutput.some((line) => line.includes("MCP Servers:") && line.includes("none")),
+    ).toBe(true);
   });
 
   it("handles adapter readConfig errors gracefully", async () => {
@@ -113,6 +133,8 @@ describe("runList", () => {
     const { runList } = await import("./list.js");
     await runList();
 
-    expect(consoleOutput.some((line) => line.includes("No VibeBasket-managed content found"))).toBe(true);
+    expect(consoleOutput.some((line) => line.includes("No VibeBasket-managed content found"))).toBe(
+      true,
+    );
   });
 });

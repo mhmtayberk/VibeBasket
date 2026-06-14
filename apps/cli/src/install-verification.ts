@@ -2,10 +2,10 @@ import fs from "node:fs/promises";
 import type { IdeAdapter } from "@vibebasket/adapters";
 import type { IdeId, McpEntry, RuleEntry, Scope, SkillEntry } from "@vibebasket/core";
 import {
+  type FileVerificationTarget,
   extractConfiguredMcpIds,
   resolveRuleVerificationTargets,
   resolveSkillVerificationTargets,
-  type FileVerificationTarget,
 } from "./config-inspection.js";
 
 export interface FeatureVerificationResult {

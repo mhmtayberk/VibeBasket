@@ -1,6 +1,6 @@
+import { ForbiddenError, requireAdminRole } from "@/lib/admin-session";
 import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { requireAdminRole, ForbiddenError } from "@/lib/admin-session";
 
 vi.mock("@/lib/admin-session", () => ({
   ForbiddenError: class ForbiddenError extends Error {

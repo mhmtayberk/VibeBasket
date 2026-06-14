@@ -1,2 +1,18 @@
-import os from "node:os";import path from "node:path";import type { Scope } from "@vibebasket/core";import { BaseAdapter } from "./base-adapter";
-export class JunieAdapter extends BaseAdapter {readonly id="junie" as const;readonly displayName="JetBrains Junie";configPath(scope:Scope,projectRoot?:string):string{if(scope==="project"){if(!projectRoot)throw new Error("projectRoot required for project scope");return path.join(projectRoot,".junie","mcp","mcp.json")}return path.join(os.homedir(),".junie","mcp","mcp.json")}postInstallHint():string{return "Restart Junie CLI or reopen the MCP configuration screen to verify activation."}}
+import os from "node:os";
+import path from "node:path";
+import type { Scope } from "@vibebasket/core";
+import { BaseAdapter } from "./base-adapter";
+export class JunieAdapter extends BaseAdapter {
+  readonly id = "junie" as const;
+  readonly displayName = "JetBrains Junie";
+  configPath(scope: Scope, projectRoot?: string): string {
+    if (scope === "project") {
+      if (!projectRoot) throw new Error("projectRoot required for project scope");
+      return path.join(projectRoot, ".junie", "mcp", "mcp.json");
+    }
+    return path.join(os.homedir(), ".junie", "mcp", "mcp.json");
+  }
+  postInstallHint(): string {
+    return "Restart Junie CLI or reopen the MCP configuration screen to verify activation.";
+  }
+}

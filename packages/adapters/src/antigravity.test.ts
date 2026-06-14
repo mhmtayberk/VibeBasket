@@ -1,8 +1,9 @@
-import { describe, expect, it } from "vitest";
-import { AntigravityAdapter } from "./antigravity.js";
 import os from "node:os";
 import path from "node:path";
 import type { McpEntry } from "@vibebasket/core";
+import { describe, expect, it } from "vitest";
+import { AntigravityAdapter } from "./antigravity.js";
+import type { McpConfigResult } from "./mcp-utils";
 
 describe("AntigravityAdapter", () => {
   const adapter = new AntigravityAdapter();
@@ -33,11 +34,11 @@ describe("AntigravityAdapter", () => {
         args: ["index.js"],
         env: { API_KEY: "secret" },
         requiredSecrets: [],
-        verified: true
-      }
+        verified: true,
+      },
     ];
 
-    const result = adapter.applyMcps(null, mcps, {}, { force: false }) as any;
+    const result = adapter.applyMcps(null, mcps, {}, { force: false }) as McpConfigResult;
     expect(result.mcpServers["test-mcp"]).toBeDefined();
     expect(result.mcpServers["test-mcp"].command).toBe("node");
     expect(result.mcpServers["test-mcp"].args).toEqual(["index.js"]);
@@ -53,11 +54,16 @@ describe("AntigravityAdapter", () => {
         args: [],
         env: { KEY: "${secret:MY_KEY}", OTHER: "plain" },
         requiredSecrets: ["MY_KEY"],
-        verified: true
-      }
+        verified: true,
+      },
     ];
 
-    const result = adapter.applyMcps(null, mcps, { MY_KEY: "12345" }, { force: false }) as any;
+    const result = adapter.applyMcps(
+      null,
+      mcps,
+      { MY_KEY: "12345" },
+      { force: false },
+    ) as McpConfigResult;
     expect(result.mcpServers["sec-mcp"].env).toEqual({ KEY: "12345", OTHER: "plain" });
   });
 
@@ -75,7 +81,7 @@ describe("AntigravityAdapter", () => {
       },
     ];
 
-    const result = adapter.applyMcps(null, mcps, {}, { force: false }) as any;
+    const result = adapter.applyMcps(null, mcps, {}, { force: false }) as McpConfigResult;
     expect(result.mcpServers["remote-docs"]).toEqual({
       type: "http",
       url: "https://example.com/mcp",

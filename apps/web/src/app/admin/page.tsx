@@ -1,23 +1,23 @@
-import { redirect } from "next/navigation";
-import { desc, sql } from "drizzle-orm";
-import {
-  db,
-  users,
-  savedStacks,
-  savedStackItems,
-  catalogSyncRuns,
-  catalogItems,
-} from "@vibebasket/core";
 import {
   buildAdminSourceHealth,
   classifyCatalogFreshness,
   computeFailureStreak,
 } from "@/lib/admin-ops";
-import { requireAdminRole, ForbiddenError } from "@/lib/admin-session";
-import { BackupSection } from "./BackupSection";
+import { ForbiddenError, requireAdminRole } from "@/lib/admin-session";
+import {
+  catalogItems,
+  catalogSyncRuns,
+  db,
+  savedStackItems,
+  savedStacks,
+  users,
+} from "@vibebasket/core";
+import { desc, sql } from "drizzle-orm";
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { BackupSectionLazy } from "./BackupSectionLazy";
 import { SyncButton } from "./SyncButton";
 import { SystemHealthPanel } from "./SystemHealthPanel";
-import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
@@ -481,7 +481,7 @@ export default async function AdminDashboardPage() {
           </div>
 
           <div className="border border-border/80 bg-card/70 p-6 md:col-span-3">
-            <BackupSection />
+            <BackupSectionLazy />
           </div>
         </div>
 

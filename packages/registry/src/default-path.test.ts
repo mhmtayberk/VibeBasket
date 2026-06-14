@@ -7,9 +7,10 @@ describe("RegistrySyncService default paths", () => {
     try {
       process.chdir("/Users/ayberk/Desktop/AI Projects/VibeBasket/apps/web");
       const service = new RegistrySyncService({ persist: false });
+      const serviceWithInternals = service as unknown as { verifiedPath: string };
 
-      expect(service["verifiedPath"]).toBe(
-        "/Users/ayberk/Desktop/AI Projects/VibeBasket/packages/registry/data/verified.yaml"
+      expect(serviceWithInternals.verifiedPath).toBe(
+        "/Users/ayberk/Desktop/AI Projects/VibeBasket/packages/registry/data/verified.yaml",
       );
     } finally {
       process.chdir(originalCwd);

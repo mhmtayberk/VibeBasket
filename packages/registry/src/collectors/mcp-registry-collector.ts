@@ -1,13 +1,7 @@
 import type { SourceCollectedItem, SourceCollector } from "../schemas";
 import type { CatalogSeedItem, McpEntry } from "../schemas";
-import {
-  McpEntrySchema,
-  mcpRegistryResponseSchema,
-} from "../schemas";
-import type {
-  McpRegistryEntry,
-  McpRegistryServer,
-} from "../schemas";
+import { McpEntrySchema, mcpRegistryResponseSchema } from "../schemas";
+import type { McpRegistryEntry, McpRegistryServer } from "../schemas";
 import {
   buildMcpCatalogItem,
   canonicalMcpKey,
@@ -25,7 +19,7 @@ export class OfficialMcpRegistryCollector implements SourceCollector {
   constructor(
     private readonly fetchImpl: typeof fetch,
     private readonly timeoutMs: number,
-    private readonly retries: number
+    private readonly retries: number,
   ) {}
 
   async collect(): Promise<SourceCollectedItem[]> {
@@ -48,11 +42,11 @@ export class OfficialMcpRegistryCollector implements SourceCollector {
             "user-agent": "VibeBasket Registry Sync/0.1 (+https://vibebasket.dev)",
           },
         },
-        `MCP registry request`,
+        "MCP registry request",
         {
           timeoutMs: this.timeoutMs,
           retries: this.retries,
-        }
+        },
       );
       if (!res.ok) {
         throw new Error(`MCP registry request failed: HTTP ${res.status}`);
@@ -78,7 +72,9 @@ export class OfficialMcpRegistryCollector implements SourceCollector {
         overrides.sourceName = this.name;
         overrides.sourceUrl = `${MCP_REGISTRY_BASE_URL}/servers`;
 
-        const packageDefinition = normalized.server.packages?.find((pkg) => pkg.transport?.type === "stdio") ?? normalized.server.packages?.[0];
+        const packageDefinition =
+          normalized.server.packages?.find((pkg) => pkg.transport?.type === "stdio") ??
+          normalized.server.packages?.[0];
         const version = packageDefinition?.version ?? "0.0.0";
         const serverKey = normalized.server.name.toLowerCase();
 
@@ -109,9 +105,7 @@ export class OfficialMcpRegistryCollector implements SourceCollector {
     status?: string;
   } {
     if ("server" in registryEntry) {
-      const metaRecord = registryEntry._meta as
-        | Record<string, { status?: string }>
-        | undefined;
+      const metaRecord = registryEntry._meta as Record<string, { status?: string }> | undefined;
       const officialMeta = metaRecord?.["io.modelcontextprotocol.registry/official"];
       return officialMeta?.status
         ? {
@@ -142,7 +136,8 @@ export class OfficialMcpRegistryCollector implements SourceCollector {
         return false;
       }
     })?.url;
-    const packageDefinition = server.packages?.find((pkg) => pkg.transport?.type === "stdio") ?? server.packages?.[0];
+    const packageDefinition =
+      server.packages?.find((pkg) => pkg.transport?.type === "stdio") ?? server.packages?.[0];
     const displayName = server.title ?? server.name.split("/").pop() ?? server.name;
 
     const entryBase = {

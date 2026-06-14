@@ -1,0 +1,32 @@
+name: Feature request
+description: Suggest a product, adapter, catalog, docs, or self-hosting improvement
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+      description: What workflow is blocked or awkward today?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: What would you like VibeBasket to do?
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Existing workarounds or other options you considered.
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Extra context
+      description: Include target IDEs, deployment shape, screenshots, references, or prior discussion links.

@@ -11,9 +11,23 @@ export interface BasicMcpServerConfig {
   headers?: Record<string, string>;
 }
 
+export interface McpConfigResult {
+  mcpServers: Record<string, BasicMcpServerConfig>;
+  [key: string]: unknown;
+}
+
+export function hasErrorCode(error: unknown, code: string): error is NodeJS.ErrnoException {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code?: unknown }).code === code
+  );
+}
+
 export function resolveMcpEnv(
   source: Record<string, string>,
-  secrets: Record<string, string>
+  secrets: Record<string, string>,
 ): Record<string, string> {
   const resolved: Record<string, string> = {};
 
@@ -30,7 +44,7 @@ export function resolveMcpEnv(
 
 export function toStandardMcpServerConfig(
   mcp: McpEntry,
-  secrets: Record<string, string>
+  secrets: Record<string, string>,
 ): BasicMcpServerConfig {
   if (mcp.runtime === "remote") {
     return {
@@ -51,7 +65,7 @@ export function mergeStandardMcpServers(
   currentServers: Record<string, BasicMcpServerConfig> | undefined,
   mcps: McpEntry[],
   secrets: Record<string, string>,
-  opts: { force: boolean }
+  opts: { force: boolean },
 ): Record<string, BasicMcpServerConfig> {
   const nextServers = { ...(currentServers || {}) };
 
@@ -70,8 +84,8 @@ export async function readJsonFileOrDefault<T>(file: string, fallback: T): Promi
   try {
     const content = await fs.readFile(file, "utf8");
     return JSON.parse(content) as T;
-  } catch (error: any) {
-    if (error.code === "ENOENT") {
+  } catch (error: unknown) {
+    if (hasErrorCode(error, "ENOENT")) {
       return fallback;
     }
     throw error;
@@ -85,8 +99,8 @@ export async function writeJsonFileWithBackup(file: string, config: unknown): Pr
   try {
     const content = await fs.readFile(file, "utf8");
     await fs.writeFile(`${file}.bak.${Date.now()}`, content, "utf8");
-  } catch (error: any) {
-    if (error.code !== "ENOENT") {
+  } catch (error: unknown) {
+    if (!hasErrorCode(error, "ENOENT")) {
       throw error;
     }
   }

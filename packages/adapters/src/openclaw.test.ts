@@ -1,9 +1,10 @@
-import { describe, expect, it } from "vitest";
 import fs from "node:fs/promises";
-import path from "node:path";
 import os from "node:os";
-import { OpenClawAdapter } from "./openclaw.js";
+import path from "node:path";
 import type { McpEntry, SkillEntry } from "@vibebasket/core";
+import { describe, expect, it } from "vitest";
+import type { McpConfigResult } from "./mcp-utils";
+import { OpenClawAdapter } from "./openclaw.js";
 
 describe("OpenClawAdapter", () => {
   it("should merge new MCPs into mcp.servers key idempotently", () => {
@@ -28,7 +29,9 @@ describe("OpenClawAdapter", () => {
       verified: false,
     };
 
-    const result = adapter.applyMcps(config, [newMcp], {}, { force: false }) as any;
+    const result = adapter.applyMcps(config, [newMcp], {}, { force: false }) as McpConfigResult & {
+      "mcp.servers": Record<string, unknown>;
+    };
     expect(result["mcp.servers"].existing).toBeDefined();
     expect(result["mcp.servers"]["new-mcp"]).toBeDefined();
     expect(result["mcp.servers"]["new-mcp"].command).toBe("npx");

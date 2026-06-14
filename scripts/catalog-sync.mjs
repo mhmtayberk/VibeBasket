@@ -11,11 +11,17 @@ try {
     trigger,
   }).syncAll();
 
-  console.log(JSON.stringify({
-    dryRun,
-    durationMs: Date.now() - startedAt,
-    summary,
-  }, null, 2));
+  console.log(
+    JSON.stringify(
+      {
+        dryRun,
+        durationMs: Date.now() - startedAt,
+        summary,
+      },
+      null,
+      2,
+    ),
+  );
 } catch (error) {
   console.error(error);
   exit(1);

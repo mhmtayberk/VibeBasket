@@ -2,16 +2,16 @@
 > The Ninite for Vibe Coding. Bundle trusted MCP servers, agent skills, and project rules into one shareable install command across 24 AI IDEs.
 
 ## Getting Started
-- [Web Catalog](https://vibebasket.dev): Browse 40K+ MCP servers, skills, and rules. Build your basket and generate an install command.
+- [Web Catalog](https://vibebasket.dev): Browse a live catalog that syncs tens of thousands of MCP servers, skills, and rules when fully refreshed. Build your basket and generate an install command.
 - [Documentation](https://vibebasket.dev/docs): Full docs with Getting Started, CLI Reference, IDE Adapters, Block Delimiters, Security, and Self-Hosting guides.
 - [Quick Install](https://vibebasket.dev/docs?tab=cli): `npx vibebasket apply <bundle-url>` — one command to set up your entire AI dev stack.
 
 ## Architecture
 - [Monorepo Structure](https://github.com/vibebasket/vibebasket): pnpm workspace with 5 packages — apps/web (Next.js 16), apps/cli (Node.js), packages/core (shared DB + schema), packages/adapters (24 IDE adapters), packages/registry (catalog sync engine).
-- [Database](https://vibebasket.dev/docs?tab=security): SQLite via libSQL with Drizzle ORM. Tables: catalog_items (40K+), bundles, catalog_sync_runs, sessions, accounts, verification_tokens, saved_stacks, backup_config, site_config. FTS5 full-text search index on catalog.
+- [Database](https://vibebasket.dev/docs?tab=security): SQLite via libSQL with Drizzle ORM. Tables include catalog_items, bundles, catalog_sync_runs, sessions, accounts, verification_tokens, saved_stacks, saved_stack_items, saved_stack_targets, backup_storage_config, and site_config. FTS5 full-text search index on catalog.
 - [Adapter Pattern](https://vibebasket.dev/docs?tab=adapters): BaseAdapter class with shared readConfig, applyMcps, writeConfig, diff methods. 16 adapters use BaseAdapter; 8 with custom logic (Hermes YAML, Codex TOML, RooCode/Void delimiters, Aider/GitHub Copilot no-MCP targets).
 - [Block Delimiter Engine](https://vibebasket.dev/docs?tab=delimiters): `# >>> VIBEBASKET START: id <<<` / `# >>> VIBEBASKET END: id <<<` markers for idempotent file merging. Supports shell comments (#), HTML comments (<!-- -->), and YAML comments (#).
-- [Security Model](https://vibebasket.dev/docs?tab=security): Zero-secret policy — no API keys stored or transmitted. CLI prompts locally. Rate limiting on 8 API endpoints. CSP, CSRF (SameSite cookies), security headers on all responses.
+- [Security Model](https://vibebasket.dev/docs?tab=security): End-user runtime secrets stay local to the CLI flow. Admin backup credentials may be stored encrypted at rest. Rate limiting on 8 API endpoints. CSP, CSRF (SameSite cookies), security headers on all responses.
 
 ## API Reference
 - [GET /api/catalog](https://vibebasket.dev/api/catalog?type=mcp&limit=24): Paginated catalog with type, trust, freshness, and sort filters. FTS5 full-text search via `?q=` param.

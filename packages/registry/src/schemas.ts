@@ -94,38 +94,68 @@ export interface CollectionRunResult {
   errors: Array<{ source: string; error: string }>;
 }
 
-export const mcpRegistryServerSchema = z.object({
-  name: z.string(),
-  title: z.string().optional(),
-  description: z.string().optional(),
-  remotes: z.array(z.object({
-    url: z.string(),
-  }).passthrough()).optional(),
-  packages: z.array(z.object({
-    registryType: z.string().optional(),
-    identifier: z.string().optional(),
-    version: z.string().optional(),
-    transport: z.object({
-      type: z.string().optional(),
-    }).passthrough().optional(),
-  }).passthrough()).optional(),
-}).passthrough();
+export const mcpRegistryServerSchema = z
+  .object({
+    name: z.string(),
+    title: z.string().optional(),
+    description: z.string().optional(),
+    remotes: z
+      .array(
+        z
+          .object({
+            url: z.string(),
+          })
+          .passthrough(),
+      )
+      .optional(),
+    packages: z
+      .array(
+        z
+          .object({
+            registryType: z.string().optional(),
+            identifier: z.string().optional(),
+            version: z.string().optional(),
+            transport: z
+              .object({
+                type: z.string().optional(),
+              })
+              .passthrough()
+              .optional(),
+          })
+          .passthrough(),
+      )
+      .optional(),
+  })
+  .passthrough();
 
 export const mcpRegistryResponseSchema = z.object({
-  servers: z.array(z.union([
-    mcpRegistryServerSchema.extend({
-      status: z.string().optional(),
-    }),
-    z.object({
-      server: mcpRegistryServerSchema,
-      _meta: z.record(z.object({
+  servers: z.array(
+    z.union([
+      mcpRegistryServerSchema.extend({
         status: z.string().optional(),
-      }).passthrough()).optional(),
-    }).passthrough(),
-  ])),
-  metadata: z.object({
-    nextCursor: z.string().optional(),
-  }).partial().optional(),
+      }),
+      z
+        .object({
+          server: mcpRegistryServerSchema,
+          _meta: z
+            .record(
+              z
+                .object({
+                  status: z.string().optional(),
+                })
+                .passthrough(),
+            )
+            .optional(),
+        })
+        .passthrough(),
+    ]),
+  ),
+  metadata: z
+    .object({
+      nextCursor: z.string().optional(),
+    })
+    .partial()
+    .optional(),
 });
 export type McpRegistryServer = z.infer<typeof mcpRegistryServerSchema>;
 export type McpRegistryEntry = z.infer<typeof mcpRegistryResponseSchema>["servers"][number];
