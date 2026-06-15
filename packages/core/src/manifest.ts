@@ -45,6 +45,7 @@ export const McpEntrySchema = z.object({
   args: z.array(z.string()).default([]),
   url: z.string().url().optional(), // for runtime=remote
   env: z.record(z.string()).default({}), // values may contain ${secret:NAME}
+  headers: z.record(z.string()).default({}), // remote MCP header values may contain ${secret:NAME}
   requiredSecrets: z.array(z.string()).default([]),
   verified: z.boolean().default(false),
 });

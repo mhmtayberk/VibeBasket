@@ -44,7 +44,7 @@ export const TARGET_CAPABILITIES = defineCapabilities({
     supportsMcp: true,
     supportsSkills: false,
     supportsRules: false,
-    supportedScopes: ["user"],
+    supportedScopes: ["user", "project"],
     autoApply: true,
   },
   continue: {
@@ -63,7 +63,7 @@ export const TARGET_CAPABILITIES = defineCapabilities({
   },
   "gemini-cli": {
     supportsMcp: true,
-    supportsSkills: false,
+    supportsSkills: true,
     supportsRules: false,
     supportedScopes: ["user", "project"],
     autoApply: true,

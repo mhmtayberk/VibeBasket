@@ -131,7 +131,7 @@ export async function applyBundle(
     }
     console.log(
       chalk.gray(
-        "   MCP will be applied to all targets. Skills/rules will be applied only to targets that support them.\n",
+        "   Each target only receives the MCPs, skills, rules, and files it actually supports.\n",
       ),
     );
   }
@@ -147,7 +147,9 @@ export async function applyBundle(
     }
   }
 
-  const allRequiredSecrets = flattened.mcps.flatMap((mcp) => mcp.requiredSecrets);
+  const allRequiredSecrets = Array.from(
+    new Set(flattened.mcps.flatMap((mcp) => mcp.requiredSecrets)),
+  );
   const secrets = await resolveSecrets(allRequiredSecrets);
   const failedTargets: string[] = [];
 
@@ -158,37 +160,59 @@ export async function applyBundle(
     console.log(chalk.blue(`\nApplying to ${adapter.displayName}...`));
 
     try {
-      const config = await adapter.readConfig(scope, projectRoot);
-      const pendingConfig = adapter.applyMcps(config, flattened.mcps, secrets, {
-        force: options.force || false,
-      });
+      const shouldApplyMcps = adapter.supportsMcp && flattened.mcps.length > 0;
+      const shouldApplyRules =
+        adapter.supportsRules && Boolean(adapter.applyRules) && flattened.rules.length > 0;
+      const shouldApplySkills =
+        adapter.supportsSkills && Boolean(adapter.applySkills) && flattened.skills.length > 0;
+
+      if (!shouldApplyMcps && !shouldApplyRules && !shouldApplySkills) {
+        console.log(chalk.gray(`  - Skipped: no compatible content for ${adapter.displayName}`));
+        continue;
+      }
 
       if (options.dryRun) {
-        const diff = await adapter.diff(scope, pendingConfig, projectRoot);
-        console.log(chalk.gray(`Dry run diff for ${targetId}:\n${diff}`));
+        if (shouldApplyMcps) {
+          const config = await adapter.readConfig(scope, projectRoot);
+          const pendingConfig = adapter.applyMcps(config, flattened.mcps, secrets, {
+            force: options.force || false,
+          });
+          const diff = await adapter.diff(scope, pendingConfig, projectRoot);
+          console.log(chalk.gray(`Dry run diff for ${targetId}:\n${diff}`));
+        } else {
+          console.log(
+            chalk.gray(
+              `Dry run: ${adapter.displayName} would only receive supported non-MCP content.`,
+            ),
+          );
+        }
       } else {
-        const backupPath = await createBackup(targetId, scope, config);
-        console.log(chalk.gray(`  - Created backup: ${backupPath}`));
+        if (shouldApplyMcps) {
+          const config = await adapter.readConfig(scope, projectRoot);
+          const pendingConfig = adapter.applyMcps(config, flattened.mcps, secrets, {
+            force: options.force || false,
+          });
+          const backupPath = await createBackup(targetId, scope, config);
+          console.log(chalk.gray(`  - Created backup: ${backupPath}`));
 
-        await adapter.writeConfig(scope, pendingConfig, projectRoot);
+          await adapter.writeConfig(scope, pendingConfig, projectRoot);
+        }
 
-        // Auto-apply rules if supported
-        if (adapter.supportsRules && adapter.applyRules && flattened.rules.length > 0) {
+        if (shouldApplyRules && adapter.applyRules) {
           await adapter.applyRules(flattened.rules, scope, projectRoot);
           console.log(chalk.gray(`  - Successfully applied rules for ${adapter.displayName}`));
         }
 
-        // Auto-apply skills if supported
-        if (adapter.supportsSkills && adapter.applySkills && flattened.skills.length > 0) {
+        if (shouldApplySkills && adapter.applySkills) {
           await adapter.applySkills(flattened.skills, scope, projectRoot);
           console.log(chalk.gray(`  - Successfully applied skills for ${adapter.displayName}`));
         }
 
         if (options.verify !== false) {
           const verification = await verifyTargetInstall(targetId, adapter, scope, projectRoot, {
-            mcps: flattened.mcps,
-            skills: adapter.supportsSkills && adapter.applySkills ? flattened.skills : [],
-            rules: adapter.supportsRules && adapter.applyRules ? flattened.rules : [],
+            mcps: shouldApplyMcps ? flattened.mcps : [],
+            skills: shouldApplySkills ? flattened.skills : [],
+            rules: shouldApplyRules ? flattened.rules : [],
           });
 
           if (!verification.ok) {

@@ -122,4 +122,16 @@ describe("Bundle Lifecycle E2E", () => {
     const gooseIncompatible = incompatibleTargets.find((t: { id: string }) => t.id === "goose");
     expect(gooseIncompatible).toBeDefined();
   });
+
+  it("detects MCP-incompatible targets for MCP-only bundles", async () => {
+    const { TARGET_OPTIONS } = await import("@/lib/targets");
+    const hasMcps = true;
+
+    const incompatibleTargets = TARGET_OPTIONS.filter((t) => t.status === "supported").filter(
+      (t) => hasMcps && !t.capabilities.supportsMcp,
+    );
+
+    expect(incompatibleTargets.some((t: { id: string }) => t.id === "github-copilot")).toBe(true);
+    expect(incompatibleTargets.some((t: { id: string }) => t.id === "aider")).toBe(true);
+  });
 });
