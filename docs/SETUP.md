@@ -25,6 +25,18 @@ docker compose up -d     # Starts non-root containers with automatic SQLite volu
 
 After startup, either wait for the background catalog bootstrap to finish or run `pnpm catalog:sync`, then check `http://localhost:3000/api/catalog/status`.
 
+## Recommended Deployment Shape
+
+If you are self-hosting VibeBasket for real usage, the recommended default is:
+
+- one server
+- one app instance
+- one SQLite database file
+- no Redis
+- no shared cache layer
+
+That is the shape the current docs, admin tooling, rate limiting model, and backup flows are optimized around.
+
 
 ## Running the Full Workspace
 ```bash
@@ -87,6 +99,8 @@ Notes:
 - In local development, the app falls back to a dev-only auth secret if `AUTH_SECRET` is missing so Auth.js does not spam the console; production still requires a real `AUTH_SECRET`.
 - In production behind a reverse proxy or CDN, set `AUTH_TRUST_HOST=true` so OAuth callback URL handling trusts the forwarded host correctly.
 - Only set `TRUST_PROXY=true` when the app is actually behind a trusted proxy or CDN that overwrites incoming client IP headers.
+- `ADMIN_OAUTH_EMAILS` only grants admin access when the signed-in provider account also reports the email as verified.
+- Cookie-authenticated saved-stack mutations enforce same-origin `Origin` checks, so `NEXTAUTH_URL` should reflect the real public app origin.
 
 ## Running the CLI
 ```bash
@@ -160,3 +174,4 @@ pnpm catalog:sync:dry
 - If you configure S3/R2/Spaces/Azure/GCS backups, confirm the admin panel does not show a storage fallback warning before assuming cloud backups are active
 - Cloud backup restore now uses provider-native download flows; validate one full restore cycle in your own environment before relying on it operationally
 - Before exposing a public domain, walk through [Production Readiness Checklist](./PRODUCTION_READINESS_CHECKLIST.md)
+- Multi-instance or externally shared state deployments are not the default path documented here; operators who go beyond the single-node model should validate rate limiting, SQLite strategy, and backup assumptions themselves

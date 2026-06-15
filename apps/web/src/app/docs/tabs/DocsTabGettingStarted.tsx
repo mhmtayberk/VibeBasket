@@ -19,9 +19,9 @@ export function DocsTabGettingStarted() {
           Getting Started
         </h1>
         <p className="text-base sm:text-lg text-[#bdc9c2] max-w-3xl leading-relaxed">
-          Welcome to the VibeBasket ecosystem. This guide provides a rapid introduction to
-          initializing your workspace, understanding the core architecture, and applying your first
-          AI-engineered setup bundle.
+          Start here if you want the shortest path from zero to your first working bundle. This
+          guide explains what VibeBasket does, how to apply a bundle safely, and what to expect on
+          first run when you are self-hosting.
         </p>
       </div>
       <div className="space-y-28 border-t border-[#3e4944]/50 pt-20">
@@ -30,11 +30,11 @@ export function DocsTabGettingStarted() {
             Core Methodology
           </h2>
           <p className="text-sm text-[#bdc9c2] leading-relaxed max-w-3xl">
-            VibeBasket functions as the Ninite for Vibe Coding. It solves the friction of manually
-            configuring developer toolchains, local agent rules, and Model Context Protocol (MCP)
-            servers across different AI-assisted IDEs. By selecting custom components inside the web
-            catalog, you curate an anonymous, reproducible bundle that consolidates all settings
-            under a single immutable hash.
+            VibeBasket is a bundle-and-apply workflow for MCP servers, Skills, and Rules across AI
+            IDEs. You choose items in the catalog, generate a bundle, and then apply that bundle
+            locally with one command. The installer writes idempotently, creates backups before it
+            changes supported configs, and verifies what it wrote when the adapter supports readback
+            checks.
           </p>
           <div className="flex gap-4 p-8 border-l-2 border-[#33bbc5] bg-[#33bbc5]/5 rounded-r-[2px] my-10">
             <Info className="h-5 w-5 text-[#33bbc5] shrink-0 mt-0.5" />
@@ -59,8 +59,8 @@ export function DocsTabGettingStarted() {
           </div>
           <div className="prose prose-invert max-w-none text-sm text-[#bdc9c2] leading-relaxed space-y-8">
             <p className="max-w-3xl">
-              To inject this compiled developer context into your target codebase, copy the
-              generated command and execute it inside your local project workspace:
+              Once you have a bundle URL, run the generated command inside the machine or project
+              where you actually want the configuration to land:
             </p>
             <div className="border border-[#3e4944] rounded-[2px] overflow-hidden bg-[#101412] shadow-xl group relative my-10">
               <div className="flex items-center justify-between px-6 py-4 border-b border-[#3e4944] bg-[#1c211e] select-none">
@@ -77,7 +77,9 @@ export function DocsTabGettingStarted() {
               <div className="p-8 bg-[#0a0f0d] overflow-x-auto">
                 <pre className="font-mono text-xs text-foreground leading-relaxed">
                   <span className="text-[#a0fdda]">npx</span> vibebasket apply{" "}
-                  <span className="text-[#a0fdda]/85 font-semibold">cj2k9x</span>
+                  <span className="text-[#a0fdda]/85 font-semibold">
+                    https://vibebasket.dev/api/bundle/cj2k9x
+                  </span>
                 </pre>
               </div>
             </div>
@@ -92,17 +94,17 @@ export function DocsTabGettingStarted() {
                   <code className="font-mono text-[11px] text-[#a0fdda] bg-[#a0fdda]/10 px-1.5 py-0.5 rounded-[2px] border border-[#a0fdda]/20">
                     npx
                   </code>{" "}
-                  command triggers an on-demand, lightweight sandbox runner to ensure you always
-                  execute the latest registry structure without global dependency bloat. Power users
-                  can globally register the client with{" "}
+                  command runs the CLI without requiring a global install. Power users can still
+                  install it globally with{" "}
                   <code className="font-mono text-[11px] text-[#a0fdda] bg-[#a0fdda]/10 px-1.5 py-0.5 rounded-[2px] border border-[#a0fdda]/20">
                     npm i -g vibebasket
                   </code>{" "}
-                  to enable the fast local{" "}
+                  to enable the faster local{" "}
                   <code className="font-mono text-[11px] text-foreground bg-card px-1.5 py-0.5 rounded-[2px] border border-[#3e4944]">
                     vb
                   </code>{" "}
-                  alias directly.
+                  alias directly. If you are self-hosting, expect the first catalog sync to be the
+                  slowest step in a fresh install.
                 </p>
               </div>
             </div>

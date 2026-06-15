@@ -26,10 +26,13 @@
 - **Release Automation**: GitHub Actions CI, CodeQL, Dependabot, PR template, and a production readiness checklist are being added to support public launch and self-hosted production use.
 - **Pre-Prod Audit**: Repo-wide Biome lint is green again, package builds pass, and focused registry/adapters/core/web test surfaces have been re-verified during prod-readiness hardening.
 - **Migration Safety**: Legacy `catalog_items` upgrades now backfill missing `description`/`icon` columns before FTS bootstrap, and saved-stack target indexes are recreated during schema bootstrap.
-- **Build Reality**: `pnpm --filter web build` succeeds in a real shell; Turbopack still emits one non-fatal NFT tracing warning, now narrowed from the old monolithic admin action file to `src/app/admin/backup-actions.ts`.
+- **Build Reality**: `pnpm --filter web build` now succeeds without the prior Turbopack NFT tracing warning after moving admin backup/readiness client calls onto route handlers.
 - **Storage Visibility**: Admin backup UI can now surface when a configured cloud backend is incomplete and the runtime has fallen back to local storage.
+- **Release Readiness**: Admin now computes deploy-time blockers/warnings for auth, proxy trust, OAuth provider completeness, refresh token, storage fallback, and SQLite backup compatibility.
 - **Cloud Restore**: Backup restore now supports local plus provider-native cloud download paths for S3/R2/Spaces, Azure Blob, and GCS.
+- **Security Tightening**: Admin role promotion now requires a verified allowlisted email, proxy-derived IP headers are trusted only in `TRUST_PROXY` mode, stack mutations enforce same-origin checks, and bundle share URLs prefer configured public origin.
 - **Launch Docs**: README, SETUP, SECURITY, ARCHITECTURE, PROJECT_OVERVIEW, and `llms.txt` now better reflect live catalog variability, `AUTH_TRUST_HOST`, first-sync expectations, and backup-credential handling.
+- **Public Launch Quality**: README and public docs now explain the intended single-node deployment model more directly, set clearer first-run expectations, and describe the CLI/install surface in more honest product language.
 - **E2E Harness**: Playwright now boots the app through a production-like standalone server path instead of `next start`; full browser E2E still requires local Playwright browser binaries to be installed on the machine running the suite.
 
 ## Architecture Notes
@@ -53,5 +56,4 @@
 ## Next Steps
 - CLI `prune` command
 - Expanded E2E test suite
-- Reduce or eliminate the remaining Turbopack NFT tracing warning around `next.config.ts` / `src/app/admin/backup-actions.ts`; the action graph is now narrower, but backup filesystem flows still keep one warning alive
 - Tighten backup/restore behavior for non-file `DATABASE_URL` values so admin backup actions fail explicitly instead of relying on local-file assumptions

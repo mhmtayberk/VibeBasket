@@ -1,4 +1,5 @@
 import { authConfig, getEnabledAuthProviders } from "@/auth.config";
+import { shouldGrantAdminRole } from "@/lib/admin-role";
 import { getAdminEmails } from "@/lib/site-config";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { accounts, db, sessions, users, verificationTokens } from "@vibebasket/core";
@@ -55,10 +56,14 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
 
         const adminEmails = await getAdminEmails().catch(() => [] as string[]);
 
-        const isDevAdmin =
-          process.env.NODE_ENV !== "production" && email?.toLowerCase() === "admin@vibebasket.dev";
-
-        if (isDevAdmin || (email && adminEmails.includes(email.toLowerCase()))) {
+        if (
+          shouldGrantAdminRole({
+            adminEmails,
+            email,
+            emailVerified,
+            nodeEnv: process.env.NODE_ENV,
+          })
+        ) {
           session.user.role = "admin";
         } else {
           session.user.role = "user";

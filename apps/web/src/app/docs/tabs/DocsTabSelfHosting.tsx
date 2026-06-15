@@ -252,12 +252,12 @@ pnpm --filter web start        # production server on :3000`}</pre>
                   {
                     name: "ADMIN_OAUTH_EMAILS",
                     req: false,
-                    desc: "Comma-separated list of verified account emails that can access the /admin dashboard.",
+                    desc: "Comma-separated list of admin emails. Access is granted only when the OAuth account email is allowlisted and verified.",
                   },
                   {
                     name: "TRUST_PROXY",
                     req: false,
-                    desc: "Set to true when running behind Cloudflare, Nginx, or any reverse proxy. Enables correct IP extraction for rate limiting.",
+                    desc: "Set to true when running behind Cloudflare, Nginx, or another trusted reverse proxy. Proxy IP headers are ignored otherwise.",
                   },
                   {
                     name: "BACKUP_STORAGE_BACKEND",
