@@ -31,8 +31,9 @@ packages/
 ```bash
 pnpm --filter web dev          # Start web app
 pnpm --filter web test         # Run web tests
+pnpm --filter @vibebasket/cli dev
 pnpm --filter cli test         # Run CLI tests
-pnpm --filter adapters test    # Run adapter tests
+pnpm --filter @vibebasket/adapters test
 pnpm --filter web typecheck    # TypeScript check for the web app
 pnpm --filter web build        # Production build
 pnpm verify:ci                 # Main release gate used in CI

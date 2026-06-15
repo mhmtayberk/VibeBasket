@@ -13,6 +13,7 @@ export const McpEntrySchema = z.object({
   args: z.array(z.string()).default([]),
   url: z.string().url().optional(),
   env: z.record(z.string()).default({}),
+  headers: z.record(z.string()).default({}),
   requiredSecrets: z.array(z.string()).default([]),
   verified: z.boolean().default(false),
 });
@@ -104,6 +105,18 @@ export const mcpRegistryServerSchema = z
         z
           .object({
             url: z.string(),
+            headers: z
+              .array(
+                z
+                  .object({
+                    name: z.string(),
+                    description: z.string().optional(),
+                    isRequired: z.boolean().optional(),
+                    isSecret: z.boolean().optional(),
+                  })
+                  .passthrough(),
+              )
+              .optional(),
           })
           .passthrough(),
       )
@@ -120,6 +133,18 @@ export const mcpRegistryServerSchema = z
                 type: z.string().optional(),
               })
               .passthrough()
+              .optional(),
+            environmentVariables: z
+              .array(
+                z
+                  .object({
+                    name: z.string(),
+                    description: z.string().optional(),
+                    placeholder: z.string().optional(),
+                    isSecret: z.boolean().optional(),
+                  })
+                  .passthrough(),
+              )
               .optional(),
           })
           .passthrough(),

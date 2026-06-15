@@ -12,7 +12,7 @@ For the hosted product and the documented self-host path, the intended operating
 
 The product currently exposes 24 adapter-backed IDE targets: Cursor, Windsurf, VS Code/Cline, Antigravity, Claude Code, DeepSeek-TUI, Zed, Codex CLI, Gemini CLI, Junie, Kiro, Cline CLI, Continue, Roo Code, Hermes, OpenClaw, GitHub Copilot, Void Editor, Aider, Cortex Code, Goose, IBM Bob, CodeBuddy, and OpenCode.
 
-For targets that support it (11 total: Claude Code, Continue, Roo Code, Hermes, OpenClaw, GitHub Copilot, Void Editor, Aider, Cortex Code, IBM Bob, and CodeBuddy), the CLI adapter also installs Skills and/or Rules using idempotent file writes or block delimiters to avoid corrupting existing developer configurations.
+For targets that support it (12 total: Claude Code, Gemini CLI, Continue, Roo Code, Hermes, OpenClaw, GitHub Copilot, Void Editor, Aider, Cortex Code, IBM Bob, and CodeBuddy), the CLI adapter also installs Skills and/or Rules using idempotent file writes or block delimiters to avoid corrupting existing developer configurations.
 
 ## Core Experience
 
@@ -23,7 +23,7 @@ For targets that support it (11 total: Claude Code, Continue, Roo Code, Hermes, 
 5. Apply the bundle locally with idempotent IDE adapters.
 6. Re-read the written target config and verify that expected MCP entries and supported skill/rule artifacts exist.
 
-Automatic local apply is fully supported for MCP configuration across all MCP-capable targets. Skills and rules are additionally auto-installed on the adapters that explicitly implement them, and the CLI now performs post-install verification rather than assuming persistence succeeded.
+Automatic local apply is fully supported for MCP configuration across all MCP-capable targets. Skills and rules are additionally auto-installed on the adapters that explicitly implement them, and the CLI now performs post-install verification rather than assuming persistence succeeded. Codex CLI now supports both `~/.codex/config.toml` and project-scoped `.codex/config.toml` writes, while Gemini CLI supports both MCP settings and filesystem-backed skills under `.gemini/skills`.
 
 ## Trusted Catalog Model
 
@@ -33,7 +33,7 @@ The catalog is no longer intended to be a mostly manual seed list. It is now des
 - trusted upstream MCP metadata from the official MCP Registry
 - trusted upstream skill metadata from the public `skills.sh` catalog corpus, ingested through the published sitemap surfaces
 
-When multiple sources describe the same item, VibeBasket deduplicates by canonical identity and gives precedence to curated verified records.
+When multiple sources describe the same item, VibeBasket deduplicates by canonical identity and gives precedence to curated verified records. This also means MCP coverage is intentionally bounded by the official MCP Registry plus curated overrides; if a server is popular in the ecosystem but absent from the registry, it will not appear until it is either published there or explicitly curated by VibeBasket.
 
 ## Recent State
 

@@ -1,5 +1,7 @@
 # Setup
 
+This guide is for contributors and self-hosters. If you only want to use the hosted product, you do not need any of this setup; just build a basket in the web app and run the generated `npx vibebasket apply ...` command locally.
+
 ## Prerequisites
 - Node.js 20+
 - pnpm 9+
@@ -57,7 +59,7 @@ AUTH_SECRET=replace-with-a-long-random-secret
 AUTH_TRUST_HOST=true
 ```
 
-Each social provider is independently gated. A provider is shown only when its `*_ENABLED` flag is truthy (`1`, `true`, `yes`, or `on`) and its credentials are present.
+Each provider is independently gated. A provider is shown only when its `*_ENABLED` flag is truthy (`1`, `true`, `yes`, or `on`) and its credentials are present.
 
 GitHub:
 
@@ -95,6 +97,7 @@ Notes:
 
 - Self-hosted deployments can enable any subset of providers.
 - Apple should be treated as optional for self-hosting; if it is not configured, it simply does not appear in the UI.
+- Microsoft Entra ID is optional too; keep it disabled unless you actually want that provider in the login surface.
 - Anonymous catalog browsing still works when all auth providers are disabled.
 - In local development, the app falls back to a dev-only auth secret if `AUTH_SECRET` is missing so Auth.js does not spam the console; production still requires a real `AUTH_SECRET`.
 - In production behind a reverse proxy or CDN, set `AUTH_TRUST_HOST=true` so OAuth callback URL handling trusts the forwarded host correctly.

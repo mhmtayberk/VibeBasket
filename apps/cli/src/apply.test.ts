@@ -50,6 +50,11 @@ class UserOnlyAdapter extends FakeAdapter {
   override supportedScopes: readonly string[] = ["user"];
 }
 
+class McpUnsupportedAdapter extends SkillsAndRulesAdapter {
+  override displayName = "GitHub Copilot";
+  override supportsMcp = false;
+}
+
 vi.mock("@inquirer/prompts", () => ({
   confirm: confirmMock,
 }));
@@ -84,9 +89,9 @@ vi.mock("@vibebasket/adapters", () => ({
   RooCodeAdapter: FakeAdapter,
   HermesAdapter: FakeAdapter,
   OpenClawAdapter: FakeAdapter,
-  GitHubCopilotAdapter: FakeAdapter,
+  GitHubCopilotAdapter: McpUnsupportedAdapter,
   VoidAdapter: FakeAdapter,
-  AiderAdapter: FakeAdapter,
+  AiderAdapter: McpUnsupportedAdapter,
   CortexCodeAdapter: FakeAdapter,
   GooseAdapter: FakeAdapter,
   IBMBobAdapter: FakeAdapter,
@@ -438,8 +443,42 @@ describe("applyBundle", () => {
     );
 
     await applyBundle(tempFile, { force: true });
-    // Cursor adapter doesn't support skills or rules, but it should still succeed
-    expect(writeConfigMock).toHaveBeenCalled();
+    // Cursor adapter has no compatible content here, so the target is skipped cleanly.
+    expect(writeConfigMock).not.toHaveBeenCalled();
+    expect(verifyTargetInstallMock).not.toHaveBeenCalled();
+  });
+
+  it("skips MCP writes for targets that do not support MCP configuration", async () => {
+    const { applyBundle } = await import("./apply.js");
+    fs.writeFileSync(
+      tempFile,
+      JSON.stringify({
+        schemaVersion: "0.1",
+        scope: "project",
+        targets: ["github-copilot"],
+        mcps: [
+          {
+            id: "github",
+            displayName: "GitHub",
+            runtime: "npx",
+            command: "npx",
+            args: ["-y", "@modelcontextprotocol/server-github"],
+            env: {},
+            headers: {},
+            requiredSecrets: [],
+            verified: true,
+          },
+        ],
+        skills: [],
+        rules: [],
+        workflowPacks: [],
+      }),
+    );
+
+    await applyBundle(tempFile, { force: true });
+    expect(writeConfigMock).not.toHaveBeenCalled();
+    expect(createBackupMock).not.toHaveBeenCalled();
+    expect(verifyTargetInstallMock).not.toHaveBeenCalled();
   });
 
   it("handles single target failing while others succeed", async () => {

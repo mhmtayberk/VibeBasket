@@ -87,16 +87,16 @@ export function DocsTabAdapters() {
                 {
                   name: "Gemini CLI",
                   color: "#4285F4",
-                  config: "~/.gemini/settings.json",
-                  skills: false,
-                  note: "Google's Gemini CLI reads mcpServers from its settings.json file.",
+                  config: "~/.gemini/settings.json or .gemini/settings.json + .gemini/skills/",
+                  skills: true,
+                  note: "Gemini CLI reads MCP settings from settings.json and discovers skills from .gemini/skills/ at user or workspace scope.",
                 },
                 {
                   name: "Codex CLI",
                   color: "#10A37F",
-                  config: "~/.codex/config.toml",
+                  config: "~/.codex/config.toml or .codex/config.toml",
                   skills: false,
-                  note: "OpenAI Codex CLI uses a TOML-formatted config. Single and double-quoted server identifiers are both handled.",
+                  note: "Codex CLI uses a TOML-formatted config for both user and trusted project scope. Remote MCP servers must serialize into Codex's native HTTP fields.",
                 },
                 {
                   name: "Antigravity",

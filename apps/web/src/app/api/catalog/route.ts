@@ -3,6 +3,7 @@ import {
   OFFICIAL_SOURCE_NAMES,
   normalizeCatalogDiscoveryInput,
 } from "@/lib/catalog-discovery";
+import { buildCatalogCountCacheKey } from "@/lib/catalog-query";
 import { checkRateLimit, getClientAddress } from "@/lib/rate-limit";
 import { applySecurityHeaders, createTooManyRequestsResponse } from "@/lib/security-headers";
 import { and, catalogItems, db, ensureDatabaseIndexes, eq, like, or } from "@vibebasket/core";
@@ -213,9 +214,17 @@ export async function GET(request: Request) {
         : "";
 
       if (ftsTokens) {
-        conditions.push(
-          sql`catalog_items.rowid IN (SELECT rowid FROM catalog_items_fts WHERE catalog_items_fts MATCH ${ftsTokens})`,
-        );
+        const ftsClause =
+          sql`catalog_items.rowid IN (SELECT rowid FROM catalog_items_fts WHERE catalog_items_fts MATCH ${ftsTokens})`;
+        const structuredFallbackClause = like(catalogItems.data, `%${search}%`);
+        if (structuredFallbackClause) {
+          const searchClause = or(ftsClause, structuredFallbackClause);
+          if (searchClause) {
+            conditions.push(searchClause);
+          }
+        } else {
+          conditions.push(ftsClause);
+        }
       } else {
         const fallbackClause = or(
           like(catalogItems.displayName, `${search}%`),
@@ -309,7 +318,12 @@ export async function GET(request: Request) {
         .limit(limit)
         .offset(offset),
       (async () => {
-        const cacheKey = `${type ?? ""}|${discovery.trust}|${discovery.freshness}|${search ? "1" : "0"}`;
+        const cacheKey = buildCatalogCountCacheKey({
+          type,
+          trust: discovery.trust,
+          freshness: discovery.freshness,
+          search,
+        });
         const cached = getCachedCount(cacheKey);
         if (cached !== null) {
           return [{ total: cached }];

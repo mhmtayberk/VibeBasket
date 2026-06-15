@@ -27,6 +27,12 @@ type SqlRowsResult<Row extends SqlRow = SqlRow> = {
   rows?: Row[];
 };
 
+type FtsHealthCandidateRow = {
+  display_name?: unknown;
+  description?: unknown;
+  source_url?: unknown;
+};
+
 type ColumnSpec = {
   name: string;
   sql: string;
@@ -266,6 +272,69 @@ async function tableExists(targetClient: SqlExecutor, tableName: string) {
   `);
 
   return (((result as SqlRowsResult).rows ?? []).length ?? 0) > 0;
+}
+
+function deriveFtsHealthToken(rows: FtsHealthCandidateRow[]) {
+  const tokenPattern = /[A-Za-z0-9][A-Za-z0-9_-]{2,}/;
+
+  for (const row of rows) {
+    for (const value of [row.display_name, row.description, row.source_url]) {
+      const text = typeof value === "string" ? value : String(value ?? "");
+      const token = text.match(tokenPattern)?.[0]?.toLowerCase();
+      if (token) {
+        return token;
+      }
+    }
+  }
+
+  return null;
+}
+
+async function rebuildCatalogFtsIndex(targetClient: SqlExecutor) {
+  await targetClient.execute("INSERT INTO catalog_items_fts(catalog_items_fts) VALUES('rebuild')");
+}
+
+async function ensureCatalogFtsIndex(targetClient: SqlExecutor) {
+  const catalogCountResult = (await targetClient.execute(
+    "SELECT count(*) as cnt FROM catalog_items",
+  )) as SqlRowsResult<{ cnt?: number }>;
+  const ftsCountResult = (await targetClient.execute(
+    "SELECT count(*) as cnt FROM catalog_items_fts",
+  )) as SqlRowsResult<{ cnt?: number }>;
+
+  const catalogCount = Number(catalogCountResult.rows?.[0]?.cnt ?? 0);
+  const ftsCount = Number(ftsCountResult.rows?.[0]?.cnt ?? 0);
+
+  if (catalogCount === 0) {
+    return;
+  }
+
+  if (ftsCount !== catalogCount) {
+    await rebuildCatalogFtsIndex(targetClient);
+    return;
+  }
+
+  const sampleRowsResult = (await targetClient.execute(`
+    SELECT display_name, description, source_url
+    FROM catalog_items
+    WHERE trim(coalesce(display_name, '')) <> ''
+    ORDER BY rowid DESC
+    LIMIT 25
+  `)) as SqlRowsResult<FtsHealthCandidateRow>;
+  const sampleToken = deriveFtsHealthToken(sampleRowsResult.rows ?? []);
+
+  if (!sampleToken) {
+    return;
+  }
+
+  const matchCountResult = (await targetClient.execute(
+    `SELECT count(*) as cnt FROM catalog_items_fts WHERE catalog_items_fts MATCH '${sampleToken}*'`,
+  )) as SqlRowsResult<{ cnt?: number }>;
+  const matchCount = Number(matchCountResult.rows?.[0]?.cnt ?? 0);
+
+  if (matchCount === 0) {
+    await rebuildCatalogFtsIndex(targetClient);
+  }
 }
 
 async function countRows(targetClient: SqlExecutor, tableName: string) {
@@ -578,15 +647,8 @@ async function bootstrapDatabase(targetClient: SqlExecutor) {
     END
   `);
 
-  // Populate FTS5 index if empty (first run or migration)
-  const ftsCount = (await targetClient.execute(
-    "SELECT count(*) as cnt FROM catalog_items_fts",
-  )) as { rows: Array<{ cnt: number }> };
-  if (ftsCount.rows[0]?.cnt === 0) {
-    await targetClient.execute(
-      "INSERT INTO catalog_items_fts(rowid, display_name, description, source_url) SELECT rowid, display_name, description, source_url FROM catalog_items",
-    );
-  }
+  // Keep the FTS index queryable after first run, schema drift, or interrupted syncs.
+  await ensureCatalogFtsIndex(targetClient);
 }
 
 export function ensureDatabaseSchema(targetClient: SqlExecutor = client) {
@@ -607,6 +669,8 @@ export function ensureDatabaseSchema(targetClient: SqlExecutor = client) {
 export function ensureDatabaseIndexes() {
   return ensureDatabaseSchema();
 }
+
+export { deriveFtsHealthToken };
 
 export const db = drizzle(client, { schema });
 export * from "./schema";

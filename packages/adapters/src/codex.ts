@@ -2,13 +2,30 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import type { IdeId, McpEntry, Scope } from "@vibebasket/core";
-import { type BasicMcpServerConfig, hasErrorCode, mergeStandardMcpServers } from "./mcp-utils";
+import { type BasicMcpServerConfig, hasErrorCode } from "./mcp-utils";
 import { getTargetCapabilities } from "./target-capabilities";
 import type { IdeAdapter } from "./types";
 
 interface CodexMcpConfig {
-  mcpServers: Record<string, BasicMcpServerConfig>;
+  mcpServers: Record<string, CodexServerConfig>;
   raw?: string;
+}
+
+interface CodexServerConfig extends BasicMcpServerConfig {
+  cwd?: string;
+  bearer_token_env_var?: string;
+  http_headers?: Record<string, string>;
+  env_http_headers?: Record<string, string>;
+}
+
+function extractSecretPlaceholder(value: string): string | null {
+  const match = value.match(/^\$\{secret:([^}]+)\}$/);
+  return match?.[1] ?? null;
+}
+
+function extractBearerSecretPlaceholder(value: string): string | null {
+  const match = value.match(/^Bearer\s+\$\{secret:([^}]+)\}$/i);
+  return match?.[1] ?? null;
 }
 
 function parseInlineArray(value: string): string[] {
@@ -69,8 +86,8 @@ function serializeTomlInlineTable(record: Record<string, string>): string {
   return `{ ${entries.join(", ")} }`;
 }
 
-function parseCodexToml(content: string): Record<string, BasicMcpServerConfig> {
-  const result: Record<string, BasicMcpServerConfig> = {};
+function parseCodexToml(content: string): Record<string, CodexServerConfig> {
+  const result: Record<string, CodexServerConfig> = {};
   let currentName: string | null = null;
 
   for (const rawLine of content.split(/\r?\n/)) {
@@ -113,11 +130,22 @@ function parseCodexToml(content: string): Record<string, BasicMcpServerConfig> {
     }
     const value = rawValue.trim();
 
-    if (key === "command" || key === "url" || key === "type") {
+    if (
+      key === "command" ||
+      key === "url" ||
+      key === "type" ||
+      key === "cwd" ||
+      key === "bearer_token_env_var"
+    ) {
       target[key] = value.replace(/^"(.*)"$/, "$1");
     } else if (key === "args") {
       target.args = parseInlineArray(value);
-    } else if (key === "env" || key === "headers") {
+    } else if (
+      key === "env" ||
+      key === "headers" ||
+      key === "http_headers" ||
+      key === "env_http_headers"
+    ) {
       target[key] = parseInlineTable(value);
     }
   }
@@ -127,7 +155,7 @@ function parseCodexToml(content: string): Record<string, BasicMcpServerConfig> {
 
 function renderCodexToml(
   existingContent: string,
-  mcpServers: Record<string, BasicMcpServerConfig>,
+  mcpServers: Record<string, CodexServerConfig>,
 ): string {
   const keptLines: string[] = [];
   let skippingMcpSection = false;
@@ -166,11 +194,23 @@ function renderCodexToml(
     if (server.url) {
       lines.push(`url = ${serializeTomlString(server.url)}`);
     }
+    if (server.cwd) {
+      lines.push(`cwd = ${serializeTomlString(server.cwd)}`);
+    }
+    if (server.bearer_token_env_var) {
+      lines.push(`bearer_token_env_var = ${serializeTomlString(server.bearer_token_env_var)}`);
+    }
     if (server.type) {
       lines.push(`type = ${serializeTomlString(server.type)}`);
     }
     if (server.headers && Object.keys(server.headers).length > 0) {
       lines.push(`headers = ${serializeTomlInlineTable(server.headers)}`);
+    }
+    if (server.http_headers && Object.keys(server.http_headers).length > 0) {
+      lines.push(`http_headers = ${serializeTomlInlineTable(server.http_headers)}`);
+    }
+    if (server.env_http_headers && Object.keys(server.env_http_headers).length > 0) {
+      lines.push(`env_http_headers = ${serializeTomlInlineTable(server.env_http_headers)}`);
     }
     return lines.join("\n");
   });
@@ -187,6 +227,60 @@ function renderCodexToml(
   return `${output}\n\n${joinedBlocks}\n`;
 }
 
+function toCodexServerConfig(
+  mcp: McpEntry,
+  secrets: Record<string, string>,
+): CodexServerConfig {
+  if (mcp.runtime !== "remote") {
+    return {
+      command: mcp.command || mcp.runtime,
+      args: mcp.args,
+      ...(Object.keys(mcp.env).length > 0
+        ? {
+            env: Object.fromEntries(
+              Object.entries(mcp.env).map(([key, value]) => {
+                const secretName = extractSecretPlaceholder(value);
+                return [key, secretName ? (secrets[secretName] ?? value) : value];
+              }),
+            ),
+          }
+        : {}),
+    };
+  }
+
+  const httpHeaders: Record<string, string> = {};
+  const envHttpHeaders: Record<string, string> = {};
+  let bearerTokenEnvVar: string | undefined;
+
+  for (const [headerName, headerValue] of Object.entries(mcp.headers ?? {})) {
+    const bearerSecret = extractBearerSecretPlaceholder(headerValue);
+    if (headerName.toLowerCase() === "authorization" && bearerSecret) {
+      bearerTokenEnvVar = bearerSecret;
+      continue;
+    }
+
+    const secretName = extractSecretPlaceholder(headerValue);
+    if (secretName) {
+      envHttpHeaders[headerName] = secretName;
+      continue;
+    }
+
+    const resolvedValue = Object.entries(secrets).reduce(
+      (nextValue, [secretKey, secretValue]) =>
+        nextValue.replace(`\${secret:${secretKey}}`, secretValue),
+      headerValue,
+    );
+    httpHeaders[headerName] = resolvedValue;
+  }
+
+  return {
+    ...(mcp.url ? { url: mcp.url } : {}),
+    ...(bearerTokenEnvVar ? { bearer_token_env_var: bearerTokenEnvVar } : {}),
+    ...(Object.keys(httpHeaders).length > 0 ? { http_headers: httpHeaders } : {}),
+    ...(Object.keys(envHttpHeaders).length > 0 ? { env_http_headers: envHttpHeaders } : {}),
+  };
+}
+
 export class CodexAdapter implements IdeAdapter {
   private static readonly capabilities = getTargetCapabilities("codex");
   readonly id: IdeId = "codex";
@@ -196,16 +290,20 @@ export class CodexAdapter implements IdeAdapter {
   readonly supportsRules = CodexAdapter.capabilities.supportsRules;
   readonly supportedScopes: readonly Scope[] = CodexAdapter.capabilities.supportedScopes;
 
-  configPath(scope: Scope): string {
+  configPath(scope: Scope, projectRoot?: string): string {
     if (scope === "project") {
-      throw new Error("Codex CLI support is currently limited to user scope");
+      if (!projectRoot) {
+        throw new Error("projectRoot required for project scope");
+      }
+
+      return path.join(projectRoot, ".codex", "config.toml");
     }
 
     return path.join(os.homedir(), ".codex", "config.toml");
   }
 
-  async readConfig(scope: Scope): Promise<unknown> {
-    const file = this.configPath(scope);
+  async readConfig(scope: Scope, projectRoot?: string): Promise<unknown> {
+    const file = this.configPath(scope, projectRoot);
     try {
       const content = await fs.readFile(file, "utf8");
       return {
@@ -227,14 +325,24 @@ export class CodexAdapter implements IdeAdapter {
     opts: { force: boolean },
   ): unknown {
     const current = (config as CodexMcpConfig) || { mcpServers: {}, raw: "" };
+    const nextServers = { ...(current.mcpServers || {}) };
+
+    for (const mcp of mcps) {
+      if (nextServers[mcp.id] && !opts.force) {
+        continue;
+      }
+
+      nextServers[mcp.id] = toCodexServerConfig(mcp, secrets);
+    }
+
     return {
       ...current,
-      mcpServers: mergeStandardMcpServers(current.mcpServers, mcps, secrets, opts),
+      mcpServers: nextServers,
     } satisfies CodexMcpConfig;
   }
 
-  async writeConfig(scope: Scope, config: unknown): Promise<void> {
-    const file = this.configPath(scope);
+  async writeConfig(scope: Scope, config: unknown, projectRoot?: string): Promise<void> {
+    const file = this.configPath(scope, projectRoot);
     const dir = path.dirname(file);
     await fs.mkdir(dir, { recursive: true });
 
@@ -253,7 +361,7 @@ export class CodexAdapter implements IdeAdapter {
     await fs.writeFile(file, renderCodexToml(existingContent, current.mcpServers), "utf8");
   }
 
-  async diff(scope: Scope, pending: unknown): Promise<string> {
+  async diff(scope: Scope, pending: unknown, _projectRoot?: string): Promise<string> {
     const current = (pending as CodexMcpConfig) || { mcpServers: {}, raw: "" };
     return renderCodexToml(current.raw || "", current.mcpServers);
   }

@@ -20,7 +20,9 @@ export function DocsTabSelfHosting() {
           Self-Hosting Guide
         </h1>
         <p className="text-base sm:text-lg text-[#bdc9c2] max-w-3xl leading-relaxed">
-          Configure local database servers, secure API reverse proxies, and gate access roles.
+          Run VibeBasket on your own infrastructure with the single-node deployment shape the
+          product is currently optimized for: one app process, one SQLite database, optional OAuth,
+          and optional encrypted backup storage.
         </p>
       </div>
 

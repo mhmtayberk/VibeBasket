@@ -17,7 +17,13 @@ import type {
   SourceCollectedItem,
   SourceCollector,
 } from "./schemas";
-import { normalizeSkillRepoFamily, pickPreferredSkillMirror, toResult } from "./utils";
+import {
+  canonicalSkillsShMirrorKey,
+  normalizeSkillRepoFamily,
+  pickPreferredSkillMirror,
+  preferCollectedSkillMirrorCandidate,
+  toResult,
+} from "./utils";
 
 const MODULE_DIR = path.dirname(fileURLToPath(import.meta.url));
 const CORE_SOURCE_ENTRY_URL = pathToFileURL(
@@ -145,8 +151,30 @@ export class RegistrySyncService {
       }
     }
 
+    const skillMirrorDeduped = new Map<string, SourceCollectedItem>();
+    const passthroughItems: SourceCollectedItem[] = [];
+
+    for (const item of deduped.values()) {
+      if (item.catalogItem.type !== "skill") {
+        passthroughItems.push(item);
+        continue;
+      }
+
+      const skill = item.catalogItem.data as SkillEntry;
+      if (skill.source.type !== "github") {
+        passthroughItems.push(item);
+        continue;
+      }
+
+      const mirrorKey = canonicalSkillsShMirrorKey(skill);
+      skillMirrorDeduped.set(
+        mirrorKey,
+        preferCollectedSkillMirrorCandidate(item, skillMirrorDeduped.get(mirrorKey)),
+      );
+    }
+
     return {
-      items: Array.from(deduped.values()).map((item) => item.catalogItem),
+      items: [...passthroughItems, ...skillMirrorDeduped.values()].map((item) => item.catalogItem),
       errors,
     };
   }
