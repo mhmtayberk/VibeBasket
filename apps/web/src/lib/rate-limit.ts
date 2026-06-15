@@ -36,11 +36,11 @@ export function getClientAddress(request: Request) {
       const ip = forwardedFor.split(",")[0]?.trim();
       if (ip) return ip;
     }
-  }
 
-  const realIp = request.headers.get("x-real-ip");
-  if (realIp) {
-    return realIp.trim();
+    const realIp = request.headers.get("x-real-ip");
+    if (realIp) {
+      return realIp.trim();
+    }
   }
 
   return "local";

@@ -18,6 +18,19 @@ Stop manually configuring MCP servers one IDE at a time. Browse a trusted catalo
 npx vibebasket apply https://vibebasket.dev/api/bundle/cj2k9x
 ```
 
+## What VibeBasket Is Good At
+
+- Standardizing MCP-heavy setups across multiple AI IDEs and terminal tools
+- Turning one curated stack into a repeatable install flow for a team or project
+- Keeping install behavior idempotent so re-applying a bundle is safe
+- Letting self-hosters run the whole stack on a single VPS without adding Redis, Postgres, or extra infra
+
+## What It Does Not Try To Be
+
+- A hosted secrets manager for end-user runtime credentials
+- A multi-node control plane with shared cache/state infrastructure by default
+- A universal package manager for arbitrary IDE extensions outside MCPs, Skills, and Rules
+
 ## Supported IDEs (24 Targets)
 
 | IDE | MCP | Skills | Rules |
@@ -88,6 +101,12 @@ npx vibebasket apply https://vibebasket.dev/api/bundle/cj2k9x
 
 ## Quick Start
 
+Choose the path that matches what you are trying to do:
+
+- Just use the hosted product: open [vibebasket.dev](https://vibebasket.dev), build a basket, copy the `npx vibebasket apply ...` command, and run it locally
+- Self-host on one machine: use Docker first
+- Hack on the repo: use the manual workspace setup
+
 ### Docker
 
 ```bash
@@ -98,6 +117,12 @@ docker compose up -d
 ```
 
 After first boot, either wait for background catalog bootstrap or run `pnpm catalog:sync`, then verify freshness at `/api/catalog/status`.
+
+Expected first-run behavior:
+
+- the app comes up before the full catalog is necessarily warm
+- the first live sync may take noticeably longer than ordinary page loads
+- `/api/catalog/status` is the quickest way to confirm counts, freshness, and latest sync outcome
 
 ### Manual
 
@@ -113,6 +138,17 @@ After first boot, either wait for background catalog bootstrap or run `pnpm cata
 
 Open [http://localhost:3000](http://localhost:3000).
 
+## Self-Hosting Expectations
+
+VibeBasket is currently optimized for **single-node deployments**.
+
+- Recommended default: one VPS, one Next.js process, one SQLite database file
+- Rate limiting is process-local in memory by design
+- Backup/storage/admin features are built around that simple deployment shape
+- If you choose to run multiple replicas or add external state infrastructure, that is possible territory for advanced operators, but it is not the default operating model the docs optimize for
+
+If you want the simplest stable setup, use Docker Compose or the Helm chart in single-replica mode.
+
 ## Production Readiness
 
 VibeBasket is designed for self-hosting as well as the public hosted product.
@@ -126,6 +162,12 @@ Current release-engineering note:
 
 - The repo is verified through `pnpm verify:ci`, targeted web typecheck, build, unit/integration tests, and Playwright smoke coverage.
 - A monorepo-wide `tsc -b` gate is not yet a release requirement; there is still project-reference cleanup to finish in `packages/adapters` and `apps/cli`.
+
+Operational reality:
+
+- The product is production-usable today for the intended single-node shape
+- Catalog quality depends on upstream source health plus local sync freshness
+- Some adapters support MCP only, while others also support Skills and Rules; VibeBasket exposes those distinctions instead of pretending every target has the same surface
 
 ### Kubernetes
 
@@ -172,8 +214,8 @@ npx vibebasket rollback
 | `AUTH_APPLE_ID/SECRET` | No | Apple Sign-In credentials |
 | `AUTH_MICROSOFT_ENTRA_ID_ID/SECRET` | No | Microsoft Entra ID credentials |
 | `BACKUP_STORAGE_BACKEND` | No | local, s3, r2, spaces, azure, or gcs |
-| `ADMIN_OAUTH_EMAILS` | No | Comma-separated admin emails |
-| `TRUST_PROXY` | No | Set to `true` only when the app is actually behind a trusted reverse proxy |
+| `ADMIN_OAUTH_EMAILS` | No | Comma-separated admin emails; admin access is granted only when the signed-in account email is both allowlisted and verified |
+| `TRUST_PROXY` | No | Set to `true` only when the app is actually behind a trusted reverse proxy; proxy IP headers are ignored otherwise |
 
 See [`.env.example`](.env.example) for the complete list.
 
@@ -198,7 +240,9 @@ Key patterns: idempotent config writes, immutable bundles, DB-first configuratio
 - SQLite with WAL mode. For multi-replica deployments, use Turso.
 - Anonymous bundles expire in 48 hours. Registered user bundles last 365 days.
 - OAuth is optional. Catalog browsing and bundle apply work without login.
-- Admin access: set `ADMIN_OAUTH_EMAILS` or configure from admin panel at `/admin`.
+- Admin access: set `ADMIN_OAUTH_EMAILS` or configure from admin panel at `/admin`. Production admin access requires an allowlisted and verified email address.
+- Cookie-authenticated stack create/update/delete routes enforce same-origin browser mutations to reduce CSRF risk.
+- Catalog sync is eventually consistent. If upstream sources change, your local instance reflects that after background refresh or a manual `pnpm catalog:sync`.
 
 ## Contributing
 

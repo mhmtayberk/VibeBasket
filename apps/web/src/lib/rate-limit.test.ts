@@ -18,7 +18,7 @@ describe("rate-limit utilities", () => {
       });
 
       const ip = getClientAddress(req);
-      expect(ip).toBe("198.51.100.1");
+      expect(ip).toBe("local");
     });
 
     it("should prioritize cf-connecting-ip when TRUST_PROXY is enabled", () => {
@@ -45,8 +45,18 @@ describe("rate-limit utilities", () => {
       });
 
       const ip = getClientAddress(req);
-      // Should ignore x-forwarded-for and fallback to x-real-ip
-      expect(ip).toBe("198.51.100.1");
+      expect(ip).toBe("local");
+    });
+
+    it("should ignore x-real-ip unless TRUST_PROXY is enabled", () => {
+      const req = new Request("https://vibebasket.dev/", {
+        headers: {
+          "x-real-ip": "198.51.100.1",
+        },
+      });
+
+      const ip = getClientAddress(req);
+      expect(ip).toBe("local");
     });
 
     it("should trust x-forwarded-for when TRUST_PROXY env is enabled", () => {

@@ -12,6 +12,12 @@ export type EnabledAuthProvider = {
   label: string;
 };
 
+export type AuthProviderReadiness = EnabledAuthProvider & {
+  enabled: boolean;
+  configured: boolean;
+  missingEnv: string[];
+};
+
 type ProviderEnvKey =
   | "AUTH_APPLE_ENABLED"
   | "AUTH_APPLE_ID"
@@ -98,11 +104,30 @@ function hasConfiguredValue(value: string | undefined) {
   return typeof value === "string" && value.trim().length > 0;
 }
 
+export function getAuthProviderReadiness(
+  env: AuthProviderEnv = process.env,
+): AuthProviderReadiness[] {
+  return PROVIDER_DEFINITIONS.map((provider) => {
+    const enabled = isEnabledFlagSet(env[provider.enabledFlag]);
+    const missingEnv = provider.requiredEnv.filter((key) => !hasConfiguredValue(env[key]));
+
+    return {
+      id: provider.id,
+      label: provider.label,
+      enabled,
+      configured: enabled && missingEnv.length === 0,
+      missingEnv,
+    };
+  });
+}
+
 function getEnabledProviderDefinitions(env: AuthProviderEnv = process.env) {
+  const readinessById = new Map(
+    getAuthProviderReadiness(env).map((readiness) => [readiness.id, readiness]),
+  );
+
   return PROVIDER_DEFINITIONS.filter(
-    (provider) =>
-      isEnabledFlagSet(env[provider.enabledFlag]) &&
-      provider.requiredEnv.every((key) => hasConfiguredValue(env[key])),
+    (provider) => readinessById.get(provider.id)?.configured === true,
   );
 }
 

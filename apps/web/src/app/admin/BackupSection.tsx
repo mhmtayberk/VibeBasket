@@ -2,16 +2,6 @@
 
 import { Check, Clock, Loader2, Settings, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useState, useTransition } from "react";
-import {
-  backupDatabaseAction,
-  deleteBackupAction,
-  getStorageConfigAction,
-  listBackupsAction,
-  removeStorageConfigAction,
-  restoreBackupAction,
-  saveScheduleAction,
-  saveStorageConfigAction,
-} from "./backup-actions";
 
 interface BackupEntry {
   key: string;
@@ -44,6 +34,18 @@ interface BackendStatus {
 }
 
 type ConfigMode = { backend: string; label: string } | null;
+
+async function getJson<T>(input: RequestInfo, init?: RequestInit): Promise<T> {
+  const response = await fetch(input, {
+    ...init,
+    headers: {
+      "Content-Type": "application/json",
+      ...(init?.headers ?? {}),
+    },
+  });
+
+  return response.json() as Promise<T>;
+}
 
 const FIELD_LABELS: Record<string, string> = {
   endpoint: "Endpoint URL",
@@ -90,15 +92,14 @@ export function BackupSection() {
   const [scheduleHours, setScheduleHours] = useState(24);
 
   const refreshBackups = useCallback(() => {
-    listBackupsAction().then((res) => {
+    getJson<{ success: boolean; backups: BackupEntry[] }>("/api/admin/backup", {
+      cache: "no-store",
+    }).then((res) => {
       if (res.success) {
         setBackups(
           res.backups.map((b) => ({
             ...b,
-            lastModified:
-              b.lastModified instanceof Date
-                ? b.lastModified.toISOString()
-                : String(b.lastModified),
+            lastModified: String(b.lastModified),
           })),
         );
       }
@@ -106,7 +107,15 @@ export function BackupSection() {
   }, []);
 
   const refreshAll = useCallback(() => {
-    getStorageConfigAction().then((res) => {
+    getJson<{
+      success: boolean;
+      config: DbConfig | null;
+      schedule?: { enabled: boolean; intervalHours: number } | null;
+      backends: BackendStatus[];
+      backendInfo?: BackendInfo | null;
+    }>("/api/admin/storage", {
+      cache: "no-store",
+    }).then((res) => {
       if (res.success) {
         setDbConfig(res.config);
         setBackends(res.backends);
@@ -134,7 +143,11 @@ export function BackupSection() {
 
     (async () => {
       try {
-        const response = await backupDatabaseAction();
+        const response = await getJson<{
+          success: boolean;
+          backup?: { storageLabel: string; key: string; sizeBytes: number };
+          error?: string;
+        }>("/api/admin/backup", { method: "POST" });
         if (response.success && response.backup) {
           setResult({
             success: true,
@@ -167,7 +180,10 @@ export function BackupSection() {
   const handleDelete = (key: string) => {
     startTransition(async () => {
       try {
-        const response = await deleteBackupAction(key);
+        const response = await getJson<{ success: boolean; error?: string }>(
+          `/api/admin/backup?key=${encodeURIComponent(key)}`,
+          { method: "DELETE" },
+        );
         setResult({
           success: response.success,
           message: response.success ? `Deleted: ${key}` : (response.error ?? "Delete failed."),
@@ -184,7 +200,13 @@ export function BackupSection() {
     setRestoringKey(key);
     startTransition(async () => {
       try {
-        const response = await restoreBackupAction(key);
+        const response = await getJson<{ success: boolean; message?: string; error?: string }>(
+          "/api/admin/backup/restore",
+          {
+            method: "POST",
+            body: JSON.stringify({ key }),
+          },
+        );
         setResult({
           success: response.success,
           message: response.success
@@ -204,7 +226,13 @@ export function BackupSection() {
     setResult(null);
     startTransition(async () => {
       try {
-        const response = await saveStorageConfigAction(configMode.backend, formValues);
+        const response = await getJson<{ success: boolean; error?: string }>("/api/admin/storage", {
+          method: "POST",
+          body: JSON.stringify({
+            backend: configMode.backend,
+            credentials: formValues,
+          }),
+        });
         if (response.success) {
           setResult({ success: true, message: `Switched to ${configMode.label}.` });
           setConfigMode(null);
@@ -222,7 +250,9 @@ export function BackupSection() {
     if (!window.confirm("Remove stored configuration? Falls back to env vars or local.")) return;
     startTransition(async () => {
       try {
-        const response = await removeStorageConfigAction();
+        const response = await getJson<{ success: boolean; error?: string }>("/api/admin/storage", {
+          method: "DELETE",
+        });
         if (response.success) {
           setResult({ success: true, message: "Configuration removed." });
           refreshAll();
@@ -451,7 +481,16 @@ export function BackupSection() {
             onClick={() => {
               setResult(null);
               startTransition(async () => {
-                const response = await saveScheduleAction(scheduleEnabled, scheduleHours);
+                const response = await getJson<{ success: boolean; error?: string }>(
+                  "/api/admin/storage",
+                  {
+                    method: "PATCH",
+                    body: JSON.stringify({
+                      enabled: scheduleEnabled,
+                      intervalHours: scheduleHours,
+                    }),
+                  },
+                );
                 setResult({
                   success: response.success,
                   message: response.success ? "Schedule saved." : (response.error ?? "Failed."),

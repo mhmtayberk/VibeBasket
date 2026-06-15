@@ -6,6 +6,8 @@ VibeBasket is the "Ninite for vibe coding". It gives users a single web catalog 
 
 The product exists to make AI development environments portable, repeatable, and safe across multiple IDEs. Instead of installing one MCP or one skill at a time in one editor at a time, users should be able to assemble a setup once and reuse it anywhere.
 
+For the hosted product and the documented self-host path, the intended operating model is deliberately simple: single-node, SQLite-backed, and low-ops.
+
 ## Current Target Model
 
 The product currently exposes 24 adapter-backed IDE targets: Cursor, Windsurf, VS Code/Cline, Antigravity, Claude Code, DeepSeek-TUI, Zed, Codex CLI, Gemini CLI, Junie, Kiro, Cline CLI, Continue, Roo Code, Hermes, OpenClaw, GitHub Copilot, Void Editor, Aider, Cortex Code, Goose, IBM Bob, CodeBuddy, and OpenCode.
@@ -58,3 +60,4 @@ Recent work significantly changed the catalog behavior, deployment, and security
 - adapter-backed support is still MCP-first overall; not every target supports Skills or Rules, and capability metadata must remain strictly aligned with real adapter methods
 - the docs hub at `/docs` supports fully-functional interactive search with 300ms client debouncing; versioned documentation is a future improvement
 - repository CI is now centered around `pnpm verify:ci` plus Playwright smoke coverage, not a monorepo-wide `tsc -b` gate yet
+- the public and self-host docs intentionally optimize for one-machine deployments rather than multi-node orchestration

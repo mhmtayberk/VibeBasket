@@ -1,3 +1,4 @@
+import { InvalidOriginError, assertTrustedMutationOrigin } from "@/lib/csrf";
 import { SessionRequiredError, requireCurrentUserId } from "@/lib/session";
 import {
   catalogItems,
@@ -33,6 +34,7 @@ export async function GET(request: NextRequest, context: RouteContext<"/api/stac
     return createTooManyRequestsResponse(rateLimit.retryAfterSeconds);
   }
   try {
+    assertTrustedMutationOrigin(request);
     const userId = await requireCurrentUserId();
     const { id } = await context.params;
 
@@ -83,6 +85,9 @@ export async function GET(request: NextRequest, context: RouteContext<"/api/stac
       targetIds: targets.map((target) => target.targetId),
     });
   } catch (error) {
+    if (error instanceof InvalidOriginError) {
+      return NextResponse.json({ error: error.message }, { status: 403 });
+    }
     if (error instanceof SessionRequiredError) {
       return unauthorizedResponse();
     }
@@ -102,6 +107,7 @@ export async function PATCH(request: NextRequest, context: RouteContext<"/api/st
     return createTooManyRequestsResponse(rateLimit.retryAfterSeconds);
   }
   try {
+    assertTrustedMutationOrigin(request);
     const userId = await requireCurrentUserId();
     const { id } = await context.params;
     const body = await request.json();
@@ -262,6 +268,9 @@ export async function PATCH(request: NextRequest, context: RouteContext<"/api/st
       targetIds: updatedTargets.map((t) => t.targetId),
     });
   } catch (error) {
+    if (error instanceof InvalidOriginError) {
+      return NextResponse.json({ error: error.message }, { status: 403 });
+    }
     if (error instanceof SessionRequiredError) {
       return unauthorizedResponse();
     }
