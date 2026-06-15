@@ -1,7 +1,6 @@
 "use server";
 
-import fs from "node:fs";
-import path from "node:path";
+import { buildReleaseReadinessReport } from "@/lib/release-readiness";
 import type { BackendStatus, BackupEntry, StorageConfig } from "@/lib/storage";
 import { revalidatePath } from "next/cache";
 
@@ -12,6 +11,14 @@ async function requireAdmin() {
 
 async function loadStorageRuntime() {
   return import("@/lib/storage");
+}
+
+async function loadNodeFs() {
+  return (await import("node:fs")).default;
+}
+
+async function loadNodePath() {
+  return (await import("node:path")).default;
 }
 
 function resolveDatabaseFilePath(): string | null {
@@ -28,6 +35,8 @@ export async function backupDatabaseAction() {
   await requireAdmin();
 
   try {
+    const fs = await loadNodeFs();
+    const path = await loadNodePath();
     const { createStorageBackend } = await loadStorageRuntime();
     const backend = await createStorageBackend();
     const resolvedDbPath = resolveDatabaseFilePath();
@@ -139,6 +148,8 @@ export async function restoreBackupAction(key: string) {
   await requireAdmin();
 
   try {
+    const fs = await loadNodeFs();
+    const path = await loadNodePath();
     const { createStorageBackend } = await loadStorageRuntime();
     const backend = await createStorageBackend();
     const resolvedDbPath = resolveDatabaseFilePath();
@@ -185,6 +196,26 @@ export async function restoreBackupAction(key: string) {
     const message =
       error instanceof Error && error.message ? error.message : "Failed to restore backup";
     return { success: false, error: message };
+  }
+}
+
+export async function getReleaseReadinessAction() {
+  await requireAdmin();
+
+  try {
+    const { getStorageBackendInfo } = await loadStorageRuntime();
+    const backendInfo = await getStorageBackendInfo();
+    const report = buildReleaseReadinessReport(process.env, backendInfo);
+
+    return {
+      success: true,
+      report,
+    };
+  } catch (error: unknown) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to load release readiness.",
+    };
   }
 }
 

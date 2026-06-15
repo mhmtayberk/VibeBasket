@@ -1,3 +1,4 @@
+import { InvalidOriginError, assertTrustedMutationOrigin } from "@/lib/csrf";
 import { checkRateLimit, getClientAddress } from "@/lib/rate-limit";
 import { applySecurityHeaders, createTooManyRequestsResponse } from "@/lib/security-headers";
 import { SessionRequiredError, requireCurrentUserId } from "@/lib/session";
@@ -126,6 +127,7 @@ export async function POST(request: NextRequest, _context: RouteContext<"/api/st
     return createTooManyRequestsResponse(rateLimit.retryAfterSeconds);
   }
   try {
+    assertTrustedMutationOrigin(request);
     const userId = await requireCurrentUserId();
     const body = await request.json();
     const payload = createStackSchema.parse(body);
@@ -221,6 +223,9 @@ export async function POST(request: NextRequest, _context: RouteContext<"/api/st
       { status: 201 },
     );
   } catch (error) {
+    if (error instanceof InvalidOriginError) {
+      return NextResponse.json({ error: error.message }, { status: 403 });
+    }
     if (error instanceof SessionRequiredError) {
       return unauthorizedResponse();
     }

@@ -163,7 +163,7 @@ export async function POST(req: Request) {
       expiresAt,
     });
 
-    const origin = new URL(req.url).origin;
+    const origin = process.env.NEXTAUTH_URL?.trim() || new URL(req.url).origin;
     return applySecurityHeaders(NextResponse.json({ id, url: `${origin}/api/bundle/${id}` }));
   } catch (error) {
     console.error("Failed to create bundle:", error);
