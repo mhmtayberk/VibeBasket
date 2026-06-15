@@ -40,7 +40,8 @@ export function DocsTabCli() {
             <code className="font-mono text-xs text-[#33bbc5] bg-[#33bbc5]/10 px-1.5 py-0.5 rounded-[2px] border border-[#33bbc5]/20">
               vibebasket
             </code>{" "}
-            CLI works as an idempotent local installer. When a bundle URL or ID is passed, it
+            CLI works as an idempotent local installer. When a bundle URL or local manifest file is
+            passed, it
             fetches the manifest, applies only the capabilities the target adapter really supports,
             writes backups before mutating known config files, and verifies the written result when
             readback is implemented for that target.
@@ -54,13 +55,13 @@ export function DocsTabCli() {
           <div className="space-y-4">
             <div className="p-8 border border-[#3e4944] bg-[#181d1a] rounded-[2px] hover:border-[#a0fdda] hover:bg-[#202622] hover:shadow-[0_0_20px_rgba(160,253,218,0.15)] hover:-translate-y-0.5 active:scale-[0.99] transition-all duration-300">
               <code className="font-mono text-[#a0fdda] text-sm font-semibold block mb-2">
-                vibebasket apply &lt;bundle-id&gt;
+                vibebasket apply &lt;url|file&gt;
               </code>
               <p className="text-xs text-[#bdc9c2] leading-relaxed">
-                The primary command. Fetches the bundle from the VibeBasket API, validates its
-                manifest, and applies each item (MCP servers, skills, rules) to every compatible
-                local adapter. Adapters back up existing config files before writing and merge
-                entries idempotently — running apply twice is safe.
+                The primary command. Accepts a hosted bundle URL or a local JSON manifest file,
+                validates its manifest, and applies each item (MCP servers, skills, rules) to
+                every compatible local adapter. Adapters back up existing config files before
+                writing and merge entries idempotently, so running apply twice is safe.
               </p>
             </div>
           </div>
@@ -173,8 +174,8 @@ export function DocsTabCli() {
           <div className="border border-[#3e4944] p-6">
             <h3 className="font-mono text-[#a0fdda] text-xs font-semibold mb-3">vibebasket init</h3>
             <p className="text-sm text-[#bdc9c2] leading-relaxed max-w-3xl">
-              Scaffolds a new VibeBasket-ready project with a local config file, adapter detection,
-              and workspace directory layout.
+              Scaffolds a `.vibebasket/` workspace structure plus a local `.vibebasket.env` file
+              template for project-scoped secrets and assets.
             </p>
           </div>
           <div className="border border-[#3e4944] p-6">
@@ -182,18 +183,18 @@ export function DocsTabCli() {
               vibebasket doctor
             </h3>
             <p className="text-sm text-[#bdc9c2] leading-relaxed max-w-3xl">
-              Diagnoses the local environment: checks Node.js version, adapter config integrity,
-              file permissions, and SQLite connectivity. Reports a health summary per installed
-              target.
+              Diagnoses the local environment: checks for `.vibebasket` project structure, inspects
+              adapter config presence, reports MCP counts where readable, and prints a concise
+              environment summary for the current machine.
             </p>
           </div>
           <div className="border border-[#3e4944] p-6">
             <h3 className="font-mono text-[#a0fdda] text-xs font-semibold mb-3">
-              vibebasket rollback &lt;bundle-id&gt;
+              vibebasket rollback
             </h3>
             <p className="text-sm text-[#bdc9c2] leading-relaxed max-w-3xl">
-              Restores adapter config files to their timestamped backup state from the last apply.
-              Writes are backed up before every apply so rollback is always safe.
+              Opens an interactive restore flow, lets you choose from recent timestamped backups,
+              and then restores the selected adapter config snapshot.
             </p>
           </div>
         </div>

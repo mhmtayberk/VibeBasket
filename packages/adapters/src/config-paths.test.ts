@@ -24,6 +24,9 @@ describe("adapter config paths", () => {
     expect(new GeminiCliAdapter().configPath("project", projectRoot)).toBe(
       "/tmp/demo-project/.gemini/settings.json",
     );
+    expect(new CodexAdapter().configPath("project", projectRoot)).toBe(
+      "/tmp/demo-project/.codex/config.toml",
+    );
     expect(new JunieAdapter().configPath("project", projectRoot)).toBe(
       "/tmp/demo-project/.junie/mcp/mcp.json",
     );
@@ -38,7 +41,7 @@ describe("adapter config paths", () => {
     );
   });
 
-  it("restricts user-scope-only terminal adapters", () => {
+  it("keeps terminal adapter scope metadata aligned", () => {
     expect(new ClineCliAdapter().supportedScopes).toEqual(
       TARGET_CAPABILITIES["cline-cli"].supportedScopes,
     );

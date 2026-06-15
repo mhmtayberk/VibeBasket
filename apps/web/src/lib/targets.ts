@@ -80,7 +80,7 @@ const UNSORTED_TARGET_OPTIONS: TargetOptionSeed[] = [
     label: "Codex CLI",
     status: "supported",
     kind: "terminal",
-    note: "Backed by Codex CLI config.toml MCP configuration.",
+    note: "Backed by user and project Codex CLI config.toml MCP configuration.",
     vendor: "OpenAI",
   },
   {
@@ -96,7 +96,7 @@ const UNSORTED_TARGET_OPTIONS: TargetOptionSeed[] = [
     label: "Gemini CLI",
     status: "supported",
     kind: "terminal",
-    note: "Backed by Gemini CLI settings.json MCP configuration.",
+    note: "Backed by Gemini CLI settings.json MCP configuration plus .gemini/skills skill discovery.",
     vendor: "Google",
   },
   {

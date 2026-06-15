@@ -20,10 +20,13 @@
 - **Health Cache Shielding (DoS Prevention)**: Lightweight connection endpoints or system status checks (e.g. `/api/health`) must be protected behind memory-persistent cache limits (5s TTL) to prevent SQLite/server flooding.
 - **Count Cache**: Expensive aggregate queries (catalog `COUNT(*)`) are cached in-memory with 60s TTL to keep page renders fast.
 - **Catalog API Caching**: Public catalog responses carry `Cache-Control: max-age=60, stale-while-revalidate=300` to allow CDN/browser caching with background revalidation.
+- **Self-Healing Search Index**: FTS5 health must be validated by actual `MATCH` behavior, not only row counts. When the index is stale or non-queryable, bootstrap rebuilds it automatically.
+- **Capability-Aware Apply**: The CLI must evaluate bundle content per target capability and skip unsupported surfaces explicitly instead of relying on adapter no-ops.
+- **Adapter-Native Serialization**: Capability truth alone is not enough. Adapters with non-generic config schemas (for example Codex TOML remote MCP fields) must serialize into the target's native field names instead of assuming the shared JSON MCP shape.
+- **Secrets Stay Local**: Upstream MCP metadata may describe required package env vars or remote auth headers; VibeBasket preserves those requirements into the bundle, then resolves them locally during CLI apply rather than storing end-user runtime secrets on the hosted service.
 - **Whitelisting Route Boundaries**: User-controlled parameters (docs tab, search query) are bound to whitelists and constrained by length to protect against LFI/RFI directory traversal, ReDoS, and XSS.
 - **DB-First Configuration with Encrypted Fallback**: Storage backend credentials are stored encrypted (AES-256-GCM) in SQLite. Resolution order: DB config → env vars → local. Changing config does not require server restart.
 - **Lazy Cloud SDK Loading**: Cloud provider SDKs are dynamically imported only when their backend is activated. Barrel files avoid static re-exports to prevent Next.js build-time module resolution errors.
 - **Strategy Pattern for Storage Backends**: All six storage backends implement the same `StorageBackend` interface, making them interchangeable at runtime. Adding a new provider requires only a new class implementation.
 - **Mobile-First Basket UI**: Mobile uses FAB + bottom sheet pattern; desktop uses persistent side panel. Catalog grid uses responsive column count.
 - **Kubernetes Deployment**: Helm chart with Recreate strategy (single-replica SQLite), non-root security context (uid 1001), existingSecret support, and PVC persistence.
-

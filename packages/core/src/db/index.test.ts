@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { resolveDatabaseUrl } from "./index";
+import { deriveFtsHealthToken, resolveDatabaseUrl } from "./index";
 
 function findRepoRoot(): string {
   let current = path.dirname(fileURLToPath(import.meta.url));
@@ -37,5 +37,31 @@ describe("resolveDatabaseUrl", () => {
     expect(resolveDatabaseUrl({ cwd: path.join(repoRoot, "apps", "web"), env: {} })).toBe(
       `file:${path.join(repoRoot, "vibebasket.db")}`,
     );
+  });
+});
+
+describe("deriveFtsHealthToken", () => {
+  it("extracts a searchable token from catalog text", () => {
+    expect(
+      deriveFtsHealthToken([
+        {
+          display_name: "Context7",
+          description: "Official MCP registry entry",
+          source_url: "https://registry.modelcontextprotocol.io",
+        },
+      ]),
+    ).toBe("context7");
+  });
+
+  it("skips rows without usable tokens", () => {
+    expect(
+      deriveFtsHealthToken([
+        {
+          display_name: "  ",
+          description: "++",
+          source_url: null,
+        },
+      ]),
+    ).toBeNull();
   });
 });

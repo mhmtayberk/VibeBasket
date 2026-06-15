@@ -8,6 +8,7 @@ import {
   compareSemver,
   fetchWithTimeout,
   officialMcpId,
+  slugify,
   withVersion,
 } from "../utils";
 
@@ -128,24 +129,44 @@ export class OfficialMcpRegistryCollector implements SourceCollector {
   }
 
   private normalizeRegistryServer(server: McpRegistryServer) {
-    const remoteUrl = server.remotes?.find((remote) => {
+    const remoteDefinition = server.remotes?.find((remote) => {
       try {
         new URL(remote.url);
         return true;
       } catch {
         return false;
       }
-    })?.url;
+    });
+    const remoteUrl = remoteDefinition?.url;
     const packageDefinition =
       server.packages?.find((pkg) => pkg.transport?.type === "stdio") ?? server.packages?.[0];
     const displayName = server.title ?? server.name.split("/").pop() ?? server.name;
+    const packageEnvVars = packageDefinition?.environmentVariables ?? [];
+    const env = Object.fromEntries(
+      packageEnvVars.map((variable) => [variable.name, `\${secret:${variable.name}}`]),
+    );
+    const remoteHeaders = Object.fromEntries(
+      (remoteDefinition?.headers ?? [])
+        .filter((header) => header.isRequired || header.isSecret)
+        .map((header) => {
+          const secretName = this.remoteHeaderSecretName(server.name, header.name);
+          return [header.name, `\${secret:${secretName}}`] as const;
+        }),
+    );
+    const requiredSecrets = [
+      ...packageEnvVars.map((variable) => variable.name),
+      ...(remoteDefinition?.headers ?? [])
+        .filter((header) => header.isRequired || header.isSecret)
+        .map((header) => this.remoteHeaderSecretName(server.name, header.name)),
+    ];
 
     const entryBase = {
       catalogRef: `mcp-registry:${server.name}`,
       displayName,
       args: [],
-      env: {},
-      requiredSecrets: [],
+      env,
+      headers: remoteHeaders,
+      requiredSecrets: Array.from(new Set(requiredSecrets)),
       verified: false,
     };
 
@@ -206,5 +227,11 @@ export class OfficialMcpRegistryCollector implements SourceCollector {
     }
 
     return null;
+  }
+
+  private remoteHeaderSecretName(serverName: string, headerName: string) {
+    const serverToken = slugify(serverName).replace(/-/g, "_").toUpperCase();
+    const headerToken = slugify(headerName).replace(/-/g, "_").toUpperCase();
+    return `${serverToken}_${headerToken}`;
   }
 }

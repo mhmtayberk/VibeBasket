@@ -18,6 +18,7 @@
 - [x] Operational visibility: admin dashboard now surfaces freshness, sync resilience, collector health, and recent sync runs
 - [x] Catalog integrity: skills.sh fallback now keeps community skills, normalizes official/community source tags, and aligns admin collector health with persisted source names
 - [x] CLI inventory accuracy: `vibebasket list` now reads adapter-native skill/rule locations instead of guessing shared folders
+- [x] Adapter correctness pass: Codex CLI now supports project-scoped `.codex/config.toml` and Codex-native remote HTTP header fields; Gemini CLI now auto-installs skills into `.gemini/skills`
 - [x] FTS5 full-text search: virtual table with trigger-based sync, admin health check, rebuild support, prefix-matching, data column removed
 - [x] Count cache: 60s TTL in-memory cache for catalog aggregate queries to avoid expensive COUNT(*)
 - [x] Catalog API cache: `Cache-Control: max-age=60, stale-while-revalidate=300` on public catalog responses
@@ -42,6 +43,10 @@
 - [x] Migration safety fix: schema bootstrap now restores missing legacy `catalog_items.description` / `icon` columns before FTS initialization, and recreates the saved-stack target position index
 - [x] Test isolation cleanup: adapter tests no longer write into the real user home directory during verification
 - [x] Playwright harness cleanup: E2E webServer now boots the standalone production server instead of `next start`
+- [x] Catalog search resilience: FTS bootstrap now self-heals when the index exists but `MATCH` queries return zero results, fixing cases like `Context7` being present in SQLite but invisible in catalog search after restart
+- [x] Catalog search correctness: search counts no longer share cache keys across different queries, and tokenized search can supplement FTS with structured JSON fallback matching
+- [x] Registry secret correctness: official MCP registry package env vars and remote auth headers now flow into bundle metadata as local CLI prompts instead of being dropped during sync
+- [x] Capability-aware apply: CLI now skips unsupported content per target, dedupes repeated bundle payload items, and avoids no-op MCP writes on MCP-unsupported targets
 
 ## Test Coverage
 - Focused CLI, adapter, and web/admin suites covering install verification and operational visibility are passing
