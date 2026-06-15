@@ -25,7 +25,7 @@ export function hasErrorCode(error: unknown, code: string): error is NodeJS.Errn
   );
 }
 
-export function resolveMcpEnv(
+export function resolveSecretInterpolations(
   source: Record<string, string>,
   secrets: Record<string, string>,
 ): Record<string, string> {
@@ -46,18 +46,22 @@ export function toStandardMcpServerConfig(
   mcp: McpEntry,
   secrets: Record<string, string>,
 ): BasicMcpServerConfig {
+  const env = resolveSecretInterpolations(mcp.env, secrets);
+  const headers = resolveSecretInterpolations(mcp.headers ?? {}, secrets);
+
   if (mcp.runtime === "remote") {
     return {
       type: "http",
       ...(mcp.url ? { url: mcp.url } : {}),
+      ...(Object.keys(headers).length > 0 ? { headers } : {}),
     };
   }
 
-  const env = resolveMcpEnv(mcp.env, secrets);
   return {
     command: mcp.command || mcp.runtime,
     args: mcp.args,
     ...(Object.keys(env).length > 0 ? { env } : {}),
+    ...(Object.keys(headers).length > 0 ? { headers } : {}),
   };
 }
 

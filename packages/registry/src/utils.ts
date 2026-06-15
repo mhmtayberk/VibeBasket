@@ -115,6 +115,40 @@ export function preferSkillMirrorCandidate(
   return candidateRepoName.localeCompare(existingRepoName) < 0 ? candidate : existing;
 }
 
+export function isOfficialSkillSource(sourceName?: string) {
+  return sourceName === "skills-sh-official";
+}
+
+export function preferCollectedSkillMirrorCandidate(
+  candidate: SourceCollectedItem,
+  existing: SourceCollectedItem | undefined,
+) {
+  if (!existing) {
+    return candidate;
+  }
+
+  if (candidate.catalogItem.verified && !existing.catalogItem.verified) {
+    return candidate;
+  }
+
+  if (!candidate.catalogItem.verified && existing.catalogItem.verified) {
+    return existing;
+  }
+
+  const candidateIsOfficial = isOfficialSkillSource(candidate.catalogItem.sourceName);
+  const existingIsOfficial = isOfficialSkillSource(existing.catalogItem.sourceName);
+
+  if (candidateIsOfficial && !existingIsOfficial) {
+    return candidate;
+  }
+
+  if (!candidateIsOfficial && existingIsOfficial) {
+    return existing;
+  }
+
+  return preferSkillMirrorCandidate(candidate, existing);
+}
+
 export function slugify(value: string) {
   return normalizeCatalogText(value)
     .toLowerCase()

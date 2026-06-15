@@ -21,7 +21,11 @@
 - **Proxy Trust Hardening**: `cf-connecting-ip` is no longer trusted unless `TRUST_PROXY` is explicitly enabled, closing a quiet rate-limit spoofing footgun for direct-origin deployments.
 - **Header Hardening**: Production headers now include HSTS, `X-Permitted-Cross-Domain-Policies`, `X-Download-Options`, and a stricter CSP that avoids `script-src 'unsafe-inline'`.
 - **Install Correctness**: CLI apply now supports post-install verification, and adapter capability metadata is being kept aligned with real adapter behavior.
+- **Adapter Drift Fixes**: Codex CLI project scope and Codex-native remote HTTP header fields are now treated as first-class adapter requirements. Gemini CLI is now tracked as a real skills-capable target via `.gemini/skills`.
+- **Registry Secret Preservation**: Official MCP registry sync now preserves package environment-variable prompts and remote header-based auth prompts, so hosted catalog metadata survives into CLI apply without the web app collecting runtime secrets.
+- **Capability-Aware Apply**: CLI now skips unsupported content per target instead of pretending to apply it; MCP-unsupported targets no longer perform no-op config writes.
 - **Catalog Integrity**: `skills.sh` sync now preserves community skills during sitemap/directory fallback, and official/community source tags are normalized for trust badges and health reporting.
+- **Cross-Collector Skill Dedupe**: GitHub-backed skill mirrors are now collapsed across `verified.yaml` and `skills.sh` collectors, so the UI prefers verified records and stops surfacing mirror duplicates as separate cards.
 - **CLI Inventory Accuracy**: `vibebasket list` now inspects adapter-specific skill/rule install surfaces instead of generic shared paths.
 - **Release Automation**: GitHub Actions CI, CodeQL, Dependabot, PR template, and a production readiness checklist are being added to support public launch and self-hosted production use.
 - **Pre-Prod Audit**: Repo-wide Biome lint is green again, package builds pass, and focused registry/adapters/core/web test surfaces have been re-verified during prod-readiness hardening.
@@ -45,6 +49,7 @@
 - **Backup restore path**: Admin restore now stages a temp file via backend-native download before swapping the SQLite file in place.
 
 - **Full-Text Search**: FTS5 virtual tables with trigger-based sync and rebuild support. Admin panel exposes FTS5 health check and rebuild action. Prefix-matching enabled. Data column removed from FTS5 content to reduce index size.
+- **FTS Self-Healing**: `ensureDatabaseIndexes()` now validates that FTS5 is not just row-count aligned but actually queryable; if `MATCH` is broken or stale after app restart/schema drift, VibeBasket auto-rebuilds the index before serving catalog search.
 - **Count Cache**: 60s TTL in-memory cache for catalog counts, avoiding expensive COUNT(*) on every page.
 - **Catalog API Cache**: `Cache-Control: max-age=60, stale-while-revalidate=300` on public catalog responses.
 - **Mobile**: Basket FAB with bottom sheet on mobile viewports; responsive catalog grid.

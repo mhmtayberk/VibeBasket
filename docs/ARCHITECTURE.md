@@ -4,7 +4,7 @@
 We use `pnpm workspaces` to manage the project.
 
 - `packages/core`: Holds Zod schemas defining the data shape (bundles, MCPs, skills, etc.).
-- `packages/adapters`: Contains 24 IDE adapters (Cursor, Windsurf, VS Code/Cline, Antigravity, Claude Code, DeepSeek-TUI, Zed, Codex CLI, Gemini CLI, Junie, Kiro, Cline CLI, Continue, Roo Code, Hermes, OpenClaw, GitHub Copilot, Void Editor, Aider, Cortex Code, Goose, IBM Bob, CodeBuddy, and OpenCode) that handle config generation, backups, and idempotency. 16 adapters extend BaseAdapter for shared readConfig/applyMcps/writeConfig/diff logic.
+- `packages/adapters`: Contains 24 IDE adapters (Cursor, Windsurf, VS Code/Cline, Antigravity, Claude Code, DeepSeek-TUI, Zed, Codex CLI, Gemini CLI, Junie, Kiro, Cline CLI, Continue, Roo Code, Hermes, OpenClaw, GitHub Copilot, Void Editor, Aider, Cortex Code, Goose, IBM Bob, CodeBuddy, and OpenCode) that handle config generation, backups, and idempotency. 16 adapters extend BaseAdapter for shared readConfig/applyMcps/writeConfig/diff logic, while `CodexAdapter` and other custom adapters handle target-native TOML/YAML or instruction surfaces.
 - `packages/registry`: Automated catalog synchronization logic from trusted external sources and local curated data, including the semver deduplication engine for official upstream MCP servers.
 - `apps/web`: Next.js 16.2.9 App Router providing the catalog and selection UI, `/docs` documentation hub, `/stacks` saved-stack management, and the `/admin` stats dashboard.
 - `apps/cli`: Node.js CLI tool running the execution environment.
@@ -32,7 +32,7 @@ To keep the catalog fresh without relying on mostly manual entry, VibeBasket imp
    - this prevents multiple cards for the same logical server (e.g. nine `.FAF Context` variants) from cluttering the catalog
 4. **Canonical dedupe (cross-source)**
    - MCPs are deduped by runtime/command/args/url identity
-   - Skills are deduped by source identity such as `repo + path`
+   - Skills are deduped by source identity such as `repo + path`, plus mirror-family collapse across collectors so curated/official/community mirrors do not render as separate cards
    - generated catalog IDs include the same canonical runtime/source identity so upstream variants do not overwrite each other during persistence
 5. **Verified precedence**
    - if a curated verified record conflicts with an upstream record, the verified record wins

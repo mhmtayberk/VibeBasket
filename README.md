@@ -43,7 +43,7 @@ npx vibebasket apply https://vibebasket.dev/api/bundle/cj2k9x
 | Continue | ✅ | ✅ | — |
 | Roo Code | ✅ | ✅ | ✅ |
 | Codex CLI | ✅ | — | — |
-| Gemini CLI | ✅ | — | — |
+| Gemini CLI | ✅ | ✅ | — |
 | Antigravity | ✅ | — | — |
 | JetBrains Junie | ✅ | — | — |
 | Kiro | ✅ | — | — |
@@ -60,7 +60,7 @@ npx vibebasket apply https://vibebasket.dev/api/bundle/cj2k9x
 | CodeBuddy | ✅ | ✅ | — |
 | OpenCode | ✅ | — | — |
 
-11 adapters auto-install Skills. 5 auto-install Rules. All MCP-capable adapters auto-install MCP servers.
+12 adapters auto-install Skills. 5 auto-install Rules. All MCP-capable adapters auto-install MCP servers.
 
 ## Features
 
@@ -70,6 +70,12 @@ npx vibebasket apply https://vibebasket.dev/api/bundle/cj2k9x
 - FTS5 full-text search with prefix matching across display name, description, and source URL
 - Filter by type, trust tier, source freshness, and sort order
 - Detail view per item: install command, GitHub repo, sync freshness
+
+Important scope note:
+
+- MCP coverage is intentionally bounded by the official MCP Registry plus curated verified overrides
+- Skills coverage comes from the public `skills.sh` corpus plus curated verified overrides
+- If a popular MCP is not published in the official registry, it will not appear automatically until it is curated or the upstream registry adds it
 
 ### CLI
 - `apply` — Install bundles from URLs or local files (`--force`, `--scope`, `--dry-run`)
@@ -85,7 +91,7 @@ npx vibebasket apply https://vibebasket.dev/api/bundle/cj2k9x
 - Sliding-window rate limiting on 8 API endpoints with Retry-After headers
 - CSP and security headers enforced in production
 - Path sanitization on all file operations
-- 4 OAuth providers: GitHub, Google, Apple, Microsoft Entra ID
+- 4 optional OAuth providers: GitHub, Google, Apple, Microsoft Entra ID
 - GitHub Actions CI, CodeQL scanning, and Dependabot update automation
 
 ### Admin Dashboard

@@ -31,6 +31,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Documentation & Correctness Pass
+- **Docs drift cleanup**: README, setup docs, CLI docs, architecture notes, and memory-bank state were re-audited together instead of only patching the latest changes.
+- **Gemini CLI docs corrected**: public docs now reflect that Gemini CLI supports both MCP settings and filesystem-backed skills via `.gemini/skills`.
+- **Codex CLI docs corrected**: public docs now reflect both user and project `config.toml` surfaces plus the target-native remote HTTP MCP field mapping.
+- **CLI reference honesty**: docs no longer claim a non-existent `vb` shortcut or a positional rollback argument; `apply`, `doctor`, `init`, and `rollback` descriptions now match the real CLI behavior more closely.
+
 ### Open-Source Launch & Prod Readiness
 - **GitHub automation**: Added GitHub Actions CI for linting, shared-package builds, web typecheck/build, unit/integration tests, and a Playwright smoke suite.
 - **Security automation**: Added CodeQL analysis workflow and Dependabot config for npm packages and GitHub Actions.

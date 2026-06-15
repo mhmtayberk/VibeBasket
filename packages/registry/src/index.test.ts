@@ -24,6 +24,102 @@ async function createVerifiedCatalog(contents: string) {
 }
 
 describe("RegistrySyncService", () => {
+  it("preserves registry-provided secret metadata for stdio env vars and remote headers", async () => {
+    const verifiedPath = await createVerifiedCatalog(`
+mcps: []
+skills: []
+workflowPacks: []
+`);
+
+    const fetchImpl: typeof fetch = async (input) => {
+      const url = typeof input === "string" ? input : input.toString();
+      if (url === "https://registry.modelcontextprotocol.io/v0.1/servers?limit=100") {
+        return new Response(
+          JSON.stringify({
+            servers: [
+              {
+                name: "ai.example/stdio-server",
+                title: "Example Stdio",
+                packages: [
+                  {
+                    registryType: "npm",
+                    identifier: "@example/mcp",
+                    version: "1.0.0",
+                    transport: { type: "stdio" },
+                    environmentVariables: [
+                      { name: "EXAMPLE_API_KEY", isSecret: true },
+                      { name: "EXAMPLE_REGION" },
+                    ],
+                  },
+                ],
+              },
+              {
+                name: "ai.example/remote-server",
+                title: "Example Remote",
+                remotes: [
+                  {
+                    url: "https://example.com/mcp",
+                    headers: [{ name: "Authorization", isRequired: true, isSecret: true }],
+                  },
+                ],
+              },
+            ],
+            metadata: {},
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        );
+      }
+      if (url === "https://www.skills.sh/official") {
+        return new Response("<html><body></body></html>", {
+          status: 200,
+          headers: { "Content-Type": "text/html" },
+        });
+      }
+      if (url === "https://www.skills.sh/") {
+        return new Response("<html><body></body></html>", {
+          status: 200,
+          headers: { "Content-Type": "text/html" },
+        });
+      }
+      if (url === "https://www.skills.sh/sitemap.xml") {
+        return new Response(
+          `<?xml version="1.0" encoding="UTF-8"?><sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></sitemapindex>`,
+          {
+            status: 200,
+            headers: { "Content-Type": "application/xml" },
+          },
+        );
+      }
+      throw new Error(`Unexpected URL ${url}`);
+    };
+
+    const items = await new RegistrySyncService({
+      fetchImpl,
+      persist: false,
+      verifiedPath,
+    }).collectCatalogItems();
+
+    const stdio = items.find((item) => item.displayName === "Example Stdio");
+    const remote = items.find((item) => item.displayName === "Example Remote");
+
+    expect(stdio?.type).toBe("mcp");
+    expect(stdio?.data).toMatchObject({
+      env: {
+        EXAMPLE_API_KEY: "${secret:EXAMPLE_API_KEY}",
+        EXAMPLE_REGION: "${secret:EXAMPLE_REGION}",
+      },
+      requiredSecrets: expect.arrayContaining(["EXAMPLE_API_KEY", "EXAMPLE_REGION"]),
+    });
+
+    expect(remote?.type).toBe("mcp");
+    expect(remote?.data).toMatchObject({
+      headers: {
+        Authorization: "${secret:AI_EXAMPLE_REMOTE_SERVER_AUTHORIZATION}",
+      },
+      requiredSecrets: expect.arrayContaining(["AI_EXAMPLE_REMOTE_SERVER_AUTHORIZATION"]),
+    });
+  });
+
   it("merges verified catalog items with trusted upstream sources and dedupes by canonical identity", async () => {
     const verifiedPath = await createVerifiedCatalog(`
 mcps:
@@ -549,6 +645,86 @@ workflowPacks: []
       (item) => item.type === "skill" && item.displayName === "3 Statement Model",
     );
     expect(matchingSkills).toHaveLength(1);
+    expect(matchingSkills[0]?.id).toBe("skill-anthropics-financial-services-3-statement-model");
+  });
+
+  it("prefers verified skill mirrors over skills.sh duplicates across collectors", async () => {
+    const verifiedPath = await createVerifiedCatalog(`
+mcps: []
+skills:
+  - id: skill-anthropics-financial-services-3-statement-model
+    displayName: 3 Statement Model
+    source:
+      type: github
+      repo: anthropics/financial-services
+      path: 3-statement-model
+    verified: true
+workflowPacks: []
+`);
+
+    const fetchImpl: typeof fetch = async (input) => {
+      const url = typeof input === "string" ? input : input.toString();
+      if (url === "https://registry.modelcontextprotocol.io/v0.1/servers?limit=100") {
+        return new Response(JSON.stringify({ servers: [], metadata: {} }), { status: 200 });
+      }
+      if (url === "https://www.skills.sh/official") {
+        return new Response(
+          `
+          <html>
+            <body>
+              <a href="/anthropics/financial-services">Anthropics</a>
+              <a href="/anthropics/financial-services-plugins">Anthropics mirror</a>
+            </body>
+          </html>
+        `,
+          {
+            status: 200,
+            headers: { "Content-Type": "text/html" },
+          },
+        );
+      }
+      if (url === "https://www.skills.sh/sitemap.xml") {
+        return new Response(
+          `
+          <?xml version="1.0" encoding="UTF-8"?>
+          <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+            <sitemap><loc>https://www.skills.sh/sitemap-skills-1.xml</loc></sitemap>
+          </sitemapindex>
+        `,
+          {
+            status: 200,
+            headers: { "Content-Type": "application/xml" },
+          },
+        );
+      }
+      if (url === "https://www.skills.sh/sitemap-skills-1.xml") {
+        return new Response(
+          `
+          <?xml version="1.0" encoding="UTF-8"?>
+          <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+            <url><loc>https://www.skills.sh/anthropics/financial-services-plugins/3-statement-model</loc></url>
+          </urlset>
+        `,
+          {
+            status: 200,
+            headers: { "Content-Type": "application/xml" },
+          },
+        );
+      }
+      throw new Error(`Unexpected URL ${url}`);
+    };
+
+    const items = await new RegistrySyncService({
+      fetchImpl,
+      persist: false,
+      verifiedPath,
+    }).collectCatalogItems();
+
+    const matchingSkills = items.filter(
+      (item) => item.type === "skill" && item.displayName === "3 Statement Model",
+    );
+    expect(matchingSkills).toHaveLength(1);
+    expect(matchingSkills[0]?.verified).toBe(true);
     expect(matchingSkills[0]?.id).toBe("skill-anthropics-financial-services-3-statement-model");
   });
 

@@ -9,17 +9,45 @@ export interface FlattenedBundleContent {
 
 export interface AdapterLike {
   displayName: string;
+  supportsMcp?: boolean;
   applySkills?: unknown;
   applyRules?: unknown;
   applyFiles?: unknown;
 }
 
+function dedupeByKey<T>(items: T[], getKey: (item: T) => string): T[] {
+  const seen = new Set<string>();
+  const deduped: T[] = [];
+
+  for (const item of items) {
+    const key = getKey(item);
+    if (seen.has(key)) {
+      continue;
+    }
+    seen.add(key);
+    deduped.push(item);
+  }
+
+  return deduped;
+}
+
 export function flattenBundleContent(bundle: Bundle): FlattenedBundleContent {
   return {
-    mcps: [...bundle.mcps, ...bundle.workflowPacks.flatMap((workflow) => workflow.mcps)],
-    skills: [...bundle.skills, ...bundle.workflowPacks.flatMap((workflow) => workflow.skills)],
-    rules: [...bundle.rules, ...bundle.workflowPacks.flatMap((workflow) => workflow.rules)],
-    files: bundle.workflowPacks.flatMap((workflow) => workflow.files),
+    mcps: dedupeByKey(
+      [...bundle.mcps, ...bundle.workflowPacks.flatMap((workflow) => workflow.mcps)],
+      (item) => item.id,
+    ),
+    skills: dedupeByKey(
+      [...bundle.skills, ...bundle.workflowPacks.flatMap((workflow) => workflow.skills)],
+      (item) => item.id,
+    ),
+    rules: dedupeByKey(
+      [...bundle.rules, ...bundle.workflowPacks.flatMap((workflow) => workflow.rules)],
+      (item) => item.id,
+    ),
+    files: dedupeByKey(bundle.workflowPacks.flatMap((workflow) => workflow.files), (item) =>
+      item.path.trim().toLowerCase(),
+    ),
   };
 }
 
@@ -29,6 +57,9 @@ export function getUnsupportedTargetContent(
 ): string[] {
   const unsupported: string[] = [];
 
+  if (flattened.mcps.length > 0 && adapter.supportsMcp === false) {
+    unsupported.push("MCPs");
+  }
   if (flattened.skills.length > 0 && !adapter.applySkills) {
     unsupported.push("skills");
   }

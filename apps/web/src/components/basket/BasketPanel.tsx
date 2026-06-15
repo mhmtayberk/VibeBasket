@@ -48,9 +48,11 @@ export function BasketPanel({
     },
     {} as Record<string, number>,
   );
+  const hasMcps = Boolean(itemCounts.mcp);
   const hasSkills = Boolean(itemCounts.skill);
   const hasRules = Boolean(itemCounts.rule);
   const incompatibleTargets = supportedTargets.filter((t) => {
+    if (hasMcps && !t.capabilities.supportsMcp) return true;
     if (hasSkills && !t.capabilities.supportsSkills) return true;
     if (hasRules && !t.capabilities.supportsRules) return true;
     return false;
