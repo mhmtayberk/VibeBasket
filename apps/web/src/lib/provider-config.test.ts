@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { createAuthProviders, getEnabledAuthProviders } from "../auth.config";
+import {
+  createAuthProviders,
+  getAuthProviderReadiness,
+  getEnabledAuthProviders,
+} from "../auth.config";
 
 describe("auth provider configuration", () => {
   it("returns only enabled and fully configured providers", () => {
@@ -77,5 +81,29 @@ describe("auth provider configuration", () => {
     } as const;
 
     expect(getEnabledAuthProviders(env)).toEqual([]);
+  });
+
+  it("reports provider readiness with missing environment variables", () => {
+    const env = {
+      NODE_ENV: "test",
+      AUTH_GITHUB_ENABLED: "true",
+      AUTH_GITHUB_ID: "github-client-id",
+      AUTH_GITHUB_SECRET: "",
+      AUTH_GOOGLE_ENABLED: "false",
+      AUTH_GOOGLE_ID: "",
+      AUTH_GOOGLE_SECRET: "",
+    } as const;
+
+    expect(getAuthProviderReadiness(env)).toEqual(
+      expect.arrayContaining([
+        {
+          id: "github",
+          label: "GitHub",
+          enabled: true,
+          configured: false,
+          missingEnv: ["AUTH_GITHUB_SECRET"],
+        },
+      ]),
+    );
   });
 });

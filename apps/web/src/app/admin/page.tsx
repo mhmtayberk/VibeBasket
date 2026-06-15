@@ -1,4 +1,5 @@
 import {
+  type HealthTone,
   buildAdminSourceHealth,
   classifyCatalogFreshness,
   computeFailureStreak,
@@ -16,6 +17,7 @@ import { desc, sql } from "drizzle-orm";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { BackupSectionLazy } from "./BackupSectionLazy";
+import { ReleaseReadinessPanel } from "./ReleaseReadinessPanel";
 import { SyncButton } from "./SyncButton";
 import { SystemHealthPanel } from "./SystemHealthPanel";
 
@@ -110,7 +112,7 @@ export default async function AdminDashboardPage() {
   const failureStreak = computeFailureStreak(normalizedRecentSyncRuns);
   const sourceHealth = buildAdminSourceHealth(normalizedRecentSyncRuns, sourceCounts);
 
-  const toneClasses: Record<"healthy" | "warning" | "critical", string> = {
+  const toneClasses: Record<HealthTone, string> = {
     healthy: "border-accent/30 bg-accent/10 text-accent",
     warning: "border-amber-400/30 bg-amber-400/10 text-amber-300",
     critical: "border-destructive/30 bg-destructive/10 text-destructive",
@@ -149,6 +151,8 @@ export default async function AdminDashboardPage() {
             Real-time analytics, user saved stack leaderboards, and central registry health.
           </p>
         </div>
+
+        <ReleaseReadinessPanel />
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
           <div className="border border-border/80 bg-card/70 p-6">

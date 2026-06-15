@@ -171,7 +171,7 @@ export function DocsTabSecurity() {
               <code className="font-mono text-[11px] text-foreground bg-card px-1.5 py-0.5 rounded-[2px] border border-[#3e4944]">
                 ADMIN_OAUTH_EMAILS
               </code>{" "}
-              environment variable.
+              environment variable, and only verified allowlisted emails are promoted to admin.
             </p>
             <div className="overflow-x-auto">
               <table

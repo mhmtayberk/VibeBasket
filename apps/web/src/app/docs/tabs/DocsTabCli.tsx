@@ -21,8 +21,9 @@ export function DocsTabCli() {
           CLI Reference
         </h1>
         <p className="text-base sm:text-lg text-[#bdc9c2] max-w-3xl leading-relaxed">
-          Complete CLI command specifications, parameters, and flags for local terminal automation
-          workflows.
+          Reference for the local installer and inspection commands. The CLI is designed to run on
+          the operator's machine, apply bundles idempotently, and avoid pretending support that an
+          adapter does not actually implement.
         </p>
       </div>
 
@@ -39,9 +40,10 @@ export function DocsTabCli() {
             <code className="font-mono text-xs text-[#33bbc5] bg-[#33bbc5]/10 px-1.5 py-0.5 rounded-[2px] border border-[#33bbc5]/20">
               vibebasket
             </code>{" "}
-            CLI works as an idempotent client script. When a bundle URL or ID is passed, it executes
-            entirely in the local environment context, resolving necessary file merges, prompts, and
-            server setups securely.
+            CLI works as an idempotent local installer. When a bundle URL or ID is passed, it
+            fetches the manifest, applies only the capabilities the target adapter really supports,
+            writes backups before mutating known config files, and verifies the written result when
+            readback is implemented for that target.
           </p>
         </section>
 

@@ -140,6 +140,7 @@ The homepage (`/`) is `force-dynamic` and server-renders:
 - the target picker now mirrors the real adapter-backed set instead of keeping a visible roadmap/watchlist tier
 - `project` scope apply now forwards the working directory as `projectRoot`, which closes an earlier bug where project-scoped adapters had the right path logic but were never given the project path at runtime
 - repository automation currently validates linting, shared-package builds, the web typecheck/build path, unit/integration suites, and Playwright smoke coverage; global `tsc -b` remains a cleanup target rather than a hard release gate
+- the default production architecture assumes a single app process; process-local rate limiting is therefore an intentional design choice, not an accidental omission
 
 ## Production & Deployment Architecture
 

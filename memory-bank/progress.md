@@ -32,8 +32,12 @@
 - [x] Rate-limit hardening: `cf-connecting-ip` is only honored when `TRUST_PROXY` is explicitly enabled
 - [x] Production header hardening: HSTS, `X-Permitted-Cross-Domain-Policies`, `X-Download-Options`, and stricter CSP without inline script allowance
 - [x] Admin storage visibility: active backup backend resolution is now async-correct and the UI warns when an incomplete cloud config silently falls back to local storage
+- [x] Admin release readiness: deploy-time blockers and warnings are now surfaced for auth, proxy trust, OAuth completeness, refresh token, storage fallback, and SQLite backup compatibility
 - [x] Cloud backup restore: storage backends now expose provider-native download flows and admin restore no longer requires manual out-of-band cloud download
+- [x] NFT tracing cleanup: admin backup/readiness client flows now go through route handlers, and `next build` no longer emits the prior Turbopack NFT tracing warning
+- [x] Security tightening: admin role now requires verified allowlisted email, `x-real-ip` is ignored unless `TRUST_PROXY` is enabled, cookie-authenticated stack mutations enforce same-origin `Origin` checks, and bundle share URLs prefer configured public origin
 - [x] Public-launch docs pass: README, SETUP, SECURITY, ARCHITECTURE, PROJECT_OVERVIEW, and `llms.txt` now better document live catalog scale, `AUTH_TRUST_HOST`, first-sync expectations, and backup credential scope
+- [x] Public launch quality pass: README and docs hub copy now better explain single-node self-hosting expectations, first-run behavior, and the real installer capability surface
 - [x] Pre-prod audit hardening: repo-wide lint green again, package builds passing, focused registry/adapters/core/web tests re-verified
 - [x] Migration safety fix: schema bootstrap now restores missing legacy `catalog_items.description` / `icon` columns before FTS initialization, and recreates the saved-stack target position index
 - [x] Test isolation cleanup: adapter tests no longer write into the real user home directory during verification
@@ -42,10 +46,10 @@
 ## Test Coverage
 - Focused CLI, adapter, and web/admin suites covering install verification and operational visibility are passing
 - Web TypeScript strict mode: zero errors
-- Web production build succeeds in a real shell; Turbopack still reports one non-fatal NFT tracing warning, but it is now narrowed to `next.config.ts` -> `src/app/admin/backup-actions.ts` instead of the older monolithic admin action file
+- Web production build succeeds in a real shell with no remaining Turbopack NFT tracing warning
 - Full Playwright browser E2E could not be completed on this machine because the Chromium Playwright binary is not installed locally
 
 ## Next Steps
 - CLI `prune` command
 - Expanded E2E test suite
-- Reduce the remaining Turbopack tracing warning around server-side filesystem/bootstrap imports
+- Decide whether non-file `DATABASE_URL` should stay as a warning-only admin signal or become an explicit hard block for built-in backup actions

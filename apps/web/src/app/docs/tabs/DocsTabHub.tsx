@@ -30,8 +30,9 @@ export function DocsTabHub({ searchQuery, guides }: DocsTabHubProps) {
           Documentation Hub
         </h1>
         <p className="text-base sm:text-lg text-[#bdc9c2] max-w-3xl leading-relaxed">
-          Everything you need to configure, run, and scale reproducible developer contexts. Explore
-          our guides, command-line arguments, and local security configurations.
+          Everything you need to configure, run, and maintain VibeBasket honestly. Start with
+          Getting Started for the shortest path, Self Hosting for deployment expectations, and
+          Security when you are preparing a public launch.
         </p>
       </div>
 
