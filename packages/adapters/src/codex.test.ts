@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
 import type { McpEntry } from "@vibebasket/core";
+import { describe, expect, it } from "vitest";
 import { CodexAdapter } from "./codex.js";
 
 describe("CodexAdapter", () => {
@@ -16,7 +16,6 @@ describe("CodexAdapter", () => {
       [
         {
           id: "mcp-context7",
-          type: "mcp",
           displayName: "Context7",
           runtime: "remote",
           args: [],

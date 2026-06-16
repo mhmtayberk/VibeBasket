@@ -214,8 +214,7 @@ export async function GET(request: Request) {
         : "";
 
       if (ftsTokens) {
-        const ftsClause =
-          sql`catalog_items.rowid IN (SELECT rowid FROM catalog_items_fts WHERE catalog_items_fts MATCH ${ftsTokens})`;
+        const ftsClause = sql`catalog_items.rowid IN (SELECT rowid FROM catalog_items_fts WHERE catalog_items_fts MATCH ${ftsTokens})`;
         const structuredFallbackClause = like(catalogItems.data, `%${search}%`);
         if (structuredFallbackClause) {
           const searchClause = or(ftsClause, structuredFallbackClause);

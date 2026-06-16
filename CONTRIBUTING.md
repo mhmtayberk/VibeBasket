@@ -11,6 +11,7 @@
 ```bash
 git clone https://github.com/vibebasket/vibebasket.git
 cd vibebasket
+cp .env.example .env
 pnpm install
 ```
 
@@ -32,7 +33,7 @@ packages/
 pnpm --filter web dev          # Start web app
 pnpm --filter web test         # Run web tests
 pnpm --filter @vibebasket/cli dev
-pnpm --filter cli test         # Run CLI tests
+pnpm --filter @vibebasket/cli test
 pnpm --filter @vibebasket/adapters test
 pnpm --filter web typecheck    # TypeScript check for the web app
 pnpm --filter web build        # Production build
@@ -48,7 +49,7 @@ pnpm verify:ci                 # Main release gate used in CI
 Important note:
 
 - The current CI gate is `pnpm verify:ci`, not a monorepo-wide `tsc -b`.
-- There is still TypeScript project-reference debt in `packages/adapters` and `apps/cli`, so avoid claiming that the whole workspace passes a single global typecheck gate unless you verified it explicitly.
+- There is still strictness and test-fixture cleanup to finish in `packages/adapters`, so avoid claiming that the whole workspace passes a single global typecheck gate unless you verified it explicitly.
 
 ## Adding an IDE Adapter
 

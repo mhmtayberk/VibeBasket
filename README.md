@@ -167,7 +167,7 @@ VibeBasket is designed for self-hosting as well as the public hosted product.
 Current release-engineering note:
 
 - The repo is verified through `pnpm verify:ci`, targeted web typecheck, build, unit/integration tests, and Playwright smoke coverage.
-- A monorepo-wide `tsc -b` gate is not yet a release requirement; there is still project-reference cleanup to finish in `packages/adapters` and `apps/cli`.
+- A monorepo-wide `pnpm typecheck` gate is not yet a release requirement; there is still strictness and test-fixture cleanup to finish in `packages/adapters`.
 
 Operational reality:
 
@@ -219,6 +219,7 @@ npx vibebasket rollback
 | `AUTH_GOOGLE_ID/SECRET` | No | Google OAuth credentials |
 | `AUTH_APPLE_ID/SECRET` | No | Apple Sign-In credentials |
 | `AUTH_MICROSOFT_ENTRA_ID_ID/SECRET` | No | Microsoft Entra ID credentials |
+| `CATALOG_REFRESH_TOKEN` | No | Required only if you want authenticated production callers to use `/api/catalog?refresh=1` |
 | `BACKUP_STORAGE_BACKEND` | No | local, s3, r2, spaces, azure, or gcs |
 | `ADMIN_OAUTH_EMAILS` | No | Comma-separated admin emails; admin access is granted only when the signed-in account email is both allowlisted and verified |
 | `TRUST_PROXY` | No | Set to `true` only when the app is actually behind a trusted reverse proxy; proxy IP headers are ignored otherwise |
@@ -247,7 +248,7 @@ Key patterns: idempotent config writes, immutable bundles, DB-first configuratio
 - Anonymous bundles expire in 48 hours. Registered user bundles last 365 days.
 - OAuth is optional. Catalog browsing and bundle apply work without login.
 - Admin access: set `ADMIN_OAUTH_EMAILS` or configure from admin panel at `/admin`. Production admin access requires an allowlisted and verified email address.
-- Cookie-authenticated stack create/update/delete routes enforce same-origin browser mutations to reduce CSRF risk.
+- Cookie-authenticated stack create/update/delete routes enforce same-origin browser mutations to reduce CSRF risk, while stack reads remain available to authenticated same-site requests without an `Origin` requirement.
 - Catalog sync is eventually consistent. If upstream sources change, your local instance reflects that after background refresh or a manual `pnpm catalog:sync`.
 
 ## Contributing

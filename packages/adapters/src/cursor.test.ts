@@ -22,14 +22,19 @@ describe("CursorAdapter", () => {
       command: "npx",
       args: ["-y", "test-mcp"],
       env: {},
+      headers: {},
       requiredSecrets: [],
       verified: false,
     };
 
     const result = adapter.applyMcps(config, [newMcp], {}, { force: false }) as McpConfigResult;
     expect(result.mcpServers.existing).toBeDefined();
-    expect(result.mcpServers["new-mcp"]).toBeDefined();
-    expect(result.mcpServers["new-mcp"].command).toBe("npx");
+    const addedMcp = result.mcpServers["new-mcp"];
+    expect(addedMcp).toBeDefined();
+    if (!addedMcp) {
+      throw new Error("Expected new-mcp to be present");
+    }
+    expect(addedMcp.command).toBe("npx");
   });
 
   it("should not override existing MCPs unless forced", () => {
@@ -50,6 +55,7 @@ describe("CursorAdapter", () => {
       command: "npx",
       args: ["-y", "conflict"],
       env: {},
+      headers: {},
       requiredSecrets: [],
       verified: false,
     };
@@ -60,7 +66,12 @@ describe("CursorAdapter", () => {
       {},
       { force: false },
     ) as McpConfigResult;
-    expect(resultWithoutForce.mcpServers.existing.command).toBe("node");
+    const existingWithoutForce = resultWithoutForce.mcpServers.existing;
+    expect(existingWithoutForce).toBeDefined();
+    if (!existingWithoutForce) {
+      throw new Error("Expected existing MCP to remain present");
+    }
+    expect(existingWithoutForce.command).toBe("node");
 
     const resultWithForce = adapter.applyMcps(
       config,
@@ -68,7 +79,12 @@ describe("CursorAdapter", () => {
       {},
       { force: true },
     ) as McpConfigResult;
-    expect(resultWithForce.mcpServers.existing.command).toBe("npx");
+    const existingWithForce = resultWithForce.mcpServers.existing;
+    expect(existingWithForce).toBeDefined();
+    if (!existingWithForce) {
+      throw new Error("Expected existing MCP to be overwritten");
+    }
+    expect(existingWithForce.command).toBe("npx");
   });
 
   it("should resolve secrets in env vars", () => {
@@ -82,6 +98,7 @@ describe("CursorAdapter", () => {
         OTHER_VAR: "static_value",
       },
       args: [],
+      headers: {},
       requiredSecrets: ["MY_API_KEY"],
       verified: false,
     };
@@ -92,7 +109,12 @@ describe("CursorAdapter", () => {
       { MY_API_KEY: "secret123" },
       { force: false },
     ) as McpConfigResult;
-    expect(result.mcpServers.test.env.API_KEY).toBe("secret123");
-    expect(result.mcpServers.test.env.OTHER_VAR).toBe("static_value");
+    const testMcp = result.mcpServers.test;
+    expect(testMcp).toBeDefined();
+    if (!testMcp?.env) {
+      throw new Error("Expected test MCP env to be present");
+    }
+    expect(testMcp.env.API_KEY).toBe("secret123");
+    expect(testMcp.env.OTHER_VAR).toBe("static_value");
   });
 });

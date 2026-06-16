@@ -25,14 +25,19 @@ describe("ContinueAdapter", () => {
       command: "npx",
       args: ["-y", "test-mcp"],
       env: {},
+      headers: {},
       requiredSecrets: [],
       verified: false,
     };
 
     const result = adapter.applyMcps(config, [newMcp], {}, { force: false }) as McpConfigResult;
     expect(result.mcpServers.existing).toBeDefined();
-    expect(result.mcpServers["new-mcp"]).toBeDefined();
-    expect(result.mcpServers["new-mcp"].command).toBe("npx");
+    const addedMcp = result.mcpServers["new-mcp"];
+    expect(addedMcp).toBeDefined();
+    if (!addedMcp) {
+      throw new Error("Expected new-mcp to be present");
+    }
+    expect(addedMcp.command).toBe("npx");
   });
 
   it("should write prompts files correctly inside .continue/prompts", async () => {

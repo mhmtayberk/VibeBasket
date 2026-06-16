@@ -41,10 +41,9 @@ export function DocsTabCli() {
               vibebasket
             </code>{" "}
             CLI works as an idempotent local installer. When a bundle URL or local manifest file is
-            passed, it
-            fetches the manifest, applies only the capabilities the target adapter really supports,
-            writes backups before mutating known config files, and verifies the written result when
-            readback is implemented for that target.
+            passed, it fetches the manifest, applies only the capabilities the target adapter really
+            supports, writes backups before mutating known config files, and verifies the written
+            result when readback is implemented for that target.
           </p>
         </section>
 
@@ -59,9 +58,9 @@ export function DocsTabCli() {
               </code>
               <p className="text-xs text-[#bdc9c2] leading-relaxed">
                 The primary command. Accepts a hosted bundle URL or a local JSON manifest file,
-                validates its manifest, and applies each item (MCP servers, skills, rules) to
-                every compatible local adapter. Adapters back up existing config files before
-                writing and merge entries idempotently, so running apply twice is safe.
+                validates its manifest, and applies each item (MCP servers, skills, rules) to every
+                compatible local adapter. Adapters back up existing config files before writing and
+                merge entries idempotently, so running apply twice is safe.
               </p>
             </div>
           </div>

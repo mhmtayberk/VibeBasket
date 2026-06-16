@@ -227,10 +227,7 @@ function renderCodexToml(
   return `${output}\n\n${joinedBlocks}\n`;
 }
 
-function toCodexServerConfig(
-  mcp: McpEntry,
-  secrets: Record<string, string>,
-): CodexServerConfig {
+function toCodexServerConfig(mcp: McpEntry, secrets: Record<string, string>): CodexServerConfig {
   if (mcp.runtime !== "remote") {
     return {
       command: mcp.command || mcp.runtime,
