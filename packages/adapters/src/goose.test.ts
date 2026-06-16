@@ -17,7 +17,7 @@ describe("GooseAdapter", () => {
   });
 
   it("resolves global config path", () => {
-    expect(adapter.configPath("user")).toContain(".config/goose/config.yaml");
+    expect(adapter.configPath()).toContain(".config/goose/config.yaml");
   });
 
   it("has correct capabilities", () => {
@@ -37,6 +37,7 @@ describe("GooseAdapter", () => {
         command: "c",
         args: [],
         env: {},
+        headers: {},
         requiredSecrets: [],
         verified: false,
       },

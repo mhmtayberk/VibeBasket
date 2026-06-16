@@ -15,6 +15,7 @@ describe("ZedAdapter", () => {
           command: "npx",
           args: ["-y", "@modelcontextprotocol/server-postgres"],
           env: {},
+          headers: {},
           requiredSecrets: [],
           verified: false,
         },

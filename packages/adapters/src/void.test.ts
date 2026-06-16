@@ -37,14 +37,19 @@ describe("VoidAdapter", () => {
       command: "npx",
       args: ["test"],
       env: {},
+      headers: {},
       requiredSecrets: [],
       verified: true,
     };
 
     const result = adapter.applyMcps(config, [mcp], {}, { force: false }) as McpConfigResult;
     expect(result.mcpServers.existing).toBeDefined();
-    expect(result.mcpServers["test-mcp"]).toBeDefined();
-    expect(result.mcpServers["test-mcp"].command).toBe("npx");
+    const testMcp = result.mcpServers["test-mcp"];
+    expect(testMcp).toBeDefined();
+    if (!testMcp) {
+      throw new Error("Expected test-mcp to be present");
+    }
+    expect(testMcp.command).toBe("npx");
   });
 
   it("should write skills/rules inside both .voidrules and .clinerules", async () => {

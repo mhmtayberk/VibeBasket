@@ -33,6 +33,9 @@ describe("PATCH /api/stacks/[id]", () => {
     const response = await PATCH(
       new NextRequest("http://localhost:3000/api/stacks/stack-1", {
         method: "PATCH",
+        headers: {
+          origin: "http://localhost:3000",
+        },
         body: JSON.stringify({ name: "Updated" }),
       }),
       {
@@ -53,6 +56,9 @@ describe("PATCH /api/stacks/[id]", () => {
     const response = await PATCH(
       new NextRequest("http://localhost:3000/api/stacks/stack-1", {
         method: "PATCH",
+        headers: {
+          origin: "http://localhost:3000",
+        },
         body: JSON.stringify({}),
       }),
       {
