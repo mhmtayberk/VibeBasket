@@ -49,17 +49,22 @@ describe("adapter config paths", () => {
     expect(new DeepSeekTuiAdapter().supportedScopes).toEqual(
       TARGET_CAPABILITIES["deepseek-tui"].supportedScopes,
     );
-    expect(new DeepSeekTuiAdapter().configPath("user")).toBe(`${os.homedir()}/.deepseek/mcp.json`);
+    expect(new DeepSeekTuiAdapter().configPath()).toBe(`${os.homedir()}/.deepseek/mcp.json`);
   });
 
   it("verifies user/project scopes for roocode, hermes, and openclaw", () => {
+    const projectRoot = "/tmp/demo-project";
     expect(new RooCodeAdapter().supportedScopes).toEqual(["project"]);
     expect(new HermesAdapter().supportedScopes).toEqual(["project"]);
     expect(new OpenClawAdapter().supportedScopes).toEqual(["project"]);
 
-    expect(new RooCodeAdapter().configPath("project")).toContain("roocode_mcp_settings.json");
-    expect(new HermesAdapter().configPath("project")).toBe(`${os.homedir()}/.hermes/config.yaml`);
-    expect(new OpenClawAdapter().configPath("project")).toBe(
+    expect(new RooCodeAdapter().configPath("project", projectRoot)).toContain(
+      "roocode_mcp_settings.json",
+    );
+    expect(new HermesAdapter().configPath("project", projectRoot)).toBe(
+      `${os.homedir()}/.hermes/config.yaml`,
+    );
+    expect(new OpenClawAdapter().configPath("project", projectRoot)).toBe(
       `${os.homedir()}/.openclaw/openclaw.json`,
     );
   });

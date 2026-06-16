@@ -55,6 +55,9 @@ describe("POST /api/stacks", () => {
     const response = await POST(
       new NextRequest("http://localhost:3000/api/stacks", {
         method: "POST",
+        headers: {
+          origin: "http://localhost:3000",
+        },
         body: JSON.stringify({
           name: "React Stack",
           itemIds: ["mcp-a"],
@@ -77,6 +80,9 @@ describe("POST /api/stacks", () => {
     const response = await POST(
       new NextRequest("http://localhost:3000/api/stacks", {
         method: "POST",
+        headers: {
+          origin: "http://localhost:3000",
+        },
         body: JSON.stringify({
           name: "Empty Stack",
           itemIds: [],

@@ -31,6 +31,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Public Launch Polish
+- **Saved-stack route contract fix**: authenticated stack reads no longer require a mutation `Origin` header, while `POST`/`PATCH`/`DELETE` continue to enforce same-origin CSRF checks. The route tests now model real browser mutation requests by sending a valid same-origin header.
+- **Docs surface cleanup**: setup docs now use the real GitHub clone URL, self-hosting docs point to the in-repo Helm chart instead of an unverified public chart repository, and README/setup/config docs now describe `CATALOG_REFRESH_TOKEN` consistently.
+- **LLM/public metadata honesty**: `apps/web/public/llms.txt` now avoids stale test-count claims and reflects the real self-hosting surface more accurately.
+- **Contributor first-run polish**: CONTRIBUTING now includes the `.env.example` bootstrap step and uses the correct scoped CLI test command.
+
 ### Documentation & Correctness Pass
 - **Docs drift cleanup**: README, setup docs, CLI docs, architecture notes, and memory-bank state were re-audited together instead of only patching the latest changes.
 - **Gemini CLI docs corrected**: public docs now reflect that Gemini CLI supports both MCP settings and filesystem-backed skills via `.gemini/skills`.

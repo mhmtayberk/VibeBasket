@@ -9,7 +9,7 @@
   "scripts": {
     "build": "tsup",
     "test": "node ../../scripts/run-vitest.mjs run",
-    "typecheck": "pnpm exec tsc --noEmit"
+    "typecheck": "pnpm exec tsc --noEmit -p tsconfig.typecheck.json"
   },
   "dependencies": {
     "@vibebasket/core": "workspace:*",

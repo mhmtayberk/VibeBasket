@@ -25,6 +25,7 @@ describe("OpenClawAdapter", () => {
       command: "npx",
       args: ["-y", "test-mcp"],
       env: {},
+      headers: {},
       requiredSecrets: [],
       verified: false,
     };
@@ -32,9 +33,11 @@ describe("OpenClawAdapter", () => {
     const result = adapter.applyMcps(config, [newMcp], {}, { force: false }) as McpConfigResult & {
       "mcp.servers": Record<string, unknown>;
     };
-    expect(result["mcp.servers"].existing).toBeDefined();
-    expect(result["mcp.servers"]["new-mcp"]).toBeDefined();
-    expect(result["mcp.servers"]["new-mcp"].command).toBe("npx");
+    const servers = result["mcp.servers"] as Record<string, { command?: string } | undefined>;
+    expect(servers.existing).toBeDefined();
+    const addedMcp = servers["new-mcp"];
+    expect(addedMcp).toBeDefined();
+    expect(addedMcp?.command).toBe("npx");
   });
 
   it("should write .openclawrules correctly", async () => {

@@ -25,14 +25,16 @@ describe("HermesAdapter", () => {
       env: {
         API_KEY: "secret123",
       },
+      headers: {},
       requiredSecrets: [],
       verified: false,
     };
 
     const adapterWithInternals = adapter as unknown as HermesInternals;
     const parsedConfig = adapterWithInternals.parseYaml(existingYaml);
-    expect(parsedConfig.mcp_servers.existing).toBeDefined();
-    expect(parsedConfig.mcp_servers.existing.command).toBe("node");
+    const existingServer = parsedConfig.mcp_servers.existing as { command?: string } | undefined;
+    expect(existingServer).toBeDefined();
+    expect(existingServer?.command).toBe("node");
 
     const mergedConfig = adapter.applyMcps(
       parsedConfig,
@@ -41,8 +43,12 @@ describe("HermesAdapter", () => {
       { force: false },
     ) as McpConfigResult & { mcp_servers: Record<string, Record<string, string>> };
     expect(mergedConfig.mcp_servers.existing).toBeDefined();
-    expect(mergedConfig.mcp_servers["new-mcp"]).toBeDefined();
-    expect(mergedConfig.mcp_servers["new-mcp"].command).toBe("npx");
+    const addedMcp = mergedConfig.mcp_servers["new-mcp"];
+    expect(addedMcp).toBeDefined();
+    if (!addedMcp) {
+      throw new Error("Expected new-mcp to be present");
+    }
+    expect(addedMcp.command).toBe("npx");
 
     const serialized = adapterWithInternals.serializeYaml(mergedConfig, existingYaml);
     expect(serialized).toContain("# System Hermes Configuration File");

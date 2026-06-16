@@ -1,7 +1,17 @@
 {
   "name": "vibebasket-monorepo",
   "private": true,
-  "description": "Ninite for vibe coding. Bundle your AI dev setup across multiple IDEs.",
+  "description": "Bundle trusted MCP servers, skills, and rules into one shareable install flow across AI IDEs.",
+  "license": "MIT",
+  "homepage": "https://github.com/vibebasket/vibebasket",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vibebasket/vibebasket.git"
+  },
+  "bugs": {
+    "url": "https://github.com/vibebasket/vibebasket/issues"
+  },
+  "packageManager": "pnpm@11.7.0",
   "engines": {
     "node": ">=20.0.0",
     "pnpm": ">=9.0.0"

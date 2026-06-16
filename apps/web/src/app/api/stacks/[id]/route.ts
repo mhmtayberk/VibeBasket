@@ -34,7 +34,6 @@ export async function GET(request: NextRequest, context: RouteContext<"/api/stac
     return createTooManyRequestsResponse(rateLimit.retryAfterSeconds);
   }
   try {
-    assertTrustedMutationOrigin(request);
     const userId = await requireCurrentUserId();
     const { id } = await context.params;
 
@@ -296,6 +295,7 @@ export async function DELETE(request: NextRequest, context: RouteContext<"/api/s
     return createTooManyRequestsResponse(rateLimit.retryAfterSeconds);
   }
   try {
+    assertTrustedMutationOrigin(request);
     const userId = await requireCurrentUserId();
     const { id } = await context.params;
 
@@ -313,6 +313,9 @@ export async function DELETE(request: NextRequest, context: RouteContext<"/api/s
 
     return NextResponse.json({ ok: true });
   } catch (error) {
+    if (error instanceof InvalidOriginError) {
+      return NextResponse.json({ error: error.message }, { status: 403 });
+    }
     if (error instanceof SessionRequiredError) {
       return unauthorizedResponse();
     }

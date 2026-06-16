@@ -100,8 +100,10 @@ docker compose up -d --build`}</pre>
             </code>
             .
           </p>
-          <pre className="bg-[#0a0f0d] p-6 border border-[#3e4944] font-mono text-xs text-[#bdc9c2] overflow-x-auto rounded-[2px] leading-relaxed">{`helm repo add vibebasket https://charts.vibebasket.dev
-helm install vibebasket vibebasket/vibebasket \\
+          <pre className="bg-[#0a0f0d] p-6 border border-[#3e4944] font-mono text-xs text-[#bdc9c2] overflow-x-auto rounded-[2px] leading-relaxed">{`git clone https://github.com/vibebasket/vibebasket.git
+cd vibebasket
+
+helm install vibebasket ./charts/vibebasket \\
   --set env.NEXTAUTH_URL=https://vibebasket.example.com \\
   --set env.AUTH_SECRET=$(openssl rand -base64 32) \\
   --set env.AUTH_GITHUB_ID=your-client-id \\
@@ -260,6 +262,11 @@ pnpm --filter web start        # production server on :3000`}</pre>
                     name: "TRUST_PROXY",
                     req: false,
                     desc: "Set to true when running behind Cloudflare, Nginx, or another trusted reverse proxy. Proxy IP headers are ignored otherwise.",
+                  },
+                  {
+                    name: "CATALOG_REFRESH_TOKEN",
+                    req: false,
+                    desc: "Optional token required for authenticated production callers that use /api/catalog?refresh=1.",
                   },
                   {
                     name: "BACKUP_STORAGE_BACKEND",

@@ -9,7 +9,7 @@ This guide is for contributors and self-hosters. If you only want to use the hos
 
 ## Installation (Manual Dev Setup)
 ```bash
-git clone <repo_url>
+git clone https://github.com/vibebasket/vibebasket.git
 cd vibebasket
 cp .env.example .env     # Copy the environment template
 pnpm install
@@ -19,7 +19,7 @@ pnpm dev                 # Starts workspace dev server on http://localhost:3000
 ## Installation (Docker Production Setup)
 For automated containerized self-hosting:
 ```bash
-git clone <repo_url>
+git clone https://github.com/vibebasket/vibebasket.git
 cd vibebasket
 cp .env.example .env     # Fill in required Next-Auth and Auth secrets
 docker compose up -d     # Starts non-root containers with automatic SQLite volume mounts
@@ -103,7 +103,7 @@ Notes:
 - In production behind a reverse proxy or CDN, set `AUTH_TRUST_HOST=true` so OAuth callback URL handling trusts the forwarded host correctly.
 - Only set `TRUST_PROXY=true` when the app is actually behind a trusted proxy or CDN that overwrites incoming client IP headers.
 - `ADMIN_OAUTH_EMAILS` only grants admin access when the signed-in provider account also reports the email as verified.
-- Cookie-authenticated saved-stack mutations enforce same-origin `Origin` checks, so `NEXTAUTH_URL` should reflect the real public app origin.
+- Cookie-authenticated saved-stack mutations enforce same-origin `Origin` checks, so `NEXTAUTH_URL` should reflect the real public app origin. Read-only stack fetches do not require that mutation header.
 
 ## Running the CLI
 ```bash

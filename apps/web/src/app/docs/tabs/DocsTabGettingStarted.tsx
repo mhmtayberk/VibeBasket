@@ -103,8 +103,8 @@ export function DocsTabGettingStarted() {
                   <code className="font-mono text-[11px] text-foreground bg-card px-1.5 py-0.5 rounded-[2px] border border-[#3e4944]">
                     vibebasket
                   </code>{" "}
-                  directly without `npx`. If you are self-hosting, expect the first catalog sync
-                  to be the slowest step in a fresh install.
+                  directly without `npx`. If you are self-hosting, expect the first catalog sync to
+                  be the slowest step in a fresh install.
                 </p>
               </div>
             </div>
