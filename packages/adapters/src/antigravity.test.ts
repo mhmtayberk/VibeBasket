@@ -33,16 +33,21 @@ describe("AntigravityAdapter", () => {
         runtime: "node",
         args: ["index.js"],
         env: { API_KEY: "secret" },
+        headers: {},
         requiredSecrets: [],
         verified: true,
       },
     ];
 
     const result = adapter.applyMcps(null, mcps, {}, { force: false }) as McpConfigResult;
-    expect(result.mcpServers["test-mcp"]).toBeDefined();
-    expect(result.mcpServers["test-mcp"].command).toBe("node");
-    expect(result.mcpServers["test-mcp"].args).toEqual(["index.js"]);
-    expect(result.mcpServers["test-mcp"].env).toEqual({ API_KEY: "secret" });
+    const testMcp = result.mcpServers["test-mcp"];
+    expect(testMcp).toBeDefined();
+    if (!testMcp) {
+      throw new Error("Expected test-mcp to be present");
+    }
+    expect(testMcp.command).toBe("node");
+    expect(testMcp.args).toEqual(["index.js"]);
+    expect(testMcp.env).toEqual({ API_KEY: "secret" });
   });
 
   it("should inject secrets correctly", () => {
@@ -53,6 +58,7 @@ describe("AntigravityAdapter", () => {
         runtime: "node",
         args: [],
         env: { KEY: "${secret:MY_KEY}", OTHER: "plain" },
+        headers: {},
         requiredSecrets: ["MY_KEY"],
         verified: true,
       },
@@ -64,7 +70,12 @@ describe("AntigravityAdapter", () => {
       { MY_KEY: "12345" },
       { force: false },
     ) as McpConfigResult;
-    expect(result.mcpServers["sec-mcp"].env).toEqual({ KEY: "12345", OTHER: "plain" });
+    const secMcp = result.mcpServers["sec-mcp"];
+    expect(secMcp).toBeDefined();
+    if (!secMcp) {
+      throw new Error("Expected sec-mcp to be present");
+    }
+    expect(secMcp.env).toEqual({ KEY: "12345", OTHER: "plain" });
   });
 
   it("should serialize remote MCPs as http URLs", () => {
@@ -76,6 +87,7 @@ describe("AntigravityAdapter", () => {
         url: "https://example.com/mcp",
         args: [],
         env: {},
+        headers: {},
         requiredSecrets: [],
         verified: false,
       },

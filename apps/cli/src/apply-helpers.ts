@@ -45,8 +45,9 @@ export function flattenBundleContent(bundle: Bundle): FlattenedBundleContent {
       [...bundle.rules, ...bundle.workflowPacks.flatMap((workflow) => workflow.rules)],
       (item) => item.id,
     ),
-    files: dedupeByKey(bundle.workflowPacks.flatMap((workflow) => workflow.files), (item) =>
-      item.path.trim().toLowerCase(),
+    files: dedupeByKey(
+      bundle.workflowPacks.flatMap((workflow) => workflow.files),
+      (item) => item.path.trim().toLowerCase(),
     ),
   };
 }

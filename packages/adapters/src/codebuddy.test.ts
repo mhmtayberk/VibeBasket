@@ -41,6 +41,7 @@ describe("CodeBuddyAdapter", () => {
         command: "c",
         args: [],
         env: {},
+        headers: {},
         requiredSecrets: [],
         verified: false,
       },

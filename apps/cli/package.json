@@ -1,7 +1,7 @@
 {
-  "name": "cli",
-  "version": "1.0.0",
-  "description": "",
+  "name": "@vibebasket/cli",
+  "version": "0.9.0",
+  "description": "Local installer and inspection CLI for VibeBasket bundles",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./src/index.ts",
@@ -15,9 +15,8 @@
     "start": "node dist/index.js",
     "test": "node ../../scripts/run-vitest.mjs run --passWithNoTests"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": ["vibebasket", "mcp", "ai-ide", "cli"],
+  "license": "MIT",
   "dependencies": {
     "@inquirer/prompts": "^8.4.2",
     "@vibebasket/adapters": "workspace:^",

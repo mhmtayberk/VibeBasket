@@ -41,6 +41,7 @@ describe("IBMBobAdapter", () => {
         command: "c",
         args: [],
         env: {},
+        headers: {},
         requiredSecrets: [],
         verified: false,
       },

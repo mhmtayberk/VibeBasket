@@ -41,6 +41,7 @@ describe("CortexCodeAdapter", () => {
         command: "test-cmd",
         args: [],
         env: {},
+        headers: {},
         requiredSecrets: [],
         verified: false,
       },

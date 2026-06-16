@@ -37,6 +37,9 @@
 - [x] Cloud backup restore: storage backends now expose provider-native download flows and admin restore no longer requires manual out-of-band cloud download
 - [x] NFT tracing cleanup: admin backup/readiness client flows now go through route handlers, and `next build` no longer emits the prior Turbopack NFT tracing warning
 - [x] Security tightening: admin role now requires verified allowlisted email, `x-real-ip` is ignored unless `TRUST_PROXY` is enabled, cookie-authenticated stack mutations enforce same-origin `Origin` checks, and bundle share URLs prefer configured public origin
+- [x] Saved-stack route contract fix: read access no longer asks for mutation-origin headers, `DELETE` now enforces the same CSRF contract as `POST`/`PATCH`, and stack route tests now send a real same-origin header on browser-style mutations
+- [x] Public repo staging polish: docs now use the real GitHub clone URL, self-hosting points at the in-repo Helm chart, `CATALOG_REFRESH_TOKEN` is documented consistently, and contributor/LLM-facing docs were tightened for launch quality
+- [x] Registry typecheck cleanup: `packages/registry` now uses a dedicated cross-package typecheck config, leaving the remaining monorepo-wide `pnpm typecheck` failures isolated to `packages/adapters` test-fixture strictness
 - [x] Public-launch docs pass: README, SETUP, SECURITY, ARCHITECTURE, PROJECT_OVERVIEW, and `llms.txt` now better document live catalog scale, `AUTH_TRUST_HOST`, first-sync expectations, and backup credential scope
 - [x] Public launch quality pass: README and docs hub copy now better explain single-node self-hosting expectations, first-run behavior, and the real installer capability surface
 - [x] Pre-prod audit hardening: repo-wide lint green again, package builds passing, focused registry/adapters/core/web tests re-verified
