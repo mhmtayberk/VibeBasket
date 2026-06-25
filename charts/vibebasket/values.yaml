@@ -33,12 +33,25 @@ resources:
 
 existingSecret: ""
 
+secretEnv:
+  AUTH_SECRET: ""
+  AUTH_GITHUB_SECRET: ""
+  AUTH_GOOGLE_SECRET: ""
+  AUTH_APPLE_SECRET: ""
+  AUTH_MICROSOFT_ENTRA_ID_SECRET: ""
+  CATALOG_REFRESH_TOKEN: ""
+
 podSecurityContext:
   fsGroup: 1001
+  seccompProfile:
+    type: RuntimeDefault
+
+automountServiceAccountToken: false
 
 securityContext:
   runAsNonRoot: true
   runAsUser: 1001
+  allowPrivilegeEscalation: false
   capabilities:
     drop: [ALL]
 
@@ -51,26 +64,25 @@ persistence:
 # Environment variables
 env:
   NEXTAUTH_URL: "https://vibebasket.example.com"
-  # REQUIRED. Generate: openssl rand -base64 32
-  AUTH_SECRET: ""
   ADMIN_OAUTH_EMAILS: ""
   # OAuth providers (optional)
   AUTH_GITHUB_ENABLED: "false"
   AUTH_GITHUB_ID: ""
-  AUTH_GITHUB_SECRET: ""
   AUTH_GOOGLE_ENABLED: "false"
   AUTH_GOOGLE_ID: ""
-  AUTH_GOOGLE_SECRET: ""
+  AUTH_APPLE_ENABLED: "false"
+  AUTH_APPLE_ID: ""
   AUTH_MICROSOFT_ENTRA_ID_ENABLED: "false"
   AUTH_MICROSOFT_ENTRA_ID_ID: ""
-  AUTH_MICROSOFT_ENTRA_ID_SECRET: ""
   # Trust proxy for reverse proxy setups
   TRUST_PROXY: "true"
   AUTH_TRUST_HOST: "true"
   # Backup storage (defaults to local)
   BACKUP_STORAGE_BACKEND: "local"
-  # Optional: catalog refresh token for production
-  CATALOG_REFRESH_TOKEN: ""
+  # Registry sync tuning
+  CATALOG_FETCH_RETRIES: "2"
+  CATALOG_MCP_REGISTRY_TIMEOUT_MS: "60000"
+  CATALOG_SKILLS_TIMEOUT_MS: "20000"
 
 nodeSelector: {}
 tolerations: []

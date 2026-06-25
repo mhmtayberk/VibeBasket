@@ -1,6 +1,48 @@
 import os from "node:os";
 import path from "node:path";
-import type { IdeId, RuleEntry, Scope, SkillEntry } from "@vibebasket/core";
+import type { IdeId, RuleEntry, Scope, SkillEntry } from "../../../packages/core/src/manifest.js";
+
+function getWindowsRoamingDir() {
+  return process.env.APPDATA?.trim() || path.join(os.homedir(), "AppData", "Roaming");
+}
+
+function getXdgConfigHome() {
+  return process.env.XDG_CONFIG_HOME?.trim() || path.join(os.homedir(), ".config");
+}
+
+function getVsCodeGlobalStorageDir(extensionId: string) {
+  const platform = os.platform();
+
+  if (platform === "darwin") {
+    return path.join(
+      os.homedir(),
+      "Library",
+      "Application Support",
+      "Code",
+      "User",
+      "globalStorage",
+      extensionId,
+      "settings",
+    );
+  }
+
+  if (platform === "win32") {
+    return path.join(
+      getWindowsRoamingDir(),
+      "Code",
+      "User",
+      "globalStorage",
+      extensionId,
+      "settings",
+    );
+  }
+
+  return path.join(getXdgConfigHome(), "Code", "User", "globalStorage", extensionId, "settings");
+}
+
+function getRooCodeGlobalBaseDir() {
+  return path.dirname(getVsCodeGlobalStorageDir("RooVeterinaryInc.roo-cline"));
+}
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
@@ -21,11 +63,23 @@ export function extractConfiguredMcpIds(config: unknown): string[] {
   const record = asRecord(config);
   if (!record) return [];
 
+  const mcpServersValue = record.mcpServers;
+  if (Array.isArray(mcpServersValue)) {
+    return mcpServersValue
+      .map((entry) => asRecord(entry))
+      .flatMap((entry) => {
+        const name = entry?.name;
+        return typeof name === "string" && name.trim() ? [name] : [];
+      });
+  }
+
   const candidates = [
     getObjectKeyRecord(record, "mcpServers"),
+    getObjectKeyRecord(record, "mcp"),
     getObjectKeyRecord(record, "mcp_servers"),
     getObjectKeyRecord(record, "mcp.servers"),
     getObjectKeyRecord(record, "context_servers"),
+    getObjectKeyRecord(record, "extensions"),
   ].filter(Boolean) as Array<Record<string, unknown>>;
 
   for (const candidate of candidates) {
@@ -106,16 +160,74 @@ export function resolveSkillVerificationTargets(
         kind: "file",
       }));
     }
+    case "cursor": {
+      const baseDir =
+        scope === "project" && projectRoot
+          ? path.join(projectRoot, ".cursor", "skills")
+          : path.join(home, ".cursor", "skills");
+      return skills.map((skill) => ({
+        path: path.join(baseDir, skill.id, "SKILL.md"),
+        kind: "file",
+      }));
+    }
+    case "gemini-cli": {
+      const baseDir =
+        scope === "project" && projectRoot
+          ? path.join(projectRoot, ".gemini", "skills")
+          : path.join(home, ".gemini", "skills");
+      return skills.map((skill) => ({
+        path: path.join(baseDir, skill.id, "SKILL.md"),
+        kind: "file",
+      }));
+    }
+    case "kiro": {
+      const baseDir =
+        scope === "project" && projectRoot
+          ? path.join(projectRoot, ".kiro", "skills")
+          : path.join(home, ".kiro", "skills");
+      return skills.map((skill) => ({
+        path: path.join(baseDir, skill.id, "SKILL.md"),
+        kind: "file",
+      }));
+    }
+    case "windsurf": {
+      const baseDir =
+        scope === "project" && projectRoot
+          ? path.join(projectRoot, ".windsurf", "skills")
+          : path.join(home, ".codeium", "windsurf", "skills");
+      return skills.map((skill) => ({
+        path: path.join(baseDir, skill.id, "SKILL.md"),
+        kind: "file",
+      }));
+    }
+    case "zed": {
+      const baseDir =
+        scope === "project" && projectRoot
+          ? path.join(projectRoot, ".agents", "skills")
+          : path.join(home, ".agents", "skills");
+      return skills.map((skill) => ({
+        path: path.join(baseDir, skill.id, "SKILL.md"),
+        kind: "file",
+      }));
+    }
     case "roocode":
-      return projectRoot
-        ? [
-            {
-              path: path.join(projectRoot, ".clinerules"),
-              kind: "marker-file",
-              markerIds: skills.map((skill) => skill.id),
-            },
-          ]
-        : [];
+      return skills.map((skill) => ({
+        path:
+          scope === "project" && projectRoot
+            ? path.join(projectRoot, ".roo", "skills", skill.id, "SKILL.md")
+            : path.join(getRooCodeGlobalBaseDir(), "skills", skill.id, "SKILL.md"),
+        kind: "file",
+      }));
+    case "opencode": {
+      const baseDir =
+        scope === "project" && projectRoot
+          ? path.join(projectRoot, ".opencode", "skills")
+          : path.join(home, ".config", "opencode", "skills");
+      return skills.map((skill) => ({
+        path: path.join(baseDir, skill.id, "SKILL.md"),
+        kind: "file",
+      }));
+    }
     case "hermes":
       return projectRoot
         ? [
@@ -195,16 +307,38 @@ export function resolveRuleVerificationTargets(
         kind: "file",
       }));
     }
-    case "roocode":
-      return projectRoot
-        ? [
+    case "windsurf":
+      return scope === "project" && projectRoot
+        ? rules.map((rule) => ({
+            path: path.join(projectRoot, ".devin", "rules", `${rule.id}.md`),
+            kind: "file",
+          }))
+        : [
             {
-              path: path.join(projectRoot, ".clinerules"),
+              path: path.join(home, ".codeium", "windsurf", "memories", "global_rules.md"),
               kind: "marker-file",
               markerIds: rules.map((rule) => rule.id),
             },
-          ]
-        : [];
+          ];
+    case "roocode":
+      return rules.map((rule) => ({
+        path:
+          scope === "project" && projectRoot
+            ? path.join(projectRoot, ".roo", "rules", `${rule.id}.md`)
+            : path.join(getRooCodeGlobalBaseDir(), "rules", `${rule.id}.md`),
+        kind: "file",
+      }));
+    case "opencode":
+      return [
+        {
+          path:
+            scope === "project" && projectRoot
+              ? path.join(projectRoot, "AGENTS.md")
+              : path.join(home, ".config", "opencode", "AGENTS.md"),
+          kind: "marker-file",
+          markerIds: rules.map((rule) => rule.id),
+        },
+      ];
     case "hermes":
       return projectRoot
         ? [
@@ -327,10 +461,76 @@ export function resolveSkillInventoryTargets(
           fileExtension: ".md",
         },
       ];
+    case "cursor":
+      return [
+        {
+          path:
+            scope === "project" && projectRoot
+              ? path.join(projectRoot, ".cursor", "skills")
+              : path.join(home, ".cursor", "skills"),
+          kind: "directory",
+        },
+      ];
+    case "gemini-cli":
+      return [
+        {
+          path:
+            scope === "project" && projectRoot
+              ? path.join(projectRoot, ".gemini", "skills")
+              : path.join(home, ".gemini", "skills"),
+          kind: "directory",
+        },
+      ];
+    case "kiro":
+      return [
+        {
+          path:
+            scope === "project" && projectRoot
+              ? path.join(projectRoot, ".kiro", "skills")
+              : path.join(home, ".kiro", "skills"),
+          kind: "directory",
+        },
+      ];
+    case "windsurf":
+      return [
+        {
+          path:
+            scope === "project" && projectRoot
+              ? path.join(projectRoot, ".windsurf", "skills")
+              : path.join(home, ".codeium", "windsurf", "skills"),
+          kind: "directory",
+        },
+      ];
+    case "zed":
+      return [
+        {
+          path:
+            scope === "project" && projectRoot
+              ? path.join(projectRoot, ".agents", "skills")
+              : path.join(home, ".agents", "skills"),
+          kind: "directory",
+        },
+      ];
     case "roocode":
-      return projectRoot
-        ? [{ path: path.join(projectRoot, ".clinerules"), kind: "marker-file" }]
-        : [];
+      return [
+        {
+          path:
+            scope === "project" && projectRoot
+              ? path.join(projectRoot, ".roo", "skills")
+              : path.join(getRooCodeGlobalBaseDir(), "skills"),
+          kind: "directory",
+        },
+      ];
+    case "opencode":
+      return [
+        {
+          path:
+            scope === "project" && projectRoot
+              ? path.join(projectRoot, ".opencode", "skills")
+              : path.join(home, ".config", "opencode", "skills"),
+          kind: "directory",
+        },
+      ];
     case "hermes":
       return projectRoot
         ? [{ path: path.join(projectRoot, ".hermesrules"), kind: "marker-file" }]
@@ -383,10 +583,42 @@ export function resolveRuleInventoryTargets(
           fileExtension: ".md",
         },
       ];
+    case "windsurf":
+      return scope === "project" && projectRoot
+        ? [
+            {
+              path: path.join(projectRoot, ".devin", "rules"),
+              kind: "directory",
+              fileExtension: ".md",
+            },
+          ]
+        : [
+            {
+              path: path.join(home, ".codeium", "windsurf", "memories", "global_rules.md"),
+              kind: "marker-file",
+            },
+          ];
     case "roocode":
-      return projectRoot
-        ? [{ path: path.join(projectRoot, ".clinerules"), kind: "marker-file" }]
-        : [];
+      return [
+        {
+          path:
+            scope === "project" && projectRoot
+              ? path.join(projectRoot, ".roo", "rules")
+              : path.join(getRooCodeGlobalBaseDir(), "rules"),
+          kind: "directory",
+          fileExtension: ".md",
+        },
+      ];
+    case "opencode":
+      return [
+        {
+          path:
+            scope === "project" && projectRoot
+              ? path.join(projectRoot, "AGENTS.md")
+              : path.join(home, ".config", "opencode", "AGENTS.md"),
+          kind: "marker-file",
+        },
+      ];
     case "hermes":
       return projectRoot
         ? [{ path: path.join(projectRoot, ".hermesrules"), kind: "marker-file" }]

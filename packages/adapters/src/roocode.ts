@@ -1,8 +1,8 @@
 import fs from "node:fs/promises";
-import os from "node:os";
 import path from "node:path";
-import type { IdeId, McpEntry, RuleEntry, Scope, SkillEntry } from "@vibebasket/core";
+import type { IdeId, McpEntry, RuleEntry, Scope, SkillEntry } from "../../core/src/manifest.js";
 import { hasErrorCode, mergeStandardMcpServers } from "./mcp-utils";
+import { getVsCodeGlobalStorageDir } from "./platform-paths";
 import { getTargetCapabilities } from "./target-capabilities";
 import type { IdeAdapter } from "./types";
 
@@ -13,8 +13,15 @@ export interface RooCodeMcpConfig {
       command: string;
       args?: string[];
       env?: Record<string, string>;
+      type?: string;
+      url?: string;
+      headers?: Record<string, string>;
     }
   >;
+}
+
+function getRooCodeGlobalBaseDir() {
+  return path.dirname(getVsCodeGlobalStorageDir("RooVeterinaryInc.roo-cline"));
 }
 
 export class RooCodeAdapter implements IdeAdapter {
@@ -27,45 +34,14 @@ export class RooCodeAdapter implements IdeAdapter {
   readonly supportedScopes: readonly Scope[] = RooCodeAdapter.capabilities.supportedScopes;
 
   configPath(scope: Scope, projectRoot?: string): string {
-    // Roo Code global settings are stored in VS Code User globalStorage folder
-    const platform = os.platform();
-    let globalStorageDir = "";
-
-    if (platform === "darwin") {
-      globalStorageDir = path.join(
-        os.homedir(),
-        "Library",
-        "Application Support",
-        "Code",
-        "User",
-        "globalStorage",
-        "roodev.rogue-dev",
-        "settings",
-      );
-    } else if (platform === "win32") {
-      globalStorageDir = path.join(
-        os.homedir(),
-        "AppData",
-        "Roaming",
-        "Code",
-        "User",
-        "globalStorage",
-        "roodev.rogue-dev",
-        "settings",
-      );
-    } else {
-      globalStorageDir = path.join(
-        os.homedir(),
-        ".config",
-        "Code",
-        "User",
-        "globalStorage",
-        "roodev.rogue-dev",
-        "settings",
-      );
+    if (scope === "project") {
+      if (!projectRoot) {
+        throw new Error("projectRoot required for project scope");
+      }
+      return path.join(projectRoot, ".roo", "mcp.json");
     }
 
-    return path.join(globalStorageDir, "roocode_mcp_settings.json");
+    return path.join(getVsCodeGlobalStorageDir("RooVeterinaryInc.roo-cline"), "mcp_settings.json");
   }
 
   async readConfig(scope: Scope, projectRoot?: string): Promise<unknown> {
@@ -88,83 +64,53 @@ export class RooCodeAdapter implements IdeAdapter {
     opts: { force: boolean },
   ): unknown {
     const current = (config as RooCodeMcpConfig) || { mcpServers: {} };
-    const mergedMcp = mergeStandardMcpServers(current.mcpServers || {}, mcps, secrets, opts);
     return {
       ...current,
-      mcpServers: mergedMcp,
+      mcpServers: mergeStandardMcpServers(current.mcpServers || {}, mcps, secrets, opts),
     };
   }
 
   async applySkills(skills: SkillEntry[], scope: Scope, projectRoot?: string): Promise<void> {
-    if (scope === "project" && projectRoot) {
-      const rulesFile = path.join(projectRoot, ".clinerules");
-      let content = "";
-      try {
-        content = await fs.readFile(rulesFile, "utf8");
-      } catch (error: unknown) {
-        if (!hasErrorCode(error, "ENOENT")) throw error;
-      }
+    const baseDir =
+      scope === "project" && projectRoot
+        ? path.join(projectRoot, ".roo", "skills")
+        : path.join(getRooCodeGlobalBaseDir(), "skills");
 
-      for (const skill of skills) {
-        let body = "";
-        if (skill.source.type === "inline") {
-          body = skill.source.content;
-        } else if (skill.source.type === "github") {
-          body = `Source: GitHub - ${skill.source.repo} (path: ${skill.source.path || "/"})`;
-        } else if (skill.source.type === "npm") {
-          body = `Source: npm - ${skill.source.package}`;
-        }
+    await fs.mkdir(baseDir, { recursive: true });
 
-        const startTag = `# >>> VIBEBASKET START: ${skill.id} <<<`;
-        const endTag = `# >>> VIBEBASKET END: ${skill.id} <<<`;
-        const blockContent = `${startTag}\n# Skill: ${skill.displayName} (${skill.id})\n${body}\n${endTag}`;
+    for (const skill of skills) {
+      const skillDir = path.join(baseDir, skill.id);
+      await fs.mkdir(skillDir, { recursive: true });
 
-        // Escape helper inline
-        const escapedStart = startTag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-        const escapedEnd = endTag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-        const regex = new RegExp(`${escapedStart}[\\s\\S]*?${escapedEnd}`);
+      const body =
+        skill.source.type === "inline"
+          ? skill.source.content
+          : skill.source.type === "github"
+            ? `Source: GitHub - ${skill.source.repo} (path: ${skill.source.path || "/"})`
+            : `Source: npm - ${skill.source.package}`;
 
-        if (regex.test(content)) {
-          content = content.replace(regex, blockContent);
-        } else {
-          content = content.trim() ? `${content.trim()}\n\n${blockContent}` : blockContent;
-        }
-      }
-
-      await fs.mkdir(path.dirname(rulesFile), { recursive: true });
-      await fs.writeFile(rulesFile, `${content.trim()}\n`, "utf8");
+      await fs.writeFile(
+        path.join(skillDir, "SKILL.md"),
+        `---\nname: ${skill.id}\ndescription: ${skill.displayName}\n---\n\n${body}\n`,
+        "utf8",
+      );
     }
   }
 
   async applyRules(rules: RuleEntry[], scope: Scope, projectRoot?: string): Promise<void> {
-    if (scope === "project" && projectRoot) {
-      const rulesFile = path.join(projectRoot, ".clinerules");
-      let content = "";
-      try {
-        content = await fs.readFile(rulesFile, "utf8");
-      } catch (error: unknown) {
-        if (!hasErrorCode(error, "ENOENT")) throw error;
-      }
+    const baseDir =
+      scope === "project" && projectRoot
+        ? path.join(projectRoot, ".roo", "rules")
+        : path.join(getRooCodeGlobalBaseDir(), "rules");
 
-      for (const rule of rules) {
-        const startTag = `# >>> VIBEBASKET START: ${rule.id} <<<`;
-        const endTag = `# >>> VIBEBASKET END: ${rule.id} <<<`;
-        const blockContent = `${startTag}\n# Rule: ${rule.displayName} (${rule.id})\n${rule.content}\n${endTag}`;
+    await fs.mkdir(baseDir, { recursive: true });
 
-        // Escape helper inline
-        const escapedStart = startTag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-        const escapedEnd = endTag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-        const regex = new RegExp(`${escapedStart}[\\s\\S]*?${escapedEnd}`);
-
-        if (regex.test(content)) {
-          content = content.replace(regex, blockContent);
-        } else {
-          content = content.trim() ? `${content.trim()}\n\n${blockContent}` : blockContent;
-        }
-      }
-
-      await fs.mkdir(path.dirname(rulesFile), { recursive: true });
-      await fs.writeFile(rulesFile, `${content.trim()}\n`, "utf8");
+    for (const rule of rules) {
+      await fs.writeFile(
+        path.join(baseDir, `${rule.id}.md`),
+        `# ${rule.displayName}\n\n${rule.content}\n`,
+        "utf8",
+      );
     }
   }
 
@@ -177,18 +123,19 @@ export class RooCodeAdapter implements IdeAdapter {
       const content = await fs.readFile(file, "utf8");
       await fs.writeFile(`${file}.bak.${Date.now()}`, content, "utf8");
     } catch (error: unknown) {
-      if (!hasErrorCode(error, "ENOENT")) throw error;
+      if (!hasErrorCode(error, "ENOENT")) {
+        throw error;
+      }
     }
 
     await fs.writeFile(file, JSON.stringify(config, null, 2), "utf8");
   }
 
   async diff(scope: Scope, pending: unknown, projectRoot?: string): Promise<string> {
-    const current = await this.readConfig(scope, projectRoot);
     return JSON.stringify(pending, null, 2);
   }
 
   postInstallHint(): string {
-    return "Restart VS Code or reload the window for Roo Code changes to take effect.";
+    return "Restart Roo Code or reload the VS Code window for MCP, rules, and skills changes to take effect.";
   }
 }

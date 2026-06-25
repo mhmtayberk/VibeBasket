@@ -1,29 +1,47 @@
 {
-  "name": "@vibebasket/cli",
-  "version": "0.9.0",
+  "name": "vibebasket",
+  "version": "0.9.3",
   "description": "Local installer and inspection CLI for VibeBasket bundles",
   "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
-  "types": "./src/index.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "bin": {
-    "vibebasket": "./dist/index.js"
+    "vibebasket": "dist/index.js"
   },
-  "type": "module",
+  "homepage": "https://github.com/mhmtayberk/VibeBasket#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mhmtayberk/VibeBasket.git",
+    "directory": "apps/cli"
+  },
+  "bugs": {
+    "url": "https://github.com/mhmtayberk/VibeBasket/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "dev": "tsup src/index.ts --watch",
     "build": "tsup",
     "start": "node dist/index.js",
     "test": "node ../../scripts/run-vitest.mjs run --passWithNoTests"
   },
-  "keywords": ["vibebasket", "mcp", "ai-ide", "cli"],
+  "keywords": [
+    "vibebasket",
+    "mcp",
+    "ai-ide",
+    "cli"
+  ],
   "license": "MIT",
   "dependencies": {
     "@inquirer/prompts": "^8.4.2",
-    "@vibebasket/adapters": "workspace:^",
-    "@vibebasket/core": "workspace:^",
     "chalk": "^5.6.2",
     "commander": "^14.0.3",
-    "dotenv": "^17.4.2",
+    "dotenv": "^17.4.2"
+  },
+  "optionalDependencies": {
     "keytar": "^7.9.0"
   },
   "devDependencies": {

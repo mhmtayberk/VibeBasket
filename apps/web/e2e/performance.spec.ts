@@ -1,11 +1,9 @@
 import { expect, test } from "@playwright/test";
 
-const BASE_URL = "http://localhost:3000";
-
 test.describe("Performance — Response Times", () => {
   test("homepage TTFB under 2s", async ({ page }) => {
     const start = Date.now();
-    const res = await page.goto(BASE_URL);
+    const res = await page.goto("/");
     const ttfb = Date.now() - start;
     expect(res?.status()).toBe(200);
     expect(ttfb).toBeLessThan(5000); // generous for dev server
@@ -13,7 +11,7 @@ test.describe("Performance — Response Times", () => {
 
   test("catalog API under 1s", async ({ page }) => {
     const start = Date.now();
-    const res = await page.goto(`${BASE_URL}/api/catalog?limit=10`);
+    const res = await page.goto("/api/catalog?limit=10");
     const elapsed = Date.now() - start;
     expect(res?.status()).toBe(200);
     expect(elapsed).toBeLessThan(3000);
@@ -22,7 +20,7 @@ test.describe("Performance — Response Times", () => {
   test("concurrent catalog requests all complete", async ({ page }) => {
     const count = 8;
     const starts = Array.from({ length: count }, () =>
-      page.goto(`${BASE_URL}/api/catalog?limit=5`).then(async (r) => ({
+      page.goto("/api/catalog?limit=5").then(async (r) => ({
         status: r?.status(),
         body: await r?.json(),
       })),
@@ -35,7 +33,7 @@ test.describe("Performance — Response Times", () => {
 
   test("large page size performance", async ({ page }) => {
     const start = Date.now();
-    const res = await page.goto(`${BASE_URL}/api/catalog?limit=100`);
+    const res = await page.goto("/api/catalog?limit=100");
     const elapsed = Date.now() - start;
     expect(res?.status()).toBe(200);
     const body = await res?.json();
@@ -44,7 +42,7 @@ test.describe("Performance — Response Times", () => {
   });
 
   test("subsequent requests are faster (caching indicator)", async ({ page }) => {
-    const url = `${BASE_URL}/api/catalog?limit=5`;
+    const url = "/api/catalog?limit=5";
 
     // Warm up
     await page.goto(url);
@@ -62,7 +60,7 @@ test.describe("Performance — Response Times", () => {
   });
 
   test("page load has no render-blocking >1s resources", async ({ page }) => {
-    await page.goto(BASE_URL);
+    await page.goto("/");
     // Verify the page becomes interactive quickly
     await expect(page.locator("#catalog")).toBeVisible({ timeout: 15000 });
   });
@@ -70,7 +68,7 @@ test.describe("Performance — Response Times", () => {
 
 test.describe("Performance — DOM & Memory", () => {
   test("homepage has reasonable DOM size", async ({ page }) => {
-    await page.goto(BASE_URL);
+    await page.goto("/");
     const nodeCount = await page.evaluate(() => document.querySelectorAll("*").length);
     expect(nodeCount).toBeLessThan(5000);
   });
@@ -80,7 +78,7 @@ test.describe("Performance — DOM & Memory", () => {
     page.on("console", (msg) => {
       if (msg.type() === "error") errors.push(msg.text());
     });
-    await page.goto(BASE_URL);
+    await page.goto("/");
     await page.waitForTimeout(2000);
 
     const criticalErrors = errors.filter(
@@ -93,7 +91,7 @@ test.describe("Performance — DOM & Memory", () => {
   });
 
   test("no memory leaks on rapid tab switching", async ({ page }) => {
-    await page.goto(BASE_URL);
+    await page.goto("/");
     const tabs = ["MCPs", "Skills", "Rules"];
 
     for (let i = 0; i < 5; i++) {
@@ -112,7 +110,7 @@ test.describe("Performance — DOM & Memory", () => {
 
 test.describe("Performance — Compression & Caching", () => {
   test("API response includes content-encoding for large responses", async ({ page }) => {
-    const res = await page.goto(`${BASE_URL}/api/catalog?limit=100`);
+    const res = await page.goto("/api/catalog?limit=100");
     expect(res?.status()).toBe(200);
     // Accept encoding check — the response may or may not be compressed in dev
     const ce = res?.headers()["content-encoding"];
@@ -121,12 +119,12 @@ test.describe("Performance — Compression & Caching", () => {
   });
 
   test("static assets are cacheable", async ({ page }) => {
-    const res = await page.goto(BASE_URL);
+    const res = await page.goto("/");
     const html = (await res?.text()) ?? "";
     // Extract a CSS/JS URL and verify cache headers
     const match = html.match(/\/_next\/static\/[^"'\s]+/);
     if (match) {
-      const assetRes = await page.goto(`${BASE_URL}${match[0]}`);
+      const assetRes = await page.goto(match[0]);
       expect(assetRes?.status()).toBe(200);
       // Static assets should have long cache
       const cc = assetRes?.headers()["cache-control"] ?? "";
@@ -138,7 +136,7 @@ test.describe("Performance — Compression & Caching", () => {
 test.describe("Performance — Pagination Efficiency", () => {
   test("deep page is no slower than first page", async ({ page }) => {
     // Get total pages first
-    const firstRes = await page.goto(`${BASE_URL}/api/catalog?limit=10`);
+    const firstRes = await page.goto("/api/catalog?limit=10");
     const firstBody = await firstRes?.json();
     const totalPages = firstBody.pagination.totalPages;
 
@@ -147,7 +145,7 @@ test.describe("Performance — Pagination Efficiency", () => {
 
     for (const p of pagesToTest) {
       const start = Date.now();
-      const res = await page.goto(`${BASE_URL}/api/catalog?page=${p}&limit=10`);
+      const res = await page.goto(`/api/catalog?page=${p}&limit=10`);
       await res?.json();
       times.push(Date.now() - start);
     }

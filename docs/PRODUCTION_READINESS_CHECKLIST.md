@@ -21,8 +21,9 @@ Use this checklist before deploying VibeBasket on a public domain or publishing 
 
 Notes:
 
-- Today, the repo is validated through the scripts above rather than a monorepo-wide `tsc -b` gate.
-- If you want `pnpm typecheck` to become a release gate, first clear the remaining strictness and test-fixture debt in `packages/adapters`.
+- The main release gate is `pnpm verify:ci`, not a monorepo-wide `tsc -b` build graph.
+- `pnpm verify:ci` already includes the full workspace `pnpm typecheck`, but running `pnpm typecheck` explicitly before release tagging is still useful when you want a direct TypeScript-only signal.
+- GitHub Actions should show both `CI / Verify` and `CI / E2E Smoke` green on the release branch before public deploy or tagging.
 
 ## 3. Security Baseline
 
@@ -57,7 +58,7 @@ Choose one production shape and verify it end-to-end:
 
 ## 5. Catalog Integrity
 
-- [ ] `pnpm catalog:sync` completes successfully
+- [ ] `pnpm catalog:sync:strict` completes successfully
 - [ ] `/api/catalog/status` reports healthy freshness and recent successful syncs
 - [ ] skills.sh official/community rows appear with correct trust labels
 - [ ] Search returns relevant results for common queries such as `postgresql`, `filesystem`, and `github`

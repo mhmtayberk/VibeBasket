@@ -1,4 +1,4 @@
-import type { IdeId, Scope } from "@vibebasket/core";
+import type { IdeId, Scope } from "../../core/src/manifest.js";
 import type { IdeAdapterCapabilities } from "./types";
 
 export interface TargetCapabilityDescriptor extends IdeAdapterCapabilities {
@@ -56,7 +56,7 @@ export const TARGET_CAPABILITIES = defineCapabilities({
   },
   cursor: {
     supportsMcp: true,
-    supportsSkills: false,
+    supportsSkills: true,
     supportsRules: true,
     supportedScopes: ["user", "project"],
     autoApply: true,
@@ -77,7 +77,7 @@ export const TARGET_CAPABILITIES = defineCapabilities({
   },
   kiro: {
     supportsMcp: true,
-    supportsSkills: false,
+    supportsSkills: true,
     supportsRules: false,
     supportedScopes: ["user", "project"],
     autoApply: true,
@@ -91,14 +91,14 @@ export const TARGET_CAPABILITIES = defineCapabilities({
   },
   windsurf: {
     supportsMcp: true,
-    supportsSkills: false,
-    supportsRules: false,
+    supportsSkills: true,
+    supportsRules: true,
     supportedScopes: ["user", "project"],
     autoApply: true,
   },
   zed: {
     supportsMcp: true,
-    supportsSkills: false,
+    supportsSkills: true,
     supportsRules: false,
     supportedScopes: ["user", "project"],
     autoApply: true,
@@ -107,7 +107,7 @@ export const TARGET_CAPABILITIES = defineCapabilities({
     supportsMcp: true,
     supportsSkills: true,
     supportsRules: true,
-    supportedScopes: ["project"],
+    supportedScopes: ["user", "project"],
     autoApply: true,
   },
   hermes: {
@@ -133,9 +133,9 @@ export const TARGET_CAPABILITIES = defineCapabilities({
   },
   void: {
     supportsMcp: true,
-    supportsSkills: true,
-    supportsRules: true,
-    supportedScopes: ["user", "project"],
+    supportsSkills: false,
+    supportsRules: false,
+    supportedScopes: ["user"],
     autoApply: true,
   },
   aider: {
@@ -175,8 +175,8 @@ export const TARGET_CAPABILITIES = defineCapabilities({
   },
   opencode: {
     supportsMcp: true,
-    supportsSkills: false,
-    supportsRules: false,
+    supportsSkills: true,
+    supportsRules: true,
     supportedScopes: ["user", "project"],
     autoApply: true,
   },

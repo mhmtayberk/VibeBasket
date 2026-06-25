@@ -5,11 +5,13 @@ export interface CatalogTrust {
   label: string;
   detail: string;
   sourceLabel: string;
+  lastSyncedAt?: string;
 }
 
 interface CatalogLikeItem {
   verified?: boolean | null;
   sourceName?: string | null;
+  lastSyncedAt?: string | Date | number | null;
 }
 
 function sourceLabel(sourceName?: string | null) {
@@ -36,6 +38,7 @@ export function deriveCatalogTrust(item: CatalogLikeItem): CatalogTrust {
       label: "Verified",
       detail: "Hand-curated by the VibeBasket team. Takes precedence over upstream sources.",
       sourceLabel: labelForSource,
+      lastSyncedAt: item.lastSyncedAt ? String(item.lastSyncedAt) : undefined,
     };
   }
 
@@ -45,6 +48,7 @@ export function deriveCatalogTrust(item: CatalogLikeItem): CatalogTrust {
       label: "Official",
       detail: "Synced directly from an official, trusted upstream catalog source.",
       sourceLabel: labelForSource,
+      lastSyncedAt: item.lastSyncedAt ? String(item.lastSyncedAt) : undefined,
     };
   }
 
@@ -53,6 +57,7 @@ export function deriveCatalogTrust(item: CatalogLikeItem): CatalogTrust {
     label: "Community",
     detail: "Discovered from community repositories and public skill directories.",
     sourceLabel: labelForSource,
+    lastSyncedAt: item.lastSyncedAt ? String(item.lastSyncedAt) : undefined,
   };
 }
 

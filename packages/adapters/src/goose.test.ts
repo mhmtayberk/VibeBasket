@@ -28,7 +28,7 @@ describe("GooseAdapter", () => {
   });
 
   it("applies MCP servers to config", () => {
-    const config = { mcpServers: {} };
+    const config = { raw: "", extensions: {} };
     const mcps = [
       {
         id: "test",
@@ -43,14 +43,33 @@ describe("GooseAdapter", () => {
       },
     ];
     const result = adapter.applyMcps(config, mcps, {}, { force: false });
-    expect(result).toHaveProperty("mcpServers.test");
+    expect(result).toHaveProperty("extensions.test");
   });
 
-  it("writes config with backup", async () => {
+  it("writes extensions into goose config.yaml", async () => {
     const configPath = path.join(tmpDir, "config.yaml");
     fs.mkdirSync(path.dirname(configPath), { recursive: true });
-    fs.writeFileSync(configPath, JSON.stringify({ existing: true }));
-    // Test that writeConfig works without throwing
-    await expect(adapter.readConfig("user")).resolves.toBeDefined();
+    fs.writeFileSync(configPath, "GOOSE_PROVIDER: anthropic\n");
+
+    const rendered = adapter.applyMcps(
+      { raw: "GOOSE_PROVIDER: anthropic\n", extensions: {} },
+      [
+        {
+          id: "github",
+          displayName: "GitHub",
+          runtime: "npx",
+          command: "npx",
+          args: ["-y", "@modelcontextprotocol/server-github"],
+          env: {},
+          headers: {},
+          requiredSecrets: [],
+          verified: true,
+        },
+      ],
+      {},
+      { force: false },
+    );
+
+    await expect(adapter.diff("user", rendered)).resolves.toContain("extensions:");
   });
 });

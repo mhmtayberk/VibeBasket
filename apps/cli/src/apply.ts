@@ -27,14 +27,19 @@ import {
   WindsurfAdapter,
   ZedAdapter,
 } from "@vibebasket/adapters";
-import { BundleSchema } from "@vibebasket/core";
-import type { Bundle, IdeId, Scope } from "@vibebasket/core";
+import { BundleSchema } from "../../../packages/core/src/manifest.js";
+import type { Bundle, IdeId, Scope } from "../../../packages/core/src/manifest.js";
 import chalk from "chalk";
-import { flattenBundleContent, getUnsupportedTargetContent } from "./apply-helpers.js";
+import {
+  buildTargetMcpApplyPlan,
+  flattenBundleContent,
+  getUnsupportedTargetContent,
+} from "./apply-helpers.js";
 import { createBackup } from "./backup.js";
 import { toErrorMessage } from "./errors.js";
 import { formatVerificationSummary, verifyTargetInstall } from "./install-verification.js";
 import { resolveSecrets } from "./secrets.js";
+import { applyWorkflowFiles } from "./workflow-files.js";
 
 const ADAPTERS = {
   cursor: new CursorAdapter(),
@@ -113,14 +118,26 @@ export async function applyBundle(
   }
 
   const unsupportedFeatureMessages: string[] = [];
+  const mcpPlans = new Map<IdeId, ReturnType<typeof buildTargetMcpApplyPlan>>();
   for (const targetId of bundle.targets) {
     const adapter = getAdapter(targetId);
     if (!adapter) continue;
+
+    const mcpPlan = buildTargetMcpApplyPlan(targetId, adapter, flattened.mcps);
+    mcpPlans.set(targetId, mcpPlan);
 
     const unsupportedFeatures = getUnsupportedTargetContent(adapter, flattened);
 
     if (unsupportedFeatures.length > 0) {
       unsupportedFeatureMessages.push(`${adapter.displayName}: ${unsupportedFeatures.join(", ")}`);
+    }
+
+    if (mcpPlan.skipped.length > 0) {
+      unsupportedFeatureMessages.push(
+        `${adapter.displayName}: skipped MCPs -> ${mcpPlan.skipped
+          .map((item) => `${item.displayName} (${item.reason})`)
+          .join(", ")}`,
+      );
     }
   }
 
@@ -148,33 +165,73 @@ export async function applyBundle(
   }
 
   const allRequiredSecrets = Array.from(
-    new Set(flattened.mcps.flatMap((mcp) => mcp.requiredSecrets)),
+    new Set(Array.from(mcpPlans.values()).flatMap((plan) => plan.requiredSecrets)),
   );
   const secrets = await resolveSecrets(allRequiredSecrets);
   const failedTargets: string[] = [];
+  const skippedTargets: Array<{ targetId: IdeId; reason: string }> = [];
+
+  if (flattened.files.length > 0) {
+    if (scope !== "project" || !projectRoot) {
+      console.log(
+        chalk.yellow(
+          "⚠️  Workflow files were included, but file scaffolds only apply in project scope. Skipping workflow files.",
+        ),
+      );
+    } else if (options.dryRun) {
+      console.log(
+        chalk.gray(
+          `Dry run: would apply ${flattened.files.length} workflow file(s) under ${projectRoot}.`,
+        ),
+      );
+    } else {
+      const workflowResult = await applyWorkflowFiles(flattened.files, projectRoot);
+      if (workflowResult.written.length > 0) {
+        console.log(
+          chalk.gray(
+            `Applied workflow files: ${workflowResult.written.map((item) => item).join(", ")}`,
+          ),
+        );
+      }
+      for (const skipped of workflowResult.skipped) {
+        console.log(chalk.yellow(`Skipped workflow file ${skipped.path}: ${skipped.reason}`));
+      }
+    }
+  }
 
   for (const targetId of bundle.targets) {
     const adapter = getAdapter(targetId);
     if (!adapter) continue;
+    const mcpPlan = mcpPlans.get(targetId);
+    if (!mcpPlan) continue;
 
     console.log(chalk.blue(`\nApplying to ${adapter.displayName}...`));
 
     try {
-      const shouldApplyMcps = adapter.supportsMcp && flattened.mcps.length > 0;
+      const shouldApplyMcps = adapter.supportsMcp && mcpPlan.supported.length > 0;
       const shouldApplyRules =
         adapter.supportsRules && Boolean(adapter.applyRules) && flattened.rules.length > 0;
       const shouldApplySkills =
         adapter.supportsSkills && Boolean(adapter.applySkills) && flattened.skills.length > 0;
 
       if (!shouldApplyMcps && !shouldApplyRules && !shouldApplySkills) {
-        console.log(chalk.gray(`  - Skipped: no compatible content for ${adapter.displayName}`));
+        const skipReason =
+          mcpPlan.skipped.length > 0
+            ? mcpPlan.skipped.map((item) => `${item.displayName} (${item.reason})`).join(", ")
+            : `no compatible content for ${adapter.displayName}`;
+        skippedTargets.push({ targetId, reason: skipReason });
+        console.log(chalk.gray(`  - Skipped: ${skipReason}`));
         continue;
+      }
+
+      if (mcpPlan.credentialNotice) {
+        console.log(chalk.gray(`  - ${mcpPlan.credentialNotice}`));
       }
 
       if (options.dryRun) {
         if (shouldApplyMcps) {
           const config = await adapter.readConfig(scope, projectRoot);
-          const pendingConfig = adapter.applyMcps(config, flattened.mcps, secrets, {
+          const pendingConfig = adapter.applyMcps(config, mcpPlan.supported, secrets, {
             force: options.force || false,
           });
           const diff = await adapter.diff(scope, pendingConfig, projectRoot);
@@ -189,7 +246,7 @@ export async function applyBundle(
       } else {
         if (shouldApplyMcps) {
           const config = await adapter.readConfig(scope, projectRoot);
-          const pendingConfig = adapter.applyMcps(config, flattened.mcps, secrets, {
+          const pendingConfig = adapter.applyMcps(config, mcpPlan.supported, secrets, {
             force: options.force || false,
           });
           const backupPath = await createBackup(targetId, scope, config);
@@ -210,7 +267,7 @@ export async function applyBundle(
 
         if (options.verify !== false) {
           const verification = await verifyTargetInstall(targetId, adapter, scope, projectRoot, {
-            mcps: shouldApplyMcps ? flattened.mcps : [],
+            mcps: shouldApplyMcps ? mcpPlan.supported : [],
             skills: shouldApplySkills ? flattened.skills : [],
             rules: shouldApplyRules ? flattened.rules : [],
           });
@@ -237,6 +294,13 @@ export async function applyBundle(
 
   if (failedTargets.length > 0) {
     throw new Error(`Bundle apply was incomplete. Failed targets: ${failedTargets.join(", ")}.`);
+  }
+
+  if (skippedTargets.length > 0) {
+    console.log(chalk.yellow("\nSkipped targets:"));
+    for (const skipped of skippedTargets) {
+      console.log(chalk.yellow(`- ${skipped.targetId}: ${skipped.reason}`));
+    }
   }
 
   console.log(chalk.bold.green("\n✨ VibeBasket apply complete!\n"));

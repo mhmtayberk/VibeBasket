@@ -1,9 +1,8 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import type { McpEntry, RuleEntry, SkillEntry } from "@vibebasket/core";
+import type { McpEntry, RuleEntry, SkillEntry } from "../../core/src/manifest.js";
 import { describe, expect, it } from "vitest";
-import type { McpConfigResult } from "./mcp-utils";
 import { RooCodeAdapter } from "./roocode.js";
 
 describe("RooCodeAdapter", () => {
@@ -30,7 +29,9 @@ describe("RooCodeAdapter", () => {
       verified: false,
     };
 
-    const result = adapter.applyMcps(config, [newMcp], {}, { force: false }) as McpConfigResult;
+    const result = adapter.applyMcps(config, [newMcp], {}, { force: false }) as {
+      mcpServers: Record<string, { command?: string }>;
+    };
     expect(result.mcpServers.existing).toBeDefined();
     const addedMcp = result.mcpServers["new-mcp"];
     expect(addedMcp).toBeDefined();
@@ -40,7 +41,7 @@ describe("RooCodeAdapter", () => {
     expect(addedMcp.command).toBe("npx");
   });
 
-  it("should append rules and skills correctly inside .clinerules", async () => {
+  it("should write skills and rules into Roo-native directories", async () => {
     const adapter = new RooCodeAdapter();
     const projectRoot = path.join(os.tmpdir(), `roocode-test-${Date.now()}`);
     await fs.mkdir(projectRoot, { recursive: true });
@@ -70,38 +71,16 @@ describe("RooCodeAdapter", () => {
       await adapter.applySkills(skills, "project", projectRoot);
       await adapter.applyRules(rules, "project", projectRoot);
 
-      const rulesFile = path.join(projectRoot, ".clinerules");
-      const rulesContent = await fs.readFile(rulesFile, "utf8");
+      const skillFile = path.join(projectRoot, ".roo", "skills", "inline-skill", "SKILL.md");
+      const ruleFile = path.join(projectRoot, ".roo", "rules", "test-rule.md");
 
-      expect(rulesContent).toContain("Skill: Inline Skill (inline-skill)");
-      expect(rulesContent).toContain("Skill system instruction");
-      expect(rulesContent).toContain("Rule: Coding Style (test-rule)");
-      expect(rulesContent).toContain("Use tabs for indentation");
+      const skillContent = await fs.readFile(skillFile, "utf8");
+      const ruleContent = await fs.readFile(ruleFile, "utf8");
 
-      // Idempotency: Running again should not duplicate
-      await adapter.applySkills(skills, "project", projectRoot);
-      const afterSecondRun = await fs.readFile(rulesFile, "utf8");
-
-      const skillCount = (afterSecondRun.match(/inline-skill/g) || []).length;
-      // Should find two matches: one in START tag, one in END tag, and one in header (total 3 matches per block, no duplicate blocks)
-      expect(skillCount).toBe(3);
-
-      // Verify Delimiter Block Updates (Modifying skill content)
-      const updatedSkills: SkillEntry[] = [
-        {
-          id: "inline-skill",
-          displayName: "Inline Skill",
-          source: {
-            type: "inline",
-            content: "Updated skill instruction content",
-          },
-          verified: true,
-        },
-      ];
-      await adapter.applySkills(updatedSkills, "project", projectRoot);
-      const afterUpdate = await fs.readFile(rulesFile, "utf8");
-      expect(afterUpdate).toContain("Updated skill instruction content");
-      expect(afterUpdate).not.toContain("Skill system instruction");
+      expect(skillContent).toContain("name: inline-skill");
+      expect(skillContent).toContain("Skill system instruction");
+      expect(ruleContent).toContain("Coding Style");
+      expect(ruleContent).toContain("Use tabs for indentation");
     } finally {
       await fs.rm(projectRoot, { recursive: true, force: true });
     }

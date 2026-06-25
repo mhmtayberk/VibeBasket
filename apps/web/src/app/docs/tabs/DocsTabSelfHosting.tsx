@@ -93,21 +93,29 @@ docker compose up -d --build`}</pre>
               charts/vibebasket/
             </code>
             . The chart deploys a single-replica Deployment with a ClusterIP Service, optional
-            Ingress, and a PersistentVolumeClaim for the SQLite database. All environment variables
-            in the table below can be set under{" "}
+            Ingress, and a PersistentVolumeClaim for the SQLite database. Non-secret runtime values
+            belong under{" "}
             <code className="font-mono text-[11px] text-foreground bg-card px-1.5 py-0.5 rounded-[2px] border border-[#3e4944]">
               .Values.env
             </code>
-            .
+            , while secrets such as{" "}
+            <code className="font-mono text-[11px] text-foreground bg-card px-1.5 py-0.5 rounded-[2px] border border-[#3e4944]">
+              AUTH_SECRET
+            </code>{" "}
+            and OAuth client secrets belong under{" "}
+            <code className="font-mono text-[11px] text-foreground bg-card px-1.5 py-0.5 rounded-[2px] border border-[#3e4944]">
+              .Values.secretEnv
+            </code>{" "}
+            or an existing Kubernetes Secret.
           </p>
           <pre className="bg-[#0a0f0d] p-6 border border-[#3e4944] font-mono text-xs text-[#bdc9c2] overflow-x-auto rounded-[2px] leading-relaxed">{`git clone https://github.com/vibebasket/vibebasket.git
 cd vibebasket
 
 helm install vibebasket ./charts/vibebasket \\
   --set env.NEXTAUTH_URL=https://vibebasket.example.com \\
-  --set env.AUTH_SECRET=$(openssl rand -base64 32) \\
+  --set secretEnv.AUTH_SECRET=$(openssl rand -base64 32) \\
   --set env.AUTH_GITHUB_ID=your-client-id \\
-  --set env.AUTH_GITHUB_SECRET=your-client-secret \\
+  --set secretEnv.AUTH_GITHUB_SECRET=your-client-secret \\
   --set env.AUTH_GITHUB_ENABLED=true \\
   --set persistence.size=5Gi
 
@@ -344,7 +352,7 @@ pnpm --filter web start        # production server on :3000`}</pre>
           </div>
         </section>
 
-        <section id="helm" className="scroll-mt-28">
+        <section id="helm-deployment" className="scroll-mt-28">
           <div className="flex items-center gap-2.5 mb-8">
             <Server className="h-6 w-6 text-[#a0fdda]" />
             <h2 className="text-2xl font-semibold tracking-tight text-foreground">
@@ -365,7 +373,7 @@ pnpm --filter web start        # production server on :3000`}</pre>
               \
             </div>
             <div> --set env.NEXTAUTH_URL=https://vibebasket.example.com \</div>
-            <div> --set env.AUTH_SECRET=&lt;generated-secret&gt;</div>
+            <div> --set secretEnv.AUTH_SECRET=&lt;generated-secret&gt;</div>
           </div>
           <p className="text-sm text-[#bdc9c2] leading-relaxed max-w-3xl mb-4">
             The deployment uses{" "}

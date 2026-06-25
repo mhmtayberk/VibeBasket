@@ -1,3 +1,5 @@
+import { resolvePublicBaseUrl } from "./public-url";
+
 export class InvalidOriginError extends Error {
   constructor(message = "Invalid request origin.") {
     super(message);
@@ -6,15 +8,7 @@ export class InvalidOriginError extends Error {
 }
 
 function resolveAllowedOrigin(request: Request) {
-  const configuredOrigin = process.env.NEXTAUTH_URL?.trim();
-
-  if (configuredOrigin) {
-    try {
-      return new URL(configuredOrigin).origin;
-    } catch {}
-  }
-
-  return new URL(request.url).origin;
+  return resolvePublicBaseUrl({ requestUrl: request.url });
 }
 
 export function assertTrustedMutationOrigin(request: Request) {

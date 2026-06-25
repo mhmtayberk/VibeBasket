@@ -305,6 +305,8 @@ workflowPacks: []
     expect(summary.rules.added).toBe(0);
     expect(summary.workflows.added).toBe(0);
     expect(summary.sourceErrors).toEqual([]);
+    expect(summary.sourceRuns).toHaveLength(3);
+    expect(summary.sourceRuns.every((run) => run.ok)).toBe(true);
   });
 
   it("continues syncing trusted sources when one upstream source fails", async () => {
@@ -356,6 +358,19 @@ workflowPacks: []
     expect(summary.sourceErrors).toEqual([
       expect.objectContaining({ source: "skills-sh-directory" }),
     ]);
+    expect(summary.sourceRuns).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          source: "official-mcp-registry",
+          ok: true,
+          itemCount: 1,
+        }),
+        expect.objectContaining({
+          source: "skills-sh-directory",
+          ok: false,
+        }),
+      ]),
+    );
   });
 
   it("deduplicates official MCP servers with the same registry name, keeping only the highest semver version", async () => {
@@ -402,6 +417,12 @@ workflowPacks: []
         );
       }
       if (url === "https://www.skills.sh/official") {
+        return new Response("<html><body></body></html>", {
+          status: 200,
+          headers: { "Content-Type": "text/html" },
+        });
+      }
+      if (url === "https://www.skills.sh/") {
         return new Response("<html><body></body></html>", {
           status: 200,
           headers: { "Content-Type": "text/html" },
@@ -516,7 +537,104 @@ workflowPacks: []
         error: expect.stringContaining("timed out"),
       }),
     ]);
+    expect(summary.sourceRuns).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          source: "official-mcp-registry",
+          ok: false,
+          error: expect.stringContaining("timed out"),
+        }),
+        expect.objectContaining({
+          source: "skills-sh-directory",
+          ok: true,
+          itemCount: 1,
+        }),
+      ]),
+    );
   }, 10000);
+
+  it("emits collector progress callbacks while syncing", async () => {
+    const verifiedPath = await createVerifiedCatalog(`
+mcps: []
+skills: []
+workflowPacks: []
+`);
+
+    const events: Array<{
+      stage: "collector-start" | "collector-complete" | "collector-error";
+      source: string;
+      itemCount?: number;
+      durationMs?: number;
+      error?: string;
+    }> = [];
+
+    const fetchImpl: typeof fetch = async (input) => {
+      const url = typeof input === "string" ? input : input.toString();
+      if (url === "https://registry.modelcontextprotocol.io/v0.1/servers?limit=100") {
+        return new Response(JSON.stringify({ servers: [], metadata: {} }), { status: 200 });
+      }
+      if (url === "https://www.skills.sh/official") {
+        return new Response("<html><body></body></html>", {
+          status: 200,
+          headers: { "Content-Type": "text/html" },
+        });
+      }
+      if (url === "https://www.skills.sh/") {
+        return new Response("<html><body></body></html>", {
+          status: 200,
+          headers: { "Content-Type": "text/html" },
+        });
+      }
+      if (url === "https://www.skills.sh/sitemap.xml") {
+        return new Response(
+          `<?xml version="1.0" encoding="UTF-8"?><sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></sitemapindex>`,
+          {
+            status: 200,
+            headers: { "Content-Type": "application/xml" },
+          },
+        );
+      }
+      throw new Error(`Unexpected URL ${url}`);
+    };
+
+    await new RegistrySyncService({
+      fetchImpl,
+      persist: false,
+      verifiedPath,
+      onProgress(event) {
+        events.push(event);
+      },
+    }).syncAll();
+
+    expect(events).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          stage: "collector-start",
+          source: "verified-catalog",
+        }),
+        expect.objectContaining({
+          stage: "collector-complete",
+          source: "verified-catalog",
+        }),
+        expect.objectContaining({
+          stage: "collector-start",
+          source: "official-mcp-registry",
+        }),
+        expect.objectContaining({
+          stage: "collector-complete",
+          source: "official-mcp-registry",
+        }),
+        expect.objectContaining({
+          stage: "collector-start",
+          source: "skills-sh-directory",
+        }),
+        expect.objectContaining({
+          stage: "collector-complete",
+          source: "skills-sh-directory",
+        }),
+      ]),
+    );
+  });
 
   it("keeps distinct github skills when the same repo contains nested skill paths with the same basename", async () => {
     const verifiedPath = await createVerifiedCatalog(`

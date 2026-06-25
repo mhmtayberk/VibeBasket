@@ -42,8 +42,9 @@ export function DocsTabCli() {
             </code>{" "}
             CLI works as an idempotent local installer. When a bundle URL or local manifest file is
             passed, it fetches the manifest, applies only the capabilities the target adapter really
-            supports, writes backups before mutating known config files, and verifies the written
-            result when readback is implemented for that target.
+            supports, skips targets or MCP entries it cannot represent safely, writes backups before
+            mutating known config files, and verifies the written result when readback is
+            implemented for that target.
           </p>
         </section>
 
@@ -60,7 +61,9 @@ export function DocsTabCli() {
                 The primary command. Accepts a hosted bundle URL or a local JSON manifest file,
                 validates its manifest, and applies each item (MCP servers, skills, rules) to every
                 compatible local adapter. Adapters back up existing config files before writing and
-                merge entries idempotently, so running apply twice is safe.
+                merge entries idempotently, so running apply twice is safe. If a target cannot
+                support part of the bundle cleanly, the CLI reports that target as skipped instead
+                of pretending the install succeeded.
               </p>
             </div>
           </div>
@@ -118,8 +121,8 @@ export function DocsTabCli() {
                   <td className="p-5 pl-7 text-[#a0fdda] font-semibold">--force / -f</td>
                   <td className="p-5">Boolean</td>
                   <td className="p-5 pr-7 text-xs font-sans text-[#bdc9c2]/90 leading-relaxed">
-                    Overwrites existing config entries instead of merging. Useful when you want a
-                    clean slate on a target that already has some MCP servers configured.
+                    Skips the interactive trust confirmation and lets adapter MCP merges overwrite
+                    an existing MCP entry when the same id is already present.
                   </td>
                 </tr>
                 <tr className="hover:bg-[#1c211e]/40 transition-colors">
@@ -145,6 +148,14 @@ export function DocsTabCli() {
                     configuration that would be applied.
                   </td>
                 </tr>
+                <tr className="hover:bg-[#1c211e]/40 transition-colors">
+                  <td className="p-5 pl-7 text-[#a0fdda] font-semibold">--no-verify</td>
+                  <td className="p-5">Boolean</td>
+                  <td className="p-5 pr-7 text-xs font-sans text-[#bdc9c2]/90 leading-relaxed">
+                    Skips the post-install readback checks. Useful only for debugging or unusual
+                    local environments where readback is temporarily unreliable.
+                  </td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -167,7 +178,9 @@ export function DocsTabCli() {
             </h3>
             <p className="text-sm text-[#bdc9c2] leading-relaxed max-w-3xl">
               Searches the VibeBasket catalog from the terminal using the FTS5 full-text index.
-              Returns up to 10 matching items with prefix-aware token matching.
+              Returns up to 10 matching items from the hosted catalog across MCPs, Skills, Rules,
+              and workflow packs. The current terminal surface is intentionally lightweight and best
+              for quick catalog discovery rather than full visual browsing.
             </p>
           </div>
           <div className="border border-[#3e4944] p-6">
@@ -193,7 +206,8 @@ export function DocsTabCli() {
             </h3>
             <p className="text-sm text-[#bdc9c2] leading-relaxed max-w-3xl">
               Opens an interactive restore flow, lets you choose from recent timestamped backups,
-              and then restores the selected adapter config snapshot.
+              and then restores the selected adapter config snapshot. For project-scoped backups,
+              run it from the same project root you want to restore into.
             </p>
           </div>
         </div>

@@ -1,4 +1,4 @@
-import type { Bundle } from "@vibebasket/core";
+import type { Bundle } from "../../../packages/core/src/manifest.js";
 import { describe, expect, it } from "vitest";
 import { flattenBundleContent, getUnsupportedTargetContent } from "./apply-helpers.js";
 
