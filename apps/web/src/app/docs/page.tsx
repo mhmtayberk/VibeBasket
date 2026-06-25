@@ -3,6 +3,7 @@ import { AuthMenu } from "@/components/auth/AuthMenu";
 import { SignInDialog } from "@/components/auth/SignInDialog";
 import { DocSearchBar } from "@/components/docs/DocSearchBar";
 import { MobileTabSelector } from "@/components/docs/MobileTabSelector";
+import { resolvePublicBaseUrl } from "@/lib/public-url";
 import { BookOpen, KeyRound, Layers, Play, TerminalSquare } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -33,7 +34,7 @@ const TAB_META: Record<string, { title: string; description: string }> = {
   cli: {
     title: "CLI Reference — VibeBasket Docs",
     description:
-      "Complete reference for vibebasket apply, list, search, doctor, init, and rollback commands. Flags, scopes, dry-run, and environment variables.",
+      "Complete reference for vibebasket apply, list, search, doctor, init, and rollback commands. Flags, scopes, dry-run, verification, and environment variables.",
   },
   adapters: {
     title: "IDE Adapters — 24 Targets — VibeBasket Docs",
@@ -64,9 +65,14 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { tab } = await searchParams;
   const meta = TAB_META[tab ?? ""] ?? TAB_META.hub;
+  const canonicalPath = tab && TAB_META[tab] ? `/docs?tab=${tab}` : "/docs";
   return {
     title: meta.title,
     description: meta.description,
+    metadataBase: new URL(resolvePublicBaseUrl()),
+    alternates: {
+      canonical: canonicalPath,
+    },
     openGraph: {
       title: meta.title,
       description: meta.description,
@@ -111,12 +117,12 @@ export default async function DocsPage({
     {
       title: "CLI Reference",
       description:
-        "Complete reference for the vibebasket apply command: bundle URLs, the --force flag, --scope overrides, and --dry-run preview mode.",
+        "Complete reference for the vibebasket apply command: bundle URLs, the --force flag, --scope overrides, --dry-run preview mode, and verification controls.",
       icon: <TerminalSquare className="h-5 w-5 text-[#33bbc5]" />,
       linkText: "View CLI reference",
       tabKey: "cli",
       keywords:
-        "cli terminal command apply install dry-run force scope deploy reference documentation configuration",
+        "cli terminal command apply install dry-run force no-verify scope deploy reference documentation configuration",
     },
     {
       title: "IDE Adapters",

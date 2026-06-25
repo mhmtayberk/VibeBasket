@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import type { RuleEntry, SkillEntry } from "@vibebasket/core";
+import type { RuleEntry, SkillEntry } from "../../core/src/manifest.js";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { GitHubCopilotAdapter } from "./github-copilot.js";
 

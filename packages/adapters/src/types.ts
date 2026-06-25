@@ -1,4 +1,4 @@
-import type { FileEntry, IdeId, McpEntry, RuleEntry, Scope, SkillEntry } from "@vibebasket/core";
+import type { FileEntry, IdeId, McpEntry, RuleEntry, Scope, SkillEntry } from "../../core/src/manifest.js";
 
 export interface IdeAdapterCapabilities {
   readonly supportsMcp: boolean;

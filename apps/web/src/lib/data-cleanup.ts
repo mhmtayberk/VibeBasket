@@ -10,14 +10,15 @@ export async function cleanupStaleData(force = false) {
   const now = Date.now();
   if (!force && now - lastCleanup < CLEANUP_INTERVAL_MS) return;
   lastCleanup = now;
+  const nowDate = new Date(now);
 
   try {
-    await db.run(sql`DELETE FROM sessions WHERE expires < ${Math.floor(now / 1000)}`);
-    await db.run(sql`DELETE FROM verification_tokens WHERE expires < ${Math.floor(now / 1000)}`);
+    await db.run(sql`DELETE FROM sessions WHERE expires < ${nowDate}`);
+    await db.run(sql`DELETE FROM verification_tokens WHERE expires < ${nowDate}`);
 
     const totalResult = await db.select({ count: sql<number>`count(*)` }).from(catalogSyncRuns);
 
-    await db.delete(bundles).where(sql`${bundles.expiresAt} < ${Math.floor(Date.now() / 1000)}`);
+    await db.delete(bundles).where(sql`${bundles.expiresAt} < ${nowDate}`);
     const total = Number(totalResult[0]?.count ?? 0);
     if (total > MAX_CATALOG_SYNC_ROWS) {
       const oldestToDelete = await db

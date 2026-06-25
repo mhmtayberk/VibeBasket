@@ -8,7 +8,7 @@ describe("rate-limit utilities", () => {
   });
 
   describe("getClientAddress resolution", () => {
-    it("should ignore cf-connecting-ip unless TRUST_PROXY is enabled", () => {
+    it("should use cf-connecting-ip when present", () => {
       const req = new Request("https://vibebasket.dev/", {
         headers: {
           "cf-connecting-ip": "203.0.113.195",
@@ -18,7 +18,7 @@ describe("rate-limit utilities", () => {
       });
 
       const ip = getClientAddress(req);
-      expect(ip).toBe("local");
+      expect(ip).toBe("203.0.113.195");
     });
 
     it("should prioritize cf-connecting-ip when TRUST_PROXY is enabled", () => {
@@ -36,7 +36,7 @@ describe("rate-limit utilities", () => {
       expect(ip).toBe("203.0.113.195");
     });
 
-    it("should ignore x-forwarded-for by default to prevent client-side spoofing", () => {
+    it("should fall back to a best-effort x-forwarded-for bucket when TRUST_PROXY is disabled", () => {
       const req = new Request("https://vibebasket.dev/", {
         headers: {
           "x-forwarded-for": "198.51.100.42",
@@ -45,10 +45,10 @@ describe("rate-limit utilities", () => {
       });
 
       const ip = getClientAddress(req);
-      expect(ip).toBe("local");
+      expect(ip).toBe("best-effort:198.51.100.42");
     });
 
-    it("should ignore x-real-ip unless TRUST_PROXY is enabled", () => {
+    it("should fall back to a best-effort x-real-ip bucket when TRUST_PROXY is disabled", () => {
       const req = new Request("https://vibebasket.dev/", {
         headers: {
           "x-real-ip": "198.51.100.1",
@@ -56,7 +56,7 @@ describe("rate-limit utilities", () => {
       });
 
       const ip = getClientAddress(req);
-      expect(ip).toBe("local");
+      expect(ip).toBe("best-effort:198.51.100.1");
     });
 
     it("should trust x-forwarded-for when TRUST_PROXY env is enabled", () => {
@@ -74,10 +74,15 @@ describe("rate-limit utilities", () => {
       expect(ip).toBe("198.51.100.42");
     });
 
-    it("should fallback to local connection identifier when no headers match", () => {
-      const req = new Request("https://vibebasket.dev/");
+    it("should fallback to a coarse fingerprint when no IP headers match", () => {
+      const req = new Request("https://vibebasket.dev/", {
+        headers: {
+          "user-agent": "Vitest Browser",
+          "accept-language": "en-US",
+        },
+      });
       const ip = getClientAddress(req);
-      expect(ip).toBe("local");
+      expect(ip).toMatch(/^fp:/);
     });
   });
 

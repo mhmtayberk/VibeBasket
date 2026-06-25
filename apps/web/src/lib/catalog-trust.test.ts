@@ -37,4 +37,14 @@ describe("deriveCatalogTrust", () => {
     expect(withInstalls.tier).toBe("community");
     expect(withInstalls.sourceLabel).toBe("skills.sh Community");
   });
+
+  it("carries lastSyncedAt through trust metadata when present", () => {
+    const trust = deriveCatalogTrust({
+      verified: false,
+      sourceName: "official-mcp-registry",
+      lastSyncedAt: "2026-06-22T10:11:12.000Z",
+    });
+
+    expect(trust.lastSyncedAt).toBe("2026-06-22T10:11:12.000Z");
+  });
 });

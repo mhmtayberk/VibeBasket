@@ -2,6 +2,24 @@
 
 This guide is for contributors and self-hosters. If you only want to use the hosted product, you do not need any of this setup; just build a basket in the web app and run the generated `npx vibebasket apply ...` command locally.
 
+The published CLI package is [`vibebasket`](https://www.npmjs.com/package/vibebasket).
+
+## Table of Contents
+
+- [Prerequisites](#prerequisites)
+- [Installation (Manual Dev Setup)](#installation-manual-dev-setup)
+- [Installation (Docker Production Setup)](#installation-docker-production-setup)
+- [Recommended Deployment Shape](#recommended-deployment-shape)
+- [Running the Full Workspace](#running-the-full-workspace)
+- [Running the Web App Only](#running-the-web-app-only)
+- [Auth Environment](#auth-environment)
+- [Admin Access Bootstrap](#admin-access-bootstrap)
+- [Running the CLI](#running-the-cli)
+- [Tests](#tests)
+- [CI Verification](#ci-verification)
+- [Useful Catalog Debug Commands](#useful-catalog-debug-commands)
+- [Operational Notes](#operational-notes)
+
 ## Prerequisites
 - Node.js 20+
 - pnpm 9+
@@ -9,7 +27,7 @@ This guide is for contributors and self-hosters. If you only want to use the hos
 
 ## Installation (Manual Dev Setup)
 ```bash
-git clone https://github.com/vibebasket/vibebasket.git
+git clone https://github.com/mhmtayberk/VibeBasket.git
 cd vibebasket
 cp .env.example .env     # Copy the environment template
 pnpm install
@@ -19,13 +37,13 @@ pnpm dev                 # Starts workspace dev server on http://localhost:3000
 ## Installation (Docker Production Setup)
 For automated containerized self-hosting:
 ```bash
-git clone https://github.com/vibebasket/vibebasket.git
+git clone https://github.com/mhmtayberk/VibeBasket.git
 cd vibebasket
 cp .env.example .env     # Fill in required Next-Auth and Auth secrets
 docker compose up -d     # Starts non-root containers with automatic SQLite volume mounts
 ```
 
-After startup, either wait for the background catalog bootstrap to finish or run `pnpm catalog:sync`, then check `http://localhost:3000/api/catalog/status`.
+After startup, either wait for the background catalog bootstrap to finish or run `docker compose exec web node scripts/catalog-sync.mjs`, then check `http://localhost:3000/api/catalog/status`.
 
 ## Recommended Deployment Shape
 
@@ -93,7 +111,7 @@ AUTH_MICROSOFT_ENTRA_ID_ID=...
 AUTH_MICROSOFT_ENTRA_ID_SECRET=...
 ```
 
-Notes:
+**Notes:**
 
 - Self-hosted deployments can enable any subset of providers.
 - Apple should be treated as optional for self-hosting; if it is not configured, it simply does not appear in the UI.
@@ -105,9 +123,31 @@ Notes:
 - `ADMIN_OAUTH_EMAILS` only grants admin access when the signed-in provider account also reports the email as verified.
 - Cookie-authenticated saved-stack mutations enforce same-origin `Origin` checks, so `NEXTAUTH_URL` should reflect the real public app origin. Read-only stack fetches do not require that mutation header.
 
+## Admin Access Bootstrap
+
+For the first admin in a self-hosted deployment:
+
+1. enable at least one OAuth provider
+2. set `ADMIN_OAUTH_EMAILS` to the email you want to allow
+3. sign in with that provider account
+4. confirm the provider reports that email as verified
+
+Example:
+
+```bash
+ADMIN_OAUTH_EMAILS=you@example.com
+```
+
+**Notes:**
+
+- this is the bootstrap path for first admin access
+- after that, the admin UI can manage the allowlist in the database
+- in local non-production development only, `admin@vibebasket.dev` is treated as a dev admin shortcut
+
 ## Running the CLI
 ```bash
-pnpm --filter @vibebasket/cli dev
+pnpm --filter vibebasket build
+node apps/cli/dist/index.js --help
 ```
 
 ## Tests
@@ -164,6 +204,12 @@ Run the same sync as a dry-run without persisting:
 pnpm catalog:sync:dry
 ```
 
+Run a strict sync check that exits non-zero when any upstream source still fails:
+
+```bash
+pnpm catalog:sync:strict
+```
+
 ## Operational Notes
 
 - The main SQLite DB currently lives at the workspace root as `vibebasket.db`
@@ -172,9 +218,14 @@ pnpm catalog:sync:dry
 - The catalog status route reports current counts, freshness, and the latest recorded sync summary
 - In production, `refresh=1` on `/api/catalog` is protected; callers must send `x-vibebasket-refresh-token` matching `CATALOG_REFRESH_TOKEN`
 - `pnpm catalog:sync` is the safest hook for cron or external schedulers because it records sync audit metadata as well as refreshing catalog rows
+- request-triggered background refresh is opportunistic; if you need predictable freshness windows, prefer cron/systemd/Kubernetes scheduling around `pnpm catalog:sync`
+- `pnpm catalog:sync:strict` is the safest pre-launch/manual validation command because it fails fast when one of the trusted upstream collectors still has source errors
+- `pnpm catalog:sync` and `pnpm catalog:sync:dry` now emit collector progress to stderr, which makes long first-run syncs easier to distinguish from true hangs
 - Catalog rows now carry item-level freshness/source metadata; after a live sync you can inspect `source_name`, `source_url`, `first_seen_at`, `last_seen_at`, and `last_synced_at` in `vibebasket.db`
+- If the official MCP Registry or `skills.sh` is slow from your region or network, tune `CATALOG_FETCH_RETRIES`, `CATALOG_MCP_REGISTRY_TIMEOUT_MS`, and `CATALOG_SKILLS_TIMEOUT_MS` instead of editing the sync code
 - Auth state and saved stacks are stored in the same application database; if you self-host with SQLite, back up `vibebasket.db` accordingly
 - If you configure S3/R2/Spaces/Azure/GCS backups, confirm the admin panel does not show a storage fallback warning before assuming cloud backups are active
 - Cloud backup restore now uses provider-native download flows; validate one full restore cycle in your own environment before relying on it operationally
+- The Helm chart now expects sensitive values such as `AUTH_SECRET` and OAuth client secrets under `secretEnv`, or via `existingSecret`, rather than plain `.Values.env`
 - Before exposing a public domain, walk through [Production Readiness Checklist](./PRODUCTION_READINESS_CHECKLIST.md)
 - Multi-instance or externally shared state deployments are not the default path documented here; operators who go beyond the single-node model should validate rate limiting, SQLite strategy, and backup assumptions themselves

@@ -3,7 +3,7 @@ import {
   TARGET_CAPABILITIES,
 } from "@vibebasket/adapters/target-capabilities";
 import type { IdeAdapterCapabilities } from "@vibebasket/adapters/types";
-import type { IdeId } from "@vibebasket/core";
+import type { IdeId, Scope } from "@vibebasket/core";
 
 export type TargetStatus = "supported" | "coming-soon";
 
@@ -32,7 +32,7 @@ const UNSORTED_TARGET_OPTIONS: TargetOptionSeed[] = [
     label: "Cursor",
     status: "supported",
     kind: "editor",
-    note: "Native MCP config supported today.",
+    note: "Backed by native Cursor MCP config plus documented skills and rules directories.",
     vendor: "Cursor",
   },
   {
@@ -40,7 +40,7 @@ const UNSORTED_TARGET_OPTIONS: TargetOptionSeed[] = [
     label: "Windsurf",
     status: "supported",
     kind: "editor",
-    note: "Native MCP config supported today.",
+    note: "Backed by Windsurf MCP config plus documented skills and rules surfaces.",
     vendor: "Windsurf",
   },
   {
@@ -72,7 +72,7 @@ const UNSORTED_TARGET_OPTIONS: TargetOptionSeed[] = [
     label: "Zed",
     status: "supported",
     kind: "editor",
-    note: "Backed by Zed context server settings.",
+    note: "Backed by Zed context server settings plus documented .agents/skills directories.",
     vendor: "Zed Industries",
   },
   {
@@ -112,7 +112,7 @@ const UNSORTED_TARGET_OPTIONS: TargetOptionSeed[] = [
     label: "Kiro",
     status: "supported",
     kind: "editor",
-    note: "Backed by Kiro MCP configuration files.",
+    note: "Backed by Kiro MCP configuration plus documented .kiro/skills directories.",
     vendor: "Kiro",
   },
   {
@@ -128,7 +128,7 @@ const UNSORTED_TARGET_OPTIONS: TargetOptionSeed[] = [
     label: "Continue",
     status: "supported",
     kind: "editor",
-    note: "Backed by ~/.continue/config.json MCP configuration and custom Markdown prompts.",
+    note: "Backed by ~/.continue/config.yaml MCP configuration and prompt references.",
     vendor: "Continue",
   },
   {
@@ -136,7 +136,7 @@ const UNSORTED_TARGET_OPTIONS: TargetOptionSeed[] = [
     label: "Roo Code",
     status: "supported",
     kind: "editor",
-    note: "Backed by local roocode_mcp_settings.json MCP configuration and workspace-level .clinerules integration.",
+    note: "Backed by .roo/mcp.json, Roo global mcp_settings.json, and documented .roo skills/rules surfaces.",
     vendor: "Roo Code",
   },
   {
@@ -168,7 +168,7 @@ const UNSORTED_TARGET_OPTIONS: TargetOptionSeed[] = [
     label: "Void Editor",
     status: "supported",
     kind: "editor",
-    note: "Standard MCP servers and idempotent skills & rules (.voidrules) supported.",
+    note: "Backed by the official user-scope ~/.void-editor/mcp.json MCP configuration today.",
     vendor: "Void",
   },
   {
@@ -216,7 +216,7 @@ const UNSORTED_TARGET_OPTIONS: TargetOptionSeed[] = [
     label: "OpenCode",
     status: "supported",
     kind: "terminal",
-    note: "Backed by ~/.config/opencode/opencode.json and project opencode.json.",
+    note: "Backed by opencode.json / ~/.config/opencode/opencode.json plus .opencode skills and AGENTS.md rules.",
     vendor: "Anomaly",
   },
 ];
@@ -250,7 +250,32 @@ export const RULES_SUPPORTED_TARGET_COUNT = TARGET_OPTIONS.filter(
 export const DEFAULT_TARGET_IDS = ["claude-code"] as const;
 
 const supportedTargetIdSet = new Set<IdeId>(SUPPORTED_TARGET_IDS);
+const KNOWN_SCOPES: Scope[] = ["user", "project"];
 
 export function isSupportedTargetId(targetId: string): targetId is IdeId {
   return supportedTargetIdSet.has(targetId as IdeId);
+}
+
+export function getSharedTargetScopes(targetIds: IdeId[]): Scope[] {
+  if (targetIds.length === 0) {
+    return [];
+  }
+
+  return KNOWN_SCOPES.filter((scope) =>
+    targetIds.every((targetId) => TARGET_CAPABILITIES[targetId].supportedScopes.includes(scope)),
+  );
+}
+
+export function resolvePreferredBundleScope(targetIds: IdeId[]): Scope | null {
+  const sharedScopes = getSharedTargetScopes(targetIds);
+
+  if (sharedScopes.includes("user")) {
+    return "user";
+  }
+
+  if (sharedScopes.includes("project")) {
+    return "project";
+  }
+
+  return null;
 }

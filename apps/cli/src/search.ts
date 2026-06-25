@@ -15,7 +15,7 @@ export async function runSearch(query: string) {
   console.log(chalk.bold(`\n🔍 Searching VibeBasket catalog for "${query}"...\n`));
 
   try {
-    const res = await fetch(`${baseUrl}/api/catalog?type=mcp&q=${q}&limit=10`, {
+    const res = await fetch(`${baseUrl}/api/catalog?q=${q}&limit=10`, {
       signal: AbortSignal.timeout(10000),
     });
 

@@ -26,6 +26,19 @@ describe("assertTrustedMutationOrigin", () => {
     vi.unstubAllEnvs();
   });
 
+  it("falls back to NEXT_PUBLIC_SITE_URL when NEXTAUTH_URL is absent", () => {
+    vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://b.example.com");
+    const request = new Request("https://internal-service/api/stacks", {
+      method: "POST",
+      headers: {
+        origin: "https://b.example.com",
+      },
+    });
+
+    expect(() => assertTrustedMutationOrigin(request)).not.toThrow();
+    vi.unstubAllEnvs();
+  });
+
   it("rejects missing origins", () => {
     const request = new Request("https://vibebasket.dev/api/stacks", {
       method: "POST",

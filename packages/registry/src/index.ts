@@ -30,10 +30,21 @@ const CORE_SOURCE_ENTRY_URL = pathToFileURL(
   path.resolve(MODULE_DIR, "../../core/src/index.ts"),
 ).href;
 const DEFAULT_VERIFIED_PATH = path.resolve(MODULE_DIR, "../data/verified.yaml");
-const DEFAULT_MCP_REGISTRY_FETCH_TIMEOUT_MS = 30000;
-const DEFAULT_FETCH_RETRIES = 1;
+const DEFAULT_MCP_REGISTRY_FETCH_TIMEOUT_MS = 60000;
+const DEFAULT_SKILLS_SH_FETCH_TIMEOUT_MS = 20000;
+const DEFAULT_FETCH_RETRIES = 2;
 const PERSIST_BATCH_SIZE = 250;
 const PRUNE_BATCH_SIZE = 500;
+
+function readPositiveIntFromEnv(name: string) {
+  const raw = process.env[name]?.trim();
+  if (!raw) {
+    return undefined;
+  }
+
+  const parsed = Number.parseInt(raw, 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
+}
 
 async function dynamicImport<T>(specifier: string): Promise<T> {
   return import(specifier) as Promise<T>;
@@ -52,6 +63,13 @@ export interface RegistrySyncSummary {
   workflows: SyncResult;
   totalItems: number;
   sourceErrors: Array<{ source: string; error: string }>;
+  sourceRuns: Array<{
+    source: string;
+    ok: boolean;
+    itemCount: number;
+    durationMs: number;
+    error?: string;
+  }>;
 }
 
 export interface SyncOptions {
@@ -61,6 +79,14 @@ export interface SyncOptions {
   trigger?: string;
   fetchRetries?: number;
   mcpRegistryTimeoutMs?: number;
+  skillsShTimeoutMs?: number;
+  onProgress?: (event: {
+    stage: "collector-start" | "collector-complete" | "collector-error";
+    source: string;
+    itemCount?: number;
+    durationMs?: number;
+    error?: string;
+  }) => void;
 }
 
 type CoreDatabase = typeof CoreDb;
@@ -91,16 +117,28 @@ export class RegistrySyncService {
   private readonly trigger: string;
   private readonly fetchRetries: number;
   private readonly mcpRegistryTimeoutMs: number;
+  private readonly skillsShTimeoutMs: number;
   private readonly collectors: SourceCollector[];
+  private readonly onProgress?: SyncOptions["onProgress"];
 
   constructor(options: SyncOptions = {}) {
     this.fetchImpl = options.fetchImpl ?? fetch;
     this.verifiedPath = options.verifiedPath ?? DEFAULT_VERIFIED_PATH;
     this.persist = options.persist ?? true;
     this.trigger = options.trigger ?? "runtime";
-    this.fetchRetries = options.fetchRetries ?? DEFAULT_FETCH_RETRIES;
+    this.fetchRetries =
+      options.fetchRetries ??
+      readPositiveIntFromEnv("CATALOG_FETCH_RETRIES") ??
+      DEFAULT_FETCH_RETRIES;
     this.mcpRegistryTimeoutMs =
-      options.mcpRegistryTimeoutMs ?? DEFAULT_MCP_REGISTRY_FETCH_TIMEOUT_MS;
+      options.mcpRegistryTimeoutMs ??
+      readPositiveIntFromEnv("CATALOG_MCP_REGISTRY_TIMEOUT_MS") ??
+      DEFAULT_MCP_REGISTRY_FETCH_TIMEOUT_MS;
+    this.skillsShTimeoutMs =
+      options.skillsShTimeoutMs ??
+      readPositiveIntFromEnv("CATALOG_SKILLS_TIMEOUT_MS") ??
+      DEFAULT_SKILLS_SH_FETCH_TIMEOUT_MS;
+    this.onProgress = options.onProgress;
     this.collectors = [
       new VerifiedCatalogCollector(this.verifiedPath),
       new OfficialMcpRegistryCollector(
@@ -108,7 +146,7 @@ export class RegistrySyncService {
         this.mcpRegistryTimeoutMs,
         this.fetchRetries,
       ),
-      new SkillsShCuratedCollector(this.fetchImpl, this.fetchRetries),
+      new SkillsShCuratedCollector(this.fetchImpl, this.fetchRetries, this.skillsShTimeoutMs),
     ];
   }
 
@@ -133,8 +171,14 @@ export class RegistrySyncService {
   private async runCollectors(): Promise<CollectionRunResult> {
     const deduped = new Map<string, SourceCollectedItem>();
     const errors: Array<{ source: string; error: string }> = [];
+    const sourceRuns: CollectionRunResult["sourceRuns"] = [];
 
     for (const collector of this.collectors) {
+      const startedAt = Date.now();
+      this.onProgress?.({
+        stage: "collector-start",
+        source: collector.name,
+      });
       try {
         const items = await collector.collect();
         for (const item of items) {
@@ -143,10 +187,39 @@ export class RegistrySyncService {
             deduped.set(item.canonicalKey, item);
           }
         }
+
+        const durationMs = Date.now() - startedAt;
+        sourceRuns.push({
+          source: collector.name,
+          ok: true,
+          itemCount: items.length,
+          durationMs,
+        });
+        this.onProgress?.({
+          stage: "collector-complete",
+          source: collector.name,
+          itemCount: items.length,
+          durationMs,
+        });
       } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
         errors.push({
           source: collector.name,
-          error: error instanceof Error ? error.message : String(error),
+          error: message,
+        });
+        const durationMs = Date.now() - startedAt;
+        sourceRuns.push({
+          source: collector.name,
+          ok: false,
+          itemCount: 0,
+          durationMs,
+          error: message,
+        });
+        this.onProgress?.({
+          stage: "collector-error",
+          source: collector.name,
+          durationMs,
+          error: message,
         });
       }
     }
@@ -176,12 +249,13 @@ export class RegistrySyncService {
     return {
       items: [...passthroughItems, ...skillMirrorDeduped.values()].map((item) => item.catalogItem),
       errors,
+      sourceRuns,
     };
   }
 
   async syncAll(): Promise<RegistrySyncSummary> {
     const startedAt = new Date();
-    const { items, errors } = await this.runCollectors();
+    const { items, errors, sourceRuns } = await this.runCollectors();
 
     if (this.persist) {
       await this.persistCatalog(items, { pruneMissing: errors.length === 0 });
@@ -195,6 +269,7 @@ export class RegistrySyncService {
       workflows: { added: counts.workflows, updated: 0, errors: 0 },
       totalItems: items.length,
       sourceErrors: errors,
+      sourceRuns,
     } satisfies RegistrySyncSummary;
 
     if (this.persist) {

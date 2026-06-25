@@ -1,5 +1,6 @@
 services:
   web:
+    init: true
     build:
       context: .
       dockerfile: Dockerfile
@@ -8,6 +9,10 @@ services:
     restart: unless-stopped
     ports:
       - "3000:3000"
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
     volumes:
       # Persist the SQLite database across restarts and upgrades
       - vibebasket_data:/data
@@ -19,9 +24,23 @@ services:
       AUTH_SECRET: "${AUTH_SECRET}"
       # Public URL of your instance (used for OAuth redirects)
       NEXTAUTH_URL: "${NEXTAUTH_URL}"
+      AUTH_TRUST_HOST: "${AUTH_TRUST_HOST:-true}"
       # ── Optional: GitHub OAuth login ────────────────────────────────────────
+      AUTH_GITHUB_ENABLED: "${AUTH_GITHUB_ENABLED:-false}"
       AUTH_GITHUB_ID: "${AUTH_GITHUB_ID:-}"
       AUTH_GITHUB_SECRET: "${AUTH_GITHUB_SECRET:-}"
+      # ── Optional: Google OAuth login ────────────────────────────────────────
+      AUTH_GOOGLE_ENABLED: "${AUTH_GOOGLE_ENABLED:-false}"
+      AUTH_GOOGLE_ID: "${AUTH_GOOGLE_ID:-}"
+      AUTH_GOOGLE_SECRET: "${AUTH_GOOGLE_SECRET:-}"
+      # ── Optional: Apple OAuth login ─────────────────────────────────────────
+      AUTH_APPLE_ENABLED: "${AUTH_APPLE_ENABLED:-false}"
+      AUTH_APPLE_ID: "${AUTH_APPLE_ID:-}"
+      AUTH_APPLE_SECRET: "${AUTH_APPLE_SECRET:-}"
+      # ── Optional: Microsoft Entra ID OAuth login ────────────────────────────
+      AUTH_MICROSOFT_ENTRA_ID_ENABLED: "${AUTH_MICROSOFT_ENTRA_ID_ENABLED:-false}"
+      AUTH_MICROSOFT_ENTRA_ID_ID: "${AUTH_MICROSOFT_ENTRA_ID_ID:-}"
+      AUTH_MICROSOFT_ENTRA_ID_SECRET: "${AUTH_MICROSOFT_ENTRA_ID_SECRET:-}"
       # ── Optional: Admin dashboard access ────────────────────────────────────
       # Comma-separated list of GitHub account emails granted /admin access
       ADMIN_OAUTH_EMAILS: "${ADMIN_OAUTH_EMAILS:-}"
@@ -29,6 +48,11 @@ services:
       # Set to "true" when behind Cloudflare, Nginx, Caddy, etc.
       # This lets the rate limiter read the real client IP from X-Forwarded-For
       TRUST_PROXY: "${TRUST_PROXY:-false}"
+      CATALOG_REFRESH_TOKEN: "${CATALOG_REFRESH_TOKEN:-}"
+      CATALOG_FETCH_RETRIES: "${CATALOG_FETCH_RETRIES:-2}"
+      CATALOG_MCP_REGISTRY_TIMEOUT_MS: "${CATALOG_MCP_REGISTRY_TIMEOUT_MS:-60000}"
+      CATALOG_SKILLS_TIMEOUT_MS: "${CATALOG_SKILLS_TIMEOUT_MS:-20000}"
+      BACKUP_STORAGE_BACKEND: "${BACKUP_STORAGE_BACKEND:-local}"
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
       interval: 30s

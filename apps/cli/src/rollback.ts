@@ -101,7 +101,8 @@ export async function runRollback() {
 
   const configContent = fs.readFileSync(selectedBackup.path, "utf-8");
   const config = JSON.parse(configContent);
+  const projectRoot = selectedBackup.scope === "project" ? process.cwd() : undefined;
 
-  await adapter.writeConfig(selectedBackup.scope, config);
+  await adapter.writeConfig(selectedBackup.scope, config, projectRoot);
   console.log(chalk.green(`\n✅ Successfully restored ${selectedBackup.targetId} configuration.`));
 }

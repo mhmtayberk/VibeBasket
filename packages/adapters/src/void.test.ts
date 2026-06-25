@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import type { McpEntry, RuleEntry, SkillEntry } from "@vibebasket/core";
+import type { McpEntry, RuleEntry, SkillEntry } from "../../core/src/manifest.js";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { McpConfigResult } from "./mcp-utils";
 import { VoidAdapter } from "./void.js";
@@ -17,10 +17,12 @@ describe("VoidAdapter", () => {
     await fs.rm(tempDir, { recursive: true, force: true });
   });
 
-  it("should resolve project config path correctly", () => {
+  it("should resolve the official user config path and reject project scope MCP config", () => {
     const adapter = new VoidAdapter();
-    expect(adapter.configPath("project", tempDir)).toContain(".void/mcp.json");
-    expect(adapter.configPath("user")).toContain("mcp_servers.json");
+    expect(() => adapter.configPath("project", tempDir)).toThrow(
+      "Void Editor MCP configuration is only supported at user scope.",
+    );
+    expect(adapter.configPath("user")).toContain(".void-editor/mcp.json");
   });
 
   it("should merge MCP configurations correctly", () => {

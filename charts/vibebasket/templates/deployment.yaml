@@ -18,6 +18,7 @@ spec:
         app.kubernetes.io/name: {{ include "vibebasket.name" . }}
         app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
+      automountServiceAccountToken: {{ .Values.automountServiceAccountToken }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
@@ -37,11 +38,12 @@ spec:
               value: {{ $value | quote }}
             {{- end }}
           envFrom:
-            - secretRef:
-                name: {{ include "vibebasket.fullname" . }}
           {{- if .Values.existingSecret }}
             - secretRef:
                 name: {{ .Values.existingSecret }}
+          {{- else }}
+            - secretRef:
+                name: {{ include "vibebasket.fullname" . }}
           {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}

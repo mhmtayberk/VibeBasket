@@ -1,3 +1,4 @@
+import { resolvePublicBaseUrl } from "@/lib/public-url";
 import type { MetadataRoute } from "next";
 
 /**
@@ -6,16 +7,15 @@ import type { MetadataRoute } from "next";
  * administrative dashboards, private auth sessions, and user stacks databases.
  */
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl =
-    process.env.NEXTAUTH_URL ||
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    (process.env.NODE_ENV === "production" ? "https://vibebasket.dev" : "http://localhost:3000");
+  const baseUrl = resolvePublicBaseUrl();
 
   return {
     rules: {
       userAgent: "*",
-      allow: ["/", "/stacks"],
+      allow: ["/", "/docs"],
       disallow: [
+        "/stacks",
+        "/stacks/",
         "/admin",
         "/admin/",
         "/api/admin/",

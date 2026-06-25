@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import type { IdeId, McpEntry, Scope } from "@vibebasket/core";
+import type { IdeId, McpEntry, Scope } from "../../core/src/manifest.js";
 import { type BasicMcpServerConfig, hasErrorCode } from "./mcp-utils";
 import { getTargetCapabilities } from "./target-capabilities";
 import type { IdeAdapter } from "./types";

@@ -31,6 +31,34 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Adapter Verification
+- **24-adapter verification pass**: CLI install verification now understands adapter-native MCP config shapes such as Continue `mcpServers` arrays, OpenCode `mcp`, Zed `context_servers`, and Goose `extensions`.
+- **Cursor / Roo Code / OpenCode parity**: verification and docs now match the real install surfaces for `.cursor/skills`, `.cursor/rules`, `.roo/mcp.json`, Roo global `mcp_settings.json`, `.roo/skills`, `.roo/rules`, `.opencode/skills`, and `AGENTS.md`.
+- **Void scope correction**: Void MCP auto-apply now targets the upstream user-scope `~/.void-editor/mcp.json` location, and VibeBasket no longer advertises unsupported Void Skills/Rules auto-apply until per-feature scope handling exists.
+
+### Launch Hardening
+- **Admin mutation hardening**: admin backup and storage writes now require same-origin mutation checks in addition to admin auth, and focused route tests cover the 403 path plus allowed writes.
+- **Scheduled backup wiring fix**: the admin storage/config fetch path now actually executes due scheduled backups and only records schedule completion after a successful snapshot.
+- **Health endpoint bootstrap fix**: `/api/health` now ensures the SQLite schema exists before checking DB reachability, reducing false 503s on first boot.
+- **Timestamp cleanup correctness**: stale session, verification-token, and expiring bundle cleanup now uses real `Date` cutoffs for timestamp-mode columns instead of raw epoch seconds.
+- **Safer local admin snapshots**: local backup creation now prefers SQLite `VACUUM INTO` snapshots before falling back to file copy.
+- **Workspace TypeScript gate restored**: `pnpm typecheck` now passes across the full monorepo again, and `pnpm verify:ci` plus GitHub Actions CI now include the full workspace typecheck instead of only the web package.
+- **CI toolchain alignment**: GitHub Actions now uses `pnpm@11.7.0`, matching the repository `packageManager` declaration and reducing lockfile/tooling drift between local and CI environments.
+- **Catalog sync operator controls**: Added `CATALOG_FETCH_RETRIES` and `CATALOG_MCP_REGISTRY_TIMEOUT_MS` environment tuning for slow upstream regions, plus a new `pnpm catalog:sync:strict` preflight command that exits non-zero when trusted upstream sources still return sync errors.
+- **Catalog sync observability hardening**: manual sync commands now emit collector-level progress to stderr, sync summaries carry per-source duration/item-count data, and `skills.sh` fetches have their own timeout knob via `CATALOG_SKILLS_TIMEOUT_MS`.
+- **Self-hosting secret-model fix**: Docker Compose now passes through the full OAuth/catalog tuning surface, the Dockerfile pins pnpm to the declared repository version instead of `latest`, and the Helm chart now generates a Secret from `secretEnv` by default while still supporting `existingSecret`.
+- **Docs/UI deployment parity**: Self-hosting docs, README examples, and architecture notes now all use the real Helm contract (`env` for non-secret values, `secretEnv` or `existingSecret` for secrets) instead of outdated `env.AUTH_SECRET` examples.
+- **Repo hygiene cleanup**: The accidentally tracked `packages/core/tsconfig.tsbuildinfo` artifact is being dropped from version control, root ignore rules now cover common package-manager debug logs and deployment metadata, and stale docs references to nonexistent middleware/changesets flows were corrected.
+- **Project-scope rollback fix**: CLI restore now passes the active workspace root into project-scoped adapter writes, closing a subtle path-resolution bug during bundle backup rollback.
+- **Backup listing fix**: Timestamped backup filenames are now parsed structurally instead of via blanket dash replacement, keeping restore inventories sorted and human-readable.
+- **Trust freshness fix**: Catalog trust metadata now preserves persisted `lastSyncedAt` values through the UI trust model, so freshness badges/callouts reflect real sync timing.
+- **Docs capability honesty**: Adapter docs now render explicit target capability labels instead of inferring MCP support from a generic skills boolean, reducing install-surface ambiguity.
+- **CLI flag parity**: README and docs now describe `--force`, `--no-verify`, and project-scoped rollback usage in terms that match the real CLI behavior.
+- **Public base URL hardening**: metadata, sitemap, robots, and bundle URL generation now share one validated resolver, reducing stale-domain and malformed-URL behavior when deployments move.
+- **Saved-stack indexing cleanup**: authenticated `/stacks` surfaces are now marked non-indexable and removed from sitemap/robots, aligning SEO with the product's private profile model.
+- **OS path edge-case hardening**: several adapters now respect `XDG_CONFIG_HOME` and `APPDATA` instead of assuming default config-home layouts, improving cross-OS correctness on customized machines.
+- **Sync scheduling docs honesty**: public docs now state more directly that stale catalog refresh is request-driven and that deterministic recurring freshness should be handled via external scheduling around `pnpm catalog:sync`.
+
 ### Public Launch Polish
 - **Saved-stack route contract fix**: authenticated stack reads no longer require a mutation `Origin` header, while `POST`/`PATCH`/`DELETE` continue to enforce same-origin CSRF checks. The route tests now model real browser mutation requests by sending a valid same-origin header.
 - **Docs surface cleanup**: setup docs now use the real GitHub clone URL, self-hosting docs point to the in-repo Helm chart instead of an unverified public chart repository, and README/setup/config docs now describe `CATALOG_REFRESH_TOKEN` consistently.

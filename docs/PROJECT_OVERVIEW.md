@@ -12,7 +12,7 @@ For the hosted product and the documented self-host path, the intended operating
 
 The product currently exposes 24 adapter-backed IDE targets: Cursor, Windsurf, VS Code/Cline, Antigravity, Claude Code, DeepSeek-TUI, Zed, Codex CLI, Gemini CLI, Junie, Kiro, Cline CLI, Continue, Roo Code, Hermes, OpenClaw, GitHub Copilot, Void Editor, Aider, Cortex Code, Goose, IBM Bob, CodeBuddy, and OpenCode.
 
-For targets that support it (12 total: Claude Code, Gemini CLI, Continue, Roo Code, Hermes, OpenClaw, GitHub Copilot, Void Editor, Aider, Cortex Code, IBM Bob, and CodeBuddy), the CLI adapter also installs Skills and/or Rules using idempotent file writes or block delimiters to avoid corrupting existing developer configurations.
+For targets that support it (16 total: Claude Code, Continue, Cursor, Gemini CLI, Kiro, Windsurf, Zed, Roo Code, Hermes, OpenClaw, GitHub Copilot, Aider, Cortex Code, IBM Bob, CodeBuddy, and OpenCode), the CLI adapter also installs Skills and/or Rules using idempotent file writes or block delimiters to avoid corrupting existing developer configurations.
 
 ## Core Experience
 
@@ -23,7 +23,7 @@ For targets that support it (12 total: Claude Code, Gemini CLI, Continue, Roo Co
 5. Apply the bundle locally with idempotent IDE adapters.
 6. Re-read the written target config and verify that expected MCP entries and supported skill/rule artifacts exist.
 
-Automatic local apply is fully supported for MCP configuration across all MCP-capable targets. Skills and rules are additionally auto-installed on the adapters that explicitly implement them, and the CLI now performs post-install verification rather than assuming persistence succeeded. Codex CLI now supports both `~/.codex/config.toml` and project-scoped `.codex/config.toml` writes, while Gemini CLI supports both MCP settings and filesystem-backed skills under `.gemini/skills`.
+Automatic local apply is fully supported for MCP configuration across all MCP-capable targets. Skills and rules are additionally auto-installed on the adapters that explicitly implement them, and the CLI now performs post-install verification rather than assuming persistence succeeded. Codex CLI now supports both `~/.codex/config.toml` and project-scoped `.codex/config.toml` writes, Cursor writes native `.cursor/skills` and `.cursor/rules`, Gemini CLI supports both MCP settings and filesystem-backed skills under `.gemini/skills`, Continue now writes the current `config.yaml` MCP schema plus prompt references, Roo Code now targets `.roo/mcp.json` plus its documented skills/rules surfaces, OpenCode now writes `opencode.json` plus `.opencode/skills` and `AGENTS.md`, and Windsurf now aligns with its documented MCP, Skills, and Rules surfaces.
 
 ## Trusted Catalog Model
 
@@ -31,7 +31,7 @@ The catalog is no longer intended to be a mostly manual seed list. It is now des
 
 - `verified` curated entries maintained by VibeBasket
 - trusted upstream MCP metadata from the official MCP Registry
-- trusted upstream skill metadata from the public `skills.sh` catalog corpus, ingested through the published sitemap surfaces
+- trusted upstream skill metadata from the public `skills.sh` catalog corpus, ingested through the published sitemap and directory surfaces
 
 When multiple sources describe the same item, VibeBasket deduplicates by canonical identity and gives precedence to curated verified records. This also means MCP coverage is intentionally bounded by the official MCP Registry plus curated overrides; if a server is popular in the ecosystem but absent from the registry, it will not appear until it is either published there or explicitly curated by VibeBasket.
 
@@ -44,7 +44,7 @@ Recent work significantly changed the catalog behavior, deployment, and security
 - **Health Check (`/api/health`):** Real-time database connectivity check through a lightweight Drizzle select. Safeguarded against flooding/DoS attacks via a 5-second in-memory status cache, with explicit HTTP no-cache headers. Used by Docker HEALTHCHECK and Kubernetes probes.
 - **Information Disclosure Mitigation:** Dynamic `sitemap.ts` indexes `/docs`, `/`, and `/stacks` but excludes user bundles (`/bundle/[id]`) and admin routes. `robots.ts` and `llms.txt` provide crawl guidance.
 - **XSS, LFI/RFI Defenses:** Secured `/docs` tab-based rendering by pre-verifying queries against an allowed whitelist. Shielded search input from ReDoS/XSS payloads by restricting inputs to 100 characters.
-- **Idempotent Delimiter Engine:** Roo Code (`.clinerules`), Hermes (`.hermesrules`), and OpenClaw (`.openclawrules`) IDE adapters use `>>> VIBEBASKET START/END <<<` block delimiters for idempotent rule/skill writes.
+- **Idempotent Delimiter Engine:** Hermes (`.hermesrules`), OpenClaw (`.openclawrules`), GitHub Copilot (`.github/copilot-instructions.md`), Aider (`.aiderinstructions.md`), Windsurf global memories, and OpenCode (`AGENTS.md`) use deterministic file or marker writes for repeatable rule/skill updates without corrupting existing content.
 - **Semver Deduplication Engine:** `OfficialMcpRegistryCollector` groups servers by `server.name` and ingests only the highest semver release, eliminating multi-version catalog duplicates (e.g. FAF Context).
 - **Install Verification:** `vibebasket apply` now performs a readback verification step after writes, confirming expected MCP entries and deterministic skill/rule artifacts when the adapter supports them.
 - **Operational Visibility:** The admin dashboard now surfaces catalog freshness, sync resilience, collector health, FTS5 health/rebuild, DB health, force cleanup, user overview, and admin email management.
@@ -55,9 +55,10 @@ Recent work significantly changed the catalog behavior, deployment, and security
 ## Current Constraints
 
 - full-catalog sync is functionally correct but still expensive at large scale; `pnpm catalog:sync` is the recommended hook for periodic refreshes
+- full-catalog sync now emits collector progress during manual runs, but it is still a network-heavy operation and should be scheduled deliberately in production
 - catalog search uses FTS5 full-text indexing; acceptable for current scale
 - same-name skills from distinct upstream repos are intentionally preserved unless canonical source identity proves they are mirrors; correctness wins over aggressive title-based merging
 - adapter-backed support is still MCP-first overall; not every target supports Skills or Rules, and capability metadata must remain strictly aligned with real adapter methods
 - the docs hub at `/docs` supports fully-functional interactive search with 300ms client debouncing; versioned documentation is a future improvement
-- repository CI is now centered around `pnpm verify:ci` plus Playwright smoke coverage, not a monorepo-wide `tsc -b` gate yet
+- repository CI is now centered around `pnpm verify:ci` plus Playwright smoke coverage; `pnpm verify:ci` already includes the full workspace `pnpm typecheck`, even though a monorepo-wide `tsc -b` build graph is still not the primary release gate
 - the public and self-host docs intentionally optimize for one-machine deployments rather than multi-node orchestration
