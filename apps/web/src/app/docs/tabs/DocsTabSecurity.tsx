@@ -57,7 +57,16 @@ export function DocsTabSecurity() {
 
             <p className="max-w-3xl">
               Instead, when applying a bundle locally, the CLI parses target credential keys and
-              safely prompts the user inside the local terminal scope to inject them securely.
+              safely prompts the user inside the local terminal scope to inject them securely. The
+              hosted app never sees those runtime values.
+            </p>
+            <p className="max-w-3xl">
+              Secret handling then depends on the target adapter. Most IDEs require inline MCP
+              env/header values in their local config files, so the CLI resolves those secrets on
+              the operator&apos;s machine and writes them only into that machine&apos;s local IDE
+              config. Codex is a partial exception for remote MCP auth headers: when its native
+              config format supports an environment-key reference, VibeBasket prefers that reference
+              instead of serializing the raw token into TOML.
             </p>
           </div>
         </section>

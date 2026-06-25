@@ -364,7 +364,7 @@ describe("applyBundle", () => {
       tempFile,
       JSON.stringify({
         schemaVersion: "0.1",
-        scope: "user",
+        scope: "project",
         targets: ["claude-code"],
         mcps: [
           {
@@ -407,10 +407,12 @@ describe("applyBundle", () => {
       }),
     );
 
-    await applyBundle(tempFile, { force: true });
+    await applyBundle(tempFile, { force: true, scope: "project" });
     expect(applySkillsMock).toHaveBeenCalled();
     expect(applyRulesMock).toHaveBeenCalled();
     expect(writeConfigMock).toHaveBeenCalled();
+    expect(fs.existsSync(path.join(process.cwd(), "test", "rules.md"))).toBe(true);
+    fs.rmSync(path.join(process.cwd(), "test"), { recursive: true, force: true });
   });
 
   it("detects unsupported content and warns without failing", async () => {
@@ -478,6 +480,103 @@ describe("applyBundle", () => {
     await applyBundle(tempFile, { force: true });
     expect(writeConfigMock).not.toHaveBeenCalled();
     expect(createBackupMock).not.toHaveBeenCalled();
+    expect(verifyTargetInstallMock).not.toHaveBeenCalled();
+  });
+
+  it("does not resolve secrets for MCPs that are skipped on incompatible targets", async () => {
+    const { applyBundle } = await import("./apply.js");
+    fs.writeFileSync(
+      tempFile,
+      JSON.stringify({
+        schemaVersion: "0.1",
+        scope: "project",
+        targets: ["github-copilot"],
+        mcps: [
+          {
+            id: "remote-secure",
+            displayName: "Remote Secure",
+            runtime: "remote",
+            url: "https://example.com/mcp",
+            args: [],
+            env: {},
+            headers: {
+              Authorization: "${secret:REMOTE_TOKEN}",
+            },
+            requiredSecrets: ["REMOTE_TOKEN"],
+            verified: true,
+          },
+        ],
+        skills: [],
+        rules: [],
+        workflowPacks: [],
+      }),
+    );
+
+    await applyBundle(tempFile, { force: true });
+    expect(resolveSecretsMock).toHaveBeenCalledWith([]);
+  });
+
+  it("derives required secrets from placeholders even when requiredSecrets is empty", async () => {
+    const { applyBundle } = await import("./apply.js");
+    fs.writeFileSync(
+      tempFile,
+      JSON.stringify({
+        schemaVersion: "0.1",
+        scope: "user",
+        targets: ["cursor"],
+        mcps: [
+          {
+            id: "github",
+            displayName: "GitHub",
+            runtime: "npx",
+            command: "npx",
+            args: ["-y", "@modelcontextprotocol/server-github"],
+            env: {
+              GITHUB_TOKEN: "${secret:GITHUB_TOKEN}",
+            },
+            headers: {},
+            requiredSecrets: [],
+            verified: true,
+          },
+        ],
+        skills: [],
+        rules: [],
+        workflowPacks: [],
+      }),
+    );
+
+    await applyBundle(tempFile, { force: true });
+    expect(resolveSecretsMock).toHaveBeenCalledWith(["GITHUB_TOKEN"]);
+  });
+
+  it("skips invalid remote MCP entries instead of failing the whole bundle", async () => {
+    const { applyBundle } = await import("./apply.js");
+    fs.writeFileSync(
+      tempFile,
+      JSON.stringify({
+        schemaVersion: "0.1",
+        scope: "user",
+        targets: ["cursor"],
+        mcps: [
+          {
+            id: "remote-bad",
+            displayName: "Remote Bad",
+            runtime: "remote",
+            args: [],
+            env: {},
+            headers: {},
+            requiredSecrets: [],
+            verified: false,
+          },
+        ],
+        skills: [],
+        rules: [],
+        workflowPacks: [],
+      }),
+    );
+
+    await applyBundle(tempFile, { force: true });
+    expect(writeConfigMock).not.toHaveBeenCalled();
     expect(verifyTargetInstallMock).not.toHaveBeenCalled();
   });
 

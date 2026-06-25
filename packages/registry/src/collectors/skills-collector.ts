@@ -20,12 +20,16 @@ import {
   xmlLocPattern,
 } from "../utils";
 
+const REGISTRY_SYNC_USER_AGENT =
+  "VibeBasket Registry Sync/0.1 (+https://github.com/vibebasket/vibebasket)";
+
 export class SkillsShCuratedCollector implements SourceCollector {
   readonly name = "skills-sh-directory";
 
   constructor(
     private readonly fetchImpl: typeof fetch,
     private readonly retries: number,
+    private readonly timeoutMs: number,
   ) {}
 
   async collect(): Promise<SourceCollectedItem[]> {
@@ -348,11 +352,12 @@ export class SkillsShCuratedCollector implements SourceCollector {
       {
         headers: {
           accept: "text/html,application/xhtml+xml",
-          "user-agent": "VibeBasket Registry Sync/0.1 (+https://vibebasket.dev)",
+          "user-agent": REGISTRY_SYNC_USER_AGENT,
         },
       },
       label,
       {
+        timeoutMs: this.timeoutMs,
         retries: this.retries,
       },
     );

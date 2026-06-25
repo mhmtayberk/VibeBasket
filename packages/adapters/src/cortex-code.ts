@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import type { Scope, SkillEntry } from "@vibebasket/core";
+import type { Scope, SkillEntry } from "../../core/src/manifest.js";
 import { BaseAdapter } from "./base-adapter";
 export class CortexCodeAdapter extends BaseAdapter {
   readonly id = "cortex-code" as const;

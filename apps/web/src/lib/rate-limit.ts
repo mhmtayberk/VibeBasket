@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+
 type BucketEntry = {
   timestamps: number[];
 };
@@ -21,29 +23,57 @@ function cleanupExpiredBuckets(now: number) {
   }
 }
 
+function firstHeaderValue(value: string | null): string | null {
+  const first = value?.split(",")[0]?.trim();
+  return first ? first : null;
+}
+
+function buildFallbackFingerprint(request: Request) {
+  const fingerprintSource = [
+    request.headers.get("user-agent") ?? "",
+    request.headers.get("sec-ch-ua") ?? "",
+    request.headers.get("accept-language") ?? "",
+  ].join("|");
+
+  if (!fingerprintSource.replace(/\|/g, "").trim()) {
+    return "unknown-client";
+  }
+
+  return `fp:${createHash("sha256").update(fingerprintSource).digest("hex").slice(0, 16)}`;
+}
+
 export function getClientAddress(request: Request) {
   const trustProxyEnv = process.env.TRUST_PROXY;
   const isTrustProxyEnabled = trustProxyEnv === "true" || trustProxyEnv === "1";
 
   const cfIp = request.headers.get("cf-connecting-ip");
-  if (isTrustProxyEnabled && cfIp) {
+  if (cfIp?.trim()) {
     return cfIp.trim();
   }
 
   if (isTrustProxyEnabled) {
-    const forwardedFor = request.headers.get("x-forwarded-for");
+    const forwardedFor = firstHeaderValue(request.headers.get("x-forwarded-for"));
     if (forwardedFor) {
-      const ip = forwardedFor.split(",")[0]?.trim();
-      if (ip) return ip;
+      return forwardedFor;
     }
 
-    const realIp = request.headers.get("x-real-ip");
+    const realIp = request.headers.get("x-real-ip")?.trim();
     if (realIp) {
-      return realIp.trim();
+      return realIp;
     }
   }
 
-  return "local";
+  const bestEffortForwardedIp = firstHeaderValue(request.headers.get("x-forwarded-for"));
+  if (bestEffortForwardedIp) {
+    return `best-effort:${bestEffortForwardedIp}`;
+  }
+
+  const bestEffortRealIp = request.headers.get("x-real-ip")?.trim();
+  if (bestEffortRealIp) {
+    return `best-effort:${bestEffortRealIp}`;
+  }
+
+  return buildFallbackFingerprint(request);
 }
 
 export interface RateLimitResult {

@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "test": "node ../../scripts/run-vitest.mjs run",
+    "test:e2e:smoke": "playwright test e2e/home.spec.ts e2e/flow.spec.ts",
     "test:e2e": "playwright test",
     "typecheck": "pnpm exec tsc --noEmit",
     "lint": "pnpm exec biome check",

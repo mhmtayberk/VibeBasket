@@ -10,7 +10,7 @@ Trusted upstream sources currently include:
 
 - VibeBasket curated `verified.yaml`
 - Official MCP Registry
-- Official skills.sh catalog page
+- Public `skills.sh` catalog corpus
 
 The sync layer normalizes upstream records, deduplicates them by canonical identity, and prefers curated verified records when the same item exists in multiple sources.
 

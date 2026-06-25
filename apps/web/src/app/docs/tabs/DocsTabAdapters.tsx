@@ -58,174 +58,184 @@ export function DocsTabAdapters() {
                 {
                   name: "Cursor",
                   color: "#ff5722",
-                  config: ".cursor/mcp.json or ~/.cursor/mcp.json",
-                  skills: false,
-                  note: "Workspace-scoped or user-scoped JSON. Both paths are checked; workspace takes precedence.",
+                  config:
+                    ".cursor/mcp.json or ~/.cursor/mcp.json + .cursor/skills/ + .cursor/rules/",
+                  capabilityLabel: "MCP + Skills + Rules",
+                  note: "Workspace-scoped or user-scoped MCP JSON plus native Cursor skills/rules folders. Project scope takes precedence when you apply at workspace scope.",
                 },
                 {
                   name: "Windsurf",
                   color: "#33bbc5",
-                  config: "~/.codeium/windsurf/mcp_config.json",
-                  skills: false,
-                  note: "Global user-scoped MCP config. Entries are merged under the mcpServers key.",
+                  config:
+                    "~/.codeium/windsurf/mcp_config.json + ~/.codeium/windsurf/skills/ or .windsurf/skills/ + global_rules.md or .devin/rules/",
+                  capabilityLabel: "MCP + Skills + Rules",
+                  note: "Windsurf documents MCP in mcp_config.json, SKILL.md folders under .windsurf/skills or ~/.codeium/windsurf/skills, and rules under .devin/rules/ with global rules in ~/.codeium/windsurf/memories/global_rules.md.",
                 },
                 {
                   name: "VS Code / Cline",
                   color: "#007ACC",
                   config:
-                    "~/.vscode-server/data/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json",
-                  skills: false,
+                    "<VS Code globalStorage>/saoudrizwan.claude-dev/settings/cline_mcp_settings.json",
+                  capabilityLabel: "MCP",
                   note: "Targets the Cline extension's global MCP settings file.",
                 },
                 {
                   name: "Claude Code",
                   color: "#D4A574",
                   config: "~/.claude.json",
-                  skills: true,
+                  capabilityLabel: "MCP + Skills",
                   note: "Anthropic's Claude Code CLI reads mcpServers from the root ~/.claude.json file.",
                 },
                 {
                   name: "Gemini CLI",
                   color: "#4285F4",
                   config: "~/.gemini/settings.json or .gemini/settings.json + .gemini/skills/",
-                  skills: true,
+                  capabilityLabel: "MCP + Skills",
                   note: "Gemini CLI reads MCP settings from settings.json and discovers skills from .gemini/skills/ at user or workspace scope.",
                 },
                 {
                   name: "Codex CLI",
                   color: "#10A37F",
                   config: "~/.codex/config.toml or .codex/config.toml",
-                  skills: false,
+                  capabilityLabel: "MCP",
                   note: "Codex CLI uses a TOML-formatted config for both user and trusted project scope. Remote MCP servers must serialize into Codex's native HTTP fields.",
                 },
                 {
                   name: "Antigravity",
                   color: "#a0fdda",
                   config: "~/.gemini/antigravity/mcp_config.json",
-                  skills: false,
+                  capabilityLabel: "MCP",
                   note: "Google Gemini's Antigravity agent reads MCP config from its own scoped path.",
                 },
                 {
                   name: "Zed",
                   color: "#084994",
-                  config: "~/.config/zed/settings.json (context_servers key)",
-                  skills: false,
-                  note: "Zed uses context servers instead of the MCP mcpServers convention. The adapter maps accordingly.",
+                  config:
+                    "~/.config/zed/settings.json (context_servers) + ~/.agents/skills/ or .agents/skills/",
+                  capabilityLabel: "MCP + Skills",
+                  note: "Zed uses context_servers inside settings.json and documents global/project Agent Skills under ~/.agents/skills/ and .agents/skills/.",
                 },
                 {
                   name: "JetBrains Junie",
                   color: "#FF318C",
-                  config: "~/.junie/mcp.json",
-                  skills: false,
-                  note: "JetBrains Junie uses a dedicated ~/.junie directory for MCP server configuration.",
+                  config: "~/.junie/mcp/mcp.json or .junie/mcp/mcp.json",
+                  capabilityLabel: "MCP",
+                  note: "JetBrains Junie currently uses a dedicated .junie/mcp/mcp.json surface for user or project MCP configuration.",
                 },
                 {
                   name: "Kiro",
                   color: "#5B4FE9",
-                  config: "~/.kiro/settings/mcp.json",
-                  skills: false,
-                  note: "Amazon's Kiro IDE stores MCP configuration in its settings directory.",
+                  config: "~/.kiro/settings/mcp.json + ~/.kiro/skills/ or .kiro/skills/",
+                  capabilityLabel: "MCP + Skills",
+                  note: "Kiro stores MCP config in .kiro/settings/mcp.json and documents both global and workspace-scoped agent skills under .kiro/skills/.",
                 },
                 {
                   name: "Cline CLI",
                   color: "#5C6BC0",
-                  config:
-                    "~/.vscode-server/data/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json",
-                  skills: false,
-                  note: "Shares the same MCP settings path as VS Code / Cline but is applied from the terminal.",
+                  config: "~/.cline/data/settings/cline_mcp_settings.json",
+                  capabilityLabel: "MCP",
+                  note: "Cline CLI reads its own MCP settings file from the CLI data directory. Skills/rules auto-apply is intentionally not advertised yet.",
                 },
                 {
                   name: "DeepSeek-TUI",
                   color: "#1C6EF2",
                   config: "~/.deepseek/mcp.json",
-                  skills: false,
+                  capabilityLabel: "MCP",
                   note: "DeepSeek-TUI reads MCP configuration from its scoped home directory. Skills/rules auto-apply is not yet supported.",
                 },
                 {
                   name: "Continue",
                   color: "#00E5FF",
-                  config: "~/.continue/config.json + .continue/prompts/*.prompt",
-                  skills: true,
-                  note: "MCP servers merge into the config.json mcpServers array. Skills are written as .prompt files under .continue/prompts/.",
+                  config: "~/.continue/config.yaml + .continue/prompts/*.prompt",
+                  capabilityLabel: "MCP + Skills",
+                  note: "Continue's current config surface is config.yaml. MCP servers serialize into the documented mcpServers YAML list, while VibeBasket writes prompt files and registers them under prompts.",
                 },
                 {
                   name: "Roo Code",
                   color: "#FF3D00",
-                  config: "roocode_mcp_settings.json + .clinerules",
-                  skills: true,
-                  note: "MCP entries merge into roocode_mcp_settings.json. Rules and skills are written into .clinerules using the VibeBasket block delimiter engine.",
+                  config:
+                    ".roo/mcp.json or <VS Code globalStorage>/RooVeterinaryInc.roo-cline/settings/mcp_settings.json + .roo/skills/ + .roo/rules/",
+                  capabilityLabel: "MCP + Skills + Rules",
+                  note: "MCP entries merge into Roo Code's project or global settings file. Skills and rules are written into Roo-native .roo directories.",
                 },
                 {
                   name: "Hermes",
                   color: "#FFD600",
                   config: "~/.hermes/config.yaml + .hermesrules",
-                  skills: true,
+                  capabilityLabel: "MCP + Skills",
                   note: "MCP servers merge into the YAML config. Rules and skills are written into .hermesrules using idempotent block delimiters.",
                 },
                 {
                   name: "OpenClaw",
                   color: "#E040FB",
                   config: "~/.openclaw/openclaw.json + .openclawrules",
-                  skills: true,
+                  capabilityLabel: "MCP + Skills",
                   note: "MCP entries merge into the JSON config. Rules and skills are written into .openclawrules using idempotent block delimiters.",
                 },
                 {
                   name: "GitHub Copilot",
                   color: "#FF1744",
                   config: ".github/copilot-instructions.md",
-                  skills: true,
+                  capabilityLabel: "Skills + Rules",
                   note: "Rules and skills are written as Markdown custom instructions inside .github/copilot-instructions.md.",
                 },
                 {
                   name: "Void Editor",
                   color: "#673AB7",
-                  config: "~/.config/void/mcp_servers.json + .voidrules",
-                  skills: true,
-                  note: "MCP servers merge into the mcp_servers.json. Rules and skills are written into .voidrules and .clinerules using idempotent block delimiters.",
+                  config: "~/.void-editor/mcp.json",
+                  capabilityLabel: "MCP",
+                  note: "The current auto-apply surface is the official user-scope Void MCP config. Project-scoped skills/rules are intentionally not advertised until per-feature scope handling is modelled cleanly.",
                 },
                 {
                   name: "Aider",
                   color: "#4CAF50",
                   config: ".aider.conf.yml + .aiderinstructions.md",
-                  skills: true,
+                  capabilityLabel: "Skills + Rules",
                   note: "Registers .aiderinstructions.md via the read flag in .aider.conf.yml. Rules and skills are written into the instructions Markdown file.",
                 },
                 {
                   name: "Cortex Code",
                   color: "#29B6F6",
                   config: "~/.snowflake/cortex/mcp.json + .cortex/skills/",
-                  skills: true,
+                  capabilityLabel: "MCP + Skills",
                   note: "Snowflake's Cortex Code agent. MCP entries merge into the cortex JSON config. Skills are written as individual Markdown files under .cortex/skills/.",
                 },
                 {
                   name: "Goose",
                   color: "#FF6F00",
                   config: "~/.config/goose/config.yaml",
-                  skills: false,
+                  capabilityLabel: "MCP",
                   note: "Block/Anthropic's Goose agent reads MCP extensions from its YAML config file. Restart Goose after applying.",
                 },
                 {
                   name: "IBM Bob",
                   color: "#052FAD",
                   config: "~/.bob/mcp_settings.json or .bob/mcp.json",
-                  skills: true,
+                  capabilityLabel: "MCP + Skills",
                   note: "IBM Bob supports both user-global and project-scoped MCP config. Skills are written under .bob/skills/ as Markdown files.",
                 },
                 {
                   name: "CodeBuddy",
                   color: "#00BCD4",
                   config: "~/.codebuddy/.mcp.json or .mcp.json",
-                  skills: true,
+                  capabilityLabel: "MCP + Skills",
                   note: "Tencent Cloud CodeBuddy reads MCP config from user or project scope. Skills are written under .codebuddy/skills/ as Markdown files.",
                 },
                 {
                   name: "OpenCode",
                   color: "#8BC34A",
-                  config: "~/.config/opencode/opencode.json or opencode.json",
-                  skills: false,
-                  note: "Anomaly's OpenCode CLI agent. MCP servers merge into opencode.json at the user or project scope. Reload the TUI after applying.",
+                  config:
+                    "~/.config/opencode/opencode.json or opencode.json + .opencode/skills/ + AGENTS.md",
+                  capabilityLabel: "MCP + Skills + Rules",
+                  note: "OpenCode uses the mcp object in opencode.json, plus .opencode/skills and AGENTS.md for reusable behavior. Reload the TUI after applying.",
                 },
-              ] as { name: string; color: string; config: string; skills: boolean; note: string }[]
+              ] as {
+                name: string;
+                color: string;
+                config: string;
+                capabilityLabel: string;
+                note: string;
+              }[]
             ).map((adapter) => (
               <div
                 key={adapter.name}
@@ -240,11 +250,11 @@ export function DocsTabAdapters() {
                     />
                     {adapter.name}
                   </h4>
-                  {adapter.skills && (
+                  {adapter.capabilityLabel ? (
                     <span className="font-mono text-[8px] uppercase tracking-wider text-[#a0fdda] border border-[#a0fdda]/30 bg-[#a0fdda]/5 px-1.5 py-0.5 rounded-[2px] shrink-0">
-                      MCP + Skills
+                      {adapter.capabilityLabel}
                     </span>
-                  )}
+                  ) : null}
                 </div>
                 <code className="font-mono text-[9px] text-[#bdc9c2]/70 bg-[#0a0f0d] border border-[#3e4944]/60 px-2 py-1 rounded-[2px] block mb-3 break-all">
                   {adapter.config}

@@ -1,4 +1,4 @@
-import type { IdeId, McpEntry, Scope } from "@vibebasket/core";
+import type { IdeId, McpEntry, Scope } from "../../core/src/manifest.js";
 import {
   mergeStandardMcpServers,
   readJsonFileOrDefault,

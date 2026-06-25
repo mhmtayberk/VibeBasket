@@ -1,6 +1,6 @@
 import os from "node:os";
 import path from "node:path";
-import type { Scope } from "@vibebasket/core";
+import type { Scope } from "../../core/src/manifest.js";
 import { BaseAdapter } from "./base-adapter";
 export class JunieAdapter extends BaseAdapter {
   readonly id = "junie" as const;

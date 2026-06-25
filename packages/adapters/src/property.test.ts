@@ -1,4 +1,4 @@
-import type { McpEntry } from "@vibebasket/core";
+import type { McpEntry } from "../../core/src/manifest.js";
 import * as fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import { AiderAdapter } from "./aider.js";

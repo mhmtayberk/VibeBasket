@@ -2,9 +2,10 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { resolvePublicBaseUrl } from "@/lib/public-url";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXTAUTH_URL || "http://localhost:3000"),
+  metadataBase: new URL(resolvePublicBaseUrl()),
   applicationName: "VibeBasket",
   title: "VibeBasket | The Ninite for Vibe Coding",
   description:

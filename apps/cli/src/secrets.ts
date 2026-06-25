@@ -3,9 +3,30 @@ import path from "node:path";
 import { password } from "@inquirer/prompts";
 import chalk from "chalk";
 import dotenv from "dotenv";
-import keytar from "keytar";
 
 const KEYCHAIN_SERVICE = "vibebasket";
+
+type KeytarModule = {
+  getPassword(service: string, account: string): Promise<string | null>;
+};
+
+let keytarModulePromise: Promise<KeytarModule | null> | null = null;
+
+async function loadKeytar(): Promise<KeytarModule | null> {
+  if (!keytarModulePromise) {
+    keytarModulePromise = Promise.resolve().then(() => {
+      try {
+        const runtimeRequire = Function("return require")() as NodeRequire;
+        const mod = runtimeRequire("keytar") as KeytarModule | { default?: KeytarModule };
+        return "default" in mod ? mod.default ?? null : mod;
+      } catch {
+        return null;
+      }
+    });
+  }
+
+  return keytarModulePromise;
+}
 
 export async function resolveSecrets(
   requiredSecrets: string[],
@@ -35,10 +56,13 @@ export async function resolveSecrets(
     }
 
     // 4. Check OS Keychain
-    const keychainSecret = await keytar.getPassword(KEYCHAIN_SERVICE, name);
-    if (keychainSecret) {
-      secrets[name] = keychainSecret;
-      continue;
+    const keytar = await loadKeytar();
+    if (keytar) {
+      const keychainSecret = await keytar.getPassword(KEYCHAIN_SERVICE, name);
+      if (keychainSecret) {
+        secrets[name] = keychainSecret;
+        continue;
+      }
     }
 
     // 5. Interactive Prompt

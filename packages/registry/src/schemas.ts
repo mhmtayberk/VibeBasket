@@ -93,6 +93,13 @@ export interface SourceCollector {
 export interface CollectionRunResult {
   items: CatalogSeedItem[];
   errors: Array<{ source: string; error: string }>;
+  sourceRuns: Array<{
+    source: string;
+    ok: boolean;
+    itemCount: number;
+    durationMs: number;
+    error?: string;
+  }>;
 }
 
 export const mcpRegistryServerSchema = z

@@ -13,7 +13,9 @@ export default defineConfig({
   webServer: process.env.PLAYWRIGHT_SKIP_WEBSERVER
     ? undefined
     : {
-        command: `AUTH_TRUST_HOST=1 AUTH_SECRET=vibebasket-e2e-secret pnpm exec next build && HOSTNAME=127.0.0.1 PORT=${playwrightPort} node .next/standalone/server.js`,
+        command: process.env.PLAYWRIGHT_PREBUILT
+          ? `HOSTNAME=127.0.0.1 PORT=${playwrightPort} node .next/standalone/server.js`
+          : `AUTH_TRUST_HOST=1 AUTH_SECRET=vibebasket-e2e-secret pnpm exec next build && HOSTNAME=127.0.0.1 PORT=${playwrightPort} node .next/standalone/server.js`,
         url: playwrightBaseUrl,
         reuseExistingServer: true,
         timeout: 120_000,

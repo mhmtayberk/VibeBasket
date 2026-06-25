@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import type { IdeId, McpEntry, RuleEntry, Scope, SkillEntry } from "@vibebasket/core";
+import type { IdeId, McpEntry, RuleEntry, Scope, SkillEntry } from "../../core/src/manifest.js";
 import { hasErrorCode, mergeStandardMcpServers } from "./mcp-utils";
 import { getTargetCapabilities } from "./target-capabilities";
 import type { IdeAdapter } from "./types";
@@ -28,16 +28,13 @@ export class VoidAdapter implements IdeAdapter {
 
   configPath(scope: Scope, projectRoot?: string): string {
     if (scope === "project") {
-      if (!projectRoot) throw new Error("projectRoot required for project scope");
-      return path.join(projectRoot, ".void", "mcp.json");
+      throw new Error("Void Editor MCP configuration is only supported at user scope.");
     }
 
-    const platform = os.platform();
-    if (platform === "win32") {
-      return path.join(os.homedir(), "AppData", "Roaming", "void", "mcp_servers.json");
+    if (os.platform() === "win32") {
+      return path.join(os.homedir(), ".void-editor", "mcp.json");
     }
-    // For macOS and Linux, Void uses ~/.config/void/mcp_servers.json by default
-    return path.join(os.homedir(), ".config", "void", "mcp_servers.json");
+    return path.join(os.homedir(), ".void-editor", "mcp.json");
   }
 
   async readConfig(scope: Scope, projectRoot?: string): Promise<unknown> {

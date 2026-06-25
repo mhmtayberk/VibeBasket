@@ -12,6 +12,7 @@ import { KiroAdapter } from "./kiro.js";
 import { OpenClawAdapter } from "./openclaw.js";
 import { RooCodeAdapter } from "./roocode.js";
 import { TARGET_CAPABILITIES } from "./target-capabilities.js";
+import { VoidAdapter } from "./void.js";
 import { ZedAdapter } from "./zed.js";
 
 describe("adapter config paths", () => {
@@ -37,7 +38,7 @@ describe("adapter config paths", () => {
       "/tmp/demo-project/.zed/settings.json",
     );
     expect(new ContinueAdapter().configPath("project", projectRoot)).toBe(
-      "/tmp/demo-project/.continue/config.json",
+      "/tmp/demo-project/.continue/config.yaml",
     );
   });
 
@@ -54,12 +55,12 @@ describe("adapter config paths", () => {
 
   it("verifies user/project scopes for roocode, hermes, and openclaw", () => {
     const projectRoot = "/tmp/demo-project";
-    expect(new RooCodeAdapter().supportedScopes).toEqual(["project"]);
+    expect(new RooCodeAdapter().supportedScopes).toEqual(["user", "project"]);
     expect(new HermesAdapter().supportedScopes).toEqual(["project"]);
     expect(new OpenClawAdapter().supportedScopes).toEqual(["project"]);
 
-    expect(new RooCodeAdapter().configPath("project", projectRoot)).toContain(
-      "roocode_mcp_settings.json",
+    expect(new RooCodeAdapter().configPath("project", projectRoot)).toBe(
+      "/tmp/demo-project/.roo/mcp.json",
     );
     expect(new HermesAdapter().configPath("project", projectRoot)).toBe(
       `${os.homedir()}/.hermes/config.yaml`,
@@ -67,5 +68,11 @@ describe("adapter config paths", () => {
     expect(new OpenClawAdapter().configPath("project", projectRoot)).toBe(
       `${os.homedir()}/.openclaw/openclaw.json`,
     );
+  });
+
+  it("keeps void aligned with the upstream user-scope MCP location", () => {
+    const adapter = new VoidAdapter();
+    expect(adapter.supportedScopes).toEqual(["user"]);
+    expect(adapter.configPath("user")).toBe(`${os.homedir()}/.void-editor/mcp.json`);
   });
 });

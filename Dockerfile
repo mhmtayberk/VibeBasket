@@ -4,8 +4,10 @@
 FROM node:22-alpine AS deps
 WORKDIR /app
 
+ARG PNPM_VERSION=11.7.0
+
 # Install pnpm via corepack (matches engines.pnpm in package.json)
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@${PNPM_VERSION} --activate
 
 # Copy workspace manifests only (maximise cache hit rate)
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc ./
@@ -23,13 +25,12 @@ RUN pnpm install --frozen-lockfile
 # ──────────────────────────────────────────────
 FROM node:22-alpine AS builder
 WORKDIR /app
-
-RUN corepack enable && corepack prepare pnpm@latest --activate
+ARG PNPM_VERSION=11.7.0
+RUN corepack enable && corepack prepare pnpm@${PNPM_VERSION} --activate
 
 # Copy installed node_modules from deps stage
 COPY --from=deps /app/node_modules            ./node_modules
 COPY --from=deps /app/apps/web/node_modules   ./apps/web/node_modules
-COPY --from=deps /app/packages                ./packages_nm_placeholder
 
 # Copy full source
 COPY . .

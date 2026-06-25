@@ -1,58 +1,50 @@
 import { describe, expect, it } from "vitest";
 import {
   extractConfiguredMcpIds,
-  resolveRuleInventoryTargets,
   resolveRuleVerificationTargets,
-  resolveSkillInventoryTargets,
   resolveSkillVerificationTargets,
 } from "./config-inspection.js";
 
-describe("config inspection helpers", () => {
-  it("extracts MCP ids from standard and Zed-native config keys", () => {
+describe("config inspection", () => {
+  it("extracts configured MCP ids from array and nonstandard adapter config shapes", () => {
     expect(
       extractConfiguredMcpIds({
-        mcpServers: { alpha: {}, beta: {} },
+        mcpServers: [{ name: "ctx7" }, { name: "filesystem" }],
       }),
-    ).toEqual(["alpha", "beta"]);
+    ).toEqual(["ctx7", "filesystem"]);
 
     expect(
       extractConfiguredMcpIds({
-        context_servers: { zedPostgres: {} },
+        mcp: { ctx7: { type: "remote" } },
       }),
-    ).toEqual(["zedPostgres"]);
+    ).toEqual(["ctx7"]);
+
+    expect(
+      extractConfiguredMcpIds({
+        extensions: { github: { type: "stdio" } },
+      }),
+    ).toEqual(["github"]);
   });
 
-  it("resolves deterministic verification targets for file-based skills and rules", () => {
-    const skills = resolveSkillVerificationTargets("claude-code", "project", "/tmp/demo", [
+  it("uses the verified Roo Code and OpenCode skill/rule paths", () => {
+    const rooSkillTarget = resolveSkillVerificationTargets("roocode", "project", "/tmp/demo", [
       {
-        id: "skill-a",
-        displayName: "Skill A",
+        id: "publish-cli",
+        displayName: "Publish CLI",
         source: { type: "inline", content: "x" },
-        verified: false,
+        verified: true,
       },
-    ]);
-    const rules = resolveRuleVerificationTargets("cursor", "project", "/tmp/demo", [
-      { id: "rule-a", displayName: "Rule A", content: "always", verified: false },
-    ]);
+    ])[0];
+    expect(rooSkillTarget?.path).toBe("/tmp/demo/.roo/skills/publish-cli/SKILL.md");
 
-    expect(skills[0]?.path).toBe("/tmp/demo/.claude/skills/skill-a/SKILL.md");
-    expect(rules[0]?.path).toBe("/tmp/demo/.cursor/rules/rule-a.md");
-  });
+    const rooRuleTarget = resolveRuleVerificationTargets("roocode", "project", "/tmp/demo", [
+      { id: "always-on", displayName: "Always On", content: "x", verified: true },
+    ])[0];
+    expect(rooRuleTarget?.path).toBe("/tmp/demo/.roo/rules/always-on.md");
 
-  it("resolves adapter-accurate inventory targets for skills and rules", () => {
-    expect(resolveSkillInventoryTargets("continue", "project", "/tmp/demo")).toEqual([
-      {
-        path: "/tmp/demo/.continue/prompts",
-        kind: "directory",
-        fileExtension: ".prompt",
-      },
-    ]);
-
-    expect(resolveRuleInventoryTargets("github-copilot", "project", "/tmp/demo")).toEqual([
-      {
-        path: "/tmp/demo/.github/copilot-instructions.md",
-        kind: "marker-file",
-      },
-    ]);
+    const openCodeRuleTarget = resolveRuleVerificationTargets("opencode", "project", "/tmp/demo", [
+      { id: "workspace", displayName: "Workspace", content: "x", verified: true },
+    ])[0];
+    expect(openCodeRuleTarget?.path).toBe("/tmp/demo/AGENTS.md");
   });
 });

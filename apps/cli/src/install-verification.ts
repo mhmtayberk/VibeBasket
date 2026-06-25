@@ -1,6 +1,6 @@
 import fs from "node:fs/promises";
 import type { IdeAdapter } from "@vibebasket/adapters";
-import type { IdeId, McpEntry, RuleEntry, Scope, SkillEntry } from "@vibebasket/core";
+import type { IdeId, McpEntry, RuleEntry, Scope, SkillEntry } from "../../../packages/core/src/manifest.js";
 import {
   type FileVerificationTarget,
   extractConfiguredMcpIds,
