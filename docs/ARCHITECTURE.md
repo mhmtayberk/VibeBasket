@@ -57,6 +57,7 @@ Cloud SDKs are lazily loaded via dynamic `await import()` to prevent Next.js bui
 - **Count Cache**: Catalog counts cached in-memory with 60s TTL to avoid expensive `COUNT(*)` on every page render. Cache is invalidated automatically.
 - **Catalog API Cache**: Public catalog responses carry `Cache-Control: max-age=60, stale-while-revalidate=300` so CDNs and browsers can serve slightly stale data while the background revalidation completes.
 - **Batched Persistence**: registry sync persists catalog rows in batches instead of one row at a time, which reduces write pressure during large syncs.
+- **Sync Observability**: manual sync scripts emit collector-level progress and duration data to stderr, while runtime summaries retain source-level success/error details for operators.
 - **Page-Based Pagination**: `/api/catalog` returns `items + pagination` and the web UI only fetches the active tab and current page.
 - **Server-Rendered Initial Catalog**: the homepage reads the first MCP page from SQLite on the server and passes it into the catalog client component, so first paint is not dependent on client hydration or an initial `/api/catalog` fetch.
 - **Derived Trust Signals**: catalog cards render trust badges from source provenance and freshness labels from item metadata without needing a second scoring table.
@@ -108,7 +109,7 @@ The `charts/vibebasket/` chart provides a production Kubernetes deployment:
 
 - **Strategy**: `Recreate` — single-replica to avoid SQLite write conflicts.
 - **Security Context**: `runAsUser: 1001`, `runAsGroup: 1001`, `fsGroup: 1001` for non-root operation.
-- **Secret Management**: Supports `existingSecret` for credentials. Uses `env` and `envFrom` values for `AUTH_SECRET`, `NEXTAUTH_URL`, and OAuth provider credentials.
+- **Secret Management**: Supports `existingSecret` for credentials. Non-secret runtime values are passed via `env`; sensitive values such as `AUTH_SECRET`, OAuth client secrets, and `CATALOG_REFRESH_TOKEN` are sourced from `secretEnv` or an existing Kubernetes Secret through `envFrom`.
 - **Persistence**: PVC-backed volume mount for SQLite at `/data`.
 - **Health Check**: Docker-style `livenessProbe` and `readinessProbe` via `/api/health`.
 
@@ -132,6 +133,7 @@ The homepage (`/`) is `force-dynamic` and server-renders:
 - the homepage is intentionally `force-dynamic` because the first catalog page is a live server-side snapshot from SQLite
 - public catalog reads can schedule stale background sync, but forced refresh is protected in production to avoid unauthenticated expensive sync DoS
 - manual syncs can be run with `pnpm catalog:sync`, which now records audit rows in `catalog_sync_runs`
+- request-driven stale refresh is intentionally lightweight; deterministic production freshness still comes from an external scheduler invoking `pnpm catalog:sync`
 - item-level freshness now lives on `catalog_items` itself, so future UI trust/freshness badges do not need a second storage model
 - the web package now participates in workspace `test` and `typecheck` runs, so catalog discovery logic is covered by the same verification path as the packages
 - catalog selection state in the web app is driven directly from the basket store state
@@ -139,7 +141,7 @@ The homepage (`/`) is `force-dynamic` and server-renders:
 - the installer side still lags behind the manifest surface for some non-MCP entry types
 - the target picker now mirrors the real adapter-backed set instead of keeping a visible roadmap/watchlist tier
 - `project` scope apply now forwards the working directory as `projectRoot`, which closes an earlier bug where project-scoped adapters had the right path logic but were never given the project path at runtime
-- repository automation currently validates linting, shared-package builds, the web typecheck/build path, unit/integration suites, and Playwright smoke coverage; global `tsc -b` remains a cleanup target rather than a hard release gate
+- repository automation currently validates linting, full-workspace `pnpm typecheck`, shared-package builds, the web build path, unit/integration suites, and Playwright smoke coverage; monorepo-wide `tsc -b` remains separate from the main release gate
 - the default production architecture assumes a single app process; process-local rate limiting is therefore an intentional design choice, not an accidental omission
 
 ## Production & Deployment Architecture
@@ -156,5 +158,5 @@ The homepage (`/`) is `force-dynamic` and server-renders:
 - **Zero-Cache Response Headers:** Sets strict HTTP `no-store, no-cache, must-revalidate` directives to avoid stale proxies hiding dead servers.
 
 ### 🗺️ Sitemap & Query Hardening
-- **Information Leak Protection:** `sitemap.ts` includes `/docs` alongside `/` and `/stacks` but intentionally excludes user-created stack pages (`/bundle/[id]`) and `/admin` routes. This guards against search engines indexing personal development context profiles (Information Disclosure defense).
+- **Information Leak Protection:** `sitemap.ts` includes `/docs` alongside `/` but intentionally excludes authenticated saved-stack surfaces, user-created stack pages (`/bundle/[id]`), and `/admin` routes. This guards against search engines indexing personal development context profiles (Information Disclosure defense).
 - **docs Route Boundaries:** Protects against Local/Remote File Inclusion (LFI/RFI) by validating the docs `tab` search parameter against an allowed whitelist. The search parameter is capped at 100 characters to reduce ReDoS (Regular Expression Denial of Service) and XSS injection risk.

@@ -2,8 +2,15 @@ import { auth, getEnabledAuthProviders } from "@/auth";
 import { SignInDialog } from "@/components/auth/SignInDialog";
 import { SavedStacksPanel } from "@/components/stacks/SavedStacksPanel";
 import { ArrowLeft, Layers3, ShieldCheck } from "lucide-react";
+import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default async function StacksPage() {
   const session = await auth();

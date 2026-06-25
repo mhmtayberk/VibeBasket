@@ -4,7 +4,12 @@ import type { EnabledAuthProvider } from "@/auth.config";
 import { SignInDialog } from "@/components/auth/SignInDialog";
 import { SaveStackDialog } from "@/components/stacks/SaveStackDialog";
 import { SavedStacksPanel } from "@/components/stacks/SavedStacksPanel";
-import { TARGET_OPTIONS, isSupportedTargetId } from "@/lib/targets";
+import {
+  TARGET_OPTIONS,
+  getSharedTargetScopes,
+  isSupportedTargetId,
+  resolvePreferredBundleScope,
+} from "@/lib/targets";
 import { cn } from "@/lib/utils";
 import { useBasketStore } from "@/store/basketStore";
 import { CheckCircle2, ChevronsDown, ChevronsUp, Copy, Loader2, Trash2, X } from "lucide-react";
@@ -51,6 +56,10 @@ export function BasketPanel({
   const hasMcps = Boolean(itemCounts.mcp);
   const hasSkills = Boolean(itemCounts.skill);
   const hasRules = Boolean(itemCounts.rule);
+  const supportedSelectedTargets = targets.filter(isSupportedTargetId);
+  const sharedScopes = getSharedTargetScopes(supportedSelectedTargets);
+  const resolvedScope = resolvePreferredBundleScope(supportedSelectedTargets);
+  const hasScopeConflict = supportedSelectedTargets.length > 0 && resolvedScope === null;
   const incompatibleTargets = supportedTargets.filter((t) => {
     if (hasMcps && !t.capabilities.supportsMcp) return true;
     if (hasSkills && !t.capabilities.supportsSkills) return true;
@@ -64,6 +73,13 @@ export function BasketPanel({
       return;
     }
 
+    if (!resolvedScope) {
+      toast.error(
+        "Those targets do not share one install scope yet. Pick only user-scope or only project-scope targets together.",
+      );
+      return;
+    }
+
     setIsBuilding(true);
     try {
       const response = await fetch("/api/bundle", {
@@ -71,7 +87,7 @@ export function BasketPanel({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           targets,
-          scope: "user",
+          scope: resolvedScope,
           itemIds: items.map((item) => item.id),
         }),
       });
@@ -307,6 +323,12 @@ export function BasketPanel({
               These will be skipped during apply.
             </p>
           )}
+          {hasScopeConflict && (
+            <p className="text-xs leading-6 text-amber-300/90">
+              Selected targets do not share one install scope. Combine user-scope targets together,
+              or switch to a project-scope-only target set.
+            </p>
+          )}
         </div>
 
         <div className="space-y-3 border-t border-border/70 pt-5">
@@ -356,9 +378,20 @@ export function BasketPanel({
                 <p>
                   → {targets.length} target{targets.length !== 1 ? "s" : ""}
                 </p>
+                {resolvedScope ? (
+                  <p>
+                    → scope: {resolvedScope}
+                    {sharedScopes.length > 1 ? " (auto-selected)" : ""}
+                  </p>
+                ) : null}
                 {incompatibleTargets.length > 0 && (
                   <p className="text-amber-300/90">
                     → {incompatibleTargets.map((t) => t.label).join(", ")}: skills/rules skipped
+                  </p>
+                )}
+                {hasScopeConflict && (
+                  <p className="text-amber-300/90">
+                    → no shared scope across selected targets; bundle generation is blocked
                   </p>
                 )}
               </>
@@ -386,7 +419,10 @@ export function BasketPanel({
             ) : (
               <div className="space-y-1 text-[11px]">
                 <p className="text-accent">$ npx vibebasket apply &lt;bundle-url&gt;</p>
-                <p>&gt; Your generated command will appear here.</p>
+                <p>
+                  &gt; Your generated command will appear here
+                  {resolvedScope ? ` (${resolvedScope} scope).` : "."}
+                </p>
               </div>
             )}
           </div>
@@ -394,7 +430,7 @@ export function BasketPanel({
           <button
             type="button"
             onClick={handleBuild}
-            disabled={isBuilding || items.length === 0 || targets.length === 0}
+            disabled={isBuilding || items.length === 0 || targets.length === 0 || hasScopeConflict}
             className="inline-flex h-12 w-full items-center justify-center gap-2 border border-accent bg-accent px-4 font-mono text-[11px] uppercase tracking-[0.18em] text-accent-foreground transition-colors hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isBuilding ? <Loader2 className="h-4 w-4 animate-spin" /> : null}

@@ -1,4 +1,6 @@
 import { auth } from "@/auth";
+import { InvalidOriginError, assertTrustedMutationOrigin } from "@/lib/csrf";
+import { NextResponse } from "next/server";
 
 export class ForbiddenError extends Error {
   constructor(message = "Forbidden: Admin access required") {
@@ -19,4 +21,17 @@ export async function requireAdminRole() {
   }
 
   return session.user;
+}
+
+export async function requireAdminMutation(request: Request) {
+  assertTrustedMutationOrigin(request);
+  return requireAdminRole();
+}
+
+export function createAdminForbiddenResponse(error: unknown) {
+  if (error instanceof ForbiddenError || error instanceof InvalidOriginError) {
+    return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
+  }
+
+  return null;
 }

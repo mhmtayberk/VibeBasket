@@ -167,8 +167,23 @@ describe("runRollback", () => {
     expect(writeConfigMock).toHaveBeenCalledWith(
       "user",
       expect.objectContaining({ mcpServers: { github: { args: ["test"] } } }),
+      undefined,
     );
     expect(consoleOutput.some((line) => line.includes("Successfully restored"))).toBe(true);
+  });
+
+  it("passes the current working directory when restoring a project-scoped backup", async () => {
+    const config = { mcpServers: { github: { args: ["test"] } } };
+    createBackupFile("cursor", "project", "2025-03-15T08:30:00.000Z", config);
+
+    const { runRollback } = await import("./rollback.js");
+    await runRollback();
+
+    expect(writeConfigMock).toHaveBeenCalledWith(
+      "project",
+      expect.objectContaining({ mcpServers: { github: { args: ["test"] } } }),
+      tempDir,
+    );
   });
 
   it("handles corrupted backup JSON", async () => {

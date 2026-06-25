@@ -1,7 +1,5 @@
 import { expect, test } from "@playwright/test";
 
-const BASE_URL = "http://localhost:3000";
-
 test.describe("UI — Responsive Breakpoints", () => {
   const viewports = [
     { name: "mobile-sm", width: 375, height: 667 },
@@ -14,7 +12,7 @@ test.describe("UI — Responsive Breakpoints", () => {
   for (const vp of viewports) {
     test(`homepage renders at ${vp.name} (${vp.width}x${vp.height})`, async ({ page }) => {
       await page.setViewportSize({ width: vp.width, height: vp.height });
-      await page.goto(BASE_URL);
+      await page.goto("/");
 
       await expect(page.locator("header")).toBeVisible({ timeout: 10000 });
       await expect(page.locator("#catalog")).toBeVisible({ timeout: 15000 });
@@ -30,13 +28,13 @@ test.describe("UI — Responsive Breakpoints", () => {
   test("basket FAB visible on mobile, hidden on desktop", async ({ page }) => {
     // Mobile
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.goto(BASE_URL);
+    await page.goto("/");
     const mobileFab = page.locator('[aria-label="Open basket"]');
     await expect(mobileFab).toBeVisible({ timeout: 5000 });
 
     // Desktop
     await page.setViewportSize({ width: 1440, height: 900 });
-    await page.goto(BASE_URL);
+    await page.goto("/");
     const desktopFab = page.locator('[aria-label="Open basket"]');
     await expect(desktopFab).not.toBeVisible({ timeout: 5000 });
 
@@ -47,13 +45,13 @@ test.describe("UI — Responsive Breakpoints", () => {
   test("docs sidebar hidden on mobile, visible on desktop", async ({ page }) => {
     // Mobile: sidebar should be hidden
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.goto(`${BASE_URL}/docs`);
+    await page.goto("/docs");
     const mobileSidebar = page.locator("aside");
     await expect(mobileSidebar).not.toBeVisible({ timeout: 5000 });
 
     // Desktop: sidebar should be visible
     await page.setViewportSize({ width: 1440, height: 900 });
-    await page.goto(`${BASE_URL}/docs`);
+    await page.goto("/docs");
     const desktopSidebar = page.locator("aside");
     await expect(desktopSidebar).toBeVisible({ timeout: 5000 });
   });
@@ -61,27 +59,27 @@ test.describe("UI — Responsive Breakpoints", () => {
 
 test.describe("UI — Accessibility", () => {
   test("page has a lang attribute", async ({ page }) => {
-    await page.goto(BASE_URL);
+    await page.goto("/");
     const lang = await page.locator("html").getAttribute("lang");
     expect(lang).toBeTruthy();
     expect(lang?.toLowerCase()).toContain("en");
   });
 
   test("all images have alt text", async ({ page }) => {
-    await page.goto(BASE_URL);
+    await page.goto("/");
     const images = page.locator("img:not([alt])");
     const count = await images.count();
     expect(count).toBe(0);
   });
 
   test("skip link or semantic landmarks exist", async ({ page }) => {
-    await page.goto(BASE_URL);
+    await page.goto("/");
     const main = page.locator("main");
     await expect(main).toBeVisible({ timeout: 5000 });
   });
 
   test("focus is visible on interactive elements", async ({ page }) => {
-    await page.goto(BASE_URL);
+    await page.goto("/");
     await page.keyboard.press("Tab");
 
     // Some element should be focused after Tab
@@ -91,7 +89,7 @@ test.describe("UI — Accessibility", () => {
   });
 
   test("color contrast is sufficient (basic check)", async ({ page }) => {
-    await page.goto(BASE_URL);
+    await page.goto("/");
     // Verify text is readable — no white text on white background
     const bgHex = await page.evaluate(() => {
       const body = document.body;
@@ -104,7 +102,7 @@ test.describe("UI — Accessibility", () => {
 
 test.describe("UI — Keyboard Navigation", () => {
   test("Escape closes detail modal", async ({ page }) => {
-    await page.goto(BASE_URL);
+    await page.goto("/");
 
     const detailBtn = page.getByRole("button", { name: "Details →" }).first();
     await detailBtn.scrollIntoViewIfNeeded();
@@ -118,7 +116,7 @@ test.describe("UI — Keyboard Navigation", () => {
   });
 
   test("Tab navigates through filter buttons", async ({ page }) => {
-    await page.goto(BASE_URL);
+    await page.goto("/");
     await page.waitForTimeout(1000);
 
     // Press Tab multiple times — should not crash
@@ -133,7 +131,7 @@ test.describe("UI — Keyboard Navigation", () => {
 
 test.describe("UI — Loading & Empty States", () => {
   test("search with no results shows empty state", async ({ page }) => {
-    await page.goto(BASE_URL);
+    await page.goto("/");
 
     // Type a nonsense search
     const searchInput = page.getByRole("textbox", { name: /search/i }).first();
@@ -148,9 +146,9 @@ test.describe("UI — Loading & Empty States", () => {
   });
 
   test("error boundary catches render errors", async ({ page }) => {
-    await page.goto(BASE_URL);
+    await page.goto("/");
     // Force a render error by navigating to a non-existent page
-    await page.goto(`${BASE_URL}/this-page-does-not-exist-404`);
+    await page.goto("/this-page-does-not-exist-404");
     const body = await page.textContent("body");
     // Should either show 404 text or redirect — not a blank page
     expect(body && body.length > 0).toBe(true);
@@ -159,7 +157,7 @@ test.describe("UI — Loading & Empty States", () => {
 
 test.describe("UI — Visual Consistency", () => {
   test("all text is in English only", async ({ page }) => {
-    await page.goto(BASE_URL);
+    await page.goto("/");
     const text = (await page.textContent("body")) ?? "";
 
     // Check for common Turkish words that should NOT appear
@@ -170,7 +168,7 @@ test.describe("UI — Visual Consistency", () => {
   });
 
   test("dark theme is applied", async ({ page }) => {
-    await page.goto(BASE_URL);
+    await page.goto("/");
 
     const hasDarkClass = await page.evaluate(() => {
       const html = document.documentElement;
@@ -184,17 +182,17 @@ test.describe("UI — Visual Consistency", () => {
   });
 
   test("consistent font usage across pages", async ({ page }) => {
-    await page.goto(BASE_URL);
+    await page.goto("/");
     const bodyFont = await page.evaluate(() => getComputedStyle(document.body).fontFamily);
     expect(bodyFont).toBeTruthy();
 
-    await page.goto(`${BASE_URL}/docs`);
+    await page.goto("/docs");
     const docsFont = await page.evaluate(() => getComputedStyle(document.body).fontFamily);
     expect(docsFont).toBe(bodyFont);
   });
 
   test("no layout shift on content load", async ({ page }) => {
-    await page.goto(BASE_URL);
+    await page.goto("/");
 
     const clsScore = await page.evaluate(() => {
       type LayoutShiftEntry = PerformanceEntry & {

@@ -42,8 +42,15 @@ vi.mock("nanoid", () => ({
 }));
 
 vi.mock("@/lib/targets", () => ({
-  SUPPORTED_TARGET_IDS: ["claude-code", "cursor", "codex"],
-  isSupportedTargetId: (targetId: string) => ["claude-code", "cursor", "codex"].includes(targetId),
+  SUPPORTED_TARGET_IDS: ["claude-code", "cursor", "codex", "hermes"],
+  isSupportedTargetId: (targetId: string) =>
+    ["claude-code", "cursor", "codex", "hermes"].includes(targetId),
+  getSharedTargetScopes: (targets: string[]) =>
+    targets.includes("hermes")
+      ? ["project"]
+      : targets.every((targetId) => ["claude-code", "cursor", "codex"].includes(targetId))
+        ? ["user", "project"]
+        : [],
 }));
 
 describe("POST /api/bundle", () => {
@@ -210,6 +217,26 @@ describe("POST /api/bundle", () => {
     expect(response.status).toBe(400);
     await expect(response.json()).resolves.toEqual({
       error: "Catalog items not found: skill-missing",
+    });
+  });
+
+  it("returns 400 when requested scope is incompatible with selected targets", async () => {
+    const { POST } = await import("./route");
+    const response = await POST(
+      new NextRequest("http://localhost:3000/api/bundle", {
+        method: "POST",
+        body: JSON.stringify({
+          targets: ["hermes"],
+          scope: "user",
+          itemIds: ["mcp-github"],
+        }),
+      }),
+    );
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toEqual({
+      error:
+        'Requested scope "user" is incompatible with the selected targets (shared scopes: project)',
     });
   });
 });

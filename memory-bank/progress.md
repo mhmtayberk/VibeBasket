@@ -1,4 +1,4 @@
-# Progress — June 15, 2026
+# Progress — June 21, 2026
 
 ## Completed This Session
 - [x] Registry split: 1346-line monolith → 6 modules (schemas, utils, 3 collectors, index)
@@ -39,9 +39,15 @@
 - [x] Security tightening: admin role now requires verified allowlisted email, `x-real-ip` is ignored unless `TRUST_PROXY` is enabled, cookie-authenticated stack mutations enforce same-origin `Origin` checks, and bundle share URLs prefer configured public origin
 - [x] Saved-stack route contract fix: read access no longer asks for mutation-origin headers, `DELETE` now enforces the same CSRF contract as `POST`/`PATCH`, and stack route tests now send a real same-origin header on browser-style mutations
 - [x] Public repo staging polish: docs now use the real GitHub clone URL, self-hosting points at the in-repo Helm chart, `CATALOG_REFRESH_TOKEN` is documented consistently, and contributor/LLM-facing docs were tightened for launch quality
-- [x] Registry typecheck cleanup: `packages/registry` now uses a dedicated cross-package typecheck config, leaving the remaining monorepo-wide `pnpm typecheck` failures isolated to `packages/adapters` test-fixture strictness
+- [x] Workspace typecheck cleanup: `packages/registry` now uses a dedicated cross-package typecheck config, adapter test fixtures were aligned with stricter MCP metadata requirements, and the full workspace passes `pnpm typecheck`
+- [x] Launch hardening: `pnpm verify:ci` and GitHub Actions CI now run the full workspace typecheck, CI uses `pnpm@11.7.0` to match the repo declaration, and catalog sync gained env-tunable upstream timeout/retry controls plus `pnpm catalog:sync:strict`
+- [x] Deploy/docs parity pass: Docker Compose now exposes the full auth/catalog tuning surface, Dockerfile pins pnpm to the declared repo version, Helm now generates a Secret from `secretEnv` by default, and self-hosting docs/examples now match that real contract
+- [x] Repo/documentation hygiene pass: removed the tracked `packages/core/tsconfig.tsbuildinfo` artifact, tightened root ignore coverage for common debug/deploy leftovers, and corrected stale docs claims about CI/CD, middleware, and `skills.sh` ingestion surfaces
+- [x] Conservative dead-code pass: removed unused starter SVG assets and unattached locale JSON files from `apps/web`, while intentionally keeping dependencies that still have plausible runtime or developer-tooling value
 - [x] Public-launch docs pass: README, SETUP, SECURITY, ARCHITECTURE, PROJECT_OVERVIEW, and `llms.txt` now better document live catalog scale, `AUTH_TRUST_HOST`, first-sync expectations, and backup credential scope
 - [x] Public launch quality pass: README and docs hub copy now better explain single-node self-hosting expectations, first-run behavior, and the real installer capability surface
+- [x] GitHub docs front-door pass: README was tightened as a product entrypoint and a root `SELF_HOSTING.md` entrypoint was added so public repo docs stay clearer without stuffing all operator guidance into one file
+- [x] Domain-migration hardening: public URL resolution no longer defaults to a hardcoded hosted domain, and CSRF origin checks now share the same resolver
 - [x] Pre-prod audit hardening: repo-wide lint green again, package builds passing, focused registry/adapters/core/web tests re-verified
 - [x] Migration safety fix: schema bootstrap now restores missing legacy `catalog_items.description` / `icon` columns before FTS initialization, and recreates the saved-stack target position index
 - [x] Test isolation cleanup: adapter tests no longer write into the real user home directory during verification
@@ -50,11 +56,36 @@
 - [x] Catalog search correctness: search counts no longer share cache keys across different queries, and tokenized search can supplement FTS with structured JSON fallback matching
 - [x] Registry secret correctness: official MCP registry package env vars and remote auth headers now flow into bundle metadata as local CLI prompts instead of being dropped during sync
 - [x] Capability-aware apply: CLI now skips unsupported content per target, dedupes repeated bundle payload items, and avoids no-op MCP writes on MCP-unsupported targets
+- [x] Rollback correctness: project-scoped CLI restores now pass the real workspace root into adapter writes instead of silently behaving like user-scope restores
+- [x] Backup inventory accuracy: timestamped backup filenames are now parsed structurally, preserving stable sort order and readable restore metadata
+- [x] Trust freshness wiring: catalog trust metadata now carries persisted `lastSyncedAt` through to the UI so freshness messaging is real instead of dead state
+- [x] Docs capability honesty: adapter docs now show explicit capability labels per target rather than implying MCP support from a generic skills flag
+- [x] CLI docs parity: README and docs now describe `--force`, `--no-verify`, and project-scoped rollback behavior consistently with the real CLI
+- [x] Public URL hardening: metadata, sitemap, robots, and bundle URL generation now share one validated public-base-url resolver with request-origin fallback
+- [x] SEO/privacy polish: authenticated saved-stack surfaces are now noindex and excluded from sitemap/robots
+- [x] Adapter path edge-case hardening: XDG_CONFIG_HOME and APPDATA-aware helpers now back the main OS-sensitive adapter config paths
+- [x] Sync scheduling honesty pass: README and ops docs now explain that automatic stale refresh is request-driven and that deterministic recurring sync belongs to external scheduling
+- [x] Sync observability hardening: manual sync now prints collector progress to stderr, sync summaries retain per-source timing/item counts, and `skills.sh` fetches have their own timeout control via `CATALOG_SKILLS_TIMEOUT_MS`
+- [x] Vendor adapter parity pass: Continue now writes the current `config.yaml` MCP schema and prompt references, Kiro/Zed now install skills into documented agent-skill directories, and Windsurf now supports its documented Skills + Rules surfaces
+- [x] 24-adapter verification hardening: config inspection now understands adapter-native MCP shapes and verifies Cursor/OpenCode/Roo Code plus the newer skill/rule surfaces correctly
+- [x] Void contract correction: auto-apply now follows the upstream user-scope `~/.void-editor/mcp.json` MCP surface and stops advertising unsupported Void skills/rules
+- [x] Admin mutation hardening: backup and storage route writes now enforce same-origin checks in addition to admin authorization, with targeted route tests covering the guard path
+- [x] Scheduled backup wiring: the admin storage fetch path now executes due scheduled backups and only marks the schedule complete after a successful snapshot
+- [x] Health/bootstrap safety: `/api/health` now boots schema state before probing SQLite, avoiding first-run false negatives on empty deployments
+- [x] Timestamp cleanup correctness: stale data cleanup now uses `Date` cutoffs for timestamp-mode DB columns instead of raw epoch seconds
+- [x] Local snapshot safety: admin local backups now prefer SQLite `VACUUM INTO` snapshots before file-copy fallback
+- [x] Repo/deploy hardening pass: `.gitignore` now guards internal working-doc paths from future accidental adds, Docker Compose drops caps and enables `no-new-privileges`, and the Helm chart now disables service-account token automount while tightening pod/container security context defaults
+- [x] Security-header verification cleanup: the security-header test suite now imports the real implementation, verifies production-only CSP/HSTS behavior, and covers `Retry-After` on rate-limit responses instead of relying on stale duplicated test fixtures
+- [x] CLI credential/apply hardening: target-incompatible MCPs now skip cleanly without prompting for irrelevant secrets, missing remote MCP URLs no longer break the whole bundle, workflow-pack files now actually apply in project scope, and public docs now explain the real local-secret storage behavior per target family
+- [x] Final prod-readiness audit pass: bundle scope is now derived from real target capabilities and rejected server-side when incompatible, the workflow catalog type is reachable in the main UI, Playwright specs are baseURL-safe for CI, CLI search covers the full catalog, and public docs/self-host steps now match the real Docker/manual commands
+- [x] npm package publish hardening: corrected live npm repository/bugs/homepage metadata, improved the package-level README, and verified the public `vibebasket` package through real `npx`, tarball install, and `--omit=optional` install paths
+- [x] Optional keychain fallback: `keytar` is now optional for the published CLI package, and secret resolution no longer crashes when native keychain bindings are unavailable
 
 ## Test Coverage
 - Focused CLI, adapter, and web/admin suites covering install verification and operational visibility are passing
 - Web TypeScript strict mode: zero errors
 - Web production build succeeds in a real shell with no remaining Turbopack NFT tracing warning
+- Full `pnpm verify:ci` succeeds in a real shell after the deploy/docs parity pass; sandboxed Codex runs can still trip a Turbopack helper-process port-bind restriction that is not a repository defect
 - Full Playwright browser E2E could not be completed on this machine because the Chromium Playwright binary is not installed locally
 
 ## Next Steps

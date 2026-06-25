@@ -1,3 +1,4 @@
+import { resolvePublicBaseUrl } from "@/lib/public-url";
 import { catalogItems, db } from "@vibebasket/core";
 import { desc } from "drizzle-orm";
 import type { MetadataRoute } from "next";
@@ -8,10 +9,7 @@ import type { MetadataRoute } from "next";
  * only safe, verified public landing pages with dynamic modification headers.
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl =
-    process.env.NEXTAUTH_URL ||
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    (process.env.NODE_ENV === "production" ? "https://vibebasket.dev" : "http://localhost:3000");
+  const baseUrl = resolvePublicBaseUrl();
   const normalizedBase = baseUrl.replace(/\/$/, "");
 
   let latestUpdate = new Date();
@@ -47,12 +45,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: latestUpdate,
       changeFrequency: "weekly",
       priority: 0.9,
-    },
-    {
-      url: `${normalizedBase}/stacks`,
-      lastModified: latestUpdate,
-      changeFrequency: "daily",
-      priority: 0.8,
     },
   ];
 }

@@ -6,6 +6,11 @@
   "module": "dist/index.js",
   "types": "src/index.ts",
   "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./manifest": "./src/manifest.ts",
+    "./db": "./src/db/index.ts"
+  },
   "scripts": {
     "build": "tsup",
     "test": "node ../../scripts/run-vitest.mjs run",

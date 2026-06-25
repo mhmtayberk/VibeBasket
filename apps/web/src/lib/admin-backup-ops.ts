@@ -9,6 +9,10 @@ async function loadStorageRuntime() {
   return import("@/lib/storage");
 }
 
+async function loadNodePath() {
+  return (await import("node:path")).default;
+}
+
 function resolveDatabaseFilePath(): string | null {
   const url = process.env.DATABASE_URL ?? "file:vibebasket.db";
 
@@ -29,11 +33,35 @@ export async function runBackupDatabase() {
       error: "Backups currently require a local SQLite file DATABASE_URL (file:...).",
     };
   }
-  const dbPath = resolvedDbPath;
+  const path = await loadNodePath();
+  const dbPath = path.resolve(resolvedDbPath);
 
   const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
   const key = `vibebasket-backup-${timestamp}.db`;
-  const result = await backend.createBackup(dbPath, key);
+  let result: { key: string; sizeBytes: number; location?: string };
+
+  if (backend.id === "local") {
+    const fs = await loadNodeFs();
+    const backupDir = path.resolve(
+      process.env.BACKUP_LOCAL_DIR ??
+        path.join(/* turbopackIgnore: true */ process.cwd(), "backups"),
+    );
+    await fs.promises.mkdir(backupDir, { recursive: true });
+    const safeKey = path.basename(key).replace(/[^a-zA-Z0-9._-]/g, "_");
+    const destPath = path.join(backupDir, safeKey);
+
+    try {
+      const { client } = await import("@vibebasket/core");
+      await client.execute(`VACUUM INTO '${destPath.replace(/'/g, "''")}'`);
+    } catch {
+      await fs.promises.copyFile(dbPath, destPath);
+    }
+
+    const stat = await fs.promises.stat(destPath);
+    result = { key: safeKey, sizeBytes: stat.size, location: destPath };
+  } else {
+    result = await backend.createBackup(dbPath, key);
+  }
 
   return {
     success: true as const,
@@ -45,6 +73,19 @@ export async function runBackupDatabase() {
       createdAt: new Date().toISOString(),
     },
   };
+}
+
+async function maybeRunScheduledBackup() {
+  const { isScheduleDue, markScheduleComplete } = await loadStorageRuntime();
+
+  if (!(await isScheduleDue())) {
+    return;
+  }
+
+  const result = await runBackupDatabase();
+  if (result.success) {
+    await markScheduleComplete();
+  }
 }
 
 export async function runListBackups() {
@@ -74,6 +115,7 @@ export async function runDeleteBackup(key: string) {
 
 export async function runRestoreBackup(key: string) {
   const fs = await loadNodeFs();
+  const path = await loadNodePath();
   const { createStorageBackend } = await loadStorageRuntime();
   const backend = await createStorageBackend();
   const resolvedDbPath = resolveDatabaseFilePath();
@@ -83,7 +125,7 @@ export async function runRestoreBackup(key: string) {
       error: "Restore currently requires a local SQLite file DATABASE_URL (file:...).",
     };
   }
-  const dbPath = resolvedDbPath;
+  const dbPath = path.resolve(resolvedDbPath);
   const entries = await backend.listBackups();
   const target = entries.find((entry) => entry.key === key);
 
@@ -116,6 +158,11 @@ export async function runRestoreBackup(key: string) {
 export async function runGetStorageConfig() {
   const { getAllBackendsStatus, getStorageBackendInfo, loadScheduleConfig, loadStorageConfig } =
     await loadStorageRuntime();
+  try {
+    await maybeRunScheduledBackup();
+  } catch (error) {
+    console.error("Scheduled backup check failed:", error);
+  }
   const config = await loadStorageConfig();
   const schedule = await loadScheduleConfig();
   const backends: BackendStatus[] = await getAllBackendsStatus();

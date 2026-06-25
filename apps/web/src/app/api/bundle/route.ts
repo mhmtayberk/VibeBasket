@@ -1,7 +1,8 @@
 import { auth } from "@/auth";
+import { resolvePublicBaseUrl } from "@/lib/public-url";
 import { checkRateLimit, getClientAddress } from "@/lib/rate-limit";
 import { applySecurityHeaders, createTooManyRequestsResponse } from "@/lib/security-headers";
-import { isSupportedTargetId } from "@/lib/targets";
+import { getSharedTargetScopes, isSupportedTargetId } from "@/lib/targets";
 import {
   type Bundle,
   BundleSchema,
@@ -118,6 +119,21 @@ export async function POST(req: Request) {
       );
     }
 
+    const supportedTargets = targets.filter(isSupportedTargetId);
+    const sharedScopes = getSharedTargetScopes(supportedTargets);
+    if (!sharedScopes.includes(scope)) {
+      const scopeSummary =
+        sharedScopes.length > 0 ? sharedScopes.join(", ") : "none shared across selected targets";
+      return applySecurityHeaders(
+        NextResponse.json(
+          {
+            error: `Requested scope "${scope}" is incompatible with the selected targets (shared scopes: ${scopeSummary})`,
+          },
+          { status: 400 },
+        ),
+      );
+    }
+
     // Fetch items from DB
     const selectedItems = await db
       .select()
@@ -163,7 +179,7 @@ export async function POST(req: Request) {
       expiresAt,
     });
 
-    const origin = process.env.NEXTAUTH_URL?.trim() || new URL(req.url).origin;
+    const origin = resolvePublicBaseUrl({ requestUrl: req.url });
     return applySecurityHeaders(NextResponse.json({ id, url: `${origin}/api/bundle/${id}` }));
   } catch (error) {
     console.error("Failed to create bundle:", error);

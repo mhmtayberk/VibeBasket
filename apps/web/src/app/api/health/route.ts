@@ -1,6 +1,6 @@
 import { checkRateLimit, getClientAddress } from "@/lib/rate-limit";
 import { applySecurityHeaders } from "@/lib/security-headers";
-import { db, users } from "@vibebasket/core";
+import { db, ensureDatabaseSchema, users } from "@vibebasket/core";
 import type { NextRequest } from "next/server";
 
 const HEALTH_RATE_LIMIT = 120;
@@ -17,6 +17,7 @@ async function checkDatabase(): Promise<boolean> {
   }
 
   try {
+    await ensureDatabaseSchema();
     await db.select().from(users).limit(1);
     lastDbStatus = true;
   } catch (error) {

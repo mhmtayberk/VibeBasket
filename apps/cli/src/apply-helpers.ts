@@ -1,4 +1,5 @@
-import type { Bundle } from "@vibebasket/core";
+import type { IdeAdapter } from "@vibebasket/adapters";
+import type { Bundle, IdeId, McpEntry } from "../../../packages/core/src/manifest.js";
 
 export interface FlattenedBundleContent {
   mcps: Bundle["mcps"];
@@ -13,6 +14,19 @@ export interface AdapterLike {
   applySkills?: unknown;
   applyRules?: unknown;
   applyFiles?: unknown;
+}
+
+export interface McpSkipReason {
+  id: string;
+  displayName: string;
+  reason: string;
+}
+
+export interface TargetMcpApplyPlan {
+  supported: McpEntry[];
+  skipped: McpSkipReason[];
+  requiredSecrets: string[];
+  credentialNotice: string | null;
 }
 
 function dedupeByKey<T>(items: T[], getKey: (item: T) => string): T[] {
@@ -67,9 +81,85 @@ export function getUnsupportedTargetContent(
   if (flattened.rules.length > 0 && !adapter.applyRules) {
     unsupported.push("rules");
   }
-  if (flattened.files.length > 0 && !adapter.applyFiles) {
-    unsupported.push("workflow files");
-  }
 
   return unsupported;
+}
+
+const SECRET_PLACEHOLDER_PATTERN = /\$\{secret:([A-Z0-9_:-]+)\}/gi;
+
+export function extractSecretNames(value: string): string[] {
+  const matches = Array.from(value.matchAll(SECRET_PLACEHOLDER_PATTERN), (match) => match[1] ?? "");
+  return matches.filter(Boolean);
+}
+
+export function collectRequiredSecretsForMcp(mcp: McpEntry): string[] {
+  return Array.from(
+    new Set([
+      ...mcp.requiredSecrets,
+      ...Object.values(mcp.env).flatMap(extractSecretNames),
+      ...Object.values(mcp.headers ?? {}).flatMap(extractSecretNames),
+    ]),
+  );
+}
+
+function hasRemoteSecretHeaders(mcp: McpEntry) {
+  return (
+    mcp.runtime === "remote" &&
+    Object.values(mcp.headers ?? {}).some((value) => extractSecretNames(value).length > 0)
+  );
+}
+
+function resolveCredentialNotice(targetId: IdeId, mcps: McpEntry[]): string | null {
+  const requiresSecrets = mcps.some((mcp) => collectRequiredSecretsForMcp(mcp).length > 0);
+  if (!requiresSecrets) {
+    return null;
+  }
+
+  if (targetId === "codex" && mcps.some(hasRemoteSecretHeaders)) {
+    return "Credential note: Codex preserves supported remote header secrets as environment-key references when possible; other secret values are still resolved locally on this machine.";
+  }
+
+  return "Credential note: secret values are resolved locally on this machine and then written into the target's local config surface when the IDE requires inline env/header values.";
+}
+
+export function buildTargetMcpApplyPlan(
+  targetId: IdeId,
+  adapter: IdeAdapter,
+  mcps: McpEntry[],
+): TargetMcpApplyPlan {
+  if (!adapter.supportsMcp) {
+    return {
+      supported: [],
+      skipped: mcps.map((mcp) => ({
+        id: mcp.id,
+        displayName: mcp.displayName,
+        reason: "target does not support MCP configuration",
+      })),
+      requiredSecrets: [],
+      credentialNotice: null,
+    };
+  }
+
+  const supported: McpEntry[] = [];
+  const skipped: McpSkipReason[] = [];
+
+  for (const mcp of mcps) {
+    if (mcp.runtime === "remote" && !mcp.url) {
+      skipped.push({
+        id: mcp.id,
+        displayName: mcp.displayName,
+        reason: "remote MCP entry is missing a URL",
+      });
+      continue;
+    }
+
+    supported.push(mcp);
+  }
+
+  return {
+    supported,
+    skipped,
+    requiredSecrets: Array.from(new Set(supported.flatMap(collectRequiredSecretsForMcp))),
+    credentialNotice: resolveCredentialNotice(targetId, supported),
+  };
 }

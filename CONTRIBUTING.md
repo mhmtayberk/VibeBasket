@@ -9,7 +9,7 @@
 ## Setup
 
 ```bash
-git clone https://github.com/vibebasket/vibebasket.git
+git clone https://github.com/mhmtayberk/VibeBasket.git
 cd vibebasket
 cp .env.example .env
 pnpm install
@@ -32,10 +32,10 @@ packages/
 ```bash
 pnpm --filter web dev          # Start web app
 pnpm --filter web test         # Run web tests
-pnpm --filter @vibebasket/cli dev
-pnpm --filter @vibebasket/cli test
+pnpm --filter vibebasket dev
+pnpm --filter vibebasket test
 pnpm --filter @vibebasket/adapters test
-pnpm --filter web typecheck    # TypeScript check for the web app
+pnpm typecheck                 # Full workspace TypeScript check
 pnpm --filter web build        # Production build
 pnpm verify:ci                 # Main release gate used in CI
 ```
@@ -43,13 +43,13 @@ pnpm verify:ci                 # Main release gate used in CI
 ## Testing
 
 - **Unit/Integration**: Vitest across web, CLI, and shared packages.
-- **E2E**: Playwright in `apps/web/e2e/`. Requires a production build first.
+- **E2E**: Playwright in `apps/web/e2e/`. Use `pnpm --filter web test:e2e:smoke` for the fast CI-aligned smoke path, or `pnpm --filter web test:e2e` for the broader suite.
 - **Property-based**: fast-check for adapter idempotency in `packages/adapters`.
 
 Important note:
 
-- The current CI gate is `pnpm verify:ci`, not a monorepo-wide `tsc -b`.
-- There is still strictness and test-fixture cleanup to finish in `packages/adapters`, so avoid claiming that the whole workspace passes a single global typecheck gate unless you verified it explicitly.
+- `pnpm verify:ci` is the main CI gate and already includes `pnpm typecheck`.
+- If you are touching deployment, catalog sync, or self-hosting surfaces, also run the relevant focused checks such as `pnpm catalog:sync:strict` before shipping.
 
 ## Adding an IDE Adapter
 
@@ -68,7 +68,7 @@ Important note:
 - Tailwind for styling. No CSS modules.
 - Server Components by default. `"use client"` only when interactivity is required.
 - Drizzle ORM for database access.
-- Run `pnpm --filter web typecheck` before pushing.
+- Run `pnpm verify:ci` before pushing.
 
 ## Pull Requests
 

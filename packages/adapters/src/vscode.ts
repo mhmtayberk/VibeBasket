@@ -1,7 +1,8 @@
 import os from "node:os";
 import path from "node:path";
-import type { Scope } from "@vibebasket/core";
+import type { Scope } from "../../core/src/manifest.js";
 import { BaseAdapter } from "./base-adapter";
+import { getVsCodeGlobalStorageDir } from "./platform-paths";
 
 export class VSCodeAdapter extends BaseAdapter {
   readonly id = "vscode" as const;
@@ -18,38 +19,18 @@ export class VSCodeAdapter extends BaseAdapter {
     const platform = os.platform();
     if (platform === "darwin") {
       return path.join(
-        os.homedir(),
-        "Library",
-        "Application Support",
-        "Code",
-        "User",
-        "globalStorage",
-        "saoudrizwan.claude-dev",
-        "settings",
+        getVsCodeGlobalStorageDir("saoudrizwan.claude-dev"),
         "cline_mcp_settings.json",
       );
     }
     if (platform === "win32") {
       return path.join(
-        os.homedir(),
-        "AppData",
-        "Roaming",
-        "Code",
-        "User",
-        "globalStorage",
-        "saoudrizwan.claude-dev",
-        "settings",
+        getVsCodeGlobalStorageDir("saoudrizwan.claude-dev"),
         "cline_mcp_settings.json",
       );
     }
     return path.join(
-      os.homedir(),
-      ".config",
-      "Code",
-      "User",
-      "globalStorage",
-      "saoudrizwan.claude-dev",
-      "settings",
+      getVsCodeGlobalStorageDir("saoudrizwan.claude-dev"),
       "cline_mcp_settings.json",
     );
   }

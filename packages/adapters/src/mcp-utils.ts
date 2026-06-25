@@ -1,6 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import type { McpEntry } from "@vibebasket/core";
+import type { McpEntry } from "../../core/src/manifest.js";
 
 export interface BasicMcpServerConfig {
   command?: string;

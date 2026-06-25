@@ -19,14 +19,15 @@ import { ChevronDown, ChevronLeft, ChevronRight, Search, SlidersHorizontal, X } 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ItemCard } from "./ItemCard";
 
-type TabKey = "mcps" | "skills" | "rules";
+type TabKey = "mcps" | "skills" | "rules" | "workflows";
 
 const REQUEST_TIMEOUT_MS = 8000;
 const PAGE_SIZE = 24;
-const TAB_TO_TYPE: Record<TabKey, "mcp" | "skill" | "rule"> = {
+const TAB_TO_TYPE: Record<TabKey, "mcp" | "skill" | "rule" | "workflow"> = {
   mcps: "mcp",
   skills: "skill",
   rules: "rule",
+  workflows: "workflow",
 };
 
 export interface CatalogResponse {
@@ -243,6 +244,11 @@ export function CatalogGrid({
       label: "Rules",
       eyebrow: "Portable working conventions",
       empty: "No rules match this search yet.",
+    },
+    workflows: {
+      label: "Workflow Packs",
+      eyebrow: "Reusable setup bundles and conventions",
+      empty: "No workflow packs match this search yet.",
     },
   };
 

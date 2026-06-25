@@ -1,7 +1,5 @@
 import { expect, test } from "@playwright/test";
 
-const BASE_URL = "http://localhost:3000";
-
 test.describe("Security — Injection Attacks", () => {
   test("SQL injection via search query is harmless", async ({ page }) => {
     const payloads = [
@@ -11,11 +9,11 @@ test.describe("Security — Injection Attacks", () => {
       `' UNION SELECT password FROM users --`,
     ];
     for (const p of payloads) {
-      const res = await page.goto(`${BASE_URL}/api/catalog?q=${encodeURIComponent(p)}&limit=1`);
+      const res = await page.goto(`/api/catalog?q=${encodeURIComponent(p)}&limit=1`);
       expect(res?.status()).toBe(200);
       // After the query, the catalog should still work
     }
-    const sanity = await page.goto(`${BASE_URL}/api/catalog?limit=1`);
+    const sanity = await page.goto("/api/catalog?limit=1");
     expect(sanity?.status()).toBe(200);
   });
 
@@ -28,7 +26,7 @@ test.describe("Security — Injection Attacks", () => {
       "<body onload=alert(1)>",
     ];
     for (const p of xssPayloads) {
-      const res = await page.goto(`${BASE_URL}/api/catalog?q=${encodeURIComponent(p)}&limit=5`);
+      const res = await page.goto(`/api/catalog?q=${encodeURIComponent(p)}&limit=5`);
       expect(res?.status()).toBe(200);
       const body = await res?.json();
       const json = JSON.stringify(body);
@@ -41,20 +39,20 @@ test.describe("Security — Injection Attacks", () => {
   test("path traversal via type param is harmless", async ({ page }) => {
     const payloads = ["../../etc/passwd", "..%2F..%2F..%2Fetc%2Fpasswd", "....//....//etc/passwd"];
     for (const p of payloads) {
-      const res = await page.goto(`${BASE_URL}/api/catalog?type=${encodeURIComponent(p)}&limit=1`);
+      const res = await page.goto(`/api/catalog?type=${encodeURIComponent(p)}&limit=1`);
       // Should return 200 without error (ignores invalid type)
       expect(res?.status()).toBe(200);
     }
   });
 
   test("null bytes in query params are handled", async ({ page }) => {
-    const res = await page.goto(`${BASE_URL}/api/catalog?q=%00&limit=1`);
+    const res = await page.goto("/api/catalog?q=%00&limit=1");
     expect(res?.status()).toBe(200);
   });
 
   test("extremely long URL params do not crash", async ({ page }) => {
     const long = "a".repeat(5000);
-    const res = await page.goto(`${BASE_URL}/api/catalog?q=${long}&limit=1`);
+    const res = await page.goto(`/api/catalog?q=${long}&limit=1`);
     // Server should either handle or reject gracefully
     expect([200, 400, 413, 414]).toContain(res?.status());
   });
@@ -62,7 +60,7 @@ test.describe("Security — Injection Attacks", () => {
   test("Unicode homoglyph attacks are sanitized", async ({ page }) => {
     // Zero-width space, fullwidth chars
     const res = await page.goto(
-      `${BASE_URL}/api/catalog?q=${encodeURIComponent("\u200Badmin\u200B")}&limit=1`,
+      `/api/catalog?q=${encodeURIComponent("\u200Badmin\u200B")}&limit=1`,
     );
     expect(res?.status()).toBe(200);
   });
@@ -70,13 +68,13 @@ test.describe("Security — Injection Attacks", () => {
 
 test.describe("Security — Auth & Session", () => {
   test("unauthenticated admin access redirects", async ({ page }) => {
-    await page.goto(`${BASE_URL}/admin`);
-    await page.waitForURL(`${BASE_URL}/`);
+    await page.goto("/admin");
+    await page.waitForURL(/\/$/);
     await expect(page).toHaveTitle(/VibeBasket/);
   });
 
   test("cookies have SameSite=Strict or Lax", async ({ page }) => {
-    await page.goto(BASE_URL);
+    await page.goto("/");
     const cookies = await page.context().cookies();
     for (const cookie of cookies) {
       if (
@@ -92,7 +90,7 @@ test.describe("Security — Auth & Session", () => {
   });
 
   test("secure cookies have Secure flag in production", async ({ page }) => {
-    await page.goto(BASE_URL);
+    await page.goto("/");
     const cookies = await page.context().cookies();
     // In local dev, Secure may not be set. Just verify no cookie leaks sensitive data.
     for (const cookie of cookies) {
@@ -103,7 +101,7 @@ test.describe("Security — Auth & Session", () => {
 
 test.describe("Security — CSP & Headers", () => {
   test("CSP does not allow unsafe-inline scripts", async ({ page }) => {
-    const res = await page.goto(BASE_URL);
+    const res = await page.goto("/");
     const csp = res?.headers()["content-security-policy"] ?? "";
     if (csp) {
       // Should NOT contain 'unsafe-inline' without nonce/hash for scripts
@@ -112,7 +110,7 @@ test.describe("Security — CSP & Headers", () => {
   });
 
   test("CSP does not allow data: in default-src", async ({ page }) => {
-    const res = await page.goto(BASE_URL);
+    const res = await page.goto("/");
     const csp = res?.headers()["content-security-policy"] ?? "";
     if (csp.includes("default-src")) {
       expect(csp).not.toContain("default-src *");
@@ -120,13 +118,13 @@ test.describe("Security — CSP & Headers", () => {
   });
 
   test("referrer-policy is set", async ({ page }) => {
-    const res = await page.goto(BASE_URL);
+    const res = await page.goto("/");
     const rp = res?.headers()["referrer-policy"];
     expect(rp).toBeDefined();
   });
 
   test("frame-ancestors prevents clickjacking", async ({ page }) => {
-    const res = await page.goto(BASE_URL);
+    const res = await page.goto("/");
     const csp = res?.headers()["content-security-policy"] ?? "";
     const xfo = res?.headers()["x-frame-options"] ?? "";
     // At least one anti-clickjacking mechanism must be present
@@ -135,7 +133,7 @@ test.describe("Security — CSP & Headers", () => {
   });
 
   test("HSTS header present", async ({ page }) => {
-    const res = await page.goto(BASE_URL);
+    const res = await page.goto("/");
     const hsts = res?.headers()["strict-transport-security"];
     // HSTS may be absent in local dev — just verify header processing works
     expect(hsts !== undefined).toBe(true);
@@ -146,7 +144,7 @@ test.describe("Security — Rate Limiting Attack", () => {
   test("catalog burst within window should not 429 on first 60 requests", async ({ page }) => {
     let rateLimited = false;
     for (let i = 0; i < 60; i++) {
-      const res = await page.goto(`${BASE_URL}/api/catalog?limit=1`);
+      const res = await page.goto("/api/catalog?limit=1");
       if (res?.status() === 429) {
         rateLimited = true;
         break;
@@ -158,7 +156,7 @@ test.describe("Security — Rate Limiting Attack", () => {
 
   test("health endpoint does not rate-limit quickly", async ({ page }) => {
     for (let i = 0; i < 30; i++) {
-      const res = await page.goto(`${BASE_URL}/api/health`);
+      const res = await page.goto("/api/health");
       expect(res?.status()).toBe(200);
     }
   });
@@ -166,7 +164,7 @@ test.describe("Security — Rate Limiting Attack", () => {
   test("rate limit returns Retry-After header on 429", async ({ page }) => {
     // Try many rapid requests to trigger rate limit
     const promises = Array.from({ length: 50 }, () =>
-      page.goto(`${BASE_URL}/api/catalog?limit=1`).then((r) => r?.status()),
+      page.goto("/api/catalog?limit=1").then((r) => r?.status()),
     );
     const statuses = await Promise.all(promises);
     // Not asserting 429 — just verifying the system handles concurrency
@@ -176,14 +174,14 @@ test.describe("Security — Rate Limiting Attack", () => {
 
 test.describe("Security — Backup Storage", () => {
   test("backup storage endpoints are not publicly accessible", async ({ page }) => {
-    const res = await page.goto(`${BASE_URL}/api/admin/storage`);
+    const res = await page.goto("/api/admin/storage");
     expect([401, 403, 404]).toContain(res?.status());
   });
 });
 
 test.describe("Security — Error Message Leakage", () => {
   test("stack traces are NOT leaked in API errors", async ({ page }) => {
-    const res = await page.goto(`${BASE_URL}/api/bundle/invalid-id-12345`);
+    const res = await page.goto("/api/bundle/invalid-id-12345");
     const body = (await res?.text()) ?? "";
     const lowered = body.toLowerCase();
     expect(lowered).not.toContain("at ");

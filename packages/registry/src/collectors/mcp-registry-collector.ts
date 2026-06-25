@@ -13,6 +13,8 @@ import {
 } from "../utils";
 
 export const MCP_REGISTRY_BASE_URL = "https://registry.modelcontextprotocol.io/v0.1";
+const REGISTRY_SYNC_USER_AGENT =
+  "VibeBasket Registry Sync/0.1 (+https://github.com/vibebasket/vibebasket)";
 
 export class OfficialMcpRegistryCollector implements SourceCollector {
   readonly name = "official-mcp-registry";
@@ -40,7 +42,7 @@ export class OfficialMcpRegistryCollector implements SourceCollector {
         {
           headers: {
             accept: "application/json",
-            "user-agent": "VibeBasket Registry Sync/0.1 (+https://vibebasket.dev)",
+            "user-agent": REGISTRY_SYNC_USER_AGENT,
           },
         },
         "MCP registry request",

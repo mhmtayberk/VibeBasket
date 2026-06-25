@@ -26,7 +26,7 @@ import {
   ZedAdapter,
 } from "@vibebasket/adapters";
 import type { IdeAdapter } from "@vibebasket/adapters";
-import type { IdeId } from "@vibebasket/core";
+import type { IdeId } from "../../../packages/core/src/manifest.js";
 import chalk from "chalk";
 import {
   extractConfiguredMcpIds,

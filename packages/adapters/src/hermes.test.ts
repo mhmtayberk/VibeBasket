@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import type { McpEntry, SkillEntry } from "@vibebasket/core";
+import type { McpEntry, SkillEntry } from "../../core/src/manifest.js";
 import { describe, expect, it } from "vitest";
 import { HermesAdapter } from "./hermes.js";
 import type { McpConfigResult } from "./mcp-utils";
