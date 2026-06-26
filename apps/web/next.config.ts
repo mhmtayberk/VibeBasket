@@ -6,6 +6,22 @@ const nextConfig: NextConfig = {
   // Required for the Docker standalone image (generates apps/web/.next/standalone/server.js)
   output: process.env.NODE_ENV === "production" ? "standalone" : undefined,
   allowedDevOrigins: getAllowedDevOrigins(),
+  serverExternalPackages: ["@libsql/client", "libsql"],
+  outputFileTracingIncludes: {
+    "/*": [
+      "../../node_modules/.pnpm/@libsql+client@*/node_modules/**/*",
+      "../../node_modules/.pnpm/@libsql+core@*/node_modules/**/*",
+      "../../node_modules/.pnpm/libsql@*/node_modules/**/*",
+    ],
+  },
+  webpack(config, { isServer }) {
+    if (isServer) {
+      config.externals = config.externals ?? [];
+      config.externals.push("libsql", "@libsql/client", /^@libsql\/.+$/);
+    }
+
+    return config;
+  },
   async headers() {
     return [
       {

@@ -3,10 +3,7 @@
   "version": "0.9.3",
   "description": "Local installer and inspection CLI for VibeBasket bundles",
   "main": "./dist/index.js",
-  "files": [
-    "dist",
-    "README.md"
-  ],
+  "files": ["dist", "README.md"],
   "bin": {
     "vibebasket": "dist/index.js"
   },
@@ -23,17 +20,12 @@
     "access": "public"
   },
   "scripts": {
-    "dev": "tsup src/index.ts --watch",
-    "build": "tsup",
-    "start": "node dist/index.js",
-    "test": "node ../../scripts/run-vitest.mjs run --passWithNoTests"
+    "dev": "\"$npm_node_execpath\" ../../scripts/run-tsup.mjs src/index.ts --watch",
+    "build": "\"$npm_node_execpath\" ../../scripts/run-tsup.mjs",
+    "start": "\"$npm_node_execpath\" dist/index.js",
+    "test": "\"$npm_node_execpath\" ../../scripts/run-vitest.mjs run --passWithNoTests"
   },
-  "keywords": [
-    "vibebasket",
-    "mcp",
-    "ai-ide",
-    "cli"
-  ],
+  "keywords": ["vibebasket", "mcp", "ai-ide", "cli"],
   "license": "MIT",
   "dependencies": {
     "@inquirer/prompts": "^8.4.2",

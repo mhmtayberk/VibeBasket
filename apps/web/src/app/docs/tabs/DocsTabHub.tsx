@@ -1,4 +1,4 @@
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Package2 } from "lucide-react";
 import Link from "next/link";
 
 interface DocsTabHubProps {
@@ -34,6 +34,26 @@ export function DocsTabHub({ searchQuery, guides }: DocsTabHubProps) {
           Getting Started for the shortest path, Self Hosting for deployment expectations, and
           Security when you are preparing a public launch.
         </p>
+        <div className="mt-8 flex flex-wrap gap-3">
+          <Link
+            href="https://github.com/mhmtayberk/VibeBasket"
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex h-11 items-center gap-2 border border-[#3e4944] bg-[#181d1a] px-4 font-mono text-[11px] uppercase tracking-[0.18em] text-[#bdc9c2] transition-colors hover:border-[#a0fdda]/50 hover:text-[#f4fbf7]"
+          >
+            <ArrowUpRight className="h-3.5 w-3.5 text-[#a0fdda]" />
+            GitHub Repository
+          </Link>
+          <Link
+            href="https://www.npmjs.com/package/vibebasket"
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex h-11 items-center gap-2 border border-[#3e4944] bg-[#181d1a] px-4 font-mono text-[11px] uppercase tracking-[0.18em] text-[#bdc9c2] transition-colors hover:border-[#a0fdda]/50 hover:text-[#f4fbf7]"
+          >
+            <Package2 className="h-3.5 w-3.5 text-[#a0fdda]" />
+            npm Package
+          </Link>
+        </div>
       </div>
 
       {guides.length === 0 ? (

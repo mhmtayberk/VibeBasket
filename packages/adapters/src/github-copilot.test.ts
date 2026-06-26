@@ -1,8 +1,8 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import type { RuleEntry, SkillEntry } from "../../core/src/manifest.js";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import type { RuleEntry, SkillEntry } from "../../core/src/manifest.js";
 import { GitHubCopilotAdapter } from "./github-copilot.js";
 
 describe("GitHubCopilotAdapter", () => {

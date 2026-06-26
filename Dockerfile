@@ -10,7 +10,7 @@ ARG PNPM_VERSION=11.7.0
 RUN corepack enable && corepack prepare pnpm@${PNPM_VERSION} --activate
 
 # Copy workspace manifests only (maximise cache hit rate)
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc ./
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 COPY apps/web/package.json                         apps/web/package.json
 COPY packages/core/package.json                    packages/core/package.json
 COPY packages/registry/package.json               packages/registry/package.json
@@ -56,6 +56,7 @@ RUN addgroup --system --gid 1001 nodejs \
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static     ./apps/web/.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/public           ./apps/web/public
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules              ./node_modules
 
 # Copy catalog-sync script (needed for first-run seeding)
 COPY --from=builder --chown=nextjs:nodejs /app/scripts ./scripts
@@ -65,6 +66,10 @@ COPY --from=builder --chown=nextjs:nodejs /app/packages/registry/dist ./packages
 # Data directory for the SQLite database (mounted as a Docker volume)
 RUN mkdir -p /data && chown nextjs:nodejs /data
 
+# Next standalone runtime still needs these externalized packages present at runtime.
+# The deps stage already installed Linux-native copies, so we only need to preserve ownership here.
+RUN chown -R nextjs:nodejs /app/node_modules
+
 USER nextjs
 
 EXPOSE 3000
@@ -72,6 +77,7 @@ EXPOSE 3000
 ENV NODE_ENV=production
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
+ENV NODE_PATH=/app/node_modules
 
 # Health check using the built-in /api/health endpoint
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 --start-period=5s \

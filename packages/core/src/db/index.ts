@@ -1,12 +1,14 @@
 import fs from "node:fs";
+import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { createClient } from "@libsql/client";
 import { and, eq, like, or } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/libsql";
 import * as schema from "./schema";
 
 const MODULE_DIR = path.dirname(fileURLToPath(import.meta.url));
+const require = createRequire(import.meta.url);
+const { createClient } = require("@libsql/client") as typeof import("@libsql/client");
 
 const CATALOG_ITEM_COLUMNS = [
   "description",

@@ -54,6 +54,19 @@ describe("/api/admin/storage", () => {
     });
   });
 
+  it("rejects GET when admin role guard fails", async () => {
+    requireAdminRoleMock.mockRejectedValueOnce(new Error("forbidden"));
+    const { GET } = await import("./route");
+
+    const response = await GET();
+
+    expect(response.status).toBe(403);
+    await expect(response.json()).resolves.toEqual({
+      success: false,
+      error: "Forbidden",
+    });
+  });
+
   it("applies PATCH when mutation guard passes", async () => {
     requireAdminMutationMock.mockResolvedValueOnce({ id: "admin" });
     runSaveScheduleMock.mockResolvedValueOnce({ success: true });

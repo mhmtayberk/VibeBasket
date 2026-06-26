@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import type { SkillEntry } from "../../core/src/manifest.js";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import type { SkillEntry } from "../../core/src/manifest.js";
 import { GeminiCliAdapter } from "./gemini-cli.js";
 
 describe("GeminiCliAdapter", () => {

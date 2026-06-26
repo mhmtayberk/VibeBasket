@@ -1,7 +1,7 @@
 import os from "node:os";
 import path from "node:path";
-import type { McpEntry } from "../../core/src/manifest.js";
 import { describe, expect, it } from "vitest";
+import type { McpEntry } from "../../core/src/manifest.js";
 import { AntigravityAdapter } from "./antigravity.js";
 import type { McpConfigResult } from "./mcp-utils";
 

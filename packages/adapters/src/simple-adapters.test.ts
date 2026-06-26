@@ -1,8 +1,8 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import type { McpEntry, SkillEntry } from "../../core/src/manifest.js";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import type { McpEntry, SkillEntry } from "../../core/src/manifest.js";
 import { ClaudeCodeAdapter } from "./claude-code.js";
 import { ClineCliAdapter } from "./cline-cli.js";
 import { DeepSeekTuiAdapter } from "./deepseek-tui.js";

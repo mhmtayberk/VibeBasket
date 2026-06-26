@@ -46,12 +46,12 @@ export function getClientAddress(request: Request) {
   const trustProxyEnv = process.env.TRUST_PROXY;
   const isTrustProxyEnabled = trustProxyEnv === "true" || trustProxyEnv === "1";
 
-  const cfIp = request.headers.get("cf-connecting-ip");
-  if (cfIp?.trim()) {
-    return cfIp.trim();
-  }
-
   if (isTrustProxyEnabled) {
+    const cfIp = request.headers.get("cf-connecting-ip")?.trim();
+    if (cfIp) {
+      return cfIp;
+    }
+
     const forwardedFor = firstHeaderValue(request.headers.get("x-forwarded-for"));
     if (forwardedFor) {
       return forwardedFor;
@@ -61,6 +61,11 @@ export function getClientAddress(request: Request) {
     if (realIp) {
       return realIp;
     }
+  }
+
+  const bestEffortCfIp = request.headers.get("cf-connecting-ip")?.trim();
+  if (bestEffortCfIp) {
+    return `best-effort:${bestEffortCfIp}`;
   }
 
   const bestEffortForwardedIp = firstHeaderValue(request.headers.get("x-forwarded-for"));

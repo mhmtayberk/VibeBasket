@@ -11,6 +11,9 @@
 .env
 .env.*
 !.env.example
+.npmrc
+.envrc
+.direnv/
 
 # Database files (provided at runtime via volume)
 *.db

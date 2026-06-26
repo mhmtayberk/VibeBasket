@@ -36,6 +36,8 @@ npx vibebasket apply https://vibebasket.dev/api/bundle/cj2k9x
 
 The CLI is also published on npm as [`vibebasket`](https://www.npmjs.com/package/vibebasket).
 
+For maintainers: keep npm publish credentials in your user-level `~/.npmrc`. The repository deliberately does not rely on a tracked project `.npmrc`.
+
 ## Where It Fits
 
 - Standardizing MCP-heavy setups across multiple AI IDEs and terminal tools
@@ -116,7 +118,8 @@ Catalog freshness note:
 - CSP and security headers enforced in production
 - Path sanitization on all file operations
 - 4 optional OAuth providers: GitHub, Google, Apple, Microsoft Entra ID
-- GitHub Actions CI, CodeQL scanning, and Dependabot update automation
+- GitHub Actions CI, CodeQL scanning, repo secret scanning, and Dependabot update automation
+- Explicit `NEXT_PUBLIC_*` allowlist enforcement so new public env vars require intentional review
 
 ### Admin
 - Catalog sync triggers, backup management (6 backends), storage config
@@ -142,8 +145,9 @@ Choose the path that matches what you are trying to do:
 
 ```bash
 git clone https://github.com/mhmtayberk/VibeBasket.git
-cd vibebasket
+cd VibeBasket
 cp .env.example .env
+# fill at least AUTH_SECRET and NEXTAUTH_URL before booting production mode
 docker compose up -d
 ```
 
@@ -159,7 +163,7 @@ Expected first-run behavior:
 
 ```bash
 git clone https://github.com/mhmtayberk/VibeBasket.git
-cd vibebasket
+cd VibeBasket
 cp .env.example .env
 pnpm install
 pnpm dev
@@ -178,6 +182,8 @@ Start here:
 - [SELF_HOSTING.md](SELF_HOSTING.md)
 - [docs/SETUP.md](docs/SETUP.md)
 - [docs/PRODUCTION_READINESS_CHECKLIST.md](docs/PRODUCTION_READINESS_CHECKLIST.md)
+
+For the first admin account on a self-hosted instance, start with [SELF_HOSTING.md#bootstrap-the-first-admin](SELF_HOSTING.md#bootstrap-the-first-admin).
 
 Operational notes:
 
@@ -220,6 +226,7 @@ npx vibebasket rollback
 | `AUTH_SECRET` | Yes | Session encryption secret. Generate: `openssl rand -base64 32` |
 | `NEXTAUTH_URL` | Yes | Public deployment URL for OAuth callbacks |
 | `AUTH_TRUST_HOST` | No | Set to `true` in production when running behind a trusted proxy or CDN |
+| `AUTH_<PROVIDER>_ENABLED` | No | Must be truthy (`true`, `1`, `yes`, `on`) for a provider to appear in the login UI |
 | `AUTH_GITHUB_ID/SECRET` | No | GitHub OAuth credentials |
 | `AUTH_GOOGLE_ID/SECRET` | No | Google OAuth credentials |
 | `AUTH_APPLE_ID/SECRET` | No | Apple Sign-In credentials |
@@ -233,6 +240,8 @@ npx vibebasket rollback
 | `TRUST_PROXY` | No | Set to `true` only when the app is actually behind a trusted reverse proxy; proxy IP headers are ignored otherwise |
 
 See [`.env.example`](.env.example) for the complete list.
+
+OAuth note: provider buttons appear only when the provider is both enabled and fully configured.
 
 ## Architecture
 
@@ -273,6 +282,12 @@ For more detail:
 - [SELF_HOSTING.md](SELF_HOSTING.md)
 
 ## Security
+
+Repository guardrails:
+
+- CI runs a repo-level secret scan with `gitleaks`.
+- Executable and config files are checked for `NEXT_PUBLIC_*` usage, and only reviewed allowlisted names are accepted.
+- npm publish credentials should stay in the user-level `~/.npmrc`, never in the repository.
 
 Report vulnerabilities via [GitHub Security Advisories](https://github.com/mhmtayberk/VibeBasket/security/advisories/new). See [SECURITY.md](SECURITY.md) for the full threat model.
 
