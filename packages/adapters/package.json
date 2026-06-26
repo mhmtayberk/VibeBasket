@@ -7,9 +7,9 @@
   "types": "src/index.ts",
   "type": "module",
   "scripts": {
-    "build": "tsup",
-    "test": "node ../../scripts/run-vitest.mjs run",
-    "typecheck": "pnpm exec tsc --noEmit -p tsconfig.typecheck.json"
+    "build": "\"$npm_node_execpath\" ../../scripts/run-tsup.mjs",
+    "test": "\"$npm_node_execpath\" ../../scripts/run-vitest.mjs run",
+    "typecheck": "\"$npm_node_execpath\" ../../node_modules/typescript/bin/tsc --noEmit -p tsconfig.typecheck.json"
   },
   "dependencies": {
     "@vibebasket/core": "workspace:*"

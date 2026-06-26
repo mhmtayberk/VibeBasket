@@ -1,5 +1,5 @@
-import type { Bundle } from "../../../packages/core/src/manifest.js";
 import { describe, expect, it } from "vitest";
+import type { Bundle } from "../../../packages/core/src/manifest.js";
 import { flattenBundleContent, getUnsupportedTargetContent } from "./apply-helpers.js";
 
 describe("apply helpers", () => {

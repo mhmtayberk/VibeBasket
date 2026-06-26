@@ -56,6 +56,8 @@ stitch_vibebasket_design_system_ui_specification/
 
 # Local npm auth / config
 .npmrc
+.envrc
+.direnv/
 
 # Local CLI workspace artifacts
 .vibebasket/

@@ -152,17 +152,17 @@ describe("Basket Store — Edge Cases", () => {
     expect(useBasketStore.getState().items).toHaveLength(1);
   });
 
-  it("supports all 4 item types", () => {
+  it("keeps visible basket items limited to selectable catalog content", () => {
     useBasketStore.getState().addItem(makeItem({ id: "t1", type: "mcp" }));
     useBasketStore.getState().addItem(makeItem({ id: "t2", type: "skill" }));
     useBasketStore.getState().addItem(makeItem({ id: "t3", type: "rule" }));
     useBasketStore.getState().addItem(makeItem({ id: "t4", type: "workflow" }));
 
-    expect(useBasketStore.getState().items).toHaveLength(4);
+    expect(useBasketStore.getState().items).toHaveLength(3);
     const types = useBasketStore
       .getState()
       .items.map((i) => i.type)
       .sort();
-    expect(types).toEqual(["mcp", "rule", "skill", "workflow"]);
+    expect(types).toEqual(["mcp", "rule", "skill"]);
   });
 });

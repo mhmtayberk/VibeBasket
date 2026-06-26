@@ -222,7 +222,7 @@ export function resolveSkillVerificationTargets(
       const baseDir =
         scope === "project" && projectRoot
           ? path.join(projectRoot, ".opencode", "skills")
-          : path.join(home, ".config", "opencode", "skills");
+          : path.join(getXdgConfigHome(), "opencode", "skills");
       return skills.map((skill) => ({
         path: path.join(baseDir, skill.id, "SKILL.md"),
         kind: "file",
@@ -334,7 +334,7 @@ export function resolveRuleVerificationTargets(
           path:
             scope === "project" && projectRoot
               ? path.join(projectRoot, "AGENTS.md")
-              : path.join(home, ".config", "opencode", "AGENTS.md"),
+              : path.join(getXdgConfigHome(), "opencode", "AGENTS.md"),
           kind: "marker-file",
           markerIds: rules.map((rule) => rule.id),
         },
@@ -527,7 +527,7 @@ export function resolveSkillInventoryTargets(
           path:
             scope === "project" && projectRoot
               ? path.join(projectRoot, ".opencode", "skills")
-              : path.join(home, ".config", "opencode", "skills"),
+              : path.join(getXdgConfigHome(), "opencode", "skills"),
           kind: "directory",
         },
       ];
@@ -615,7 +615,7 @@ export function resolveRuleInventoryTargets(
           path:
             scope === "project" && projectRoot
               ? path.join(projectRoot, "AGENTS.md")
-              : path.join(home, ".config", "opencode", "AGENTS.md"),
+              : path.join(getXdgConfigHome(), "opencode", "AGENTS.md"),
           kind: "marker-file",
         },
       ];

@@ -58,5 +58,7 @@ Older releases are best effort unless stated otherwise.
 ## Security Automation
 
 - GitHub Actions CI verifies the main build and test surface
+- GitHub Actions CI runs repository secret scanning with `gitleaks`
+- new `NEXT_PUBLIC_*` variables are blocked unless they are explicitly allowlisted and reviewed
 - CodeQL is enabled for JavaScript and TypeScript analysis
 - Dependabot is configured for npm dependencies and GitHub Actions updates

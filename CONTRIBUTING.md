@@ -10,7 +10,7 @@
 
 ```bash
 git clone https://github.com/mhmtayberk/VibeBasket.git
-cd vibebasket
+cd VibeBasket
 cp .env.example .env
 pnpm install
 ```

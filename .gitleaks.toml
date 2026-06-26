@@ -1,0 +1,23 @@
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Documented dummy secrets and test fixtures"
+paths = [
+  '''(^|/)\.env\.example$''',
+  '''(^|/)\.github/workflows/ci\.yml$''',
+  '''(^|/)apps/web/playwright\.config\.ts$''',
+  '''(^|/)docs/.*$''',
+  '''(^|/)README\.md$''',
+  '''(^|/)apps/cli/README\.md$''',
+  '''(^|/).+\.test\.(ts|tsx|js|mjs|cjs)$''',
+]
+regexes = [
+  '''\$\{secret:[A-Z0-9_:-]+\}''',
+  '''replace-with-a-long-random-secret''',
+  '''dummy-secret''',
+  '''secret123''',
+  '''vibebasket-ci-secret''',
+  '''vibebasket-dev-only-secret-change-me''',
+  '''(client|github|google|apple|ms)-secret''',
+]

@@ -1,10 +1,12 @@
 import fs from "node:fs";
+import { createRequire } from "node:module";
 import path from "node:path";
 import { password } from "@inquirer/prompts";
 import chalk from "chalk";
 import dotenv from "dotenv";
 
 const KEYCHAIN_SERVICE = "vibebasket";
+const require = createRequire(import.meta.url);
 
 type KeytarModule = {
   getPassword(service: string, account: string): Promise<string | null>;
@@ -16,9 +18,8 @@ async function loadKeytar(): Promise<KeytarModule | null> {
   if (!keytarModulePromise) {
     keytarModulePromise = Promise.resolve().then(() => {
       try {
-        const runtimeRequire = Function("return require")() as NodeRequire;
-        const mod = runtimeRequire("keytar") as KeytarModule | { default?: KeytarModule };
-        return "default" in mod ? mod.default ?? null : mod;
+        const mod = require("keytar") as KeytarModule | { default?: KeytarModule };
+        return "default" in mod ? (mod.default ?? null) : mod;
       } catch {
         return null;
       }

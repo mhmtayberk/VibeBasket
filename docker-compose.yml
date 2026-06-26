@@ -24,7 +24,7 @@ services:
       AUTH_SECRET: "${AUTH_SECRET}"
       # Public URL of your instance (used for OAuth redirects)
       NEXTAUTH_URL: "${NEXTAUTH_URL}"
-      AUTH_TRUST_HOST: "${AUTH_TRUST_HOST:-true}"
+      AUTH_TRUST_HOST: "${AUTH_TRUST_HOST:-false}"
       # ── Optional: GitHub OAuth login ────────────────────────────────────────
       AUTH_GITHUB_ENABLED: "${AUTH_GITHUB_ENABLED:-false}"
       AUTH_GITHUB_ID: "${AUTH_GITHUB_ID:-}"
@@ -42,7 +42,7 @@ services:
       AUTH_MICROSOFT_ENTRA_ID_ID: "${AUTH_MICROSOFT_ENTRA_ID_ID:-}"
       AUTH_MICROSOFT_ENTRA_ID_SECRET: "${AUTH_MICROSOFT_ENTRA_ID_SECRET:-}"
       # ── Optional: Admin dashboard access ────────────────────────────────────
-      # Comma-separated list of GitHub account emails granted /admin access
+      # Comma-separated list of verified OAuth account emails granted /admin access
       ADMIN_OAUTH_EMAILS: "${ADMIN_OAUTH_EMAILS:-}"
       # ── Optional: Reverse proxy support ─────────────────────────────────────
       # Set to "true" when behind Cloudflare, Nginx, Caddy, etc.

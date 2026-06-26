@@ -1,3 +1,8 @@
+nodeLinker: hoisted
+shamefullyHoist: true
+verifyDepsBeforeRun: warn
+enableGlobalVirtualStore: false
+
 packages:
   - "apps/*"
   - "packages/*"

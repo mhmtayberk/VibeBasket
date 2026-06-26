@@ -1,8 +1,8 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import type { McpEntry, RuleEntry, SkillEntry } from "../../core/src/manifest.js";
 import { describe, expect, it } from "vitest";
+import type { McpEntry, RuleEntry, SkillEntry } from "../../core/src/manifest.js";
 import { RooCodeAdapter } from "./roocode.js";
 
 describe("RooCodeAdapter", () => {

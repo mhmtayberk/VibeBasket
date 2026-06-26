@@ -14,10 +14,38 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  guardrails:
+    name: Guardrails
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Enforce reviewed NEXT_PUBLIC usage
+        run: node scripts/check-public-env.mjs
+
+      - name: Secret scan (gitleaks)
+        run: >
+          docker run --rm
+          -v "$PWD:/repo"
+          -w /repo
+          ghcr.io/gitleaks/gitleaks:v8.24.2
+          detect --source . --config .gitleaks.toml --no-git --redact
+
   verify:
     name: Verify
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    needs: guardrails
     env:
       CI: true
 
@@ -43,6 +71,37 @@ jobs:
 
       - name: Verify monorepo
         run: pnpm verify:ci
+
+  packaging:
+    name: Packaging Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs: verify
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Validate Docker Compose
+        run: docker compose config > /dev/null
+
+      - name: Build Docker image
+        run: docker build -f Dockerfile .
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+
+      - name: Lint Helm chart
+        run: helm lint charts/vibebasket
+
+      - name: Render Helm chart
+        run: >
+          helm template vibebasket ./charts/vibebasket
+          --set env.NEXTAUTH_URL=https://example.com
+          --set secretEnv.AUTH_SECRET=dummy-secret
+          > /dev/null
 
   e2e-smoke:
     name: E2E Smoke
