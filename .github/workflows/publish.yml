@@ -1,0 +1,74 @@
+name: Publish CLI
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: "Actually publish to npm"
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: publish-cli-${{ github.event.release.tag_name || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish vibebasket
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CI: true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 11.7.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate release tag matches CLI version
+        if: github.event_name == 'release'
+        run: |
+          package_version="$(node -p "require('./apps/cli/package.json').version")"
+          release_tag="${GITHUB_REF_NAME#v}"
+
+          if [ "$package_version" != "$release_tag" ]; then
+            echo "Release tag $release_tag does not match apps/cli/package.json version $package_version"
+            exit 1
+          fi
+
+      - name: Test CLI package
+        run: pnpm --filter vibebasket test
+
+      - name: Build CLI package
+        run: pnpm --filter vibebasket build
+
+      - name: Validate publish tarball
+        run: pnpm --filter vibebasket pack --dry-run
+
+      - name: Publish to npm with provenance
+        if: github.event_name == 'release' || inputs.publish == true
+        working-directory: apps/cli
+        run: npm publish --provenance --access public

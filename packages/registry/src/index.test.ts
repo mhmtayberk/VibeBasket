@@ -4,6 +4,7 @@ import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { RegistrySyncService } from "./index";
 import type { McpEntry } from "./schemas";
+import { stripHtml } from "./utils";
 
 const tempFiles: string[] = [];
 
@@ -24,6 +25,11 @@ async function createVerifiedCatalog(contents: string) {
 }
 
 describe("RegistrySyncService", () => {
+  it("strips HTML without double-unescaping ampersand-prefixed entities", () => {
+    expect(stripHtml("&amp;quot;")).toBe("&quot;");
+    expect(stripHtml("<p>Hello &amp; welcome</p>")).toBe("Hello & welcome");
+  });
+
   it("preserves registry-provided secret metadata for stdio env vars and remote headers", async () => {
     const verifiedPath = await createVerifiedCatalog(`
 mcps: []

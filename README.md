@@ -1,8 +1,11 @@
 # VibeBasket
 
+![VibeBasket hero banner](.github/assets/readme-hero.jpg)
+
 Bundle trusted MCP servers, agent skills, and project rules into one shareable install command. Apply across 24 AI IDEs and CLI tools with a single link.
 
 [![Version](https://img.shields.io/badge/version-0.9.3-blue)](package.json)
+[![npm](https://img.shields.io/npm/v/vibebasket)](https://www.npmjs.com/package/vibebasket)
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue)](tsconfig.base.json)
 [![CI](https://img.shields.io/badge/ci-github_actions-green)](https://github.com/mhmtayberk/VibeBasket/actions/workflows/ci.yml)
 [![Security](https://img.shields.io/badge/security-CodeQL%20%2B%20Dependabot-blue)](https://github.com/mhmtayberk/VibeBasket/security)
@@ -37,6 +40,8 @@ npx vibebasket apply https://vibebasket.dev/api/bundle/cj2k9x
 The CLI is also published on npm as [`vibebasket`](https://www.npmjs.com/package/vibebasket).
 
 For maintainers: keep npm publish credentials in your user-level `~/.npmrc`. The repository deliberately does not rely on a tracked project `.npmrc`.
+
+The repo is now wired for GitHub Actions-based npm publishing in [`.github/workflows/publish.yml`](.github/workflows/publish.yml). After the package is linked once in npm Trusted Publisher settings, releases can publish with npm provenance and without a long-lived publish token.
 
 ## Where It Fits
 
