@@ -4,12 +4,7 @@ import { desc } from "drizzle-orm";
 import type { MetadataRoute } from "next";
 
 function isMissingCatalogTableError(error: unknown) {
-  const message =
-    error instanceof Error
-      ? error.message
-      : typeof error === "string"
-        ? error
-        : "";
+  const message = error instanceof Error ? error.message : typeof error === "string" ? error : "";
 
   return message.includes("no such table: catalog_items");
 }

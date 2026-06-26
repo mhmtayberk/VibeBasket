@@ -18,6 +18,11 @@ const INCLUDED_ROOT_FILES = new Set([
   "pnpm-workspace.yaml",
 ]);
 
+const IGNORED_FILES = new Set([
+  "scripts/check-public-env.mjs",
+  "scripts/check-public-env.test.mjs",
+]);
+
 const SCANNABLE_EXTENSIONS = new Set([
   ".cjs",
   ".cts",
@@ -38,6 +43,10 @@ function normalizePath(filePath) {
 }
 
 function shouldScanFile(relativePath) {
+  if (IGNORED_FILES.has(relativePath)) {
+    return false;
+  }
+
   if (INCLUDED_ROOT_FILES.has(relativePath)) {
     return true;
   }
