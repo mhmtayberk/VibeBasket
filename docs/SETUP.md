@@ -183,7 +183,9 @@ The repository is prepared for npm Trusted Publisher + provenance publishing thr
 5. set workflow filename to `publish.yml`
 6. allow the `npm publish` action
 
-After that, publishing a GitHub release triggers an OIDC-backed `npm publish --provenance --access public` flow. No project-level `.npmrc` file is required or recommended.
+After that, publishing a GitHub release triggers an OIDC-backed `npm publish --access public` flow. npm automatically attaches provenance for trusted publishers, so no long-lived npm token or extra provenance flag is required in the repo workflow.
+
+The publish workflow intentionally runs on Node 24 so the bundled npm CLI satisfies npm's current Trusted Publishing requirement (`npm` 11.5.1+).
 
 ## Useful Catalog Debug Commands
 

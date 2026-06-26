@@ -41,9 +41,14 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 24
           registry-url: https://registry.npmjs.org
           package-manager-cache: false
+
+      - name: Verify npm CLI version
+        run: |
+          npm --version
+          node -e "const [major, minor] = process.versions.npm.split('.').map(Number); if (major < 11 || (major === 11 && minor < 5)) { console.error(`npm ${process.versions.npm} is too old for trusted publishing`); process.exit(1); }"
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -71,4 +76,4 @@ jobs:
       - name: Publish to npm with provenance
         if: github.event_name == 'release' || inputs.publish == true
         working-directory: apps/cli
-        run: npm publish --provenance --access public
+        run: npm publish --access public

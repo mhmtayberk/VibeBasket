@@ -36,6 +36,7 @@ All notable changes to this project will be documented in this file.
 - **Release/package guardrail**: automated CLI publishing now checks that a GitHub release tag matches `apps/cli/package.json` before attempting `npm publish`.
 - **CLI UX honesty**: removed the misleading `search --local (coming soon)` hint from the published CLI surface.
 - **CodeQL warning cleanup**: fixed three open code-scanning warnings by tightening HTML entity decoding order, escaping Goose YAML env values safely, and parsing S3 endpoints by hostname instead of substring matching.
+- **Trusted-publisher runtime hardening**: the publish workflow now runs on Node 24 and verifies the bundled npm CLI version before publish so npm Trusted Publishing requirements are met explicitly.
 
 ### Repo Guardrails
 - **Secret scanning in CI**: Added a repo-tuned `gitleaks` guardrail so obvious credential leaks fail early before the main verify/build jobs run.
