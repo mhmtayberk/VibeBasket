@@ -31,6 +31,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Supply-Chain Publishing
+- **Trusted publishing workflow**: Added `.github/workflows/publish.yml`, which prepares the `vibebasket` CLI for GitHub Actions-based npm publishing with OIDC and npm provenance instead of a long-lived repo token.
+- **Release/package guardrail**: automated CLI publishing now checks that a GitHub release tag matches `apps/cli/package.json` before attempting `npm publish`.
+- **CLI UX honesty**: removed the misleading `search --local (coming soon)` hint from the published CLI surface.
+- **CodeQL warning cleanup**: fixed three open code-scanning warnings by tightening HTML entity decoding order, escaping Goose YAML env values safely, and parsing S3 endpoints by hostname instead of substring matching.
+
 ### Repo Guardrails
 - **Secret scanning in CI**: Added a repo-tuned `gitleaks` guardrail so obvious credential leaks fail early before the main verify/build jobs run.
 - **Reviewed public env surface**: Added a dedicated `NEXT_PUBLIC_*` allowlist checker plus focused tests, making new client-exposed env vars an intentional review decision instead of an accidental code path.

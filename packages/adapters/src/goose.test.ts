@@ -72,4 +72,32 @@ describe("GooseAdapter", () => {
 
     await expect(adapter.diff("user", rendered)).resolves.toContain("extensions:");
   });
+
+  it("escapes backslashes and quotes in env values for YAML output", async () => {
+    const rendered = adapter.applyMcps(
+      { raw: "", extensions: {} },
+      [
+        {
+          id: "escaped",
+          displayName: "Escaped",
+          runtime: "node",
+          command: "node",
+          args: ["server.js"],
+          env: {
+            TEST_SECRET: "${secret:TEST_SECRET}",
+          },
+          headers: {},
+          requiredSecrets: ["TEST_SECRET"],
+          verified: true,
+        },
+      ],
+      {
+        TEST_SECRET: String.raw`C:\temp\"quoted"`,
+      },
+      { force: false },
+    );
+
+    const diff = await adapter.diff("user", rendered);
+    expect(diff).toContain(String.raw`TEST_SECRET: "C:\\temp\\\"quoted\""`);
+  });
 });

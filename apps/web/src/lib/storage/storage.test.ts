@@ -239,6 +239,22 @@ describe("getStorageBackendInfo", () => {
   });
 });
 
+describe("S3 endpoint path-style detection", () => {
+  it("does not force path-style for AWS hostnames that end with amazonaws.com", async () => {
+    const { shouldForcePathStyleForEndpoint } = await import("./s3");
+    expect(shouldForcePathStyleForEndpoint("https://s3.amazonaws.com")).toBe(false);
+    expect(shouldForcePathStyleForEndpoint("https://s3.us-east-1.amazonaws.com")).toBe(false);
+    expect(shouldForcePathStyleForEndpoint("https://bucket.s3.amazonaws.com")).toBe(false);
+  });
+
+  it("forces path-style for non-AWS compatible endpoints and invalid URLs", async () => {
+    const { shouldForcePathStyleForEndpoint } = await import("./s3");
+    expect(shouldForcePathStyleForEndpoint("https://account.r2.cloudflarestorage.com")).toBe(true);
+    expect(shouldForcePathStyleForEndpoint("https://amazonaws.com.evil.example")).toBe(true);
+    expect(shouldForcePathStyleForEndpoint("not-a-url")).toBe(true);
+  });
+});
+
 // ── Chaos / Edge Case Tests ─────────────────────────────────────────────
 
 describe("Storage edge cases", () => {

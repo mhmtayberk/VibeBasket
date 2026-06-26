@@ -139,6 +139,10 @@ describe("runSearch", () => {
     await runSearch("test");
 
     expect(consoleOutput.some((line) => line.includes("Catalog API returned an error"))).toBe(true);
+    expect(
+      consoleOutput.some((line) => line.includes("VIBEBASKET_API_URL=https://vibebasket.dev")),
+    ).toBe(true);
+    expect(consoleOutput.some((line) => line.includes("coming soon"))).toBe(false);
   });
 
   it("handles network timeout / fetch failure", async () => {

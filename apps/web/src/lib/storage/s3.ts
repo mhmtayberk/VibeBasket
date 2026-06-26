@@ -12,6 +12,15 @@ interface S3Config {
   secretKey: string;
 }
 
+export function shouldForcePathStyleForEndpoint(endpoint: string) {
+  try {
+    const hostname = new URL(endpoint).hostname.toLowerCase();
+    return !hostname.endsWith("amazonaws.com");
+  } catch {
+    return true;
+  }
+}
+
 export class S3StorageBackend implements StorageBackend {
   readonly id: StorageBackendId;
   readonly label: string;
@@ -36,7 +45,7 @@ export class S3StorageBackend implements StorageBackend {
         accessKeyId: this.config.accessKey,
         secretAccessKey: this.config.secretKey,
       },
-      forcePathStyle: !this.config.endpoint.includes("amazonaws.com"),
+      forcePathStyle: shouldForcePathStyleForEndpoint(this.config.endpoint),
     });
   }
 

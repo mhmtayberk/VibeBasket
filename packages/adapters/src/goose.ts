@@ -22,6 +22,10 @@ interface GooseConfig {
   extensions: Record<string, GooseExtensionConfig>;
 }
 
+function escapeGooseYamlValue(value: string) {
+  return JSON.stringify(value);
+}
+
 function parseGooseExtensions(raw: string): Record<string, GooseExtensionConfig> {
   const extensions: Record<string, GooseExtensionConfig> = {};
   const lines = raw.split(/\r?\n/);
@@ -127,7 +131,7 @@ function renderGooseExtensions(extensions: Record<string, GooseExtensionConfig>)
     if (extension.envs && Object.keys(extension.envs).length > 0) {
       output += "    envs:\n";
       for (const [envKey, envValue] of Object.entries(extension.envs)) {
-        output += `      ${envKey}: "${envValue.replace(/"/g, '\\"')}"\n`;
+        output += `      ${envKey}: ${escapeGooseYamlValue(envValue)}\n`;
       }
     }
   }

@@ -19,6 +19,7 @@ If you need npm authentication for publishing or private registry access, keep i
 - [Running the CLI](#running-the-cli)
 - [Tests](#tests)
 - [CI Verification](#ci-verification)
+- [CLI Publishing](#cli-publishing)
 - [Useful Catalog Debug Commands](#useful-catalog-debug-commands)
 - [Operational Notes](#operational-notes)
 
@@ -168,6 +169,21 @@ pnpm verify:ci
 This runs the `NEXT_PUBLIC_*` allowlist guard, guardrail tests, linting, shared-package builds, the web app typecheck, the production web build, and the unit/integration test suites used by GitHub Actions.
 
 The GitHub Actions workflow also runs a repository secret scan with `gitleaks` before the heavier build and test jobs begin.
+
+## CLI Publishing
+
+The npm package is published as [`vibebasket`](https://www.npmjs.com/package/vibebasket).
+
+The repository is prepared for npm Trusted Publisher + provenance publishing through [`.github/workflows/publish.yml`](../.github/workflows/publish.yml). Before the first automated publish, configure the package once on npm:
+
+1. open the package settings on npm
+2. add a GitHub Actions trusted publisher
+3. set owner to `mhmtayberk`
+4. set repository to `VibeBasket`
+5. set workflow filename to `publish.yml`
+6. allow the `npm publish` action
+
+After that, publishing a GitHub release triggers an OIDC-backed `npm publish --provenance --access public` flow. No project-level `.npmrc` file is required or recommended.
 
 ## Useful Catalog Debug Commands
 

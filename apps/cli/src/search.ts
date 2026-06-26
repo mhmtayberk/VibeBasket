@@ -21,7 +21,11 @@ export async function runSearch(query: string) {
 
     if (!res.ok) {
       console.log(chalk.red("Catalog API returned an error. Is the server running?"));
-      console.log(chalk.gray("  Try: vibebasket search <query> --local  (coming soon)"));
+      console.log(
+        chalk.gray(
+          `  Retry later, or point the CLI at a self-hosted catalog with VIBEBASKET_API_URL=${baseUrl}`,
+        ),
+      );
       return;
     }
 
