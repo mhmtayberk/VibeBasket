@@ -91,7 +91,7 @@ jobs:
         run: docker build -f Dockerfile .
 
       - name: Setup Helm
-        uses: azure/setup-helm@v4
+        uses: azure/setup-helm@v5
 
       - name: Lint Helm chart
         run: helm lint charts/vibebasket
