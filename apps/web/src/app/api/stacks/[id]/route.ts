@@ -23,8 +23,13 @@ import { applySecurityHeaders, createTooManyRequestsResponse } from "@/lib/secur
 
 const STACK_ID_RATE_LIMIT = 30;
 const STACK_ID_RATE_WINDOW_MS = 60 * 1000;
+type StackRouteContext = {
+  params: Promise<{
+    id: string;
+  }>;
+};
 
-export async function GET(request: NextRequest, context: RouteContext<"/api/stacks/[id]">) {
+export async function GET(request: NextRequest, context: StackRouteContext) {
   const rateLimit = checkRateLimit(
     `stacks-id:${getClientAddress(request)}`,
     STACK_ID_RATE_LIMIT,
@@ -96,7 +101,7 @@ export async function GET(request: NextRequest, context: RouteContext<"/api/stac
   }
 }
 
-export async function PATCH(request: NextRequest, context: RouteContext<"/api/stacks/[id]">) {
+export async function PATCH(request: NextRequest, context: StackRouteContext) {
   const rateLimit = checkRateLimit(
     `stacks-id:${getClientAddress(request)}`,
     STACK_ID_RATE_LIMIT,
@@ -285,7 +290,7 @@ export async function PATCH(request: NextRequest, context: RouteContext<"/api/st
   }
 }
 
-export async function DELETE(request: NextRequest, context: RouteContext<"/api/stacks/[id]">) {
+export async function DELETE(request: NextRequest, context: StackRouteContext) {
   const rateLimit = checkRateLimit(
     `stacks-id:${getClientAddress(request)}`,
     STACK_ID_RATE_LIMIT,

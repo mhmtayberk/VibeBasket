@@ -40,7 +40,7 @@ describe("PATCH /api/stacks/[id]", () => {
       }),
       {
         params: Promise.resolve({ id: "stack-1" }),
-      } as RouteContext<"/api/stacks/[id]">,
+      },
     );
 
     expect(response.status).toBe(401);
@@ -63,7 +63,7 @@ describe("PATCH /api/stacks/[id]", () => {
       }),
       {
         params: Promise.resolve({ id: "stack-1" }),
-      } as RouteContext<"/api/stacks/[id]">,
+      },
     );
 
     expect(response.status).toBe(400);
