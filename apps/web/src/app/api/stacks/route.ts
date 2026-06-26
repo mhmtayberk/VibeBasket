@@ -25,7 +25,7 @@ const STACKS_RATE_LIMIT = 30;
 const STACKS_RATE_WINDOW_MS = 60 * 1000;
 const DEFAULT_STACKS_LIMIT = 20;
 const MAX_STACKS_LIMIT = 50;
-export async function GET(request: NextRequest, _context: RouteContext<"/api/stacks">) {
+export async function GET(request: NextRequest) {
   const rateLimit = checkRateLimit(
     `stacks:${getClientAddress(request)}`,
     STACKS_RATE_LIMIT,
@@ -117,7 +117,7 @@ export async function GET(request: NextRequest, _context: RouteContext<"/api/sta
   }
 }
 
-export async function POST(request: NextRequest, _context: RouteContext<"/api/stacks">) {
+export async function POST(request: NextRequest) {
   const rateLimit = checkRateLimit(
     `stacks:${getClientAddress(request)}`,
     STACKS_RATE_LIMIT,

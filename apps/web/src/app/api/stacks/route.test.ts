@@ -30,10 +30,7 @@ describe("GET /api/stacks", () => {
     requireCurrentUserIdMock.mockRejectedValueOnce(new SessionRequiredError());
     const { GET } = await import("./route");
 
-    const response = await GET(
-      new NextRequest("http://localhost:3000/api/stacks"),
-      {} as RouteContext<"/api/stacks">,
-    );
+    const response = await GET(new NextRequest("http://localhost:3000/api/stacks"));
 
     expect(response.status).toBe(401);
     await expect(response.json()).resolves.toEqual({
@@ -64,7 +61,6 @@ describe("POST /api/stacks", () => {
           targetIds: ["unknown-target"],
         }),
       }),
-      {} as RouteContext<"/api/stacks">,
     );
 
     expect(response.status).toBe(400);
@@ -89,7 +85,6 @@ describe("POST /api/stacks", () => {
           targetIds: ["claude-code"],
         }),
       }),
-      {} as RouteContext<"/api/stacks">,
     );
 
     expect(response.status).toBe(400);
