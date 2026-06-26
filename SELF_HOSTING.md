@@ -36,8 +36,9 @@ That is the operating model the current docs, admin tooling, rate limiting, and 
 
 ```bash
 git clone https://github.com/mhmtayberk/VibeBasket.git
-cd vibebasket
+cd VibeBasket
 cp .env.example .env
+# fill at least AUTH_SECRET and NEXTAUTH_URL before booting production mode
 docker compose up -d
 ```
 

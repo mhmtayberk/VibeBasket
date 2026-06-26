@@ -254,7 +254,7 @@ export class SkillsShCuratedCollector implements SourceCollector {
           catalogItem: buildSkillCatalogItem(entry, {
             description: `Official skill from ${owner}/${repo} on skills.sh`,
             sourceName: "skills-sh-official",
-            sourceUrl: "https://www.skills.sh/official",
+            sourceUrl: `https://www.skills.sh/${owner}/${repo}/${skillSlug}`,
           }),
         });
       }
@@ -337,7 +337,7 @@ export class SkillsShCuratedCollector implements SourceCollector {
         catalogItem: buildSkillCatalogItem(entry, {
           description: `${isOfficial ? "Official" : "Community"} skill from ${owner}/${repo} on skills.sh`,
           sourceName,
-          sourceUrl: `https://www.skills.sh/${repoPath}`,
+          sourceUrl: `https://www.skills.sh/${repoPath}/${skillSlug}`,
         }),
       });
     }

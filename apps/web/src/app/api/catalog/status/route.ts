@@ -8,7 +8,7 @@ const SYNC_INTERVAL_MS = 60 * 60 * 1000;
 const STATUS_RATE_LIMIT = 5;
 const STATUS_RATE_WINDOW_MS = 60 * 1000;
 
-export async function GET(request: Request = new Request("http://localhost")) {
+export async function GET(request: Request) {
   try {
     const rateLimit = checkRateLimit(
       `catalog-status:${getClientAddress(request)}`,

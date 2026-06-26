@@ -1,6 +1,6 @@
-import type { McpEntry } from "../../core/src/manifest.js";
 import * as fc from "fast-check";
 import { describe, expect, it } from "vitest";
+import type { McpEntry } from "../../core/src/manifest.js";
 import { AiderAdapter } from "./aider.js";
 import { AntigravityAdapter } from "./antigravity.js";
 import { ClaudeCodeAdapter } from "./claude-code.js";

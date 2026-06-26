@@ -46,10 +46,6 @@ function readPositiveIntFromEnv(name: string) {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
 }
 
-async function dynamicImport<T>(specifier: string): Promise<T> {
-  return import(specifier) as Promise<T>;
-}
-
 export interface SyncResult {
   added: number;
   updated: number;
@@ -98,13 +94,13 @@ type PersistableCatalogItem = CatalogSeedItem & { data: Record<string, unknown> 
 
 async function loadCoreModule<T>() {
   try {
-    return await dynamicImport<T>("@vibebasket/core");
+    return (await import("@vibebasket/core")) as T;
   } catch (error) {
     if (process.env.NODE_ENV === "production") {
       throw error;
     }
 
-    return dynamicImport<T>(CORE_SOURCE_ENTRY_URL);
+    return (await import(/* webpackIgnore: true */ CORE_SOURCE_ENTRY_URL)) as T;
   }
 }
 

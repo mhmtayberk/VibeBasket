@@ -1173,13 +1173,13 @@ workflowPacks: []
       ),
     ).toMatchObject({
       sourceName: "skills-sh-official",
-      sourceUrl: "https://www.skills.sh/supabase/agent-skills",
+      sourceUrl: "https://www.skills.sh/supabase/agent-skills/supabase-postgres-best-practices",
     });
     expect(
       items.find((item) => item.id === "skill-community-repo-postgresql-helper"),
     ).toMatchObject({
       sourceName: "skills-sh-community",
-      sourceUrl: "https://www.skills.sh/community/repo",
+      sourceUrl: "https://www.skills.sh/community/repo/postgresql-helper",
     });
   });
 

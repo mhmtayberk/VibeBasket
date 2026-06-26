@@ -160,14 +160,14 @@ export function BasketPanel({
           ) : (
             <>
               <div className="flex flex-wrap gap-2">
-                {(["mcp", "skill", "rule", "workflow"] as const).map((type) =>
+                {(["mcp", "skill", "rule"] as const).map((type) =>
                   itemCounts[type] ? (
                     <div
                       key={type}
                       className="inline-flex items-center gap-2 border border-border/70 bg-background/45 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground"
                     >
                       <span className="text-accent">{itemCounts[type]}</span>
-                      <span>{type === "workflow" ? "workflow packs" : `${type}s`}</span>
+                      <span>{`${type}s`}</span>
                     </div>
                   ) : null,
                 )}

@@ -27,9 +27,9 @@ import {
   WindsurfAdapter,
   ZedAdapter,
 } from "@vibebasket/adapters";
+import chalk from "chalk";
 import { BundleSchema } from "../../../packages/core/src/manifest.js";
 import type { Bundle, IdeId, Scope } from "../../../packages/core/src/manifest.js";
-import chalk from "chalk";
 import {
   buildTargetMcpApplyPlan,
   flattenBundleContent,

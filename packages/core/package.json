@@ -12,9 +12,9 @@
     "./db": "./src/db/index.ts"
   },
   "scripts": {
-    "build": "tsup",
-    "test": "node ../../scripts/run-vitest.mjs run",
-    "typecheck": "pnpm exec tsc -b"
+    "build": "\"$npm_node_execpath\" ../../scripts/run-tsup.mjs",
+    "test": "\"$npm_node_execpath\" ../../scripts/run-vitest.mjs run",
+    "typecheck": "\"$npm_node_execpath\" ../../node_modules/typescript/bin/tsc -b"
   },
   "dependencies": {
     "@libsql/client": "^0.17.3",

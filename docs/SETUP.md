@@ -4,6 +4,8 @@ This guide is for contributors and self-hosters. If you only want to use the hos
 
 The published CLI package is [`vibebasket`](https://www.npmjs.com/package/vibebasket).
 
+If you need npm authentication for publishing or private registry access, keep it in your user-level `~/.npmrc`. This repository intentionally does not track a project `.npmrc`, so auth tokens cannot be committed by accident during normal work.
+
 ## Table of Contents
 
 - [Prerequisites](#prerequisites)
@@ -28,7 +30,7 @@ The published CLI package is [`vibebasket`](https://www.npmjs.com/package/vibeba
 ## Installation (Manual Dev Setup)
 ```bash
 git clone https://github.com/mhmtayberk/VibeBasket.git
-cd vibebasket
+cd VibeBasket
 cp .env.example .env     # Copy the environment template
 pnpm install
 pnpm dev                 # Starts workspace dev server on http://localhost:3000
@@ -38,8 +40,8 @@ pnpm dev                 # Starts workspace dev server on http://localhost:3000
 For automated containerized self-hosting:
 ```bash
 git clone https://github.com/mhmtayberk/VibeBasket.git
-cd vibebasket
-cp .env.example .env     # Fill in required Next-Auth and Auth secrets
+cd VibeBasket
+cp .env.example .env     # Fill in required Auth.js and app secrets before boot
 docker compose up -d     # Starts non-root containers with automatic SQLite volume mounts
 ```
 
@@ -163,7 +165,9 @@ The main repository verification command is:
 pnpm verify:ci
 ```
 
-This runs linting, shared-package builds, the web app typecheck, the production web build, and the unit/integration test suites used by GitHub Actions.
+This runs the `NEXT_PUBLIC_*` allowlist guard, guardrail tests, linting, shared-package builds, the web app typecheck, the production web build, and the unit/integration test suites used by GitHub Actions.
+
+The GitHub Actions workflow also runs a repository secret scan with `gitleaks` before the heavier build and test jobs begin.
 
 ## Useful Catalog Debug Commands
 
@@ -218,6 +222,8 @@ pnpm catalog:sync:strict
 - The catalog status route reports current counts, freshness, and the latest recorded sync summary
 - In production, `refresh=1` on `/api/catalog` is protected; callers must send `x-vibebasket-refresh-token` matching `CATALOG_REFRESH_TOKEN`
 - `pnpm catalog:sync` is the safest hook for cron or external schedulers because it records sync audit metadata as well as refreshing catalog rows
+- keep npm publish tokens in `~/.npmrc`, not in repo files or `.env`
+- adding a new `NEXT_PUBLIC_*` variable is treated as a security-sensitive change; only extend `scripts/check-public-env.mjs` when the value is intentionally safe for client-side exposure
 - request-triggered background refresh is opportunistic; if you need predictable freshness windows, prefer cron/systemd/Kubernetes scheduling around `pnpm catalog:sync`
 - `pnpm catalog:sync:strict` is the safest pre-launch/manual validation command because it fails fast when one of the trusted upstream collectors still has source errors
 - `pnpm catalog:sync` and `pnpm catalog:sync:dry` now emit collector progress to stderr, which makes long first-run syncs easier to distinguish from true hangs

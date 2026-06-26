@@ -178,9 +178,9 @@ export function DocsTabCli() {
             </h3>
             <p className="text-sm text-[#bdc9c2] leading-relaxed max-w-3xl">
               Searches the VibeBasket catalog from the terminal using the FTS5 full-text index.
-              Returns up to 10 matching items from the hosted catalog across MCPs, Skills, Rules,
-              and workflow packs. The current terminal surface is intentionally lightweight and best
-              for quick catalog discovery rather than full visual browsing.
+              Returns up to 10 matching items from the hosted catalog across MCPs, Skills, and
+              Rules. The current terminal surface is intentionally lightweight and best for quick
+              catalog discovery rather than full visual browsing.
             </p>
           </div>
           <div className="border border-[#3e4944] p-6">
