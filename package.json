@@ -3,13 +3,13 @@
   "private": true,
   "description": "Bundle trusted MCP servers, skills, and rules into one shareable install flow across AI IDEs.",
   "license": "MIT",
-  "homepage": "https://github.com/vibebasket/vibebasket",
+  "homepage": "https://github.com/mhmtayberk/VibeBasket",
   "repository": {
     "type": "git",
-    "url": "https://github.com/vibebasket/vibebasket.git"
+    "url": "https://github.com/mhmtayberk/VibeBasket.git"
   },
   "bugs": {
-    "url": "https://github.com/vibebasket/vibebasket/issues"
+    "url": "https://github.com/mhmtayberk/VibeBasket/issues"
   },
   "packageManager": "pnpm@11.7.0",
   "engines": {
@@ -20,16 +20,18 @@
     "build": "pnpm -r run build",
     "build:packages": "pnpm --filter @vibebasket/core build && pnpm --filter @vibebasket/registry build && pnpm --filter @vibebasket/adapters build",
     "build:web": "pnpm --filter web build",
-    "catalog:sync": "pnpm --filter @vibebasket/core build && pnpm --filter @vibebasket/registry build && node scripts/catalog-sync.mjs",
-    "catalog:sync:dry": "pnpm --filter @vibebasket/core build && pnpm --filter @vibebasket/registry build && node scripts/catalog-sync.mjs --dry-run",
-    "catalog:sync:strict": "pnpm --filter @vibebasket/core build && pnpm --filter @vibebasket/registry build && node scripts/catalog-sync.mjs --strict",
+    "catalog:sync": "pnpm --filter @vibebasket/core build && pnpm --filter @vibebasket/registry build && \"$npm_node_execpath\" scripts/catalog-sync.mjs",
+    "catalog:sync:dry": "pnpm --filter @vibebasket/core build && pnpm --filter @vibebasket/registry build && \"$npm_node_execpath\" scripts/catalog-sync.mjs --dry-run",
+    "catalog:sync:strict": "pnpm --filter @vibebasket/core build && pnpm --filter @vibebasket/registry build && \"$npm_node_execpath\" scripts/catalog-sync.mjs --strict",
     "dev": "pnpm -r run dev",
+    "guard:public-env": "\"$npm_node_execpath\" scripts/check-public-env.mjs",
+    "test:guards": "\"$npm_node_execpath\" --test scripts/check-public-env.test.mjs",
     "test": "pnpm -r run test",
     "test:e2e": "pnpm --filter web test:e2e",
-    "lint": "biome check .",
-    "format": "biome format --write .",
+    "lint": "\"$npm_node_execpath\" scripts/run-biome.mjs check .",
+    "format": "\"$npm_node_execpath\" scripts/run-biome.mjs format --write .",
     "typecheck": "pnpm -r run typecheck",
-    "verify:ci": "pnpm lint && pnpm typecheck && pnpm build:packages && pnpm build:web && pnpm test"
+    "verify:ci": "pnpm guard:public-env && pnpm test:guards && pnpm lint && pnpm typecheck && pnpm build:packages && pnpm build:web && pnpm test"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",

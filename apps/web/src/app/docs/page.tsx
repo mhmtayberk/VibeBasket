@@ -176,8 +176,8 @@ export default async function DocsPage({
   return (
     <div className="min-h-screen bg-background text-foreground antialiased">
       <header className="sticky top-0 z-50 border-b border-border/80 bg-background/85 backdrop-blur-md">
-        <div className="mx-auto flex max-w-[1440px] items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-8">
+        <div className="mx-auto flex max-w-[1440px] items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
+          <div className="flex min-w-0 items-center gap-8">
             <Link
               href="/"
               className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl"
@@ -225,7 +225,7 @@ export default async function DocsPage({
             </nav>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex min-w-0 items-center justify-end gap-2 sm:gap-3">
             <DocSearchBar initialQuery={searchQuery} />
 
             {session?.user ? (
@@ -241,7 +241,7 @@ export default async function DocsPage({
 
             <Link
               href="/#catalog"
-              className="hidden sm:inline-flex items-center gap-2 border border-accent bg-accent/10 px-4 py-2 font-mono text-[11px] uppercase tracking-[0.18em] text-accent transition-colors hover:bg-accent hover:text-accent-foreground"
+              className="hidden xl:inline-flex items-center gap-2 border border-accent bg-accent/10 px-4 py-2 font-mono text-[11px] uppercase tracking-[0.18em] text-accent transition-colors hover:bg-accent hover:text-accent-foreground"
             >
               Build your basket
             </Link>

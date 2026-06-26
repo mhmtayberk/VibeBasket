@@ -31,6 +31,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Repo Guardrails
+- **Secret scanning in CI**: Added a repo-tuned `gitleaks` guardrail so obvious credential leaks fail early before the main verify/build jobs run.
+- **Reviewed public env surface**: Added a dedicated `NEXT_PUBLIC_*` allowlist checker plus focused tests, making new client-exposed env vars an intentional review decision instead of an accidental code path.
+
 ### Adapter Verification
 - **24-adapter verification pass**: CLI install verification now understands adapter-native MCP config shapes such as Continue `mcpServers` arrays, OpenCode `mcp`, Zed `context_servers`, and Goose `extensions`.
 - **Cursor / Roo Code / OpenCode parity**: verification and docs now match the real install surfaces for `.cursor/skills`, `.cursor/rules`, `.roo/mcp.json`, Roo global `mcp_settings.json`, `.roo/skills`, `.roo/rules`, `.opencode/skills`, and `AGENTS.md`.
@@ -139,7 +143,6 @@ All notable changes to this project will be documented in this file.
 ### Saved Stack & Profile Enhancements
 - **Interactive Stack Editing**: Replaced the primitive `window.prompt` rename dialog with a fully featured, custom `EditStackDialog` modal. Normal users can now edit stack name and description, add/remove components directly (synced dynamically with their active basket), and toggle target IDEs in a geometric grid. Expanded screen utilization to `max-w-7xl` / `w-[95vw]` to deliver a spacious two-column layout (Components on the left, Target IDEs on the right) with strict **English-only** arayüz copy.
 - **Admin Layout and Navigation Hiding**: Admin users are no longer shown a saved stacks list or the `Save Stack` panel triggers, preventing all administrative footprinting. In its place, we introduced a premium systems widget with a direct redirection action link to the `/admin` console. Dynamically hid the `My Stacks` navigation link from the `AuthMenu` header for administrators, displaying exclusively the `Admin Panel` action button.
-- **Mock Admin Session Insertion**: Safe database fixtures were populated in the local SQLite db, restoring the ability to log in as an administrator using the `mock-admin-token-12345` token.
 
 ### IDE Targets & Automation Upgrades
 - **Integrated Aider, Void, and GitHub Copilot Targets**: Added native adapter integrations for these highly popular coding tools:
@@ -158,7 +161,7 @@ All notable changes to this project will be documented in this file.
 ### Self-Hosting & Docker Integration
 - **Multi-stage Production Dockerfile**: Created a lean multi-stage `Dockerfile` based on Node.js 22 Alpine, optimizing image size via Next.js standalone build output, running as a non-root user, and supporting SQLite database persistence via Docker volume mounts.
 - **Docker Compose Setup**: Designed a production-ready `docker-compose.yml` configuration with custom named volume persistence, automated container health checks utilizing the `/api/health` endpoint, and comprehensive inline environment documentation.
-- **Structured .env.example**: Produced a clean, secure `.env.example` template covering all key parameters (Next-Auth secrets, OAuth credentials, trust proxies), tracked it under Git, and updated the `.dockerignore` to block accidental secret leaks.
+- **Structured .env.example**: Produced a clean, secure `.env.example` template covering all key parameters (Auth.js secrets, OAuth credentials, trust proxies), tracked it under Git, and updated the `.dockerignore` to block accidental secret leaks.
 
 ### Documentation & UI Improvements
 - **Expanded Search Scope**: Enriched keywords mapping was added to all guides inside the `/docs` hub, allowing users to successfully search long-tail terms like "Docker", "compose", "volume", "security", "credentials" and locate relevant architectural articles instantly.

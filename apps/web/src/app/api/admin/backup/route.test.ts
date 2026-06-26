@@ -53,6 +53,19 @@ describe("/api/admin/backup", () => {
     });
   });
 
+  it("rejects backup listing when admin role guard fails", async () => {
+    requireAdminRoleMock.mockRejectedValueOnce(new Error("forbidden"));
+    const { GET } = await import("./route");
+
+    const response = await GET();
+
+    expect(response.status).toBe(403);
+    await expect(response.json()).resolves.toEqual({
+      success: false,
+      error: "Forbidden",
+    });
+  });
+
   it("allows restore when mutation guard passes", async () => {
     requireAdminMutationMock.mockResolvedValueOnce({ id: "admin" });
     runRestoreBackupMock.mockResolvedValueOnce({ success: true });

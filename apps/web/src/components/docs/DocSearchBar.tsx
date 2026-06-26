@@ -58,7 +58,7 @@ export function DocSearchBar({ initialQuery }: DocSearchBarProps) {
   );
 
   return (
-    <div className="hidden md:flex items-center border border-[#3e4944] rounded-[2px] bg-[#181d1a]/50 focus-within:border-[#a0fdda] focus-within:ring-1 focus-within:ring-[#a0fdda]/25 transition-all px-4 py-2 w-64">
+    <div className="hidden min-w-0 items-center border border-[#3e4944] rounded-[2px] bg-[#181d1a]/50 px-4 py-2 transition-all focus-within:border-[#a0fdda] focus-within:ring-1 focus-within:ring-[#a0fdda]/25 md:flex md:w-56 xl:w-64">
       <Search className="h-4 w-4 text-[#bdc9c2] mr-2 shrink-0" />
       <input
         type="search"

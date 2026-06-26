@@ -1,5 +1,19 @@
 # VibeBasket Architecture
 
+## Table of Contents
+
+- [Monorepo](#monorepo)
+- [Data Flow](#data-flow)
+- [Registry Sync System](#registry-sync-system)
+- [Backup & Storage System](#backup--storage-system)
+- [Performance & Scalability](#performance--scalability)
+- [Catalog API](#catalog-api)
+- [Helm Chart (Kubernetes)](#helm-chart-kubernetes)
+- [Mobile & Responsive UI](#mobile--responsive-ui)
+- [Homepage Structure](#homepage-structure)
+- [Important Technical Notes](#important-technical-notes)
+- [Production & Deployment Architecture](#production--deployment-architecture)
+
 ## Monorepo
 We use `pnpm workspaces` to manage the project.
 
@@ -24,7 +38,7 @@ To keep the catalog fresh without relying on mostly manual entry, VibeBasket imp
    - official MCP Registry
    - public `skills.sh` catalog, including official and community entries
 2. **Normalization**
-   - external metadata is transformed into internal Zod-validated `McpEntry`, `SkillEntry`, `RuleEntry`, or `WorkflowPackEntry`
+   - external metadata is transformed into internal Zod-validated catalog item schemas
    - item-level freshness metadata is attached during persistence: `sourceName`, `sourceUrl`, `firstSeenAt`, `lastSeenAt`, `lastSyncedAt`
 3. **Semver Deduplication (MCP Registry)**
    - the official MCP registry lists every published version of each npm/pypi/docker package as a separate entry
@@ -138,25 +152,24 @@ The homepage (`/`) is `force-dynamic` and server-renders:
 - the web package now participates in workspace `test` and `typecheck` runs, so catalog discovery logic is covered by the same verification path as the packages
 - catalog selection state in the web app is driven directly from the basket store state
 - basket persistence falls back to an in-memory adapter outside the browser so tests and SSR contexts do not emit noisy missing-`localStorage` warnings
-- the installer side still lags behind the manifest surface for some non-MCP entry types
 - the target picker now mirrors the real adapter-backed set instead of keeping a visible roadmap/watchlist tier
 - `project` scope apply now forwards the working directory as `projectRoot`, which closes an earlier bug where project-scoped adapters had the right path logic but were never given the project path at runtime
-- repository automation currently validates linting, full-workspace `pnpm typecheck`, shared-package builds, the web build path, unit/integration suites, and Playwright smoke coverage; monorepo-wide `tsc -b` remains separate from the main release gate
+- repository automation currently validates linting, full-workspace `pnpm typecheck`, shared-package builds, the web build path, Docker Compose rendering, Docker image builds, Helm chart rendering, unit/integration suites, and Playwright smoke coverage; monorepo-wide `tsc -b` remains separate from the main release gate
 - the default production architecture assumes a single app process; process-local rate limiting is therefore an intentional design choice, not an accidental omission
 
 ## Production & Deployment Architecture
 
-### 🐳 Docker & Self-Hosting Pipeline
+### Docker & Self-Hosting Pipeline
 - **Next.js Standalone Mode:** Configured `output: 'standalone'` in `next.config.ts`. The Docker build uses this lean, self-contained server layout so production images only carry the runtime files they actually need.
 - **Multi-stage Alpine Runtime:** A secure, non-root Node.js 22 Alpine multi-stage `Dockerfile` handles installation, building, and runner optimization stages.
 - **SQLite Persistence:** Mounts a Docker volume at `/data` mapping SQLite `.db` records to keep user stacks and authenticated accounts safe during container updates.
 - **docker-compose.yml Spec:** Integrates an automatic container health check, binds default port `3000`, and provisions named volume mount points securely.
 
-### 🛡️ Secure Health Checks & Cache Shielding
+### Secure Health Checks & Cache Shielding
 - **Database Status Probe:** `/api/health` performs a live select on the SQLite `users` table via Drizzle to assert true database status.
 - **Anti-DoS Protection:** The database verification is guarded by a 5-second in-memory cache TTL. Rapid health check pings (e.g., from Kubernetes or Docker probes) are served immediately from memory without contacting SQLite.
 - **Zero-Cache Response Headers:** Sets strict HTTP `no-store, no-cache, must-revalidate` directives to avoid stale proxies hiding dead servers.
 
-### 🗺️ Sitemap & Query Hardening
+### Sitemap & Query Hardening
 - **Information Leak Protection:** `sitemap.ts` includes `/docs` alongside `/` but intentionally excludes authenticated saved-stack surfaces, user-created stack pages (`/bundle/[id]`), and `/admin` routes. This guards against search engines indexing personal development context profiles (Information Disclosure defense).
 - **docs Route Boundaries:** Protects against Local/Remote File Inclusion (LFI/RFI) by validating the docs `tab` search parameter against an allowed whitelist. The search parameter is capped at 100 characters to reduce ReDoS (Regular Expression Denial of Service) and XSS injection risk.

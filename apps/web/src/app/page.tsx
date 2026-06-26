@@ -6,7 +6,16 @@ import { CatalogGrid } from "@/components/catalog/CatalogGrid";
 import { TopToTopButton } from "@/components/layout/TopToTopButton";
 import { getInitialCatalogSnapshot } from "@/lib/catalog-snapshot";
 import { SUPPORTED_TARGET_COUNT, TARGET_OPTIONS } from "@/lib/targets";
-import { ArrowRight, BadgeCheck, Lock, Sparkles, TerminalSquare, Workflow } from "lucide-react";
+import {
+  ArrowRight,
+  ArrowUpRight,
+  BadgeCheck,
+  Lock,
+  Package2,
+  Sparkles,
+  TerminalSquare,
+  Workflow,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -84,8 +93,8 @@ export default async function Home() {
   return (
     <main className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-50 border-b border-border/80 bg-background/85 backdrop-blur-md">
-        <div className="mx-auto flex max-w-[1440px] items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-8">
+        <div className="mx-auto flex max-w-[1440px] items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
+          <div className="flex min-w-0 items-center gap-8">
             <Link
               href="/"
               className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl"
@@ -131,7 +140,7 @@ export default async function Home() {
             </nav>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center justify-end gap-2 sm:gap-3">
             {session?.user ? (
               <AuthMenu session={session} />
             ) : (
@@ -144,7 +153,7 @@ export default async function Home() {
             )}
             <a
               href={`#${sectionIds.catalog}`}
-              className="inline-flex items-center gap-2 border border-accent bg-accent/10 px-4 py-2 font-mono text-[11px] uppercase tracking-[0.18em] text-accent transition-colors hover:bg-accent hover:text-accent-foreground"
+              className="hidden sm:inline-flex items-center gap-2 border border-accent bg-accent/10 px-4 py-2 font-mono text-[11px] uppercase tracking-[0.18em] text-accent transition-colors hover:bg-accent hover:text-accent-foreground"
             >
               Build your basket
               <ArrowRight className="h-3.5 w-3.5" />
@@ -163,6 +172,27 @@ export default async function Home() {
               <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-accent">
                 {`Open source · ${SUPPORTED_TARGET_COUNT} IDE targets`}
               </span>
+            </div>
+
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              <Link
+                href="https://github.com/mhmtayberk/VibeBasket"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex h-10 items-center gap-2 border border-border/80 bg-background/40 px-3.5 font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:border-accent/40 hover:text-foreground"
+              >
+                <ArrowUpRight className="h-3.5 w-3.5" />
+                GitHub
+              </Link>
+              <Link
+                href="https://www.npmjs.com/package/vibebasket"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex h-10 items-center gap-2 border border-border/80 bg-background/40 px-3.5 font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:border-accent/40 hover:text-foreground"
+              >
+                <Package2 className="h-3.5 w-3.5" />
+                npm
+              </Link>
             </div>
 
             <h1

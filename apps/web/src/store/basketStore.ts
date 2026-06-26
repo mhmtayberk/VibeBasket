@@ -41,6 +41,10 @@ interface BasketState {
   clearBasket: () => void;
 }
 
+function isVisibleBasketItem(item: BasketItem): boolean {
+  return item.type !== "workflow";
+}
+
 const fallbackStorageData = new Map<string, string>();
 
 const fallbackStorage: StateStorage = {
@@ -68,6 +72,9 @@ export const useBasketStore = create<BasketState>()(
       targetIds: [...DEFAULT_TARGET_IDS],
       addItem: (item) =>
         set((state) => {
+          if (!isVisibleBasketItem(item)) {
+            return state;
+          }
           if (state.items.find((i) => i.id === item.id)) return state;
           return { items: [...state.items, item] };
         }),
@@ -78,6 +85,9 @@ export const useBasketStore = create<BasketState>()(
       isSelected: (id) => get().items.some((item) => item.id === id),
       toggleItem: (item) =>
         set((state) => {
+          if (!isVisibleBasketItem(item)) {
+            return state;
+          }
           if (state.items.some((existing) => existing.id === item.id)) {
             return {
               items: state.items.filter((existing) => existing.id !== item.id),
@@ -108,7 +118,7 @@ export const useBasketStore = create<BasketState>()(
           );
 
           return {
-            items,
+            items: items.filter(isVisibleBasketItem),
             targetIds: nextTargetIds.length > 0 ? nextTargetIds : [...DEFAULT_TARGET_IDS],
           };
         }),
@@ -117,6 +127,16 @@ export const useBasketStore = create<BasketState>()(
     {
       name: "vibebasket-storage",
       storage: createJSONStorage(getBasketStorage),
+      merge: (persistedState, currentState) => {
+        const typedPersistedState = persistedState as Partial<BasketState> | undefined;
+        return {
+          ...currentState,
+          ...typedPersistedState,
+          items: Array.isArray(typedPersistedState?.items)
+            ? typedPersistedState.items.filter(isVisibleBasketItem)
+            : currentState.items,
+        };
+      },
     },
   ),
 );

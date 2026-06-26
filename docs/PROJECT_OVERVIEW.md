@@ -1,6 +1,15 @@
 # VibeBasket - Project Overview
 
-VibeBasket is a bundle-and-apply platform for AI development environments. It gives users a single web catalog where they can browse trusted MCP servers, skills, rules, and workflow packs, collect them into a basket, and generate a shareable bundle URL plus a single CLI command to apply the setup locally.
+VibeBasket is a bundle-and-apply platform for AI development environments. It gives users a single web catalog where they can browse trusted MCP servers, skills, and rules, collect them into a basket, and generate a shareable bundle URL plus a single CLI command to apply the setup locally.
+
+## Table of Contents
+
+- [Product Goal](#product-goal)
+- [Current Target Model](#current-target-model)
+- [Core Experience](#core-experience)
+- [Trusted Catalog Model](#trusted-catalog-model)
+- [Recent State](#recent-state)
+- [Current Constraints](#current-constraints)
 
 ## Product Goal
 

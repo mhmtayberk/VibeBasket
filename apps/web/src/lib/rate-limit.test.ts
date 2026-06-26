@@ -8,7 +8,7 @@ describe("rate-limit utilities", () => {
   });
 
   describe("getClientAddress resolution", () => {
-    it("should use cf-connecting-ip when present", () => {
+    it("should treat cf-connecting-ip as best-effort when TRUST_PROXY is disabled", () => {
       const req = new Request("https://vibebasket.dev/", {
         headers: {
           "cf-connecting-ip": "203.0.113.195",
@@ -18,7 +18,7 @@ describe("rate-limit utilities", () => {
       });
 
       const ip = getClientAddress(req);
-      expect(ip).toBe("203.0.113.195");
+      expect(ip).toBe("best-effort:203.0.113.195");
     });
 
     it("should prioritize cf-connecting-ip when TRUST_PROXY is enabled", () => {

@@ -8,9 +8,18 @@ import { applySecurityHeaders } from "@/lib/security-headers";
 import { NextResponse } from "next/server";
 
 export async function GET() {
-  await requireAdminRole();
-  const result = await runListBackups();
-  return applySecurityHeaders(NextResponse.json(result, { status: result.success ? 200 : 500 }));
+  try {
+    await requireAdminRole();
+    const result = await runListBackups();
+    return applySecurityHeaders(NextResponse.json(result, { status: result.success ? 200 : 500 }));
+  } catch (error) {
+    return (
+      createAdminForbiddenResponse(error) ??
+      applySecurityHeaders(
+        NextResponse.json({ success: false, error: "Internal Server Error" }, { status: 500 }),
+      )
+    );
+  }
 }
 
 export async function POST(request: Request) {

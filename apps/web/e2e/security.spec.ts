@@ -161,14 +161,18 @@ test.describe("Security — Rate Limiting Attack", () => {
     }
   });
 
-  test("rate limit returns Retry-After header on 429", async ({ page }) => {
-    // Try many rapid requests to trigger rate limit
-    const promises = Array.from({ length: 50 }, () =>
-      page.goto("/api/catalog?limit=1").then((r) => r?.status()),
+  test("rate limit concurrency stays graceful", async ({ request }) => {
+    const responses = await Promise.all(
+      Array.from({ length: 50 }, () => request.get("/api/catalog?limit=1")),
     );
-    const statuses = await Promise.all(promises);
-    // Not asserting 429 — just verifying the system handles concurrency
-    expect(statuses.every((s) => s === 200 || s === 429)).toBe(true);
+    const statuses = responses.map((response) => response.status());
+
+    expect(statuses.every((status) => status === 200 || status === 429)).toBe(true);
+
+    const limitedResponse = responses.find((response) => response.status() === 429);
+    if (limitedResponse) {
+      expect(limitedResponse.headers()["retry-after"]).toBeTruthy();
+    }
   });
 });
 
