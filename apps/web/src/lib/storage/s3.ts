@@ -15,7 +15,10 @@ interface S3Config {
 export function shouldForcePathStyleForEndpoint(endpoint: string) {
   try {
     const hostname = new URL(endpoint).hostname.toLowerCase();
-    return !hostname.endsWith("amazonaws.com");
+    const labels = hostname.split(".").filter(Boolean);
+    const suffix = labels.slice(-2);
+    const isAwsHostname = suffix.length === 2 && suffix[0] === "amazonaws" && suffix[1] === "com";
+    return !isAwsHostname;
   } catch {
     return true;
   }
