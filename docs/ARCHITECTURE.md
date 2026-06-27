@@ -64,7 +64,7 @@ The admin panel provides a multi-cloud storage system for database backups with 
 - **Azure Blob Storage**: Via `@azure/storage-blob`.
 - **Google Cloud Storage**: Via `@google-cloud/storage`.
 
-Cloud SDKs are lazily loaded via dynamic `await import()` to prevent Next.js build-time module resolution errors. Storage credentials are encrypted with AES-256-GCM (key derived from `AUTH_SECRET` via `scryptSync`) and stored in the `backup_storage_config` SQLite table. Configuration is managed through the admin panel UI — changing backends does not require a server restart. Scheduled backups can be configured with configurable hourly intervals.
+Cloud SDKs are lazily loaded via dynamic `await import()` to prevent Next.js build-time module resolution errors. Storage credentials are encrypted with AES-256-GCM and a key derived from `AUTH_SECRET` via `scryptSync`; new encrypted records use a per-record random salt and IV, while legacy records remain readable for compatibility. The encrypted payload is stored in the `backup_storage_config` SQLite table. Configuration is managed through the admin panel UI — changing backends does not require a server restart. Scheduled backups can be configured with configurable hourly intervals.
 
 ## Performance & Scalability
 - **Full-Text Search**: Global catalog search uses FTS5 virtual tables with automatic trigger-based content sync and rebuild support. Queries are run through parameterized SQL to prevent injection. FTS5 data column removed to reduce index size; prefix-matching enabled for partial word queries (e.g. "postgr" matches "postgresql").
