@@ -22,7 +22,7 @@ VibeBasket is designed around a few simple rules:
 ## What the Project Defends
 
 - immutable bundle IDs, so a shared bundle cannot be silently changed in place
-- encrypted backup-storage credentials using AES-256-GCM with a key derived from `AUTH_SECRET`
+- encrypted backup-storage credentials using AES-256-GCM with a key derived from `AUTH_SECRET`; new records use a per-record random salt and IV, and legacy records remain readable during migration
 - path sanitization on file operations
 - bounded request payloads for bundle creation
 - parameterized database access for catalog search and filtering

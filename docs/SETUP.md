@@ -183,7 +183,7 @@ The repository is prepared for npm Trusted Publisher + provenance publishing thr
 5. set workflow filename to `publish.yml`
 6. allow the `npm publish` action
 
-After that, publishing a GitHub release triggers an OIDC-backed `npm publish --access public` flow. npm automatically attaches provenance for trusted publishers, so no long-lived npm token or extra provenance flag is required in the repo workflow.
+After that, publishing a GitHub release triggers an OIDC-backed `npm publish --access public --provenance` flow. The workflow also keeps a manual `workflow_dispatch` path for maintainers who intentionally need a manual publish run. No long-lived npm token is required in the repository for either path.
 
 The publish workflow intentionally runs on Node 24 so the bundled npm CLI satisfies npm's current Trusted Publishing requirement (`npm` 11.5.1+).
 
@@ -240,7 +240,7 @@ pnpm catalog:sync:strict
 - The catalog status route reports current counts, freshness, and the latest recorded sync summary
 - In production, `refresh=1` on `/api/catalog` is protected; callers must send `x-vibebasket-refresh-token` matching `CATALOG_REFRESH_TOKEN`
 - `pnpm catalog:sync` is the safest hook for cron or external schedulers because it records sync audit metadata as well as refreshing catalog rows
-- keep npm publish tokens in `~/.npmrc`, not in repo files or `.env`
+- if you intentionally use a local npm token for a manual publish or private registry access, keep it only in `~/.npmrc`, not in repo files or `.env`
 - adding a new `NEXT_PUBLIC_*` variable is treated as a security-sensitive change; only extend `scripts/check-public-env.mjs` when the value is intentionally safe for client-side exposure
 - request-triggered background refresh is opportunistic; if you need predictable freshness windows, prefer cron/systemd/Kubernetes scheduling around `pnpm catalog:sync`
 - `pnpm catalog:sync:strict` is the safest pre-launch/manual validation command because it fails fast when one of the trusted upstream collectors still has source errors
