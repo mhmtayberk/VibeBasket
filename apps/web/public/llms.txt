@@ -7,7 +7,7 @@
 - [Quick Install](https://vibebasket.dev/docs?tab=cli): `npx vibebasket apply <bundle-url>` — one command to set up your entire AI dev stack.
 
 ## Architecture
-- [Monorepo Structure](https://github.com/vibebasket/vibebasket): pnpm workspace with 5 packages — apps/web (Next.js 16), apps/cli (Node.js), packages/core (shared DB + schema), packages/adapters (24 IDE adapters), packages/registry (catalog sync engine).
+- [Monorepo Structure](https://github.com/mhmtayberk/VibeBasket): pnpm workspace with 5 packages — apps/web (Next.js 16), apps/cli (Node.js), packages/core (shared DB + schema), packages/adapters (24 IDE adapters), packages/registry (catalog sync engine).
 - [Database](https://vibebasket.dev/docs?tab=security): SQLite via libSQL with Drizzle ORM. Tables include catalog_items, bundles, catalog_sync_runs, sessions, accounts, verification_tokens, saved_stacks, saved_stack_items, saved_stack_targets, backup_storage_config, and site_config. FTS5 full-text search index on catalog.
 - [Adapter Pattern](https://vibebasket.dev/docs?tab=adapters): BaseAdapter class with shared readConfig, applyMcps, writeConfig, diff methods. 16 adapters use BaseAdapter; 8 with custom logic (Hermes YAML, Codex TOML, RooCode/Void delimiters, Aider/GitHub Copilot no-MCP targets).
 - [Block Delimiter Engine](https://vibebasket.dev/docs?tab=delimiters): `# >>> VIBEBASKET START: id <<<` / `# >>> VIBEBASKET END: id <<<` markers for idempotent file merging. Supports shell comments (#), HTML comments (<!-- -->), and YAML comments (#).
@@ -33,10 +33,10 @@
 - [Configuration](https://vibebasket.dev/docs?tab=self-hosting): 15+ environment variables for auth, storage, and operational settings. SQLite WAL mode with single-writer constraint noted. Helm chart supports existingSecret for credentials.
 
 ## Contributing
-- [Source](https://github.com/vibebasket/vibebasket): MIT licensed. TypeScript strict mode. pnpm >= 9, Node >= 20.
-- [Test Suite](https://github.com/vibebasket/vibebasket): Hundreds of unit/integration tests (Vitest), Playwright browser coverage, and property-based adapter checks via fast-check.
+- [Source](https://github.com/mhmtayberk/VibeBasket): MIT licensed. TypeScript strict mode. pnpm >= 9, Node >= 20.
+- [Test Suite](https://github.com/mhmtayberk/VibeBasket): Hundreds of unit/integration tests (Vitest), Playwright browser coverage, and property-based adapter checks via fast-check.
 - [Adapter Contributions](https://vibebasket.dev/docs?tab=adapters): New IDE adapters extend BaseAdapter. Config path resolution, MCP apply, optional skills/rules support. 24 adapters currently supported.
 
 ## Optional
-- [Changelog](https://github.com/vibebasket/vibebasket/releases): Release notes and version history.
-- [Open Source](https://github.com/vibebasket/vibebasket): MIT License. Contributions welcome.
+- [Changelog](https://github.com/mhmtayberk/VibeBasket/releases): Release notes and version history.
+- [Open Source](https://github.com/mhmtayberk/VibeBasket): MIT License. Contributions welcome.

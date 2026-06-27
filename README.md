@@ -39,9 +39,9 @@ npx vibebasket apply https://vibebasket.dev/api/bundle/cj2k9x
 
 The CLI is also published on npm as [`vibebasket`](https://www.npmjs.com/package/vibebasket).
 
-For maintainers: keep npm publish credentials in your user-level `~/.npmrc`. The repository deliberately does not rely on a tracked project `.npmrc`.
+For maintainers: keep any local npm credentials in your user-level `~/.npmrc` only when you intentionally need them for a manual local publish or private registry access. The repository deliberately does not rely on a tracked project `.npmrc`.
 
-The repo is now wired for GitHub Actions-based npm publishing in [`.github/workflows/publish.yml`](.github/workflows/publish.yml). After the package is linked once in npm Trusted Publisher settings, releases can publish with npm provenance and without a long-lived publish token.
+The repo is now wired for GitHub Actions-based npm publishing in [`.github/workflows/publish.yml`](.github/workflows/publish.yml). After the package is linked once in npm Trusted Publisher settings, published GitHub releases can publish with npm provenance and without a long-lived publish token. The workflow also keeps a manual `workflow_dispatch` path for maintainers who deliberately need a manual publish run.
 
 ## Where It Fits
 
@@ -292,7 +292,7 @@ Repository guardrails:
 
 - CI runs a repo-level secret scan with `gitleaks`.
 - Executable and config files are checked for `NEXT_PUBLIC_*` usage, and only reviewed allowlisted names are accepted.
-- npm publish credentials should stay in the user-level `~/.npmrc`, never in the repository.
+- local npm credentials, if you use them for a manual publish or private registry access, should stay in the user-level `~/.npmrc`, never in the repository.
 
 Report vulnerabilities via [GitHub Security Advisories](https://github.com/mhmtayberk/VibeBasket/security/advisories/new). See [SECURITY.md](SECURITY.md) for the full threat model.
 
