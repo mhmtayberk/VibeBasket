@@ -144,7 +144,9 @@ describe("Security Headers", () => {
     const csp = createDocumentContentSecurityPolicy("test-nonce");
 
     expect(csp).toContain("default-src 'self'");
-    expect(csp).toContain("script-src 'self' 'nonce-test-nonce' 'strict-dynamic' 'wasm-unsafe-eval'");
+    expect(csp).toContain(
+      "script-src 'self' 'nonce-test-nonce' 'strict-dynamic' 'wasm-unsafe-eval'",
+    );
     expect(csp).toContain("connect-src 'self'");
     expect(csp).toContain("object-src 'none'");
     expect(csp).toContain("manifest-src 'self'");
