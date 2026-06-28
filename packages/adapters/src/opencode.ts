@@ -2,6 +2,12 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import type { IdeId, McpEntry, RuleEntry, Scope, SkillEntry } from "../../core/src/manifest.js";
+import {
+  appendManagedContentResult,
+  createManagedContentResult,
+  matchesManagedContent,
+  upsertManagedTextFile,
+} from "./managed-installs";
 import { hasErrorCode, resolveSecretInterpolations } from "./mcp-utils";
 import { getTargetCapabilities } from "./target-capabilities";
 import type { IdeAdapter } from "./types";
@@ -111,13 +117,13 @@ export class OpenCodeAdapter implements IdeAdapter {
     } satisfies OpenCodeConfig;
   }
 
-  async applySkills(skills: SkillEntry[], scope: Scope, projectRoot?: string): Promise<void> {
+  async applySkills(skills: SkillEntry[], scope: Scope, projectRoot?: string) {
     const baseDir = getOpenCodeSkillBaseDir(scope, projectRoot);
     await fs.mkdir(baseDir, { recursive: true });
+    const result = createManagedContentResult();
 
     for (const skill of skills) {
       const skillDir = path.join(baseDir, skill.id);
-      await fs.mkdir(skillDir, { recursive: true });
 
       const body =
         skill.source.type === "inline"
@@ -126,12 +132,25 @@ export class OpenCodeAdapter implements IdeAdapter {
             ? `Source: GitHub - ${skill.source.repo} (path: ${skill.source.path || "/"})`
             : `Source: npm - ${skill.source.package}`;
 
-      await fs.writeFile(
-        path.join(skillDir, "SKILL.md"),
-        `---\nname: ${skill.id}\ndescription: ${skill.displayName}\n---\n\n${body}\n`,
-        "utf8",
+      const content = `---\nname: ${skill.id}\ndescription: ${skill.displayName}\n---\n\n${body}\n`;
+      appendManagedContentResult(
+        result,
+        await upsertManagedTextFile({
+          registryDir: baseDir,
+          targetFile: path.join(skillDir, "SKILL.md"),
+          kind: "skill",
+          id: skill.id,
+          content,
+          isLegacyManagedContent: (currentContent) =>
+            matchesManagedContent(currentContent, content, [
+              skill.displayName,
+              `name: ${skill.id}`,
+            ]),
+        }),
       );
     }
+
+    return result;
   }
 
   async applyRules(rules: RuleEntry[], scope: Scope, projectRoot?: string): Promise<void> {
