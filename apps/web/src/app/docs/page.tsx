@@ -15,6 +15,8 @@ import { DocsTabHub } from "./tabs/DocsTabHub";
 import { DocsTabSecurity } from "./tabs/DocsTabSecurity";
 import { DocsTabSelfHosting } from "./tabs/DocsTabSelfHosting";
 
+export const dynamic = "force-dynamic";
+
 interface SearchParams {
   tab?: string;
   q?: string;

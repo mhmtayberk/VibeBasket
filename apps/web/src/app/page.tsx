@@ -17,12 +17,18 @@ import {
   Workflow,
 } from "lucide-react";
 import Image from "next/image";
+import { headers } from "next/headers";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const [initialCatalog, session] = await Promise.all([getInitialCatalogSnapshot(), auth()]);
+  const [initialCatalog, session, headerStore] = await Promise.all([
+    getInitialCatalogSnapshot(),
+    auth(),
+    headers(),
+  ]);
+  const nonce = headerStore.get("x-nonce") ?? undefined;
   const enabledProviders = getEnabledAuthProviders();
   const structuredData = {
     "@context": "https://schema.org",
@@ -162,7 +168,9 @@ export default async function Home() {
         </div>
       </header>
 
-      <script type="application/ld+json">{JSON.stringify(structuredData)}</script>
+      <script nonce={nonce} type="application/ld+json">
+        {JSON.stringify(structuredData)}
+      </script>
 
       <section className="border-b border-border/80" aria-labelledby={sectionIds.heroTitle}>
         <div className="mx-auto grid max-w-[1440px] gap-14 px-4 py-14 sm:px-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(420px,0.95fr)] lg:px-8 lg:py-20">
@@ -178,7 +186,7 @@ export default async function Home() {
               <Link
                 href="https://github.com/mhmtayberk/VibeBasket"
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 className="inline-flex h-10 items-center gap-2 border border-border/80 bg-background/40 px-3.5 font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:border-accent/40 hover:text-foreground"
               >
                 <ArrowUpRight className="h-3.5 w-3.5" />
@@ -187,7 +195,7 @@ export default async function Home() {
               <Link
                 href="https://www.npmjs.com/package/vibebasket"
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 className="inline-flex h-10 items-center gap-2 border border-border/80 bg-background/40 px-3.5 font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:border-accent/40 hover:text-foreground"
               >
                 <Package2 className="h-3.5 w-3.5" />

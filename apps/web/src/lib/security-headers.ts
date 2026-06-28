@@ -9,27 +9,38 @@ export const DEFAULT_SECURITY_HEADERS = {
   "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
   "Strict-Transport-Security":
     process.env.NODE_ENV === "production" ? "max-age=63072000; includeSubDomains; preload" : "",
-  "Content-Security-Policy":
-    process.env.NODE_ENV === "production"
-      ? [
-          "default-src 'self'",
-          "script-src 'self' 'wasm-unsafe-eval' 'inline-speculation-rules'",
-          "style-src 'self' 'unsafe-inline'",
-          "img-src 'self' data: https:",
-          "font-src 'self'",
-          "connect-src 'self'",
-          "frame-ancestors 'none'",
-          "base-uri 'self'",
-          "form-action 'self'",
-        ].join("; ")
-      : "",
 } as const;
 
-export function applySecurityHeaders(response: Response) {
+export function createDocumentContentSecurityPolicy(nonce: string) {
+  return [
+    "default-src 'self'",
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' 'wasm-unsafe-eval'`,
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: https:",
+    "font-src 'self'",
+    "connect-src 'self'",
+    "object-src 'none'",
+    "manifest-src 'self'",
+    "frame-ancestors 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+  ].join("; ");
+}
+
+export function applySecurityHeaders(
+  response: Response,
+  options?: {
+    contentSecurityPolicy?: string;
+  },
+) {
   for (const [key, value] of Object.entries(DEFAULT_SECURITY_HEADERS)) {
     if (value) {
       response.headers.set(key, value);
     }
+  }
+
+  if (options?.contentSecurityPolicy) {
+    response.headers.set("Content-Security-Policy", options.contentSecurityPolicy);
   }
 
   return response;

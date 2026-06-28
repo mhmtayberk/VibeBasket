@@ -1,4 +1,5 @@
 import path from "node:path";
+import { existsSync } from "node:fs";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { inArray, sql } from "drizzle-orm";
 import type {
@@ -29,7 +30,13 @@ const MODULE_DIR = path.dirname(fileURLToPath(import.meta.url));
 const CORE_SOURCE_ENTRY_URL = pathToFileURL(
   path.resolve(MODULE_DIR, "../../core/src/index.ts"),
 ).href;
-const DEFAULT_VERIFIED_PATH = path.resolve(MODULE_DIR, "../data/verified.yaml");
+const DEFAULT_VERIFIED_PATH_CANDIDATES = [
+  path.resolve(MODULE_DIR, "../data/verified.yaml"),
+  path.resolve(process.cwd(), "packages/registry/data/verified.yaml"),
+];
+const DEFAULT_VERIFIED_PATH =
+  DEFAULT_VERIFIED_PATH_CANDIDATES.find((candidate) => existsSync(candidate)) ??
+  DEFAULT_VERIFIED_PATH_CANDIDATES[0];
 const DEFAULT_MCP_REGISTRY_FETCH_TIMEOUT_MS = 60000;
 const DEFAULT_SKILLS_SH_FETCH_TIMEOUT_MS = 20000;
 const DEFAULT_FETCH_RETRIES = 2;
