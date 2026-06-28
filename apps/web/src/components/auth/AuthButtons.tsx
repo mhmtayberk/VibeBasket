@@ -2,7 +2,8 @@ import { signIn } from "@/auth";
 import type { EnabledAuthProvider } from "@/auth.config";
 import { sanitizeCallbackUrl } from "@/lib/safe-redirect";
 import { cn } from "@/lib/utils";
-import { ArrowRight, Code2, Globe, Lock } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import Image from "next/image";
 
 type AuthButtonsProps = {
   providers: EnabledAuthProvider[];
@@ -13,13 +14,49 @@ type AuthButtonsProps = {
 function getProviderIcon(providerId: EnabledAuthProvider["id"]) {
   switch (providerId) {
     case "github":
-      return <Code2 className="h-4 w-4" />;
+      return (
+        <Image
+          src="/providers/github.svg"
+          alt=""
+          width={18}
+          height={18}
+          className="h-[18px] w-[18px] object-contain"
+          aria-hidden="true"
+        />
+      );
     case "google":
-      return <Globe className="h-4 w-4" />;
+      return (
+        <Image
+          src="/providers/google.svg"
+          alt=""
+          width={18}
+          height={18}
+          className="h-[18px] w-[18px] object-contain"
+          aria-hidden="true"
+        />
+      );
     case "apple":
-      return <Lock className="h-4 w-4" />;
+      return (
+        <Image
+          src="/providers/apple.svg"
+          alt=""
+          width={18}
+          height={18}
+          className="h-[18px] w-[18px] object-contain"
+          aria-hidden="true"
+        />
+      );
     case "microsoft-entra-id":
-      return <Globe className="h-4 w-4" />;
+      return (
+        <Image
+          src="/providers/microsoft.svg"
+          alt=""
+          width={18}
+          height={18}
+          className="h-[18px] w-[18px] object-contain"
+          aria-hidden="true"
+        />
+      );
   }
 }
 
