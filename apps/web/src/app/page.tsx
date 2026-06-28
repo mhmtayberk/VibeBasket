@@ -103,7 +103,7 @@ export default async function Home() {
           <div className="flex min-w-0 items-center gap-8">
             <Link
               href="/"
-              className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl"
+              className="text-[2.35rem] font-bold tracking-tight text-foreground sm:text-4xl"
             >
               VibeBasket
             </Link>
@@ -175,19 +175,19 @@ export default async function Home() {
       <section className="border-b border-border/80" aria-labelledby={sectionIds.heroTitle}>
         <div className="mx-auto grid max-w-[1440px] gap-14 px-4 py-14 sm:px-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(420px,0.95fr)] lg:px-8 lg:py-20">
           <div className="flex flex-col justify-center">
-            <div className="inline-flex w-fit items-center gap-2 border border-border/80 bg-card/70 px-3 py-1.5">
+            <div className="inline-flex w-fit items-center gap-2 border border-border/80 bg-card/70 px-2.5 py-1.5 sm:px-3">
               <span className="h-2 w-2 rounded-full bg-accent animate-pulse" />
-              <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-accent">
+              <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-accent sm:text-[11px] sm:tracking-[0.18em]">
                 {`Open source · ${SUPPORTED_TARGET_COUNT} IDE targets`}
               </span>
             </div>
 
-            <div className="mt-4 flex flex-wrap items-center gap-3">
+            <div className="mt-4 flex flex-wrap items-center gap-2.5 sm:gap-3">
               <Link
                 href="https://github.com/mhmtayberk/VibeBasket"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex h-10 items-center gap-2 border border-border/80 bg-background/40 px-3.5 font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:border-accent/40 hover:text-foreground"
+                className="inline-flex h-10 items-center gap-2 border border-border/80 bg-background/40 px-3 font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground transition-colors hover:border-accent/40 hover:text-foreground sm:px-3.5 sm:text-[11px] sm:tracking-[0.18em]"
               >
                 <ArrowUpRight className="h-3.5 w-3.5" />
                 GitHub
@@ -196,7 +196,7 @@ export default async function Home() {
                 href="https://www.npmjs.com/package/vibebasket"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex h-10 items-center gap-2 border border-border/80 bg-background/40 px-3.5 font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:border-accent/40 hover:text-foreground"
+                className="inline-flex h-10 items-center gap-2 border border-border/80 bg-background/40 px-3 font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground transition-colors hover:border-accent/40 hover:text-foreground sm:px-3.5 sm:text-[11px] sm:tracking-[0.18em]"
               >
                 <Package2 className="h-3.5 w-3.5" />
                 npm
@@ -205,7 +205,7 @@ export default async function Home() {
 
             <h1
               id={sectionIds.heroTitle}
-              className="mt-8 max-w-3xl text-[2.5rem] font-semibold leading-[0.98] tracking-[-0.05em] text-foreground sm:text-[3.55rem] lg:text-[4.45rem]"
+              className="mt-8 max-w-3xl text-[2.1rem] font-semibold leading-[0.98] tracking-[-0.04em] text-foreground sm:text-[3.55rem] sm:tracking-[-0.05em] lg:text-[4.45rem]"
             >
               Bundle your AI
               <br />
@@ -216,22 +216,22 @@ export default async function Home() {
               one link.
             </h1>
 
-            <p className="mt-8 max-w-xl text-base leading-8 text-muted-foreground sm:text-lg">
+            <p className="mt-6 max-w-xl text-[0.95rem] leading-7 text-muted-foreground sm:mt-8 sm:text-lg sm:leading-8">
               Curate trusted MCP servers, reusable skills, and project rules. Generate one install
               command that travels cleanly across Cursor, Windsurf, VS Code, and the rest of your AI
               coding stack.
             </p>
 
-            <div className="mt-10 flex flex-col gap-3 sm:flex-row">
+            <div className="mt-8 flex flex-col gap-3 sm:mt-10 sm:flex-row">
               <a
                 href={`#${sectionIds.catalog}`}
-                className="inline-flex h-12 items-center justify-center gap-2 border border-accent bg-accent px-5 font-mono text-[11px] uppercase tracking-[0.18em] text-accent-foreground transition-colors hover:bg-accent/90"
+                className="inline-flex h-11 items-center justify-center gap-2 border border-accent bg-accent px-4 font-mono text-[10px] uppercase tracking-[0.16em] text-accent-foreground transition-colors hover:bg-accent/90 sm:h-12 sm:px-5 sm:text-[11px] sm:tracking-[0.18em]"
               >
                 Start building free
               </a>
               <a
                 href={`#${sectionIds.catalog}`}
-                className="inline-flex h-12 items-center justify-center gap-2 border border-border/80 bg-card/70 px-5 font-mono text-[11px] uppercase tracking-[0.18em] text-foreground transition-colors hover:border-accent/40 hover:text-accent"
+                className="inline-flex h-11 items-center justify-center gap-2 border border-border/80 bg-card/70 px-4 font-mono text-[10px] uppercase tracking-[0.16em] text-foreground transition-colors hover:border-accent/40 hover:text-accent sm:h-12 sm:px-5 sm:text-[11px] sm:tracking-[0.18em]"
               >
                 <TerminalSquare className="h-4 w-4" />
                 View catalog
