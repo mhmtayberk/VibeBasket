@@ -1,8 +1,8 @@
-import { NextResponse, type NextRequest } from "next/server";
 import {
   DEFAULT_SECURITY_HEADERS,
   createDocumentContentSecurityPolicy,
 } from "@/lib/security-headers";
+import { type NextRequest, NextResponse } from "next/server";
 
 function applyDocumentSecurityHeaders(response: NextResponse, nonce: string) {
   for (const [key, value] of Object.entries(DEFAULT_SECURITY_HEADERS)) {
