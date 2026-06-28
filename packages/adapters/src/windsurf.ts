@@ -3,6 +3,12 @@ import os from "node:os";
 import path from "node:path";
 import type { RuleEntry, Scope, SkillEntry } from "../../core/src/manifest.js";
 import { BaseAdapter } from "./base-adapter";
+import {
+  appendManagedContentResult,
+  createManagedContentResult,
+  matchesManagedContent,
+  upsertManagedTextFile,
+} from "./managed-installs";
 import { hasErrorCode } from "./mcp-utils";
 
 export class WindsurfAdapter extends BaseAdapter {
@@ -19,7 +25,7 @@ export class WindsurfAdapter extends BaseAdapter {
     return path.join(os.homedir(), ".codeium", "windsurf", "mcp_config.json");
   }
 
-  async applySkills(skills: SkillEntry[], scope: Scope, projectRoot?: string): Promise<void> {
+  async applySkills(skills: SkillEntry[], scope: Scope, projectRoot?: string) {
     const baseDir =
       scope === "project" && projectRoot
         ? path.join(projectRoot, ".windsurf", "skills")
@@ -27,9 +33,10 @@ export class WindsurfAdapter extends BaseAdapter {
 
     await fs.mkdir(baseDir, { recursive: true });
 
+    const result = createManagedContentResult();
+
     for (const skill of skills) {
       const skillDir = path.join(baseDir, skill.id);
-      await fs.mkdir(skillDir, { recursive: true });
 
       const body =
         skill.source.type === "inline"
@@ -38,27 +45,49 @@ export class WindsurfAdapter extends BaseAdapter {
             ? `Source: github.com/${skill.source.repo}${skill.source.path ? `/${skill.source.path}` : ""}`
             : `Source: npm ${skill.source.package}`;
 
-      await fs.writeFile(
-        path.join(skillDir, "SKILL.md"),
-        `---\nname: ${skill.displayName}\ndescription: Installed by VibeBasket\n---\n\n${body}\n`,
-        "utf8",
+      const content = `---\nname: ${skill.displayName}\ndescription: Installed by VibeBasket\n---\n\n${body}\n`;
+      appendManagedContentResult(
+        result,
+        await upsertManagedTextFile({
+          registryDir: baseDir,
+          targetFile: path.join(skillDir, "SKILL.md"),
+          kind: "skill",
+          id: skill.id,
+          content,
+          isLegacyManagedContent: (currentContent) =>
+            matchesManagedContent(currentContent, content, ["Installed by VibeBasket"]),
+        }),
       );
     }
+
+    return result;
   }
 
-  async applyRules(rules: RuleEntry[], scope: Scope, projectRoot?: string): Promise<void> {
+  async applyRules(rules: RuleEntry[], scope: Scope, projectRoot?: string) {
     if (scope === "project" && projectRoot) {
       const rulesDir = path.join(projectRoot, ".devin", "rules");
       await fs.mkdir(rulesDir, { recursive: true });
+      const result = createManagedContentResult();
 
       for (const rule of rules) {
-        await fs.writeFile(
-          path.join(rulesDir, `${rule.id}.md`),
-          `---\ntrigger: always_on\n---\n\n# ${rule.displayName}\n\n${rule.content}\n`,
-          "utf8",
+        const content = `---\ntrigger: always_on\n---\n\n# ${rule.displayName}\n\n${rule.content}\n`;
+        appendManagedContentResult(
+          result,
+          await upsertManagedTextFile({
+            registryDir: rulesDir,
+            targetFile: path.join(rulesDir, `${rule.id}.md`),
+            kind: "rule",
+            id: rule.id,
+            content,
+            isLegacyManagedContent: (currentContent) =>
+              matchesManagedContent(currentContent, content, [
+                "trigger: always_on",
+                rule.displayName,
+              ]),
+          }),
         );
       }
-      return;
+      return result;
     }
 
     const globalRulesFile = path.join(
@@ -95,6 +124,7 @@ export class WindsurfAdapter extends BaseAdapter {
     }
 
     await fs.writeFile(globalRulesFile, `${content.trim()}\n`, "utf8");
+    return undefined;
   }
 
   postInstallHint(): string {

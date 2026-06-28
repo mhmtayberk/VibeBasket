@@ -1,6 +1,12 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import type { IdeId, McpEntry, RuleEntry, Scope, SkillEntry } from "../../core/src/manifest.js";
+import {
+  appendManagedContentResult,
+  createManagedContentResult,
+  matchesManagedContent,
+  upsertManagedTextFile,
+} from "./managed-installs";
 import { hasErrorCode, mergeStandardMcpServers } from "./mcp-utils";
 import { getVsCodeGlobalStorageDir } from "./platform-paths";
 import { getTargetCapabilities } from "./target-capabilities";
@@ -70,7 +76,7 @@ export class RooCodeAdapter implements IdeAdapter {
     };
   }
 
-  async applySkills(skills: SkillEntry[], scope: Scope, projectRoot?: string): Promise<void> {
+  async applySkills(skills: SkillEntry[], scope: Scope, projectRoot?: string) {
     const baseDir =
       scope === "project" && projectRoot
         ? path.join(projectRoot, ".roo", "skills")
@@ -78,9 +84,10 @@ export class RooCodeAdapter implements IdeAdapter {
 
     await fs.mkdir(baseDir, { recursive: true });
 
+    const result = createManagedContentResult();
+
     for (const skill of skills) {
       const skillDir = path.join(baseDir, skill.id);
-      await fs.mkdir(skillDir, { recursive: true });
 
       const body =
         skill.source.type === "inline"
@@ -89,15 +96,28 @@ export class RooCodeAdapter implements IdeAdapter {
             ? `Source: GitHub - ${skill.source.repo} (path: ${skill.source.path || "/"})`
             : `Source: npm - ${skill.source.package}`;
 
-      await fs.writeFile(
-        path.join(skillDir, "SKILL.md"),
-        `---\nname: ${skill.id}\ndescription: ${skill.displayName}\n---\n\n${body}\n`,
-        "utf8",
+      const content = `---\nname: ${skill.id}\ndescription: ${skill.displayName}\n---\n\n${body}\n`;
+      appendManagedContentResult(
+        result,
+        await upsertManagedTextFile({
+          registryDir: baseDir,
+          targetFile: path.join(skillDir, "SKILL.md"),
+          kind: "skill",
+          id: skill.id,
+          content,
+          isLegacyManagedContent: (currentContent) =>
+            matchesManagedContent(currentContent, content, [
+              skill.displayName,
+              `name: ${skill.id}`,
+            ]),
+        }),
       );
     }
+
+    return result;
   }
 
-  async applyRules(rules: RuleEntry[], scope: Scope, projectRoot?: string): Promise<void> {
+  async applyRules(rules: RuleEntry[], scope: Scope, projectRoot?: string) {
     const baseDir =
       scope === "project" && projectRoot
         ? path.join(projectRoot, ".roo", "rules")
@@ -105,13 +125,25 @@ export class RooCodeAdapter implements IdeAdapter {
 
     await fs.mkdir(baseDir, { recursive: true });
 
+    const result = createManagedContentResult();
+
     for (const rule of rules) {
-      await fs.writeFile(
-        path.join(baseDir, `${rule.id}.md`),
-        `# ${rule.displayName}\n\n${rule.content}\n`,
-        "utf8",
+      const content = `# ${rule.displayName}\n\n${rule.content}\n`;
+      appendManagedContentResult(
+        result,
+        await upsertManagedTextFile({
+          registryDir: baseDir,
+          targetFile: path.join(baseDir, `${rule.id}.md`),
+          kind: "rule",
+          id: rule.id,
+          content,
+          isLegacyManagedContent: (currentContent) =>
+            matchesManagedContent(currentContent, content, [rule.displayName]),
+        }),
       );
     }
+
+    return result;
   }
 
   async writeConfig(scope: Scope, config: unknown, projectRoot?: string): Promise<void> {

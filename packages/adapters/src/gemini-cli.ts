@@ -3,6 +3,12 @@ import os from "node:os";
 import path from "node:path";
 import type { Scope, SkillEntry } from "../../core/src/manifest.js";
 import { BaseAdapter } from "./base-adapter";
+import {
+  appendManagedContentResult,
+  createManagedContentResult,
+  matchesManagedContent,
+  upsertManagedTextFile,
+} from "./managed-installs";
 
 export class GeminiCliAdapter extends BaseAdapter {
   readonly id = "gemini-cli" as const;
@@ -17,7 +23,7 @@ export class GeminiCliAdapter extends BaseAdapter {
     return path.join(os.homedir(), ".gemini", "settings.json");
   }
 
-  async applySkills(skills: SkillEntry[], scope: Scope, projectRoot?: string): Promise<void> {
+  async applySkills(skills: SkillEntry[], scope: Scope, projectRoot?: string) {
     const baseDir =
       scope === "project" && projectRoot
         ? path.join(projectRoot, ".gemini", "skills")
@@ -25,9 +31,10 @@ export class GeminiCliAdapter extends BaseAdapter {
 
     await fs.mkdir(baseDir, { recursive: true });
 
+    const result = createManagedContentResult();
+
     for (const skill of skills) {
       const skillDir = path.join(baseDir, skill.id);
-      await fs.mkdir(skillDir, { recursive: true });
 
       const body =
         skill.source.type === "inline"
@@ -36,12 +43,22 @@ export class GeminiCliAdapter extends BaseAdapter {
             ? `Source: github.com/${skill.source.repo}${skill.source.path ? `/${skill.source.path}` : ""}`
             : `Source: npm ${skill.source.package}`;
 
-      await fs.writeFile(
-        path.join(skillDir, "SKILL.md"),
-        `---\nname: ${skill.displayName}\ndescription: Installed by VibeBasket\n---\n\n${body}\n`,
-        "utf8",
+      const content = `---\nname: ${skill.displayName}\ndescription: Installed by VibeBasket\n---\n\n${body}\n`;
+      appendManagedContentResult(
+        result,
+        await upsertManagedTextFile({
+          registryDir: baseDir,
+          targetFile: path.join(skillDir, "SKILL.md"),
+          kind: "skill",
+          id: skill.id,
+          content,
+          isLegacyManagedContent: (currentContent) =>
+            matchesManagedContent(currentContent, content, ["Installed by VibeBasket"]),
+        }),
       );
     }
+
+    return result;
   }
 
   postInstallHint(): string {
