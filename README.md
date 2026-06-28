@@ -146,6 +146,8 @@ Choose the path that matches what you are trying to do:
 - Self-host on one machine: use Docker first
 - Hack on the repo: use the manual workspace setup
 
+If you deploy with Coolify, prefer Dockerfile mode. Build Pack mode is also supported via the repo-level `nixpacks.toml`.
+
 ### Docker
 
 ```bash

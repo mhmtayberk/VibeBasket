@@ -1,0 +1,21 @@
+[variables]
+NODE_ENV = "production"
+NPM_CONFIG_PRODUCTION = "false"
+
+[phases.install]
+cmds = [
+  "npm install -g pnpm@11.7.0",
+  "pnpm install --frozen-lockfile"
+]
+
+[phases.build]
+dependsOn = ["install"]
+cmds = [
+  "pnpm --filter @vibebasket/core build",
+  "pnpm --filter @vibebasket/registry build",
+  "pnpm --filter @vibebasket/adapters build",
+  "pnpm --filter web build"
+]
+
+[start]
+cmd = "pnpm --filter web start"
