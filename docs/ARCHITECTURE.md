@@ -30,6 +30,8 @@ We use `pnpm workspaces` to manage the project.
 4. Adapters modify IDE configuration files incrementally and idempotently.
 5. The CLI re-reads the target configuration and verifies deterministic artifacts after writes when verification is enabled (default).
 
+For filesystem-backed Skills, Rules, and Continue prompts, VibeBasket now tracks its own managed files with a local sidecar registry. Existing foreign files at the same path are skipped instead of overwritten, while previously managed VibeBasket files remain safely updatable and backed up before changes.
+
 ## Registry Sync System
 To keep the catalog fresh without relying on mostly manual entry, VibeBasket implements an automated sync layer:
 

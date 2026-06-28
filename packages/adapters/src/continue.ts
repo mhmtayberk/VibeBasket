@@ -4,6 +4,12 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import type { McpEntry, Scope, SkillEntry } from "../../core/src/manifest.js";
 import { BaseAdapter } from "./base-adapter";
+import {
+  appendManagedContentResult,
+  createManagedContentResult,
+  matchesManagedContent,
+  upsertManagedTextFile,
+} from "./managed-installs";
 import { hasErrorCode, resolveSecretInterpolations } from "./mcp-utils";
 
 interface ContinuePromptReference {
@@ -115,10 +121,11 @@ export class ContinueAdapter extends BaseAdapter {
     } satisfies ContinueConfig;
   }
 
-  async applySkills(skills: SkillEntry[], scope: Scope, projectRoot?: string): Promise<void> {
+  async applySkills(skills: SkillEntry[], scope: Scope, projectRoot?: string) {
     const configFile = this.configPath(scope, projectRoot);
     const promptsDir = path.join(path.dirname(configFile), "prompts");
     await fs.mkdir(promptsDir, { recursive: true });
+    const result = createManagedContentResult();
 
     const config = (await this.readConfig(scope, projectRoot)) as ContinueConfig;
     const existingPromptRefs = new Set((config.prompts || []).map((prompt) => prompt.uses));
@@ -134,7 +141,18 @@ export class ContinueAdapter extends BaseAdapter {
       }
       const promptPath = path.join(promptsDir, `${skill.id}.prompt`);
       const fileBody = `---\nname: ${skill.displayName}\ninvokable: true\n---\n\n${promptContent}`;
-      await fs.writeFile(promptPath, fileBody, "utf8");
+      appendManagedContentResult(
+        result,
+        await upsertManagedTextFile({
+          registryDir: promptsDir,
+          targetFile: promptPath,
+          kind: "prompt",
+          id: skill.id,
+          content: fileBody,
+          isLegacyManagedContent: (currentContent) =>
+            matchesManagedContent(currentContent, fileBody, [skill.displayName, "invokable: true"]),
+        }),
+      );
 
       const uses = pathToFileURL(promptPath).toString();
       if (!existingPromptRefs.has(uses)) {
@@ -144,6 +162,7 @@ export class ContinueAdapter extends BaseAdapter {
     }
 
     await this.writeConfig(scope, config, projectRoot);
+    return result;
   }
 
   override async writeConfig(scope: Scope, config: unknown, projectRoot?: string): Promise<void> {

@@ -14,6 +14,21 @@ export interface IdeAdapterCapabilities {
   readonly supportedScopes: readonly Scope[];
 }
 
+export interface ManagedContentSkip {
+  path: string;
+  reason: string;
+}
+
+export interface ManagedContentApplyResult {
+  written: string[];
+  updated: string[];
+  unchanged: string[];
+  skipped: ManagedContentSkip[];
+}
+
+// biome-ignore lint/suspicious/noConfusingVoidType: Adapters may return a structured summary or no summary.
+export type ManagedContentApplyOutcome = ManagedContentApplyResult | void;
+
 export interface IdeAdapter extends IdeAdapterCapabilities {
   readonly id: IdeId;
   readonly displayName: string;
@@ -33,10 +48,18 @@ export interface IdeAdapter extends IdeAdapterCapabilities {
   ): unknown;
 
   /** Optional, only if supportsSkills. Writes to ~/.claude/skills/<id>/ or project equivalent. */
-  applySkills?(skills: SkillEntry[], scope: Scope, projectRoot?: string): Promise<void>;
+  applySkills?(
+    skills: SkillEntry[],
+    scope: Scope,
+    projectRoot?: string,
+  ): Promise<ManagedContentApplyOutcome>;
 
   /** Optional, only if supportsRules. Translates a generic Rule into IDE-native format. */
-  applyRules?(rules: RuleEntry[], scope: Scope, projectRoot?: string): Promise<void>;
+  applyRules?(
+    rules: RuleEntry[],
+    scope: Scope,
+    projectRoot?: string,
+  ): Promise<ManagedContentApplyOutcome>;
 
   /** Apply arbitrary file scaffolds (used by workflow packs). */
   applyFiles?(files: FileEntry[], scope: Scope, projectRoot?: string): Promise<void>;
