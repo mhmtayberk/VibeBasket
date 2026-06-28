@@ -4,7 +4,7 @@ test("home page loads, exposes auth CTA, and searches the catalog", async ({ pag
   await page.goto("/");
 
   await expect(page.getByRole("link", { name: "VibeBasket" })).toBeVisible();
-  await expect(page.getByRole("button", { name: /login/i })).toBeVisible();
+  await expect(page.getByRole("link", { name: /login/i })).toBeVisible();
   await expect(page.getByRole("link", { name: /build your basket/i })).toBeVisible();
 
   await page.getByRole("textbox", { name: /search mcp servers/i }).fill("github");

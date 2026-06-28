@@ -34,7 +34,7 @@ test.describe("VibeBasket — Smoke", () => {
   test("homepage exposes login CTA and install flow anchor", async ({ page }) => {
     await page.goto("/");
 
-    await expect(page.getByRole("button", { name: /login/i })).toBeVisible();
+    await expect(page.getByRole("link", { name: /login/i })).toBeVisible();
     await expect(page.getByRole("link", { name: /build your basket/i })).toBeVisible();
     await expect(
       page.getByRole("navigation").getByRole("link", { name: /documentation/i }),
