@@ -1,9 +1,22 @@
-import { describe, expect, it } from "vitest";
+import fs from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { McpEntry } from "../../core/src/manifest.js";
 import { CursorAdapter } from "./cursor.js";
 import type { McpConfigResult } from "./mcp-utils";
 
 describe("CursorAdapter", () => {
+  let tempDir: string;
+
+  beforeEach(async () => {
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "vibebasket-cursor-"));
+  });
+
+  afterEach(async () => {
+    await fs.rm(tempDir, { recursive: true, force: true });
+  });
+
   it("should merge new MCPs idempotently", () => {
     const adapter = new CursorAdapter();
     const config = {
@@ -116,5 +129,28 @@ describe("CursorAdapter", () => {
     }
     expect(testMcp.env.API_KEY).toBe("secret123");
     expect(testMcp.env.OTHER_VAR).toBe("static_value");
+  });
+
+  it("does not overwrite existing foreign skill files", async () => {
+    const adapter = new CursorAdapter();
+    const targetFile = path.join(tempDir, ".cursor", "skills", "react-stack", "SKILL.md");
+    await fs.mkdir(path.dirname(targetFile), { recursive: true });
+    await fs.writeFile(targetFile, "custom skill content", "utf8");
+
+    const result = await adapter.applySkills?.(
+      [
+        {
+          id: "react-stack",
+          displayName: "React Stack",
+          source: { type: "inline", content: "Prefer React and strict TS." },
+          verified: true,
+        },
+      ],
+      "project",
+      tempDir,
+    );
+
+    expect(result?.skipped).toHaveLength(1);
+    expect(await fs.readFile(targetFile, "utf8")).toBe("custom skill content");
   });
 });

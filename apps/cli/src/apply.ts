@@ -27,6 +27,7 @@ import {
   WindsurfAdapter,
   ZedAdapter,
 } from "@vibebasket/adapters";
+import type { ManagedContentApplyOutcome, ManagedContentApplyResult } from "@vibebasket/adapters";
 import chalk from "chalk";
 import { BundleSchema } from "../../../packages/core/src/manifest.js";
 import type { Bundle, IdeId, Scope } from "../../../packages/core/src/manifest.js";
@@ -70,6 +71,33 @@ const ADAPTERS = {
 
 function getAdapter(targetId: IdeId): IdeAdapter | undefined {
   return ADAPTERS[targetId as keyof typeof ADAPTERS];
+}
+
+function logManagedContentSummary(
+  adapterName: string,
+  label: "skills" | "rules",
+  result: ManagedContentApplyOutcome,
+) {
+  if (!result) {
+    console.log(chalk.gray(`  - Successfully applied ${label} for ${adapterName}`));
+    return;
+  }
+
+  const details: string[] = [];
+  if (result.written.length > 0) details.push(`${result.written.length} written`);
+  if (result.updated.length > 0) details.push(`${result.updated.length} updated`);
+  if (result.unchanged.length > 0) details.push(`${result.unchanged.length} unchanged`);
+  if (result.skipped.length > 0) details.push(`${result.skipped.length} skipped`);
+
+  console.log(
+    chalk.gray(
+      `  - Applied ${label} for ${adapterName}${details.length > 0 ? ` (${details.join(", ")})` : ""}`,
+    ),
+  );
+
+  for (const skipped of result.skipped) {
+    console.log(chalk.yellow(`    Skipped ${skipped.path}: ${skipped.reason}`));
+  }
 }
 
 export async function applyBundle(
@@ -256,13 +284,13 @@ export async function applyBundle(
         }
 
         if (shouldApplyRules && adapter.applyRules) {
-          await adapter.applyRules(flattened.rules, scope, projectRoot);
-          console.log(chalk.gray(`  - Successfully applied rules for ${adapter.displayName}`));
+          const ruleResult = await adapter.applyRules(flattened.rules, scope, projectRoot);
+          logManagedContentSummary(adapter.displayName, "rules", ruleResult);
         }
 
         if (shouldApplySkills && adapter.applySkills) {
-          await adapter.applySkills(flattened.skills, scope, projectRoot);
-          console.log(chalk.gray(`  - Successfully applied skills for ${adapter.displayName}`));
+          const skillResult = await adapter.applySkills(flattened.skills, scope, projectRoot);
+          logManagedContentSummary(adapter.displayName, "skills", skillResult);
         }
 
         if (options.verify !== false) {
