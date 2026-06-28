@@ -1,6 +1,9 @@
-import { auth } from "@/auth";
 import { InvalidOriginError, assertTrustedMutationOrigin } from "@/lib/csrf";
 import { NextResponse } from "next/server";
+
+async function loadAuth() {
+  return (await import("@/auth")).auth;
+}
 
 export class ForbiddenError extends Error {
   constructor(message = "Forbidden: Admin access required") {
@@ -14,6 +17,7 @@ export class ForbiddenError extends Error {
  * Throws a ForbiddenError if unauthorized, which can be caught in route handlers or server actions.
  */
 export async function requireAdminRole() {
+  const auth = await loadAuth();
   const session = await auth();
 
   if (!session || !session.user || session.user.role !== "admin") {
