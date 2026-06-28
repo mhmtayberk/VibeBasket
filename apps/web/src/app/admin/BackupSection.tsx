@@ -90,46 +90,69 @@ export function BackupSection() {
   const [pendingBackups, setPendingBackups] = useState<Set<string>>(new Set());
   const [scheduleEnabled, setScheduleEnabled] = useState(false);
   const [scheduleHours, setScheduleHours] = useState(24);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const refreshBackups = useCallback(() => {
     getJson<{ success: boolean; backups: BackupEntry[] }>("/api/admin/backup", {
       cache: "no-store",
-    }).then((res) => {
-      if (res.success) {
-        setBackups(
-          res.backups.map((b) => ({
-            ...b,
-            lastModified: String(b.lastModified),
-          })),
-        );
-      }
-    });
+    })
+      .then((res) => {
+        if (res.success) {
+          setBackups(
+            res.backups.map((b) => ({
+              ...b,
+              lastModified: String(b.lastModified),
+            })),
+          );
+          return;
+        }
+
+        throw new Error("Failed to load backups.");
+      })
+      .catch((error: unknown) => {
+        throw error instanceof Error ? error : new Error("Failed to load backups.");
+      });
   }, []);
 
-  const refreshAll = useCallback(() => {
-    getJson<{
-      success: boolean;
-      config: DbConfig | null;
-      schedule?: { enabled: boolean; intervalHours: number } | null;
-      backends: BackendStatus[];
-      backendInfo?: BackendInfo | null;
-    }>("/api/admin/storage", {
-      cache: "no-store",
-    }).then((res) => {
-      if (res.success) {
-        setDbConfig(res.config);
-        setBackends(res.backends);
-        setBackendInfo(res.backendInfo ?? null);
-        if (res.schedule) {
-          setScheduleEnabled(res.schedule.enabled);
-          setScheduleHours(res.schedule.intervalHours);
-        } else {
-          setScheduleEnabled(false);
-          setScheduleHours(24);
-        }
+  const refreshAll = useCallback(async () => {
+    setLoading(true);
+    setLoadError(null);
+
+    try {
+      const [storageResponse] = await Promise.all([
+        getJson<{
+          success: boolean;
+          config: DbConfig | null;
+          schedule?: { enabled: boolean; intervalHours: number } | null;
+          backends: BackendStatus[];
+          backendInfo?: BackendInfo | null;
+          error?: string;
+        }>("/api/admin/storage", {
+          cache: "no-store",
+        }),
+        refreshBackups(),
+      ]);
+
+      if (!storageResponse.success) {
+        throw new Error(storageResponse.error ?? "Failed to load storage configuration.");
       }
-    });
-    refreshBackups();
+
+      setDbConfig(storageResponse.config);
+      setBackends(storageResponse.backends);
+      setBackendInfo(storageResponse.backendInfo ?? null);
+      if (storageResponse.schedule) {
+        setScheduleEnabled(storageResponse.schedule.enabled);
+        setScheduleHours(storageResponse.schedule.intervalHours);
+      } else {
+        setScheduleEnabled(false);
+        setScheduleHours(24);
+      }
+    } catch (error: unknown) {
+      setLoadError(error instanceof Error ? error.message : "Failed to load backup controls.");
+    } finally {
+      setLoading(false);
+    }
   }, [refreshBackups]);
 
   useEffect(() => {
@@ -267,7 +290,19 @@ export function BackupSection() {
   const hasPendingBackups = pendingBackups.size > 0;
 
   return (
-    <div className="space-y-8">
+    <section id="backups" className="scroll-mt-40 space-y-8">
+      {loading ? (
+        <div className="border border-border/70 bg-background/40 p-4 text-sm text-muted-foreground">
+          Loading backup and storage controls...
+        </div>
+      ) : null}
+
+      {loadError ? (
+        <div className="border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
+          {loadError}
+        </div>
+      ) : null}
+
       {/* ── Config Form ── */}
       {configMode && (
         <div className="border border-accent/40 bg-accent/5 p-5 space-y-4">
@@ -323,7 +358,7 @@ export function BackupSection() {
       )}
 
       {/* ── Backend Table ── */}
-      <div>
+      <div id="storage" className="scroll-mt-40">
         {backendInfo?.isFallback ? (
           <div className="mb-4 border border-amber-500/35 bg-amber-500/8 px-4 py-3">
             <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-amber-300">
@@ -435,7 +470,7 @@ export function BackupSection() {
       </div>
 
       {/* ── Schedule ── */}
-      <div className="border-t border-border/70 pt-6">
+      <div id="schedules" className="border-t border-border/70 pt-6 scroll-mt-40">
         <div className="flex items-center justify-between mb-4">
           <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-accent">
             Scheduled Backups
@@ -497,7 +532,7 @@ export function BackupSection() {
                 });
               });
             }}
-            disabled={isPending || !scheduleEnabled}
+            disabled={isPending}
             className="inline-flex h-9 items-center gap-1.5 border border-border/60 bg-background/40 px-3 font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground transition-all hover:border-accent/40 hover:text-accent hover:bg-accent/5 disabled:opacity-30 disabled:cursor-not-allowed"
           >
             <Clock className="h-3.5 w-3.5" />
@@ -513,7 +548,7 @@ export function BackupSection() {
       </div>
 
       {/* ── Backup Operations ── */}
-      <div className="border-t border-border/70 pt-6">
+      <div id="backup-operations" className="border-t border-border/70 pt-6 scroll-mt-40">
         <div className="flex items-center justify-between mb-4">
           <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-accent">
             Backup Operations
@@ -609,6 +644,6 @@ export function BackupSection() {
           </div>
         )}
       </div>
-    </div>
+    </section>
   );
 }

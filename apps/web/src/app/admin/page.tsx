@@ -16,12 +16,27 @@ import {
 import { desc, sql } from "drizzle-orm";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { AdminSectionNav } from "./AdminSectionNav";
 import { BackupSectionLazy } from "./BackupSectionLazy";
 import { ReleaseReadinessPanel } from "./ReleaseReadinessPanel";
 import { SyncButton } from "./SyncButton";
 import { SystemHealthPanel } from "./SystemHealthPanel";
 
 export const dynamic = "force-dynamic";
+
+const ADMIN_SECTIONS = [
+  { id: "overview", label: "Overview" },
+  { id: "release-readiness", label: "Readiness" },
+  { id: "catalog-operations", label: "Catalog Ops" },
+  { id: "catalog-composition", label: "Catalog Data" },
+  { id: "collector-health", label: "Collectors" },
+  { id: "recent-sync-runs", label: "Sync Runs" },
+  { id: "backups", label: "Backups" },
+  { id: "storage", label: "Storage" },
+  { id: "schedules", label: "Schedules" },
+  { id: "system-health", label: "System Health" },
+  { id: "user-overview", label: "Users" },
+] as const;
 
 export default async function AdminDashboardPage() {
   try {
@@ -152,9 +167,13 @@ export default async function AdminDashboardPage() {
           </p>
         </div>
 
-        <ReleaseReadinessPanel />
+        <AdminSectionNav sections={[...ADMIN_SECTIONS]} />
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+        <div id="release-readiness" className="scroll-mt-40">
+          <ReleaseReadinessPanel />
+        </div>
+
+        <div id="overview" className="grid grid-cols-1 gap-6 md:grid-cols-3 scroll-mt-40">
           <div className="border border-border/80 bg-card/70 p-6">
             <div className="flex items-center justify-between">
               <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-accent">
@@ -179,7 +198,10 @@ export default async function AdminDashboardPage() {
             </p>
           </div>
 
-          <div className="border border-border/80 bg-card/70 p-6">
+          <div
+            id="catalog-operations"
+            className="border border-border/80 bg-card/70 p-6 scroll-mt-40"
+          >
             <div className="flex items-center justify-between mb-4">
               <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-accent">
                 Registry Sync
@@ -353,7 +375,10 @@ export default async function AdminDashboardPage() {
             </p>
           </div>
 
-          <div className="border border-border/80 bg-card/70 p-6 md:col-span-3">
+          <div
+            id="catalog-composition"
+            className="border border-border/80 bg-card/70 p-6 md:col-span-3 scroll-mt-40"
+          >
             <div className="flex items-center justify-between mb-5">
               <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-accent">
                 Central Catalog Registry Composition
@@ -394,7 +419,10 @@ export default async function AdminDashboardPage() {
             </div>
           </div>
 
-          <div className="border border-border/80 bg-card/70 p-6 md:col-span-2">
+          <div
+            id="collector-health"
+            className="border border-border/80 bg-card/70 p-6 md:col-span-2 scroll-mt-40"
+          >
             <div className="flex items-center justify-between mb-5">
               <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-accent">
                 Collector Health
@@ -441,7 +469,10 @@ export default async function AdminDashboardPage() {
             </div>
           </div>
 
-          <div className="border border-border/80 bg-card/70 p-6 md:col-span-1">
+          <div
+            id="recent-sync-runs"
+            className="border border-border/80 bg-card/70 p-6 md:col-span-1 scroll-mt-40"
+          >
             <div className="flex items-center justify-between mb-5">
               <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-accent">
                 Recent Sync Runs

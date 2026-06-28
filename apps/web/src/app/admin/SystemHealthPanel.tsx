@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
   forceCleanupAction,
@@ -38,8 +38,9 @@ export function SystemHealthPanel() {
   const [dbLoading, setDbLoading] = useState(false);
   const [cleanupLoading, setCleanupLoading] = useState(false);
   const [userLoading, setUserLoading] = useState(false);
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
 
-  const loadFts5 = async () => {
+  const loadFts5 = useCallback(async () => {
     setFtsLoading(true);
     const result = await getFts5HealthAction();
     if (result.success) {
@@ -49,7 +50,7 @@ export function SystemHealthPanel() {
       toast.error(result.error ?? "Failed");
     }
     setFtsLoading(false);
-  };
+  }, []);
 
   const handleRebuild = async () => {
     setFtsLoading(true);
@@ -63,7 +64,7 @@ export function SystemHealthPanel() {
     setFtsLoading(false);
   };
 
-  const loadDbHealth = async () => {
+  const loadDbHealth = useCallback(async () => {
     setDbLoading(true);
     const result = await getDbHealthAction();
     if (result.success) {
@@ -73,7 +74,7 @@ export function SystemHealthPanel() {
       toast.error(result.error ?? "Failed");
     }
     setDbLoading(false);
-  };
+  }, []);
 
   const handleCleanup = async () => {
     setCleanupLoading(true);
@@ -87,7 +88,7 @@ export function SystemHealthPanel() {
     setCleanupLoading(false);
   };
 
-  const loadUserOverview = async () => {
+  const loadUserOverview = useCallback(async () => {
     setUserLoading(true);
     const result = await getUserOverviewAction();
     if (result.success) {
@@ -97,12 +98,33 @@ export function SystemHealthPanel() {
       toast.error(result.error ?? "Failed");
     }
     setUserLoading(false);
-  };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      await Promise.all([loadFts5(), loadDbHealth(), loadUserOverview()]);
+      if (!cancelled) {
+        setInitialLoadComplete(true);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [loadDbHealth, loadFts5, loadUserOverview]);
 
   return (
-    <div className="mt-10 space-y-10">
+    <section id="system-health" className="mt-10 scroll-mt-40 space-y-10">
       <div className="border-t border-border/80 pt-10">
         <h2 className="text-2xl font-semibold text-foreground mb-6">System Health</h2>
+
+        {!initialLoadComplete && (ftsLoading || dbLoading || userLoading) ? (
+          <div className="mb-6 border border-border/70 bg-background/40 p-4 text-sm text-muted-foreground">
+            Loading database, search, and user health signals...
+          </div>
+        ) : null}
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {/* FTS5 Index Card */}
@@ -230,7 +252,7 @@ export function SystemHealthPanel() {
       </div>
 
       {/* User Overview Section */}
-      <div className="border-t border-border/80 pt-10">
+      <div id="user-overview" className="border-t border-border/80 pt-10 scroll-mt-40">
         <h2 className="text-2xl font-semibold text-foreground mb-6">User Overview</h2>
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
@@ -279,6 +301,6 @@ export function SystemHealthPanel() {
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
