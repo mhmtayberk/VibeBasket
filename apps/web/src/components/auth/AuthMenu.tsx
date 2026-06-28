@@ -22,32 +22,32 @@ export function AuthMenu({ session }: AuthMenuProps) {
   const displayName = session.user?.name ?? session.user?.email ?? "Signed in";
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex min-w-0 items-center gap-2 sm:gap-3">
       {session.user?.role === "admin" ? (
         <a
           href="/admin"
-          className="hidden items-center gap-2 border border-accent bg-accent/10 px-4 py-2 font-mono text-[11px] uppercase tracking-[0.18em] text-accent transition-colors hover:bg-accent hover:text-accent-foreground sm:inline-flex"
+          className="hidden items-center gap-2 border border-accent bg-accent/10 px-3 py-2 font-mono text-[11px] uppercase tracking-[0.18em] text-accent transition-colors hover:bg-accent hover:text-accent-foreground xl:inline-flex"
         >
           Admin Panel
         </a>
       ) : (
         <a
           href="/stacks"
-          className="hidden items-center gap-2 border border-border/80 px-4 py-2 font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:border-accent/40 hover:text-foreground sm:inline-flex"
+          className="hidden items-center gap-2 border border-border/80 px-3 py-2 font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:border-accent/40 hover:text-foreground xl:inline-flex"
         >
           <User2 className="h-3.5 w-3.5" />
           My Stacks
         </a>
       )}
 
-      <div className="flex items-center gap-3 border border-border/80 bg-card/70 px-3 py-2">
-        <div className="flex h-9 w-9 items-center justify-center rounded-full border border-accent/40 bg-accent/10 text-xs font-semibold text-accent">
+      <div className="flex min-w-0 items-center gap-2 border border-border/80 bg-card/70 px-2.5 py-2 sm:px-3">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-accent/40 bg-accent/10 text-xs font-semibold text-accent sm:h-9 sm:w-9">
           {getUserInitials(session)}
         </div>
 
-        <div className="hidden min-w-0 sm:block">
+        <div className="hidden min-w-0 lg:block lg:max-w-[160px] xl:max-w-[220px]">
           <p className="truncate text-sm font-medium text-foreground">{displayName}</p>
-          <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+          <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground xl:block">
             Authenticated
           </p>
         </div>

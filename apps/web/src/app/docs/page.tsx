@@ -176,7 +176,7 @@ export default async function DocsPage({
   const isLinkActive = (tabName: string) => activeTab === tabName;
 
   return (
-    <div className="min-h-screen bg-background text-foreground antialiased">
+    <div className="min-h-screen overflow-x-clip bg-background text-foreground antialiased">
       <header className="sticky top-0 z-50 border-b border-border/80 bg-background/85 backdrop-blur-md">
         <div className="mx-auto flex max-w-[1440px] items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex min-w-0 items-center gap-8">
@@ -251,7 +251,9 @@ export default async function DocsPage({
         </div>
       </header>
 
-      <div className="mx-auto flex max-w-[1440px] px-0 gap-0 pt-0 min-h-[calc(100vh-73px)] relative">
+      <MobileTabSelector activeTab={activeTab} />
+
+      <div className="mx-auto flex max-w-[1440px] min-h-[calc(100vh-73px)] gap-0 px-0 pt-0 relative">
         <aside className="hidden lg:flex w-72 shrink-0 border-r border-border/80 bg-card/60 sticky top-[73px] h-[calc(100vh-73px)] overflow-y-auto custom-scrollbar flex-col justify-between select-none">
           <div>
             <div className="p-6 border-b border-border/70">
@@ -345,9 +347,6 @@ export default async function DocsPage({
             </p>
           </div>
         </aside>
-
-        {/* Mobile tab selector */}
-        <MobileTabSelector activeTab={activeTab} />
 
         <main className="flex-1 px-4 sm:px-12 lg:px-24 pt-14 pb-36 max-w-5xl min-w-0">
           {activeTab === "hub" && <DocsTabHub searchQuery={searchQuery} guides={filteredGuides} />}
