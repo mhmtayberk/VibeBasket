@@ -34,7 +34,7 @@ type ProviderEnvKey =
   | "AUTH_MICROSOFT_ENTRA_ID_SECRET";
 
 export type AuthProviderEnv = Partial<
-  Record<ProviderEnvKey | "AUTH_SECRET" | "NODE_ENV", string | undefined>
+  Record<ProviderEnvKey | "AUTH_SECRET" | "NEXTAUTH_URL" | "NODE_ENV", string | undefined>
 >;
 
 type ProviderDefinition = {
@@ -142,7 +142,7 @@ export function createAuthProviders(env: AuthProviderEnv = process.env): Provide
   return getEnabledProviderDefinitions(env).map((provider) => provider.create(env));
 }
 
-function resolveAuthSecret(env: AuthProviderEnv = process.env) {
+export function resolveAuthSecret(env: AuthProviderEnv = process.env) {
   if (env.AUTH_SECRET && env.AUTH_SECRET.trim().length > 0) {
     return env.AUTH_SECRET;
   }
@@ -154,12 +154,16 @@ function resolveAuthSecret(env: AuthProviderEnv = process.env) {
   return undefined;
 }
 
-function resolveTrustHost(env: AuthProviderEnv = process.env) {
+export function resolveTrustHost(env: AuthProviderEnv = process.env) {
   if (env.NODE_ENV !== "production") {
     return true;
   }
 
-  return isEnabledFlagSet(env.AUTH_TRUST_HOST);
+  if (env.AUTH_TRUST_HOST !== undefined) {
+    return isEnabledFlagSet(env.AUTH_TRUST_HOST);
+  }
+
+  return hasConfiguredValue(env.NEXTAUTH_URL);
 }
 
 export const authConfig: NextAuthConfig = {

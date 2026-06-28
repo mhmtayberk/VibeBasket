@@ -62,6 +62,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/node_modules              ./node_
 COPY --from=builder --chown=nextjs:nodejs /app/scripts ./scripts
 COPY --from=builder --chown=nextjs:nodejs /app/packages/core/dist     ./packages/core/dist
 COPY --from=builder --chown=nextjs:nodejs /app/packages/registry/dist ./packages/registry/dist
+COPY --from=builder --chown=nextjs:nodejs /app/packages/registry/data ./packages/registry/data
 
 # Data directory for the SQLite database (mounted as a Docker volume)
 RUN mkdir -p /data && chown nextjs:nodejs /data

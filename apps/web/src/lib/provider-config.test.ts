@@ -1,11 +1,16 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   createAuthProviders,
   getAuthProviderReadiness,
   getEnabledAuthProviders,
+  resolveTrustHost,
 } from "../auth.config";
 
 describe("auth provider configuration", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
   it("returns only enabled and fully configured providers", () => {
     const env = {
       NODE_ENV: "test",
@@ -105,5 +110,24 @@ describe("auth provider configuration", () => {
         },
       ]),
     );
+  });
+
+  it("trusts the host in production when NEXTAUTH_URL is configured", () => {
+    expect(
+      resolveTrustHost({
+        NODE_ENV: "production",
+        NEXTAUTH_URL: "https://vibebasket.dev",
+      }),
+    ).toBe(true);
+  });
+
+  it("still respects an explicit AUTH_TRUST_HOST=false in production", () => {
+    expect(
+      resolveTrustHost({
+        NODE_ENV: "production",
+        NEXTAUTH_URL: "https://vibebasket.dev",
+        AUTH_TRUST_HOST: "false",
+      }),
+    ).toBe(false);
   });
 });
