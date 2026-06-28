@@ -145,6 +145,7 @@ ADMIN_OAUTH_EMAILS=you@example.com
 
 - this is the bootstrap path for first admin access
 - after that, the admin UI can manage the allowlist in the database
+- runtime `ADMIN_OAUTH_EMAILS` values and the database allowlist are merged; runtime env is the safest bootstrap path, and database entries can extend it later without replacing it
 - in local non-production development only, `admin@vibebasket.dev` is treated as a dev admin shortcut
 
 ## Running the CLI
@@ -251,5 +252,6 @@ pnpm catalog:sync:strict
 - If you configure S3/R2/Spaces/Azure/GCS backups, confirm the admin panel does not show a storage fallback warning before assuming cloud backups are active
 - Cloud backup restore now uses provider-native download flows; validate one full restore cycle in your own environment before relying on it operationally
 - The Helm chart now expects sensitive values such as `AUTH_SECRET` and OAuth client secrets under `secretEnv`, or via `existingSecret`, rather than plain `.Values.env`
+- On Coolify, Cloudflare, Nginx, Caddy, or similar proxy/CDN setups, leaving `AUTH_TRUST_HOST` or `TRUST_PROXY` disabled is usually a conscious warning state rather than a hard failure; the app can still run, but forwarded host/IP handling is less trustworthy than the recommended production posture
 - Before exposing a public domain, walk through [Production Readiness Checklist](./PRODUCTION_READINESS_CHECKLIST.md)
 - Multi-instance or externally shared state deployments are not the default path documented here; operators who go beyond the single-node model should validate rate limiting, SQLite strategy, and backup assumptions themselves

@@ -70,6 +70,7 @@ Choose one production shape and verify it end-to-end:
 - [ ] `/api/health` behaves correctly under repeated requests
 - [ ] Admin dashboard loads and shows valid source counts and sync health
 - [ ] Admin dashboard `Release Readiness` panel shows zero blockers, and any remaining warnings are consciously accepted
+- [ ] If using Coolify, Cloudflare, Nginx, or Caddy in front of the app, `AUTH_TRUST_HOST` and `TRUST_PROXY` warnings are either cleared or explicitly accepted with that proxy topology in mind
 - [ ] Scheduled backups run on the expected interval
 - [ ] Logs are captured by the hosting platform and inspected for startup/runtime errors
 
