@@ -7,6 +7,9 @@ This is the short public guide for running VibeBasket yourself.
 - [Recommended Shape](#recommended-shape)
 - [Fastest Path](#fastest-path)
 - [Production Basics](#production-basics)
+- [Coolify Notes](#coolify-notes)
+- [Coolify Variable Guide](#coolify-variable-guide)
+- [Coolify Storage And Health Checks](#coolify-storage-and-health-checks)
 - [Authentication](#authentication)
 - [Bootstrap the First Admin](#bootstrap-the-first-admin)
 - [Catalog Sync Reality](#catalog-sync-reality)
@@ -62,6 +65,107 @@ Often needed:
 - `CATALOG_REFRESH_TOKEN` if you want authenticated remote refresh calls
 
 See [`.env.example`](.env.example) for the full environment surface.
+
+## Coolify Notes
+
+If you deploy from Coolify:
+
+- prefer Dockerfile mode when you want the lean multi-stage image defined in this repo
+- if you use Coolify Build Pack mode, the root `nixpacks.toml` pins the pnpm install/build flow so Nixpacks does not rely on a broken default `corepack` path for this workspace
+- mount persistent storage for `/data` so the SQLite database survives redeploys
+
+## Coolify Variable Guide
+
+For the current Docker deployment shape, most VibeBasket variables should be runtime-only in Coolify.
+
+- **Available at Buildtime**: usually `off`
+- **Available at Runtime**: usually `on`
+- **Is Literal?**: usually `off`
+- **Is Multiline?**: `off` unless the value is truly multi-line
+
+Why:
+
+- buildtime variables are exposed to the image build process
+- runtime variables are available only when the container starts
+- secrets such as `AUTH_SECRET`, OAuth client secrets, and `CATALOG_REFRESH_TOKEN` are not required to compile the Next.js app and should stay out of the build stage
+
+Recommended first-pass variables for Coolify:
+
+| Variable | Example | Notes |
+|----------|---------|-------|
+| `DATABASE_URL` | `file:/data/vibebasket.db` | matches the persistent SQLite volume mount |
+| `AUTH_SECRET` | generated random string | required for Auth.js sessions and encrypted backup credentials |
+| `NEXTAUTH_URL` | `https://vibebasket.example.com` | must match the exact public origin |
+| `AUTH_TRUST_HOST` | `true` | recommended behind Coolify / reverse proxy |
+| `TRUST_PROXY` | `true` | recommended when Coolify is the trusted proxy in front of the app |
+| `CATALOG_REFRESH_TOKEN` | generated random string | required only if you want authenticated remote refresh calls |
+| `ADMIN_OAUTH_EMAILS` | `you@example.com` | bootstrap allowlist for `/admin` |
+
+Coolify deployment settings to check:
+
+- **Persistent storage**: mount a volume to `/data`
+- **Port**: `3000`
+- **Health check path**: `/api/health`
+- **Public domain**: must match `NEXTAUTH_URL`
+
+OAuth provider callback URLs:
+
+| Provider | Callback URL |
+|----------|--------------|
+| GitHub | `${NEXTAUTH_URL}/api/auth/callback/github` |
+| Google | `${NEXTAUTH_URL}/api/auth/callback/google` |
+| Apple | `${NEXTAUTH_URL}/api/auth/callback/apple` |
+| Microsoft Entra ID | `${NEXTAUTH_URL}/api/auth/callback/microsoft-entra-id` |
+
+## Coolify Storage And Health Checks
+
+Recommended Coolify setup for this project:
+
+### Persistent storage
+
+Use a **Docker volume** unless you explicitly need a host bind mount.
+
+Why:
+
+- the app uses SQLite
+- the database file should survive redeploys and restarts
+- a Docker volume is the simplest and least error-prone default
+
+Coolify persistent storage values:
+
+- **Type**: volume
+- **Name**: `vibebasket-data`
+- **Destination Path**: `/data`
+
+With this setup, `DATABASE_URL=file:/data/vibebasket.db` remains valid across redeploys.
+
+If you prefer a bind mount instead:
+
+- **Type**: bind mount
+- **Name**: `vibebasket-data`
+- **Source Path**: an absolute host path such as `/opt/vibebasket/data`
+- **Destination Path**: `/data`
+
+### Health checks
+
+This repository already defines a Dockerfile health check against `/api/health`.
+
+That is the preferred path for Coolify Dockerfile deployments because:
+
+- the health check lives with the image definition
+- the check does not depend on `curl` or `wget`
+- Coolify gives Dockerfile-defined health checks precedence when both UI and Dockerfile checks exist
+
+Current container behavior:
+
+- app port: `3000`
+- health endpoint: `/api/health`
+
+Practical recommendation:
+
+- keep the Dockerfile health check enabled as-is
+- do not duplicate a second health check in the Coolify UI unless you intentionally want to override behavior
+- if Coolify asks for an exposed/internal port, use `3000`
 
 ## Authentication
 

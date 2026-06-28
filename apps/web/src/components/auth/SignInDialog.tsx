@@ -1,3 +1,5 @@
+"use client";
+
 import type { EnabledAuthProvider } from "@/auth.config";
 import { AuthButtons } from "@/components/auth/AuthButtons";
 import {
@@ -9,6 +11,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { LogIn, ShieldCheck } from "lucide-react";
+import { useState } from "react";
 
 type SignInDialogProps = {
   providers: EnabledAuthProvider[];
@@ -23,8 +26,10 @@ export function SignInDialog({
   triggerLabel = "Sign in",
   triggerClassName,
 }: SignInDialogProps) {
+  const [open, setOpen] = useState(false);
+
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger
         className={
           triggerClassName ??
