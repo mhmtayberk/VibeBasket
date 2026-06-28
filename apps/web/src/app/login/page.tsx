@@ -85,12 +85,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
           <div className="border border-border/70 bg-background/40 p-5">
             {providers.length > 0 ? (
-              <div className="space-y-4">
-                <AuthButtons providers={providers} callbackUrl={callbackUrl} />
-                <p className="text-xs leading-6 text-muted-foreground">
-                  Self-hosted deployments can enable or disable each provider independently.
-                </p>
-              </div>
+              <AuthButtons providers={providers} callbackUrl={callbackUrl} />
             ) : (
               <div className="space-y-3">
                 <p className="text-sm font-medium text-foreground">Login is not configured yet.</p>
