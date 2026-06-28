@@ -1,5 +1,6 @@
 import { authConfig, getEnabledAuthProviders } from "@/auth.config";
 import { shouldGrantAdminRole } from "@/lib/admin-role";
+import { isTrustedOAuthEmailVerified } from "@/lib/auth-email-verification";
 import { getAdminEmails } from "@/lib/site-config";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { accounts, db, sessions, users, verificationTokens } from "@vibebasket/core";
@@ -71,6 +72,23 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
       }
 
       return session;
+    },
+  },
+  events: {
+    async signIn({ user, account, profile }) {
+      if (!user.id || !account || account.type !== "oauth") {
+        return;
+      }
+
+      if (!isTrustedOAuthEmailVerified(account.provider, profile)) {
+        return;
+      }
+
+      try {
+        await db.update(users).set({ emailVerified: new Date() }).where(eq(users.id, user.id));
+      } catch (error) {
+        console.error("Failed to persist verified OAuth email state:", error);
+      }
     },
   },
   ...authConfig,

@@ -97,7 +97,7 @@ export default async function Home() {
     return null;
   };
   return (
-    <main className="min-h-screen bg-background text-foreground">
+    <main className="min-h-screen overflow-x-clip bg-background text-foreground">
       <header className="sticky top-0 z-50 border-b border-border/80 bg-background/85 backdrop-blur-md">
         <div className="mx-auto flex max-w-[1440px] items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex min-w-0 items-center gap-8">
