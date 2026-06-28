@@ -1,6 +1,7 @@
 import { authConfig, getEnabledAuthProviders } from "@/auth.config";
 import { shouldGrantAdminRole } from "@/lib/admin-role";
 import { isTrustedOAuthEmailVerified } from "@/lib/auth-email-verification";
+import { shouldRefreshSessionUser } from "@/lib/session-user-state";
 import { getAdminEmails } from "@/lib/site-config";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { accounts, db, sessions, users, verificationTokens } from "@vibebasket/core";
@@ -35,7 +36,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         let emailVerified = (user as { emailVerified?: Date | null } | undefined)?.emailVerified;
 
         // Safe fallback: Query database if values are missing for some reason
-        if (id && (!email || emailVerified === undefined)) {
+        if (id && shouldRefreshSessionUser(email, emailVerified)) {
           try {
             const dbUser = await db
               .select({
