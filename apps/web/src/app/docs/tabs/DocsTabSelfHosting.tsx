@@ -204,9 +204,20 @@ pnpm --filter web start        # production server on :3000`}</pre>
               </code>{" "}
               file is already listed in{" "}
               <code className="font-mono text-[10px] text-foreground bg-card px-1.5 py-0.5 rounded-[2px] border border-[#3e4944]">
-                .gitignore
+              .gitignore
               </code>
               . In Docker deployments, pass secrets as environment variables or use Docker secrets.
+            </p>
+          </div>
+
+          <div className="flex gap-4 p-6 border-l-2 border-[#33bbc5] bg-[#33bbc5]/5 rounded-r-[2px] mb-8">
+            <Info className="h-5 w-5 text-[#33bbc5] shrink-0 mt-0.5" />
+            <p className="text-xs text-[#bdc9c2] leading-relaxed">
+              If you run VibeBasket behind Cloudflare, keep application security headers enabled
+              and disable script-injecting edge features for this site unless you explicitly plan
+              for them. In practice that means turning off Browser Insights, Rocket Loader, and
+              Speed Brain / speculative prefetch features that inject inline or third-party scripts,
+              otherwise the site will log CSP violations by design.
             </p>
           </div>
 
@@ -239,7 +250,7 @@ pnpm --filter web start        # production server on :3000`}</pre>
                   {
                     name: "AUTH_TRUST_HOST",
                     req: false,
-                    desc: "Set to true when running behind a reverse proxy. Required for OAuth callbacks to work correctly in production.",
+                    desc: "Set to true when running behind a reverse proxy such as Coolify, Nginx, or Cloudflare. Strongly recommended for production OAuth callback reliability.",
                   },
                   {
                     name: "AUTH_GITHUB_ID / SECRET",

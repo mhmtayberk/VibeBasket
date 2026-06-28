@@ -130,4 +130,13 @@ describe("auth provider configuration", () => {
       }),
     ).toBe(false);
   });
+
+  it("trusts the host in production when a public site URL is configured", () => {
+    expect(
+      resolveTrustHost({
+        NODE_ENV: "production",
+        NEXT_PUBLIC_SITE_URL: "https://vibebasket.dev",
+      }),
+    ).toBe(true);
+  });
 });
