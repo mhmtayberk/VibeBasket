@@ -38,7 +38,7 @@ export function DocsTabHub({ searchQuery, guides }: DocsTabHubProps) {
           <Link
             href="https://github.com/mhmtayberk/VibeBasket"
             target="_blank"
-            rel="noreferrer"
+            rel="noopener noreferrer"
             className="inline-flex h-11 items-center gap-2 border border-[#3e4944] bg-[#181d1a] px-4 font-mono text-[11px] uppercase tracking-[0.18em] text-[#bdc9c2] transition-colors hover:border-[#a0fdda]/50 hover:text-[#f4fbf7]"
           >
             <ArrowUpRight className="h-3.5 w-3.5 text-[#a0fdda]" />
@@ -47,7 +47,7 @@ export function DocsTabHub({ searchQuery, guides }: DocsTabHubProps) {
           <Link
             href="https://www.npmjs.com/package/vibebasket"
             target="_blank"
-            rel="noreferrer"
+            rel="noopener noreferrer"
             className="inline-flex h-11 items-center gap-2 border border-[#3e4944] bg-[#181d1a] px-4 font-mono text-[11px] uppercase tracking-[0.18em] text-[#bdc9c2] transition-colors hover:border-[#a0fdda]/50 hover:text-[#f4fbf7]"
           >
             <Package2 className="h-3.5 w-3.5 text-[#a0fdda]" />

@@ -125,8 +125,9 @@ export function DocsTabSecurity() {
           </div>
           <div className="prose prose-invert max-w-none text-sm text-[#bdc9c2] leading-relaxed space-y-8">
             <p className="max-w-3xl">
-              All API responses include hardened headers. In production, a Content-Security-Policy
-              and HSTS are also enforced.
+              All responses include hardened headers. In production, HTML routes receive a nonce
+              based Content-Security-Policy so Next.js can hydrate safely without opening the door
+              to blanket inline script execution, and HSTS is enforced across the deployment.
             </p>
             <div className="overflow-x-auto">
               <table className="w-full border border-[#3e4944]" aria-label="HTTP security headers">
@@ -148,7 +149,7 @@ export function DocsTabSecurity() {
                     ["Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload"],
                     [
                       "Content-Security-Policy",
-                      "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' 'inline-speculation-rules'; style-src 'self' 'unsafe-inline'; frame-ancestors 'none'",
+                      "default-src 'self'; script-src 'self' 'nonce-<request-nonce>' 'strict-dynamic' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; object-src 'none'; manifest-src 'self'; frame-ancestors 'none'",
                     ],
                   ].map(([h, v]) => (
                     <tr key={h} className="hover:bg-[#1c211e]/40 transition-colors">

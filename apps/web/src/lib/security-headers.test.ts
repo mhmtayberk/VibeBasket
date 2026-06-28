@@ -132,18 +132,34 @@ describe("Security Headers", () => {
     expect(res.headers.has("Strict-Transport-Security")).toBe(false);
   });
 
-  it("includes hardened CSP and HSTS in production", async () => {
+  it("includes HSTS in production defaults", async () => {
     const { DEFAULT_SECURITY_HEADERS: prodHeaders } = await loadSecurityHeadersModule("production");
-    const csp = prodHeaders["Content-Security-Policy"];
-
     expect(prodHeaders["Strict-Transport-Security"]).toBe(
       "max-age=63072000; includeSubDomains; preload",
     );
+  });
+
+  it("builds a hardened document CSP in production", async () => {
+    const { createDocumentContentSecurityPolicy } = await loadSecurityHeadersModule("production");
+    const csp = createDocumentContentSecurityPolicy("test-nonce");
+
     expect(csp).toContain("default-src 'self'");
-    expect(csp).toContain("script-src 'self' 'wasm-unsafe-eval' 'inline-speculation-rules'");
+    expect(csp).toContain("script-src 'self' 'nonce-test-nonce' 'strict-dynamic' 'wasm-unsafe-eval'");
     expect(csp).toContain("connect-src 'self'");
+    expect(csp).toContain("object-src 'none'");
+    expect(csp).toContain("manifest-src 'self'");
     expect(csp).toContain("form-action 'self'");
     expect(csp).not.toMatch(/script-src[^;]*'unsafe-inline'/);
+  });
+
+  it("applies an explicit CSP when provided", async () => {
+    const { applySecurityHeaders } = await loadSecurityHeadersModule("production");
+    const response = NextResponse.json({ ok: true });
+    applySecurityHeaders(response, {
+      contentSecurityPolicy: "default-src 'self'",
+    });
+
+    expect(response.headers.get("Content-Security-Policy")).toBe("default-src 'self'");
   });
 
   it("sets Retry-After on 429 responses when provided", async () => {
