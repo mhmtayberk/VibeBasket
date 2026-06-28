@@ -126,6 +126,69 @@ workflowPacks: []
     });
   });
 
+  it("repairs mojibake from latin1-encoded MCP registry payloads conservatively", async () => {
+    const verifiedPath = await createVerifiedCatalog(`
+mcps: []
+skills: []
+workflowPacks: []
+`);
+
+    const fetchImpl: typeof fetch = async (input) => {
+      const url = typeof input === "string" ? input : input.toString();
+
+      if (url === "https://registry.modelcontextprotocol.io/v0.1/servers?limit=100") {
+        const payload = JSON.stringify({
+          servers: [
+            {
+              name: "io.github.Servicedsi/123elec-mcp",
+              title: "123elec-mcp",
+              description:
+                "Recherche de produits électriques, disponibilité, recommandations depuis Magento2",
+              remotes: [{ url: "https://mcp.123elec.com/mcp" }],
+            },
+          ],
+          metadata: {},
+        });
+
+        const latin1Bytes = Buffer.from(payload, "latin1");
+        return new Response(latin1Bytes, {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      if (url === "https://www.skills.sh/official" || url === "https://www.skills.sh/") {
+        return new Response("<html><body></body></html>", {
+          status: 200,
+          headers: { "Content-Type": "text/html" },
+        });
+      }
+
+      if (url === "https://www.skills.sh/sitemap.xml") {
+        return new Response(
+          `<?xml version="1.0" encoding="UTF-8"?><sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></sitemapindex>`,
+          {
+            status: 200,
+            headers: { "Content-Type": "application/xml" },
+          },
+        );
+      }
+
+      throw new Error(`Unexpected URL ${url}`);
+    };
+
+    const items = await new RegistrySyncService({
+      fetchImpl,
+      persist: false,
+      verifiedPath,
+    }).collectCatalogItems();
+
+    const item = items.find((entry) => entry.displayName === "123elec-mcp");
+    expect(item?.description).toBe(
+      "Recherche de produits électriques, disponibilité, recommandations depuis Magento2",
+    );
+  });
+
   it("merges verified catalog items with trusted upstream sources and dedupes by canonical identity", async () => {
     const verifiedPath = await createVerifiedCatalog(`
 mcps:

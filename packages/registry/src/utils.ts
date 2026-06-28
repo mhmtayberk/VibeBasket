@@ -377,6 +377,32 @@ export async function fetchWithTimeout(
   throw lastError instanceof Error ? lastError : new Error(`${label} failed`);
 }
 
+function countReplacementCharacters(value: string) {
+  return (value.match(/\uFFFD/g) ?? []).length;
+}
+
+export async function parseJsonResponseWithEncodingFallback<T>(response: Response): Promise<T> {
+  const bytes = new Uint8Array(await response.arrayBuffer());
+  const utf8Decoder = new TextDecoder("utf-8");
+  const latin1Decoder = new TextDecoder("latin1");
+
+  const utf8Text = utf8Decoder.decode(bytes);
+  const utf8ReplacementCount = countReplacementCharacters(utf8Text);
+
+  if (utf8ReplacementCount === 0) {
+    return JSON.parse(utf8Text) as T;
+  }
+
+  const latin1Text = latin1Decoder.decode(bytes);
+  const latin1ReplacementCount = countReplacementCharacters(latin1Text);
+
+  if (latin1ReplacementCount < utf8ReplacementCount) {
+    return JSON.parse(latin1Text) as T;
+  }
+
+  return JSON.parse(utf8Text) as T;
+}
+
 export function toResult(items: CatalogSeedItem[]) {
   return {
     mcps: items.filter((item) => item.type === "mcp").length,

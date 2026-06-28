@@ -8,6 +8,7 @@ import {
   compareSemver,
   fetchWithTimeout,
   officialMcpId,
+  parseJsonResponseWithEncodingFallback,
   slugify,
   withVersion,
 } from "../utils";
@@ -55,7 +56,9 @@ export class OfficialMcpRegistryCollector implements SourceCollector {
         throw new Error(`MCP registry request failed: HTTP ${res.status}`);
       }
 
-      const payload = mcpRegistryResponseSchema.parse(await res.json());
+      const payload = mcpRegistryResponseSchema.parse(
+        await parseJsonResponseWithEncodingFallback<unknown>(res),
+      );
 
       for (const registryEntry of payload.servers) {
         const normalized = this.unwrapRegistryEntry(registryEntry);
