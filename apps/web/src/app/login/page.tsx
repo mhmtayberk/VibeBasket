@@ -60,19 +60,25 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
                 <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
                   Profile sync
                 </p>
-                <p className="text-sm text-foreground">Saved stacks stay attached to your account.</p>
+                <p className="text-sm text-foreground">
+                  Saved stacks stay attached to your account.
+                </p>
               </div>
               <div className="space-y-1">
                 <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
                   Provider choice
                 </p>
-                <p className="text-sm text-foreground">Only the providers enabled in this environment appear.</p>
+                <p className="text-sm text-foreground">
+                  Only the providers enabled in this environment appear.
+                </p>
               </div>
               <div className="space-y-1">
                 <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
                   Safe return
                 </p>
-                <p className="text-sm text-foreground">After sign-in, you land back on the flow you started from.</p>
+                <p className="text-sm text-foreground">
+                  After sign-in, you land back on the flow you started from.
+                </p>
               </div>
             </div>
           </div>
