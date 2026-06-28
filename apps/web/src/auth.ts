@@ -1,6 +1,6 @@
 import { authConfig, getEnabledAuthProviders } from "@/auth.config";
 import { shouldGrantAdminRole } from "@/lib/admin-role";
-import { isTrustedOAuthEmailVerified } from "@/lib/auth-email-verification";
+import { isTrustedOAuthEmailVerified, isTrustedOAuthProvider } from "@/lib/auth-email-verification";
 import { shouldRefreshSessionUser } from "@/lib/session-user-state";
 import { getAdminEmails } from "@/lib/site-config";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
@@ -38,18 +38,36 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         // Safe fallback: Query database if values are missing for some reason
         if (id && shouldRefreshSessionUser(email, emailVerified)) {
           try {
-            const dbUser = await db
-              .select({
-                email: users.email,
-                emailVerified: users.emailVerified,
-              })
-              .from(users)
-              .where(eq(users.id, id))
-              .limit(1);
+            const [dbUser, linkedAccounts] = await Promise.all([
+              db
+                .select({
+                  email: users.email,
+                  emailVerified: users.emailVerified,
+                })
+                .from(users)
+                .where(eq(users.id, id))
+                .limit(1),
+              db
+                .select({
+                  provider: accounts.provider,
+                })
+                .from(accounts)
+                .where(eq(accounts.userId, id))
+                .limit(8),
+            ]);
 
             if (dbUser[0]) {
               email = dbUser[0].email;
               emailVerified = dbUser[0].emailVerified;
+            }
+
+            if (
+              email &&
+              !(emailVerified instanceof Date) &&
+              linkedAccounts.some((account) => isTrustedOAuthProvider(account.provider))
+            ) {
+              emailVerified = new Date();
+              await db.update(users).set({ emailVerified }).where(eq(users.id, id));
             }
           } catch (err) {
             console.error("Failed to query user for session role:", err);
