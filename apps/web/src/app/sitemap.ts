@@ -1,8 +1,8 @@
 import { resolvePublicBaseUrl } from "@/lib/public-url";
 import { catalogItems, db } from "@vibebasket/core";
 import { desc } from "drizzle-orm";
-import { headers } from "next/headers";
 import type { MetadataRoute } from "next";
+import { headers } from "next/headers";
 
 export const dynamic = "force-dynamic";
 

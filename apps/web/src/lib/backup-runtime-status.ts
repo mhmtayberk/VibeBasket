@@ -29,7 +29,9 @@ function isBackupRuntimeStatus(value: unknown): value is BackupRuntimeStatus {
 
   const candidate = value as Record<string, unknown>;
   return (
-    ("lastAttemptAt" in candidate || "lastSuccessAt" in candidate || "lastFailureAt" in candidate) &&
+    ("lastAttemptAt" in candidate ||
+      "lastSuccessAt" in candidate ||
+      "lastFailureAt" in candidate) &&
     (candidate.lastBackupSizeBytes === null || typeof candidate.lastBackupSizeBytes === "number")
   );
 }
