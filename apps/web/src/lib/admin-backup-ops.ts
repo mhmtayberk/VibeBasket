@@ -1,5 +1,5 @@
-import { buildReleaseReadinessReport } from "@/lib/release-readiness";
 import { getBackupRuntimeStatus, setBackupRuntimeStatus } from "@/lib/backup-runtime-status";
+import { buildReleaseReadinessReport } from "@/lib/release-readiness";
 import type { BackendStatus, BackupEntry, StorageConfig } from "@/lib/storage";
 
 async function loadNodeFs() {
@@ -126,31 +126,27 @@ export async function runScheduledBackupJob(options: { force?: boolean } = {}) {
     };
   }
 
-  try {
-    const result = await runBackupDatabase();
-    if (!result.success) {
-      return {
-        success: false as const,
-        triggered: true,
-        reason: "failed" as const,
-        schedule,
-        runtimeStatus: await getBackupRuntimeStatus(),
-        error: result.error,
-      };
-    }
-
-    await markScheduleComplete();
+  const result = await runBackupDatabase();
+  if (!result.success) {
     return {
-      success: true as const,
+      success: false as const,
       triggered: true,
-      reason: options.force ? ("forced" as const) : ("due" as const),
+      reason: "failed" as const,
       schedule,
       runtimeStatus: await getBackupRuntimeStatus(),
-      backup: result.backup,
+      error: result.error,
     };
-  } catch (error) {
-    throw error;
   }
+
+  await markScheduleComplete();
+  return {
+    success: true as const,
+    triggered: true,
+    reason: options.force ? ("forced" as const) : ("due" as const),
+    schedule,
+    runtimeStatus: await getBackupRuntimeStatus(),
+    backup: result.backup,
+  };
 }
 
 export async function runListBackups() {
