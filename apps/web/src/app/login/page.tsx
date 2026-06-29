@@ -2,6 +2,7 @@ import { auth, getEnabledAuthProviders } from "@/auth";
 import { AuthButtons } from "@/components/auth/AuthButtons";
 import { sanitizeCallbackUrl } from "@/lib/safe-redirect";
 import { ShieldCheck } from "lucide-react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
@@ -12,6 +13,12 @@ type LoginPageProps = {
 };
 
 export const dynamic = "force-dynamic";
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const [session, resolvedSearchParams] = await Promise.all([auth(), searchParams]);

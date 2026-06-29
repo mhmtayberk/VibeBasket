@@ -47,7 +47,7 @@ function ItemCardRaw({ item }: ItemCardProps) {
           )}
         />
 
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
           <div className="flex min-w-0 items-start gap-3">
             <div
               className={cn(
@@ -59,10 +59,10 @@ function ItemCardRaw({ item }: ItemCardProps) {
             </div>
 
             <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                 <h3
                   className={cn(
-                    "truncate text-base font-semibold transition-colors",
+                    "break-words text-base font-semibold transition-colors sm:truncate",
                     selected ? "text-foreground" : "text-foreground/95",
                   )}
                 >
@@ -107,7 +107,7 @@ function ItemCardRaw({ item }: ItemCardProps) {
 
           <div
             className={cn(
-              "inline-flex h-9 w-9 shrink-0 items-center justify-center border transition-colors",
+              "inline-flex h-9 w-9 shrink-0 self-end items-center justify-center border transition-colors sm:self-auto",
               selected
                 ? "border-accent bg-accent text-accent-foreground"
                 : "border-border/70 bg-background/40 text-muted-foreground group-hover:border-accent/40",
