@@ -1,6 +1,6 @@
 apiVersion: v2
 name: vibebasket
-description: VibeBasket — The Ninite for Vibe Coding. Bundle MCP servers, skills, and rules into one shareable install flow for AI coding tools.
+description: VibeBasket — Bundle MCP servers, skills, and rules into one shareable install flow for AI coding tools.
 type: application
 version: 0.9.0
 appVersion: "0.9.0"

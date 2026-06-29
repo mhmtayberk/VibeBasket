@@ -1,5 +1,5 @@
 # VibeBasket
-> The Ninite for Vibe Coding. Bundle trusted MCP servers, agent skills, and project rules into one shareable install command across 24 AI IDEs.
+> Bundle trusted MCP servers, agent skills, and project rules into one shareable install command across supported AI IDEs.
 
 ## Getting Started
 - [Web Catalog](https://vibebasket.dev): Browse a live catalog that syncs tens of thousands of MCP servers, skills, and rules when fully refreshed. Build your basket and generate an install command.

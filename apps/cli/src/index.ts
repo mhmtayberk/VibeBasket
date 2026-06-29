@@ -22,7 +22,7 @@ async function runCommand(loader: () => Promise<() => Promise<void>>) {
 
 program
   .name("vibebasket")
-  .description("The Ninite for vibe coding. Bundle and apply AI dev setups.")
+  .description("Bundle and apply trusted AI dev setups.")
   .version(packageJson.version ?? "0.0.0");
 
 program
