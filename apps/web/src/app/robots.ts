@@ -1,3 +1,4 @@
+import { ROBOTS_DISALLOW_PATHS } from "@/lib/seo";
 import { resolvePublicBaseUrl } from "@/lib/public-url";
 import type { MetadataRoute } from "next";
 import { headers } from "next/headers";
@@ -5,9 +6,10 @@ import { headers } from "next/headers";
 export const dynamic = "force-dynamic";
 
 /**
- * Highly secure, dynamic robots.txt builder.
- * Mitigates information leakage by explicitly disallowing crawlers from indexing
- * administrative dashboards, private auth sessions, and user stacks databases.
+ * Dynamic robots.txt builder.
+ * Public pages remain crawlable while private or operational endpoints stay out
+ * of crawler paths. Sensitive UI routes use page-level noindex metadata rather
+ * than robots disallow so search engines can see explicit indexing directives.
  */
 export default async function robots(): Promise<MetadataRoute.Robots> {
   const requestHeaders = await headers();
@@ -21,17 +23,7 @@ export default async function robots(): Promise<MetadataRoute.Robots> {
     rules: {
       userAgent: "*",
       allow: ["/", "/docs"],
-      disallow: [
-        "/stacks",
-        "/stacks/",
-        "/admin",
-        "/admin/",
-        "/api/admin/",
-        "/api/auth/",
-        "/api/stacks/",
-        "/_next/",
-        "/static/",
-      ],
+      disallow: [...ROBOTS_DISALLOW_PATHS],
     },
     sitemap: `${baseUrl.replace(/\/$/, "")}/sitemap.xml`,
   };

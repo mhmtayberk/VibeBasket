@@ -262,7 +262,7 @@ export function CatalogGrid({
 
   return (
     <div className="border-t border-border/80">
-      <div className="mx-auto max-w-[1440px] px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+      <div className="mx-auto max-w-[1440px] px-4 py-16 pb-36 sm:px-6 sm:pb-40 lg:px-8 lg:py-20 lg:pb-20">
         <div className="max-w-3xl">
           <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-accent">
             The Builder

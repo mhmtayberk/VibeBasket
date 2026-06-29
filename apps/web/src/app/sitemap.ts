@@ -1,3 +1,4 @@
+import { PUBLIC_SITEMAP_ROUTES } from "@/lib/seo";
 import { resolvePublicBaseUrl } from "@/lib/public-url";
 import { catalogItems, db } from "@vibebasket/core";
 import { desc } from "drizzle-orm";
@@ -13,9 +14,9 @@ function isMissingCatalogTableError(error: unknown) {
 }
 
 /**
- * Intelligent, dynamic sitemap builder.
- * Resolves the database state to determine catalog sync freshness, exposing
- * only safe, verified public landing pages with dynamic modification headers.
+ * Dynamic sitemap builder.
+ * Emits only explicitly public, indexable routes while still reflecting the
+ * latest catalog sync freshness and the current deployment host automatically.
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const requestHeaders = await headers();
@@ -27,6 +28,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const normalizedBase = baseUrl.replace(/\/$/, "");
 
   let latestUpdate = new Date();
+  const buildEntries = (lastModified: Date): MetadataRoute.Sitemap =>
+    PUBLIC_SITEMAP_ROUTES.map((route) => ({
+      url: `${normalizedBase}${route.path}`,
+      lastModified,
+      changeFrequency: route.changeFrequency,
+      priority: route.priority,
+    }));
+
   try {
     // Fetch the latest sync date from catalog metadata to reflect true content freshness
     const latestSync = await db
@@ -42,20 +51,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   } catch (error) {
     if (isMissingCatalogTableError(error)) {
-      return [
-        {
-          url: `${normalizedBase}/`,
-          lastModified: latestUpdate,
-          changeFrequency: "hourly",
-          priority: 1.0,
-        },
-        {
-          url: `${normalizedBase}/docs`,
-          lastModified: latestUpdate,
-          changeFrequency: "weekly",
-          priority: 0.9,
-        },
-      ];
+      return buildEntries(latestUpdate);
     }
 
     console.warn(
@@ -64,20 +60,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     );
   }
 
-  return [
-    {
-      url: `${normalizedBase}/`,
-      lastModified: latestUpdate,
-      changeFrequency: "hourly",
-      priority: 1.0,
-    },
-    {
-      url: `${normalizedBase}/docs`,
-      lastModified: latestUpdate,
-      changeFrequency: "weekly",
-      priority: 0.9,
-    },
-  ];
+  return buildEntries(latestUpdate);
 }
 
 export { isMissingCatalogTableError };
