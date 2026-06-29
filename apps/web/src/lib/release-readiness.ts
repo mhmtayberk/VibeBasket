@@ -1,4 +1,5 @@
 import { type AuthProviderEnv, getAuthProviderReadiness } from "../auth.config";
+import type { BackupRuntimeStatus } from "./backup-runtime-status";
 import type { StorageBackendId } from "./storage";
 
 export type ReleaseReadinessTone = "healthy" | "warning" | "critical";
@@ -23,6 +24,15 @@ export interface ReleaseReadinessReport {
   blockers: ReleaseReadinessItem[];
   warnings: ReleaseReadinessItem[];
   checks: ReleaseReadinessItem[];
+}
+
+interface BackupReadinessContext {
+  schedule?: {
+    enabled: boolean;
+    intervalHours: number;
+    lastScheduledAt: string | null;
+  } | null;
+  runtimeStatus?: BackupRuntimeStatus | null;
 }
 
 function hasValue(value: string | undefined) {
@@ -54,10 +64,12 @@ export function buildReleaseReadinessReport(
   env: AuthProviderEnv & {
     NEXTAUTH_URL?: string;
     CATALOG_REFRESH_TOKEN?: string;
+    BACKUP_JOB_TOKEN?: string;
     TRUST_PROXY?: string;
     DATABASE_URL?: string;
   },
   storageInfo: StorageBackendInfoLike,
+  backupContext: BackupReadinessContext = {},
 ): ReleaseReadinessReport {
   const blockers: ReleaseReadinessItem[] = [];
   const warnings: ReleaseReadinessItem[] = [];
@@ -213,6 +225,54 @@ export function buildReleaseReadinessReport(
       tone: "healthy",
       detail: `Active backend is ${storageInfo.id}.`,
     });
+  }
+
+  if (backupContext.schedule?.enabled) {
+    if (!hasValue(env.BACKUP_JOB_TOKEN)) {
+      warnings.push({
+        key: "backup-job-token",
+        label: "BACKUP_JOB_TOKEN missing",
+        tone: "warning",
+        detail:
+          "Scheduled backups are enabled, but no protected backup job token is configured for an external scheduler.",
+      });
+    } else {
+      checks.push({
+        key: "backup-job-token",
+        label: "BACKUP_JOB_TOKEN",
+        tone: "healthy",
+        detail: "Protected scheduled backup endpoint can be called by an external scheduler.",
+      });
+    }
+
+    const lastSuccessAt = backupContext.runtimeStatus?.lastSuccessAt;
+    if (!lastSuccessAt) {
+      warnings.push({
+        key: "backup-runtime-status",
+        label: "No successful scheduled backup recorded",
+        tone: "warning",
+        detail:
+          "A schedule exists, but no successful backup run has been recorded yet. Trigger one before relying on disaster recovery.",
+      });
+    } else {
+      const intervalMs = backupContext.schedule.intervalHours * 60 * 60 * 1000;
+      const ageMs = Date.now() - new Date(lastSuccessAt).getTime();
+      if (Number.isFinite(ageMs) && ageMs > intervalMs * 2) {
+        warnings.push({
+          key: "backup-runtime-stale",
+          label: "Scheduled backup looks stale",
+          tone: "warning",
+          detail: `Last successful backup was recorded at ${lastSuccessAt}, which is older than twice the configured ${backupContext.schedule.intervalHours}-hour interval.`,
+        });
+      } else {
+        checks.push({
+          key: "backup-runtime-status",
+          label: "Scheduled backup history",
+          tone: "healthy",
+          detail: `Last successful backup recorded at ${lastSuccessAt}.`,
+        });
+      }
+    }
   }
 
   if (env.DATABASE_URL && !env.DATABASE_URL.startsWith("file:")) {

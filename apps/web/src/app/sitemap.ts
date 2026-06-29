@@ -1,7 +1,10 @@
 import { resolvePublicBaseUrl } from "@/lib/public-url";
 import { catalogItems, db } from "@vibebasket/core";
 import { desc } from "drizzle-orm";
+import { headers } from "next/headers";
 import type { MetadataRoute } from "next";
+
+export const dynamic = "force-dynamic";
 
 function isMissingCatalogTableError(error: unknown) {
   const message = error instanceof Error ? error.message : typeof error === "string" ? error : "";
@@ -15,7 +18,12 @@ function isMissingCatalogTableError(error: unknown) {
  * only safe, verified public landing pages with dynamic modification headers.
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = resolvePublicBaseUrl();
+  const requestHeaders = await headers();
+  const baseUrl = resolvePublicBaseUrl({
+    forwardedHost: requestHeaders.get("x-forwarded-host") ?? undefined,
+    forwardedProto: requestHeaders.get("x-forwarded-proto") ?? undefined,
+    host: requestHeaders.get("host") ?? undefined,
+  });
   const normalizedBase = baseUrl.replace(/\/$/, "");
 
   let latestUpdate = new Date();

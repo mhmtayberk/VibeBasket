@@ -68,6 +68,7 @@ describe("buildReleaseReadinessReport", () => {
         AUTH_TRUST_HOST: "true",
         TRUST_PROXY: "true",
         CATALOG_REFRESH_TOKEN: "refresh-token",
+        BACKUP_JOB_TOKEN: "backup-job-token",
         AUTH_GITHUB_ENABLED: "true",
         AUTH_GITHUB_ID: "client-id",
         AUTH_GITHUB_SECRET: "client-secret",
@@ -79,6 +80,22 @@ describe("buildReleaseReadinessReport", () => {
         isConfigured: true,
         isFallback: false,
         warning: null,
+      },
+      {
+        schedule: {
+          enabled: true,
+          intervalHours: 24,
+          lastScheduledAt: "2026-06-29T12:00:00.000Z",
+        },
+        runtimeStatus: {
+          lastAttemptAt: "2026-06-29T12:00:00.000Z",
+          lastSuccessAt: "2999-06-29T12:00:00.000Z",
+          lastFailureAt: null,
+          lastError: null,
+          lastBackupKey: "backup.db",
+          lastBackupSizeBytes: 123,
+          lastStorageLabel: "AWS S3",
+        },
       },
     );
 
@@ -94,8 +111,51 @@ describe("buildReleaseReadinessReport", () => {
         "oauth-enabled",
         "catalog-refresh-token",
         "storage-backend",
+        "backup-job-token",
+        "backup-runtime-status",
         "database-url",
       ]),
+    );
+  });
+
+  it("warns when scheduled backups are enabled without an external job token", () => {
+    const report = buildReleaseReadinessReport(
+      {
+        NODE_ENV: "production",
+        AUTH_SECRET: "secret",
+        NEXTAUTH_URL: "https://vibebasket.dev",
+        AUTH_TRUST_HOST: "true",
+        TRUST_PROXY: "true",
+        CATALOG_REFRESH_TOKEN: "refresh-token",
+        DATABASE_URL: "file:/data/vibebasket.db",
+      },
+      {
+        id: "local",
+        configuredId: "local",
+        isConfigured: true,
+        isFallback: false,
+        warning: null,
+      },
+      {
+        schedule: {
+          enabled: true,
+          intervalHours: 12,
+          lastScheduledAt: null,
+        },
+        runtimeStatus: {
+          lastAttemptAt: null,
+          lastSuccessAt: null,
+          lastFailureAt: null,
+          lastError: null,
+          lastBackupKey: null,
+          lastBackupSizeBytes: null,
+          lastStorageLabel: null,
+        },
+      },
+    );
+
+    expect(report.warnings.map((item) => item.key)).toEqual(
+      expect.arrayContaining(["backup-job-token", "backup-runtime-status"]),
     );
   });
 });

@@ -8,6 +8,8 @@ const isScheduleDueMock = vi.fn();
 const loadScheduleConfigMock = vi.fn();
 const loadStorageConfigMock = vi.fn();
 const markScheduleCompleteMock = vi.fn();
+const getBackupRuntimeStatusMock = vi.fn();
+const setBackupRuntimeStatusMock = vi.fn();
 
 vi.mock("@/lib/storage", () => ({
   createStorageBackend: createStorageBackendMock,
@@ -17,6 +19,11 @@ vi.mock("@/lib/storage", () => ({
   loadScheduleConfig: loadScheduleConfigMock,
   loadStorageConfig: loadStorageConfigMock,
   markScheduleComplete: markScheduleCompleteMock,
+}));
+
+vi.mock("@/lib/backup-runtime-status", () => ({
+  getBackupRuntimeStatus: getBackupRuntimeStatusMock,
+  setBackupRuntimeStatus: setBackupRuntimeStatusMock,
 }));
 
 describe("admin backup ops", () => {
@@ -46,35 +53,67 @@ describe("admin backup ops", () => {
       warning: null,
     });
     markScheduleCompleteMock.mockResolvedValue(undefined);
+    getBackupRuntimeStatusMock.mockResolvedValue({
+      lastAttemptAt: null,
+      lastSuccessAt: null,
+      lastFailureAt: null,
+      lastError: null,
+      lastBackupKey: null,
+      lastBackupSizeBytes: null,
+      lastStorageLabel: null,
+    });
+    setBackupRuntimeStatusMock.mockResolvedValue(undefined);
   });
 
-  it("runs a scheduled backup before returning storage config when due", async () => {
+  it("runs a scheduled backup job when due", async () => {
     isScheduleDueMock.mockResolvedValueOnce(true);
-    loadStorageConfigMock.mockResolvedValueOnce({ backend: "s3" });
     loadScheduleConfigMock.mockResolvedValueOnce({
       enabled: true,
       intervalHours: 24,
       lastScheduledAt: null,
     });
 
-    const { runGetStorageConfig } = await import("./admin-backup-ops");
-    const result = await runGetStorageConfig();
+    const { runScheduledBackupJob } = await import("./admin-backup-ops");
+    const result = await runScheduledBackupJob();
 
     expect(result.success).toBe(true);
+    expect(result.triggered).toBe(true);
     expect(createBackupMock).toHaveBeenCalledTimes(1);
     expect(markScheduleCompleteMock).toHaveBeenCalledTimes(1);
   });
 
   it("does not mark schedule complete when the scheduled backup fails", async () => {
     isScheduleDueMock.mockResolvedValueOnce(true);
+    loadScheduleConfigMock.mockResolvedValueOnce({
+      enabled: true,
+      intervalHours: 24,
+      lastScheduledAt: null,
+    });
     createBackupMock.mockRejectedValueOnce(new Error("backup failed"));
-    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    const { runScheduledBackupJob } = await import("./admin-backup-ops");
+
+    await expect(runScheduledBackupJob()).rejects.toThrow("backup failed");
+    expect(markScheduleCompleteMock).not.toHaveBeenCalled();
+  });
+
+  it("returns runtime status with storage config without triggering backups", async () => {
+    const runtimeStatus = {
+      lastAttemptAt: "2026-06-29T10:00:00.000Z",
+      lastSuccessAt: "2026-06-29T10:00:00.000Z",
+      lastFailureAt: null,
+      lastError: null,
+      lastBackupKey: "backup.db",
+      lastBackupSizeBytes: 123,
+      lastStorageLabel: "AWS S3",
+    };
+    getBackupRuntimeStatusMock.mockResolvedValueOnce(runtimeStatus);
 
     const { runGetStorageConfig } = await import("./admin-backup-ops");
     const result = await runGetStorageConfig();
 
     expect(result.success).toBe(true);
-    expect(markScheduleCompleteMock).not.toHaveBeenCalled();
-    consoleErrorSpy.mockRestore();
+    expect(result.runtimeStatus).toEqual(runtimeStatus);
+    expect(createBackupMock).not.toHaveBeenCalled();
   });
 });
