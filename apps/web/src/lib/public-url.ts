@@ -33,10 +33,47 @@ function normalizeBaseUrl(value: string | undefined): string | null {
   }
 }
 
+function normalizeForwardedHost(value: string | undefined): string | null {
+  const firstHost = value?.split(",")[0]?.trim();
+  if (!firstHost) {
+    return null;
+  }
+
+  return normalizeHostToUrl(firstHost);
+}
+
+function normalizeRequestOrigin(options: {
+  requestUrl?: string;
+  forwardedHost?: string;
+  forwardedProto?: string;
+  host?: string;
+}) {
+  const forwardedHost = options.forwardedHost?.split(",")[0]?.trim();
+  const forwardedProto = options.forwardedProto?.split(",")[0]?.trim().toLowerCase();
+
+  if (forwardedHost) {
+    const protocol = forwardedProto === "http" || forwardedProto === "https" ? forwardedProto : "https";
+    return normalizeBaseUrl(`${protocol}://${forwardedHost}`);
+  }
+
+  if (options.host?.trim()) {
+    const inferredProtocol =
+      /localhost|127\.0\.0\.1|0\.0\.0\.0/i.test(options.host)
+        ? "http"
+        : "https";
+    return normalizeBaseUrl(`${inferredProtocol}://${options.host.trim()}`);
+  }
+
+  return normalizeBaseUrl(options.requestUrl);
+}
+
 export function resolvePublicBaseUrl(
   options: {
     env?: Partial<NodeJS.ProcessEnv>;
     requestUrl?: string;
+    forwardedHost?: string;
+    forwardedProto?: string;
+    host?: string;
   } = {},
 ) {
   const env = options.env ?? process.env;
@@ -47,7 +84,8 @@ export function resolvePublicBaseUrl(
     normalizeBaseUrl(env.SITE_URL) ??
     normalizeHostToUrl(env.VERCEL_PROJECT_PRODUCTION_URL) ??
     normalizeHostToUrl(env.VERCEL_URL) ??
-    normalizeBaseUrl(options.requestUrl) ??
+    normalizeForwardedHost(env.COOLIFY_FQDN) ??
+    normalizeRequestOrigin(options) ??
     DEFAULT_DEVELOPMENT_URL
   );
 }

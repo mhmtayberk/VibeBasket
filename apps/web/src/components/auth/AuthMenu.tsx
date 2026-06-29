@@ -37,25 +37,25 @@ export function AuthMenu({ session }: AuthMenuProps) {
 
       <Link
         href="/stacks"
-        className="flex min-w-0 items-center gap-2 border border-border/80 bg-card/70 px-2.5 py-2 transition-colors hover:border-accent/40 sm:px-3"
+        className="flex min-w-0 items-center gap-2 border border-border/80 bg-card/70 px-2 py-2 transition-colors hover:border-accent/40 sm:px-3"
       >
         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-accent/40 bg-accent/10 text-xs font-semibold text-accent sm:h-9 sm:w-9">
           {getUserInitials(session)}
         </div>
 
-        <div className="hidden min-w-0 xl:block xl:max-w-[180px]">
+        <div className="hidden min-w-0 2xl:block 2xl:max-w-[180px]">
           <p className="truncate text-sm font-medium text-foreground">{displayName}</p>
           <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
             My Stacks
           </p>
         </div>
 
-        <div className="hidden items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground lg:inline-flex xl:hidden">
+        <div className="hidden items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground sm:inline-flex 2xl:hidden">
           <User2 className="h-3.5 w-3.5" />
           Stacks
         </div>
 
-        <ArrowUpRight className="hidden h-4 w-4 shrink-0 text-muted-foreground lg:block" />
+        <ArrowUpRight className="hidden h-4 w-4 shrink-0 text-muted-foreground xl:block" />
       </Link>
 
       <form

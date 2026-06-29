@@ -33,6 +33,16 @@ interface BackendStatus {
   envPrefix: string;
 }
 
+interface BackupRuntimeStatus {
+  lastAttemptAt: string | null;
+  lastSuccessAt: string | null;
+  lastFailureAt: string | null;
+  lastError: string | null;
+  lastBackupKey: string | null;
+  lastBackupSizeBytes: number | null;
+  lastStorageLabel: string | null;
+}
+
 type ConfigMode = { backend: string; label: string } | null;
 
 async function getJson<T>(input: RequestInfo, init?: RequestInit): Promise<T> {
@@ -90,6 +100,7 @@ export function BackupSection() {
   const [pendingBackups, setPendingBackups] = useState<Set<string>>(new Set());
   const [scheduleEnabled, setScheduleEnabled] = useState(false);
   const [scheduleHours, setScheduleHours] = useState(24);
+  const [runtimeStatus, setRuntimeStatus] = useState<BackupRuntimeStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -125,6 +136,7 @@ export function BackupSection() {
           success: boolean;
           config: DbConfig | null;
           schedule?: { enabled: boolean; intervalHours: number } | null;
+          runtimeStatus?: BackupRuntimeStatus | null;
           backends: BackendStatus[];
           backendInfo?: BackendInfo | null;
           error?: string;
@@ -141,6 +153,7 @@ export function BackupSection() {
       setDbConfig(storageResponse.config);
       setBackends(storageResponse.backends);
       setBackendInfo(storageResponse.backendInfo ?? null);
+      setRuntimeStatus(storageResponse.runtimeStatus ?? null);
       if (storageResponse.schedule) {
         setScheduleEnabled(storageResponse.schedule.enabled);
         setScheduleHours(storageResponse.schedule.intervalHours);
@@ -176,7 +189,7 @@ export function BackupSection() {
             success: true,
             message: `${response.backup.storageLabel}: ${response.backup.key} (${(response.backup.sizeBytes / 1024).toFixed(1)} KB)`,
           });
-          refreshBackups();
+          await refreshAll();
         } else {
           setResult({
             success: false,
@@ -541,10 +554,45 @@ export function BackupSection() {
         </div>
 
         <p className="mt-3 font-mono text-[9px] text-muted-foreground/70 leading-relaxed">
-          When enabled, a backup is automatically created every {scheduleHours} hour
-          {scheduleHours !== 1 ? "s" : ""}. The check runs when the admin dashboard is visited.
-          Schedule state persists across restarts.
+          When enabled, a backup should be triggered every {scheduleHours} hour
+          {scheduleHours !== 1 ? "s" : ""} by calling the protected scheduler endpoint. Schedule
+          state persists across restarts and the last run metadata is tracked below.
         </p>
+
+        <div className="mt-4 grid gap-3 md:grid-cols-3">
+          <div className="border border-border/60 bg-background/30 p-3">
+            <div className="font-mono text-[9px] uppercase tracking-[0.16em] text-muted-foreground">
+              Last Success
+            </div>
+            <div className="mt-1 text-xs text-foreground">
+              {runtimeStatus?.lastSuccessAt
+                ? new Date(runtimeStatus.lastSuccessAt).toLocaleString()
+                : "No successful backup recorded"}
+            </div>
+          </div>
+          <div className="border border-border/60 bg-background/30 p-3">
+            <div className="font-mono text-[9px] uppercase tracking-[0.16em] text-muted-foreground">
+              Last Attempt
+            </div>
+            <div className="mt-1 text-xs text-foreground">
+              {runtimeStatus?.lastAttemptAt
+                ? new Date(runtimeStatus.lastAttemptAt).toLocaleString()
+                : "No attempts recorded"}
+            </div>
+          </div>
+          <div className="border border-border/60 bg-background/30 p-3">
+            <div className="font-mono text-[9px] uppercase tracking-[0.16em] text-muted-foreground">
+              Last Result
+            </div>
+            <div
+              className={`mt-1 text-xs ${
+                runtimeStatus?.lastError ? "text-amber-300" : "text-foreground"
+              }`}
+            >
+              {runtimeStatus?.lastError ?? runtimeStatus?.lastBackupKey ?? "Waiting for first run"}
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* ── Backup Operations ── */}

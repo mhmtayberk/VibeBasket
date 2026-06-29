@@ -38,6 +38,7 @@ Notes:
 - [ ] `ADMIN_OAUTH_EMAILS` contains only trusted admin accounts, and each admin account is expected to arrive with a verified email
 - [ ] SQLite backups are configured and tested
 - [ ] Backup backend selection is validated so the app is not silently falling back to local storage
+- [ ] `BACKUP_JOB_TOKEN` is set if backup scheduling is enabled
 
 ## 4. Deployment Shape
 
@@ -72,6 +73,7 @@ Choose one production shape and verify it end-to-end:
 - [ ] Admin dashboard `Release Readiness` panel shows zero blockers, and any remaining warnings are consciously accepted
 - [ ] If using Coolify, Cloudflare, Nginx, or Caddy in front of the app, `AUTH_TRUST_HOST` and `TRUST_PROXY` warnings are either cleared or explicitly accepted with that proxy topology in mind
 - [ ] Scheduled backups run on the expected interval
+- [ ] The external backup scheduler is calling `POST /api/internal/backup` with a valid `BACKUP_JOB_TOKEN`
 - [ ] Logs are captured by the hosting platform and inspected for startup/runtime errors
 
 ## 7. Open-Source Launch
