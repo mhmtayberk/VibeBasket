@@ -49,7 +49,7 @@ export function MobileBasketButton({
         type="button"
         onClick={() => setOpen(true)}
         className={cn(
-          "fixed bottom-4 right-4 z-50 flex h-12 w-12 items-center justify-center border border-accent bg-accent text-accent-foreground shadow-lg transition-transform active:scale-95 sm:bottom-6 sm:right-6 sm:h-14 sm:w-14",
+          "fixed bottom-[calc(env(safe-area-inset-bottom,0px)+1rem)] right-4 z-50 flex h-12 w-12 items-center justify-center border border-accent bg-accent text-accent-foreground shadow-lg transition-transform active:scale-95 sm:bottom-6 sm:right-6 sm:h-14 sm:w-14",
           open && "opacity-0 pointer-events-none",
           className,
         )}
