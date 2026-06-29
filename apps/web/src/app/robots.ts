@@ -1,5 +1,5 @@
-import { ROBOTS_DISALLOW_PATHS } from "@/lib/seo";
 import { resolvePublicBaseUrl } from "@/lib/public-url";
+import { ROBOTS_DISALLOW_PATHS } from "@/lib/seo";
 import type { MetadataRoute } from "next";
 import { headers } from "next/headers";
 
