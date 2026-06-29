@@ -1,5 +1,5 @@
-import { PUBLIC_SITEMAP_ROUTES } from "@/lib/seo";
 import { resolvePublicBaseUrl } from "@/lib/public-url";
+import { PUBLIC_SITEMAP_ROUTES } from "@/lib/seo";
 import { catalogItems, db } from "@vibebasket/core";
 import { desc } from "drizzle-orm";
 import type { MetadataRoute } from "next";
