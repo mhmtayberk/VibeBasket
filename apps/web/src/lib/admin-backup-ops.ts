@@ -1,4 +1,5 @@
 import { buildReleaseReadinessReport } from "@/lib/release-readiness";
+import { getBackupRuntimeStatus, setBackupRuntimeStatus } from "@/lib/backup-runtime-status";
 import type { BackendStatus, BackupEntry, StorageConfig } from "@/lib/storage";
 
 async function loadNodeFs() {
@@ -24,67 +25,131 @@ function resolveDatabaseFilePath(): string | null {
 }
 
 export async function runBackupDatabase() {
-  const { createStorageBackend } = await loadStorageRuntime();
-  const backend = await createStorageBackend();
-  const resolvedDbPath = resolveDatabaseFilePath();
-  if (!resolvedDbPath) {
-    return {
-      success: false as const,
-      error: "Backups currently require a local SQLite file DATABASE_URL (file:...).",
-    };
-  }
-  const path = await loadNodePath();
-  const dbPath = path.resolve(resolvedDbPath);
+  const startedAt = new Date().toISOString();
 
-  const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
-  const key = `vibebasket-backup-${timestamp}.db`;
-  let result: { key: string; sizeBytes: number; location?: string };
+  try {
+    const { createStorageBackend } = await loadStorageRuntime();
+    const backend = await createStorageBackend();
+    const resolvedDbPath = resolveDatabaseFilePath();
+    if (!resolvedDbPath) {
+      const failure = {
+        success: false as const,
+        error: "Backups currently require a local SQLite file DATABASE_URL (file:...).",
+      };
+      await setBackupRuntimeStatus({
+        lastAttemptAt: startedAt,
+        lastFailureAt: startedAt,
+        lastError: failure.error,
+      });
+      return failure;
+    }
+    const path = await loadNodePath();
+    const dbPath = path.resolve(resolvedDbPath);
 
-  if (backend.id === "local") {
-    const fs = await loadNodeFs();
-    const backupDir = path.resolve(
-      process.env.BACKUP_LOCAL_DIR ??
-        path.join(/* turbopackIgnore: true */ process.cwd(), "backups"),
-    );
-    await fs.promises.mkdir(backupDir, { recursive: true });
-    const safeKey = path.basename(key).replace(/[^a-zA-Z0-9._-]/g, "_");
-    const destPath = path.join(backupDir, safeKey);
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+    const key = `vibebasket-backup-${timestamp}.db`;
+    let result: { key: string; sizeBytes: number; location?: string };
 
-    try {
-      const { client } = await import("@vibebasket/core");
-      await client.execute(`VACUUM INTO '${destPath.replace(/'/g, "''")}'`);
-    } catch {
-      await fs.promises.copyFile(dbPath, destPath);
+    if (backend.id === "local") {
+      const fs = await loadNodeFs();
+      const backupDir = path.resolve(
+        process.env.BACKUP_LOCAL_DIR ??
+          path.join(/* turbopackIgnore: true */ process.cwd(), "backups"),
+      );
+      await fs.promises.mkdir(backupDir, { recursive: true });
+      const safeKey = path.basename(key).replace(/[^a-zA-Z0-9._-]/g, "_");
+      const destPath = path.join(backupDir, safeKey);
+
+      try {
+        const { client } = await import("@vibebasket/core");
+        await client.execute(`VACUUM INTO '${destPath.replace(/'/g, "''")}'`);
+      } catch {
+        await fs.promises.copyFile(dbPath, destPath);
+      }
+
+      const stat = await fs.promises.stat(destPath);
+      result = { key: safeKey, sizeBytes: stat.size, location: destPath };
+    } else {
+      result = await backend.createBackup(dbPath, key);
     }
 
-    const stat = await fs.promises.stat(destPath);
-    result = { key: safeKey, sizeBytes: stat.size, location: destPath };
-  } else {
-    result = await backend.createBackup(dbPath, key);
+    const success = {
+      success: true as const,
+      backup: {
+        key: result.key,
+        sizeBytes: result.sizeBytes,
+        location: result.location ?? "",
+        storageLabel: backend.label,
+        createdAt: new Date().toISOString(),
+      },
+    };
+    await setBackupRuntimeStatus({
+      lastAttemptAt: success.backup.createdAt,
+      lastSuccessAt: success.backup.createdAt,
+      lastError: null,
+      lastBackupKey: success.backup.key,
+      lastBackupSizeBytes: success.backup.sizeBytes,
+      lastStorageLabel: success.backup.storageLabel,
+    });
+    return success;
+  } catch (error) {
+    await setBackupRuntimeStatus({
+      lastAttemptAt: startedAt,
+      lastFailureAt: startedAt,
+      lastError: error instanceof Error ? error.message : "Unknown backup failure",
+    });
+    throw error;
   }
-
-  return {
-    success: true as const,
-    backup: {
-      key: result.key,
-      sizeBytes: result.sizeBytes,
-      location: result.location ?? "",
-      storageLabel: backend.label,
-      createdAt: new Date().toISOString(),
-    },
-  };
 }
 
-async function maybeRunScheduledBackup() {
-  const { isScheduleDue, markScheduleComplete } = await loadStorageRuntime();
+export async function runScheduledBackupJob(options: { force?: boolean } = {}) {
+  const { isScheduleDue, loadScheduleConfig, markScheduleComplete } = await loadStorageRuntime();
+  const schedule = await loadScheduleConfig();
 
-  if (!(await isScheduleDue())) {
-    return;
+  if (!schedule?.enabled) {
+    return {
+      success: true as const,
+      triggered: false,
+      reason: "disabled" as const,
+      schedule,
+      runtimeStatus: await getBackupRuntimeStatus(),
+    };
   }
 
-  const result = await runBackupDatabase();
-  if (result.success) {
+  if (!options.force && !(await isScheduleDue())) {
+    return {
+      success: true as const,
+      triggered: false,
+      reason: "not-due" as const,
+      schedule,
+      runtimeStatus: await getBackupRuntimeStatus(),
+    };
+  }
+
+  try {
+    const result = await runBackupDatabase();
+    if (!result.success) {
+      return {
+        success: false as const,
+        triggered: true,
+        reason: "failed" as const,
+        schedule,
+        runtimeStatus: await getBackupRuntimeStatus(),
+        error: result.error,
+      };
+    }
+
     await markScheduleComplete();
+    return {
+      success: true as const,
+      triggered: true,
+      reason: options.force ? ("forced" as const) : ("due" as const),
+      schedule,
+      runtimeStatus: await getBackupRuntimeStatus(),
+      backup: result.backup,
+    };
+  } catch (error) {
+    throw error;
   }
 }
 
@@ -158,15 +223,11 @@ export async function runRestoreBackup(key: string) {
 export async function runGetStorageConfig() {
   const { getAllBackendsStatus, getStorageBackendInfo, loadScheduleConfig, loadStorageConfig } =
     await loadStorageRuntime();
-  try {
-    await maybeRunScheduledBackup();
-  } catch (error) {
-    console.error("Scheduled backup check failed:", error);
-  }
   const config = await loadStorageConfig();
   const schedule = await loadScheduleConfig();
   const backends: BackendStatus[] = await getAllBackendsStatus();
   const backendInfo = await getStorageBackendInfo();
+  const runtimeStatus = await getBackupRuntimeStatus();
 
   return {
     success: true as const,
@@ -182,6 +243,7 @@ export async function runGetStorageConfig() {
     schedule: schedule ?? null,
     backends,
     backendInfo,
+    runtimeStatus,
   };
 }
 
@@ -248,8 +310,12 @@ export async function runSaveSchedule(enabled: boolean, intervalHours: number) {
 export async function runGetReleaseReadiness() {
   const { getStorageBackendInfo } = await loadStorageRuntime();
   const backendInfo = await getStorageBackendInfo();
+  const storageConfig = await runGetStorageConfig();
   return {
     success: true as const,
-    report: buildReleaseReadinessReport(process.env, backendInfo),
+    report: buildReleaseReadinessReport(process.env, backendInfo, {
+      schedule: storageConfig.schedule,
+      runtimeStatus: storageConfig.runtimeStatus,
+    }),
   };
 }

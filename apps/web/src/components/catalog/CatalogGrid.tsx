@@ -293,7 +293,7 @@ export function CatalogGrid({
           <div className="space-y-5 lg:sticky lg:top-24 lg:max-h-[calc(100vh-140px)] lg:overflow-y-auto lg:pr-4 custom-scrollbar">
             <div className="border border-border/80 bg-card/60">
               <div className="border-b border-border/70 px-4 py-4">
-                <div className="flex flex-wrap gap-2">
+                <div className="grid grid-cols-1 gap-2 sm:flex sm:flex-wrap">
                   {(Object.keys(tabMap) as TabKey[]).map((key) => (
                     <button
                       key={key}
@@ -303,7 +303,7 @@ export function CatalogGrid({
                         setPage(1);
                       }}
                       className={cn(
-                        "border px-3 py-2 font-mono text-[11px] uppercase tracking-[0.18em] transition-colors",
+                        "w-full border px-3 py-2 text-left font-mono text-[11px] uppercase tracking-[0.18em] transition-colors sm:w-auto sm:text-center",
                         activeTab === key
                           ? "border-accent bg-accent/10 text-accent"
                           : "border-transparent text-muted-foreground hover:border-border/70 hover:text-foreground",
@@ -345,7 +345,7 @@ export function CatalogGrid({
                           onClick={() => setShowFilters((current) => !current)}
                           aria-expanded={showFilters}
                           className={cn(
-                            "inline-flex h-10 items-center gap-2 border px-3 font-mono text-[11px] uppercase tracking-[0.18em] transition-colors",
+                            "inline-flex h-10 w-full items-center justify-between gap-2 border px-3 font-mono text-[11px] uppercase tracking-[0.18em] transition-colors sm:w-auto sm:justify-start",
                             showFilters || hasActiveDiscoveryFilters
                               ? "border-accent/60 bg-accent/10 text-accent"
                               : "border-border/70 bg-background/30 text-muted-foreground hover:border-accent/40 hover:text-foreground",
@@ -394,7 +394,7 @@ export function CatalogGrid({
                       </div>
 
                       {showFilters ? (
-                        <div className="grid gap-3 border border-border/70 bg-background/20 p-3 md:grid-cols-3">
+                        <div className="grid gap-3 border border-border/70 bg-background/20 p-3 md:grid-cols-2">
                           {[
                             {
                               label: "Trust",
@@ -510,12 +510,12 @@ export function CatalogGrid({
                     Large catalogs stay fast by loading only the current page and active category.
                   </p>
 
-                  <div className="flex items-center justify-end gap-2">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
                     <button
                       type="button"
                       onClick={() => setPage((current) => Math.max(1, current - 1))}
                       disabled={!pagination.hasPreviousPage}
-                      className="inline-flex h-10 items-center gap-2 border border-border/70 px-3 font-mono text-[11px] uppercase tracking-[0.18em] text-foreground transition-colors hover:border-accent/40 hover:text-accent disabled:cursor-not-allowed disabled:opacity-40"
+                      className="inline-flex h-10 w-full items-center justify-center gap-2 border border-border/70 px-3 font-mono text-[11px] uppercase tracking-[0.18em] text-foreground transition-colors hover:border-accent/40 hover:text-accent disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
                     >
                       <ChevronLeft className="h-4 w-4" />
                       Previous
@@ -524,7 +524,7 @@ export function CatalogGrid({
                       type="button"
                       onClick={() => setPage((current) => current + 1)}
                       disabled={!pagination.hasNextPage}
-                      className="inline-flex h-10 items-center gap-2 border border-border/70 px-3 font-mono text-[11px] uppercase tracking-[0.18em] text-foreground transition-colors hover:border-accent/40 hover:text-accent disabled:cursor-not-allowed disabled:opacity-40"
+                      className="inline-flex h-10 w-full items-center justify-center gap-2 border border-border/70 px-3 font-mono text-[11px] uppercase tracking-[0.18em] text-foreground transition-colors hover:border-accent/40 hover:text-accent disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
                     >
                       Next
                       <ChevronRight className="h-4 w-4" />

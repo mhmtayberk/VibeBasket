@@ -97,13 +97,13 @@ export default async function Home() {
     return null;
   };
   return (
-    <main className="min-h-screen overflow-x-clip bg-background text-foreground">
+    <main className="min-h-screen overflow-x-hidden bg-background text-foreground">
       <header className="sticky top-0 z-50 border-b border-border/80 bg-background/85 backdrop-blur-md">
-        <div className="mx-auto flex max-w-[1440px] items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
-          <div className="flex min-w-0 items-center gap-8">
+        <div className="mx-auto flex max-w-[1440px] items-center justify-between gap-3 px-4 py-3 sm:gap-4 sm:px-6 sm:py-4 lg:px-8">
+          <div className="flex min-w-0 items-center gap-4 sm:gap-8">
             <Link
               href="/"
-              className="text-[2.35rem] font-bold tracking-tight text-foreground sm:text-4xl"
+              className="shrink-0 text-[2rem] font-bold tracking-tight text-foreground sm:text-4xl"
             >
               VibeBasket
             </Link>
@@ -154,12 +154,12 @@ export default async function Home() {
                 providers={enabledProviders}
                 callbackUrl="/"
                 triggerLabel="Login"
-                triggerClassName="inline-flex items-center gap-2 border border-border/80 px-4 py-2 font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:border-accent/50 hover:text-foreground"
+                triggerClassName="inline-flex h-10 items-center gap-2 border border-border/80 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground transition-colors hover:border-accent/50 hover:text-foreground sm:px-4 sm:text-[11px] sm:tracking-[0.18em]"
               />
             )}
             <a
               href={`#${sectionIds.catalog}`}
-              className="hidden sm:inline-flex items-center gap-2 border border-accent bg-accent/10 px-4 py-2 font-mono text-[11px] uppercase tracking-[0.18em] text-accent transition-colors hover:bg-accent hover:text-accent-foreground"
+              className="hidden md:inline-flex items-center gap-2 border border-accent bg-accent/10 px-4 py-2 font-mono text-[11px] uppercase tracking-[0.18em] text-accent transition-colors hover:bg-accent hover:text-accent-foreground"
             >
               Build your basket
               <ArrowRight className="h-3.5 w-3.5" />
@@ -173,7 +173,7 @@ export default async function Home() {
       </script>
 
       <section className="border-b border-border/80" aria-labelledby={sectionIds.heroTitle}>
-        <div className="mx-auto grid max-w-[1440px] gap-14 px-4 py-14 sm:px-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(420px,0.95fr)] lg:px-8 lg:py-20">
+        <div className="mx-auto grid max-w-[1440px] gap-10 px-4 py-10 sm:gap-14 sm:px-6 sm:py-14 lg:grid-cols-[minmax(0,1.05fr)_minmax(420px,0.95fr)] lg:px-8 lg:py-20">
           <div className="flex flex-col justify-center">
             <div className="inline-flex w-fit items-center gap-2 border border-border/80 bg-card/70 px-2.5 py-1.5 sm:px-3">
               <span className="h-2 w-2 rounded-full bg-accent animate-pulse" />
@@ -205,18 +205,21 @@ export default async function Home() {
 
             <h1
               id={sectionIds.heroTitle}
-              className="mt-8 max-w-3xl text-[2.1rem] font-semibold leading-[0.98] tracking-[-0.04em] text-foreground sm:text-[3.55rem] sm:tracking-[-0.05em] lg:text-[4.45rem]"
+              className="mt-8 max-w-3xl text-[2.55rem] font-semibold leading-[0.98] tracking-tight text-foreground sm:text-[3.55rem] sm:tracking-[-0.05em] lg:text-[4.45rem]"
             >
-              Bundle your AI
-              <br />
-              dev setup.
-              <br />
-              Share it with
-              <br />
-              one link.
+              <span className="sm:hidden">Bundle your AI dev setup. Share it with one link.</span>
+              <span className="hidden sm:inline">
+                Bundle your AI
+                <br />
+                dev setup.
+                <br />
+                Share it with
+                <br />
+                one link.
+              </span>
             </h1>
 
-            <p className="mt-6 max-w-xl text-[0.95rem] leading-7 text-muted-foreground sm:mt-8 sm:text-lg sm:leading-8">
+            <p className="mt-5 max-w-xl text-[0.98rem] leading-7 text-muted-foreground sm:mt-8 sm:text-lg sm:leading-8">
               Curate trusted MCP servers, reusable skills, and project rules. Generate one install
               command that travels cleanly across Cursor, Windsurf, VS Code, and the rest of your AI
               coding stack.
@@ -238,7 +241,7 @@ export default async function Home() {
               </a>
             </div>
 
-            <div className="mt-10 overflow-hidden border-y border-border/70 py-4">
+            <div className="mt-8 overflow-hidden border-y border-border/70 py-4 sm:mt-10">
               <div className="relative overflow-hidden">
                 <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r from-background to-transparent" />
                 <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-background to-transparent" />
@@ -247,7 +250,7 @@ export default async function Home() {
                     <div
                       key={`${ide.id}-${index}`}
                       title={ide.label}
-                      className="inline-flex h-12 min-w-11 items-center justify-center px-2 text-muted-foreground"
+                      className="inline-flex h-12 min-w-10 items-center justify-center px-1.5 text-muted-foreground sm:min-w-11 sm:px-2"
                     >
                       <span className="sr-only">{ide.label}</span>
                       {renderTargetIcon(ide.id)}
@@ -258,7 +261,7 @@ export default async function Home() {
             </div>
           </div>
 
-          <div className="border border-border/80 bg-card/70">
+          <div className="min-w-0 border border-border/80 bg-card/70">
             <div className="flex items-center justify-between border-b border-border/70 px-4 py-3">
               <div className="flex items-center gap-2">
                 <span className="h-2.5 w-2.5 rounded-full bg-border/80" />
@@ -274,7 +277,7 @@ export default async function Home() {
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="border border-accent bg-accent/8 p-4">
                   <div className="flex items-center justify-between">
-                    <div>
+                    <div className="min-w-0">
                       <p className="text-sm font-semibold text-foreground">github-mcp</p>
                       <p className="mt-1 font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
                         repository context
@@ -286,7 +289,7 @@ export default async function Home() {
 
                 <div className="border border-border/70 bg-background/30 p-4">
                   <div className="flex items-center justify-between">
-                    <div>
+                    <div className="min-w-0">
                       <p className="text-sm font-semibold text-foreground">typescript-strict</p>
                       <p className="mt-1 font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
                         coding rules
@@ -298,11 +301,11 @@ export default async function Home() {
               </div>
 
               <div className="border border-border/70 bg-background/35 p-4">
-                <div className="flex items-center justify-between gap-4">
-                  <span className="truncate font-mono text-[12px] text-accent">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+                  <span className="min-w-0 truncate font-mono text-[12px] text-accent">
                     $ npx vibebasket apply cj2k9x
                   </span>
-                  <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+                  <span className="self-start font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground sm:self-auto">
                     copied
                   </span>
                 </div>
@@ -358,7 +361,7 @@ export default async function Home() {
             </p>
           </div>
 
-          <div className="mt-10 grid gap-6 lg:grid-cols-3">
+          <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {[
               {
                 tag: "Solo Developer",
@@ -402,7 +405,7 @@ export default async function Home() {
             </p>
           </div>
 
-          <div className="grid gap-6 lg:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {[
               {
                 step: "01",
@@ -442,8 +445,8 @@ export default async function Home() {
       </section>
 
       <section id={sectionIds.command} className="border-y border-border/80">
-        <div className="mx-auto max-w-[1440px] px-4 py-20 text-center sm:px-6 lg:px-8 lg:py-28">
-          <h2 className="mx-auto max-w-4xl text-5xl font-semibold tracking-[-0.05em] text-foreground sm:text-7xl">
+        <div className="mx-auto max-w-[1440px] px-4 py-16 text-center sm:px-6 sm:py-20 lg:px-8 lg:py-28">
+          <h2 className="mx-auto max-w-4xl text-[2.4rem] font-semibold tracking-tight text-foreground sm:text-7xl sm:tracking-[-0.05em]">
             Stop reconfiguring.
             <br />
             Start coding.
