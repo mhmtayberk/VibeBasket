@@ -173,8 +173,8 @@ export default async function Home() {
       </script>
 
       <section className="border-b border-border/80" aria-labelledby={sectionIds.heroTitle}>
-        <div className="mx-auto grid max-w-[1440px] gap-10 px-4 py-10 sm:gap-14 sm:px-6 sm:py-14 lg:grid-cols-[minmax(0,1.05fr)_minmax(420px,0.95fr)] lg:px-8 lg:py-20">
-          <div className="flex flex-col justify-center">
+        <div className="mx-auto grid max-w-[1440px] grid-cols-1 gap-10 px-4 py-10 sm:gap-14 sm:px-6 sm:py-14 lg:grid-cols-[minmax(0,1.05fr)_minmax(420px,0.95fr)] lg:px-8 lg:py-20">
+          <div className="flex min-w-0 flex-col justify-center">
             <div className="inline-flex w-fit items-center gap-2 border border-border/80 bg-card/70 px-2.5 py-1.5 sm:px-3">
               <span className="h-2 w-2 rounded-full bg-accent animate-pulse" />
               <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-accent sm:text-[11px] sm:tracking-[0.18em]">
@@ -245,7 +245,7 @@ export default async function Home() {
               <div className="relative overflow-hidden">
                 <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r from-background to-transparent" />
                 <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-background to-transparent" />
-                <div className="flex min-w-max animate-[marquee_20s_linear_infinite] gap-3 pr-3 [will-change:transform]">
+                <div className="flex w-max min-w-max animate-[marquee_20s_linear_infinite] gap-3 pr-3 [will-change:transform]">
                   {marqueeTargets.map((ide, index) => (
                     <div
                       key={`${ide.id}-${index}`}
