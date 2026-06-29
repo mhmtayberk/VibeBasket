@@ -52,15 +52,15 @@ function normalizeRequestOrigin(options: {
   const forwardedProto = options.forwardedProto?.split(",")[0]?.trim().toLowerCase();
 
   if (forwardedHost) {
-    const protocol = forwardedProto === "http" || forwardedProto === "https" ? forwardedProto : "https";
+    const protocol =
+      forwardedProto === "http" || forwardedProto === "https" ? forwardedProto : "https";
     return normalizeBaseUrl(`${protocol}://${forwardedHost}`);
   }
 
   if (options.host?.trim()) {
-    const inferredProtocol =
-      /localhost|127\.0\.0\.1|0\.0\.0\.0/i.test(options.host)
-        ? "http"
-        : "https";
+    const inferredProtocol = /localhost|127\.0\.0\.1|0\.0\.0\.0/i.test(options.host)
+      ? "http"
+      : "https";
     return normalizeBaseUrl(`${inferredProtocol}://${options.host.trim()}`);
   }
 
