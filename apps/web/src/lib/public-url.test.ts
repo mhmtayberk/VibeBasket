@@ -30,6 +30,27 @@ describe("resolvePublicBaseUrl", () => {
     );
   });
 
+  it("prefers forwarded host and proto when provided at runtime", () => {
+    expect(
+      resolvePublicBaseUrl({
+        env: {},
+        requestUrl: "http://127.0.0.1:3000/sitemap.xml",
+        forwardedHost: "vibebasket.dev",
+        forwardedProto: "https",
+      }),
+    ).toBe("https://vibebasket.dev");
+  });
+
+  it("falls back to the request host when forwarded headers are absent", () => {
+    expect(
+      resolvePublicBaseUrl({
+        env: {},
+        requestUrl: "http://127.0.0.1:3000/robots.txt",
+        host: "vibebasket.dev",
+      }),
+    ).toBe("https://vibebasket.dev");
+  });
+
   it("uses deployment host envs when explicit public URLs are absent", () => {
     expect(
       resolvePublicBaseUrl({
@@ -39,6 +60,16 @@ describe("resolvePublicBaseUrl", () => {
         },
       }),
     ).toBe("https://app.example.com");
+  });
+
+  it("uses COOLIFY_FQDN when explicit public URLs are absent", () => {
+    expect(
+      resolvePublicBaseUrl({
+        env: {
+          COOLIFY_FQDN: "vibebasket.dev",
+        },
+      }),
+    ).toBe("https://vibebasket.dev");
   });
 
   it("falls back to localhost instead of a hardcoded production domain", () => {
