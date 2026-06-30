@@ -1,10 +1,10 @@
+import { shouldRenderAdminForbidden } from "@/lib/admin-access";
 import {
   type HealthTone,
   buildAdminSourceHealth,
   classifyCatalogFreshness,
   computeFailureStreak,
 } from "@/lib/admin-ops";
-import { shouldRenderAdminForbidden } from "@/lib/admin-access";
 import { requireAdminRole } from "@/lib/admin-session";
 import {
   catalogItems,
