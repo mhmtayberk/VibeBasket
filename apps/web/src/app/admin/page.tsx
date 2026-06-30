@@ -4,7 +4,8 @@ import {
   classifyCatalogFreshness,
   computeFailureStreak,
 } from "@/lib/admin-ops";
-import { ForbiddenError, requireAdminRole } from "@/lib/admin-session";
+import { shouldRenderAdminForbidden } from "@/lib/admin-access";
+import { requireAdminRole } from "@/lib/admin-session";
 import {
   catalogItems,
   catalogSyncRuns,
@@ -16,7 +17,7 @@ import {
 import { desc, sql } from "drizzle-orm";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { forbidden } from "next/navigation";
 import { AdminSectionNav } from "./AdminSectionNav";
 import { BackupSectionLazy } from "./BackupSectionLazy";
 import { ReleaseReadinessPanel } from "./ReleaseReadinessPanel";
@@ -49,8 +50,8 @@ export default async function AdminDashboardPage() {
   try {
     await requireAdminRole();
   } catch (error) {
-    if (error instanceof ForbiddenError) {
-      redirect("/");
+    if (shouldRenderAdminForbidden(error)) {
+      forbidden();
     }
   }
 

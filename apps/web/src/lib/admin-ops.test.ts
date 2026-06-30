@@ -56,4 +56,33 @@ describe("admin ops helpers", () => {
       tone: "healthy",
     });
   });
+
+  it("marks a source healthy again after a later clean run", () => {
+    const rows = buildAdminSourceHealth(
+      [
+        {
+          success: true,
+          completedAt: new Date(),
+          sourceErrors: [],
+        },
+        {
+          success: false,
+          completedAt: new Date(Date.now() - 60_000),
+          sourceErrors: [
+            {
+              source: "official-mcp-registry",
+              error: "timeout",
+            },
+          ],
+        },
+      ],
+      [{ sourceName: "official-mcp-registry", count: 100 }],
+    );
+
+    expect(rows.find((row) => row.key === "official-mcp-registry")).toMatchObject({
+      recentFailureCount: 1,
+      lastError: "timeout",
+      tone: "healthy",
+    });
+  });
 });
