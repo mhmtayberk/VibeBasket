@@ -15,6 +15,18 @@ async function loadDrizzleRuntime() {
   return import("drizzle-orm");
 }
 
+function isIntegrityCheckOk(rows: Array<Record<string, unknown>>) {
+  if (rows.length === 0) {
+    return false;
+  }
+
+  return rows.some((row) =>
+    Object.values(row).some(
+      (value) => typeof value === "string" && value.trim().toLowerCase() === "ok",
+    ),
+  );
+}
+
 export async function getFts5HealthAction() {
   await requireAdmin();
   try {
@@ -57,7 +69,7 @@ export async function getDbHealthAction() {
       db.select({ count: sql<number>`count(*)` }).from(users),
       db.select({ count: sql<number>`count(*)` }).from(savedStacks),
     ]);
-    const integrity = await db.all<{ ok: string }>(sql`PRAGMA integrity_check`);
+    const integrity = await db.all<Record<string, unknown>>(sql`PRAGMA integrity_check`);
 
     return {
       success: true,
@@ -65,7 +77,7 @@ export async function getDbHealthAction() {
       bundles: Number(tableCounts[1][0]?.count ?? 0),
       users: Number(tableCounts[2][0]?.count ?? 0),
       savedStacks: Number(tableCounts[3][0]?.count ?? 0),
-      integrityOk: integrity[0]?.ok === "ok",
+      integrityOk: isIntegrityCheckOk(integrity),
     };
   } catch (error: unknown) {
     return { success: false, error: error instanceof Error ? error.message : "Failed" };
