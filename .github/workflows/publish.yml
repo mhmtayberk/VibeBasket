@@ -47,8 +47,9 @@ jobs:
 
       - name: Verify npm CLI version
         run: |
-          npm --version
-          node -e "const [major, minor] = process.versions.npm.split('.').map(Number); if (major < 11 || (major === 11 && minor < 5)) { console.error(`npm ${process.versions.npm} is too old for trusted publishing`); process.exit(1); }"
+          npm_version="$(npm --version)"
+          echo "$npm_version"
+          node -e 'const version = process.argv[1]; const [major, minor] = version.split(".").map(Number); if (!version || major < 11 || (major === 11 && minor < 5)) { console.error("npm " + (version || "unknown") + " is too old for trusted publishing"); process.exit(1); }' "$npm_version"
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
