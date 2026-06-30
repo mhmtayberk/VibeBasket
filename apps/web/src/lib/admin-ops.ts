@@ -53,6 +53,20 @@ export function computeFailureStreak(runs: AdminOpsRunLike[]): number {
   return streak;
 }
 
+function computeSourceFailureStreak(runs: AdminOpsRunLike[], sourceKey: string): number {
+  let streak = 0;
+
+  for (const run of runs) {
+    const hasSourceError = run.sourceErrors.some((error) => error.source === sourceKey);
+    if (!hasSourceError) {
+      break;
+    }
+    streak += 1;
+  }
+
+  return streak;
+}
+
 export function classifyCatalogFreshness(
   latestCatalogSyncAt: Date | string | number | null | undefined,
   now = new Date(),
@@ -92,11 +106,12 @@ export function buildAdminSourceHealth(
     );
     const lastError = sourceErrors[0]?.error ?? null;
     const recentFailureCount = sourceErrors.length;
+    const currentFailureStreak = computeSourceFailureStreak(runs, source.key);
 
     let tone: HealthTone = "healthy";
-    if (recentFailureCount >= 3 || (itemCount === 0 && recentFailureCount > 0)) {
+    if (currentFailureStreak >= 3 || (itemCount === 0 && currentFailureStreak > 0)) {
       tone = "critical";
-    } else if (recentFailureCount > 0) {
+    } else if (currentFailureStreak > 0) {
       tone = "warning";
     }
 

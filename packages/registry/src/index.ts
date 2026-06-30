@@ -22,6 +22,7 @@ import {
   canonicalSkillsShMirrorKey,
   normalizeSkillRepoFamily,
   pickPreferredSkillMirror,
+  removeDuplicateOfficialSkillMirrors,
   preferCollectedSkillMirrorCandidate,
   toResult,
 } from "./utils";
@@ -250,7 +251,9 @@ export class RegistrySyncService {
     }
 
     return {
-      items: [...passthroughItems, ...skillMirrorDeduped.values()].map((item) => item.catalogItem),
+      items: removeDuplicateOfficialSkillMirrors(
+        [...passthroughItems, ...skillMirrorDeduped.values()].map((item) => item.catalogItem),
+      ),
       errors,
       sourceRuns,
     };
