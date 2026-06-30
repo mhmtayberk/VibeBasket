@@ -143,9 +143,9 @@ test.describe("VibeBasket — Security + Docs", () => {
     }
   });
 
-  test("unauthenticated admin access falls back to the home page", async ({ page }) => {
-    await page.goto("/admin");
-    await page.waitForURL(/\/$/);
-    await expect(page).toHaveTitle(/VibeBasket/);
+  test("unauthenticated admin access renders the 403 page", async ({ page }) => {
+    const response = await page.goto("/admin");
+    expect(response?.status()).toBe(403);
+    await expect(page).toHaveURL(/\/admin$/);
   });
 });
