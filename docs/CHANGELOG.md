@@ -10,6 +10,12 @@ This changelog stays intentionally high-signal: it tracks meaningful product and
 - Upgraded encrypted backup-storage writes to a versioned per-record random-salt format while keeping legacy records readable.
 - Tightened maintainer docs around trusted publishing, manual dispatch, and local npm credential expectations.
 
+## [0.9.4] — 2026-06-30
+
+### CLI Verification Accuracy
+- Fixed CLI post-install verification summaries so targets that do not support MCP configuration no longer report misleading MCP confirmation text.
+- Added focused CLI coverage for mixed-target verification output to keep capability-aware install messaging honest.
+
 ## [0.9.3] — 2026-06-26
 
 ### Release Integrity & Public Launch Hardening
