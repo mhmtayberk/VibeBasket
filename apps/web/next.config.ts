@@ -6,6 +6,9 @@ const nextConfig: NextConfig = {
   // Required for the Docker standalone image (generates apps/web/.next/standalone/server.js)
   output: process.env.NODE_ENV === "production" ? "standalone" : undefined,
   productionBrowserSourceMaps: false,
+  experimental: {
+    authInterrupts: true,
+  },
   allowedDevOrigins: getAllowedDevOrigins(),
   serverExternalPackages: ["@libsql/client", "libsql"],
   outputFileTracingIncludes: {
