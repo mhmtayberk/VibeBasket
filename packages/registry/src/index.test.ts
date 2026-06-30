@@ -4,7 +4,7 @@ import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { RegistrySyncService } from "./index";
 import type { McpEntry } from "./schemas";
-import { stripHtml } from "./utils";
+import { removeDuplicateOfficialSkillMirrors, stripHtml } from "./utils";
 
 const tempFiles: string[] = [];
 
@@ -25,6 +25,52 @@ async function createVerifiedCatalog(contents: string) {
 }
 
 describe("RegistrySyncService", () => {
+  it("removes duplicate official skill mirrors while keeping the preferred repo", () => {
+    const deduped = removeDuplicateOfficialSkillMirrors([
+      {
+        id: "skill-a",
+        type: "skill",
+        displayName: "Context Engineering",
+        verified: false,
+        sourceName: "skills-sh-official",
+        sourceUrl: "https://www.skills.sh/acme/context-skill/context-engineering",
+        data: {
+          id: "skill-a",
+          displayName: "Context Engineering",
+          verified: false,
+          source: {
+            type: "github",
+            repo: "acme/context-skill",
+            path: "context-engineering",
+            ref: "main",
+          },
+        },
+      },
+      {
+        id: "skill-b",
+        type: "skill",
+        displayName: "Context Engineering",
+        verified: false,
+        sourceName: "skills-sh-official",
+        sourceUrl: "https://www.skills.sh/acme/context-skills/context-engineering",
+        data: {
+          id: "skill-b",
+          displayName: "Context Engineering",
+          verified: false,
+          source: {
+            type: "github",
+            repo: "acme/context-skills",
+            path: "context-engineering",
+            ref: "main",
+          },
+        },
+      },
+    ]);
+
+    expect(deduped).toHaveLength(1);
+    expect(deduped[0]?.id).toBe("skill-a");
+  });
+
   it("strips HTML without double-unescaping ampersand-prefixed entities", () => {
     expect(stripHtml("&amp;quot;")).toBe("&quot;");
     expect(stripHtml("<p>Hello &amp; welcome</p>")).toBe("Hello & welcome");

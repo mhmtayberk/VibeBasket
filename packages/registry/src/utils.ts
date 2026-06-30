@@ -149,6 +149,60 @@ export function preferCollectedSkillMirrorCandidate(
   return preferSkillMirrorCandidate(candidate, existing);
 }
 
+export function removeDuplicateOfficialSkillMirrors(items: CatalogSeedItem[]) {
+  const grouped = new Map<string, Array<{ index: number; id: string; repo: string }>>();
+
+  for (const [index, item] of items.entries()) {
+    if (item.type !== "skill" || item.sourceName !== "skills-sh-official") {
+      continue;
+    }
+
+    const skillData = item.data as SkillEntry;
+    const source = skillData.source;
+    if (source?.type !== "github" || !source.repo || !source.path) {
+      continue;
+    }
+
+    const key = [
+      normalizeSkillRepoFamily(String(source.repo)),
+      normalizeCatalogText(String(source.path)).toLowerCase(),
+      canonicalGithubRef(source.ref),
+      normalizeCatalogText(item.displayName).toLowerCase(),
+    ].join("|");
+
+    const bucket = grouped.get(key) ?? [];
+    bucket.push({
+      index,
+      id: item.id,
+      repo: String(source.repo),
+    });
+    grouped.set(key, bucket);
+  }
+
+  const duplicateIndexes = new Set<number>();
+
+  for (const bucket of grouped.values()) {
+    if (bucket.length < 2) {
+      continue;
+    }
+
+    const preferred = bucket
+      .map((candidate) => ({ id: candidate.id, repo: candidate.repo }))
+      .reduce((best, candidate) => pickPreferredSkillMirror(best, candidate));
+    for (const candidate of bucket) {
+      if (candidate.id !== preferred.id) {
+        duplicateIndexes.add(candidate.index);
+      }
+    }
+  }
+
+  if (duplicateIndexes.size === 0) {
+    return items;
+  }
+
+  return items.filter((_, index) => !duplicateIndexes.has(index));
+}
+
 export function slugify(value: string) {
   return normalizeCatalogText(value)
     .toLowerCase()
