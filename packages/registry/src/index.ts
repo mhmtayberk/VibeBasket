@@ -22,8 +22,8 @@ import {
   canonicalSkillsShMirrorKey,
   normalizeSkillRepoFamily,
   pickPreferredSkillMirror,
-  removeDuplicateOfficialSkillMirrors,
   preferCollectedSkillMirrorCandidate,
+  removeDuplicateOfficialSkillMirrors,
   toResult,
 } from "./utils";
 
