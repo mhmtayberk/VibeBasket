@@ -25,9 +25,7 @@ export function StatusPage({
 }: StatusPageProps) {
   const accentClass = tone === "warning" ? "text-amber-300" : "text-accent";
   const borderClass =
-    tone === "warning"
-      ? "border-amber-400/30 bg-amber-400/10"
-      : "border-accent/30 bg-accent/10";
+    tone === "warning" ? "border-amber-400/30 bg-amber-400/10" : "border-accent/30 bg-accent/10";
   const Icon = tone === "warning" ? ShieldAlert : TriangleAlert;
 
   return (
