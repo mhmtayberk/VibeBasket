@@ -4,7 +4,7 @@
 
 Bundle trusted MCP servers, agent skills, and project rules into one shareable install command. Apply across 24 AI IDEs and CLI tools with a single link.
 
-[![Version](https://img.shields.io/badge/version-0.9.3-blue)](package.json)
+[![Version](https://img.shields.io/badge/version-0.9.4-blue)](package.json)
 [![npm](https://img.shields.io/npm/v/vibebasket)](https://www.npmjs.com/package/vibebasket)
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue)](tsconfig.base.json)
 [![CI](https://img.shields.io/badge/ci-github_actions-green)](https://github.com/mhmtayberk/VibeBasket/actions/workflows/ci.yml)

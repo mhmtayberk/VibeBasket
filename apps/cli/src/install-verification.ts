@@ -26,6 +26,7 @@ export interface InstallVerificationResult {
   targetId: IdeId;
   displayName: string;
   configPath: string;
+  mcpChecked: boolean;
   missingMcpIds: string[];
   configReadable: boolean;
   skills: FeatureVerificationResult;
@@ -98,6 +99,7 @@ export async function verifyTargetInstall(
   const configuredMcpIds = configReadable
     ? new Set(extractConfiguredMcpIds(readBackConfig))
     : new Set<string>();
+  const mcpChecked = expected.mcps.length > 0;
   const missingMcpIds = expected.mcps
     .map((item) => item.id)
     .filter((id) => !configuredMcpIds.has(id));
@@ -114,6 +116,7 @@ export async function verifyTargetInstall(
     targetId,
     displayName: adapter.displayName,
     configPath,
+    mcpChecked,
     missingMcpIds,
     configReadable,
     skills,
@@ -123,7 +126,8 @@ export async function verifyTargetInstall(
 
 export function formatVerificationSummary(result: InstallVerificationResult): string {
   if (result.ok) {
-    const checks: string[] = ["config readback ok", "MCP entries confirmed"];
+    const checks: string[] = ["config readback ok"];
+    if (result.mcpChecked) checks.push("MCP entries confirmed");
     if (result.skills.checked) checks.push("skills confirmed");
     if (result.rules.checked) checks.push("rules confirmed");
     return checks.join(", ");
