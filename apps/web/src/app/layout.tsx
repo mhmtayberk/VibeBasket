@@ -21,6 +21,10 @@ export const metadata: Metadata = {
     "coding automation",
   ],
   authors: [{ name: "VibeBasket Team" }],
+  icons: {
+    icon: [{ url: "/icon", type: "image/png", sizes: "64x64" }],
+    apple: [{ url: "/apple-icon", sizes: "180x180", type: "image/png" }],
+  },
   alternates: {
     canonical: "/",
   },
