@@ -3,6 +3,16 @@ import { z } from "zod";
 export type CatalogItemType = "mcp" | "skill" | "rule" | "workflow";
 
 export const RuntimeSchema = z.enum(["npx", "uvx", "docker", "remote", "node", "python"]);
+const ALLOWED_REMOTE_MCP_PROTOCOLS = new Set(["http:", "https:"]);
+
+function isAllowedRemoteMcpUrl(value: string): boolean {
+  try {
+    const protocol = new URL(value).protocol.toLowerCase();
+    return ALLOWED_REMOTE_MCP_PROTOCOLS.has(protocol);
+  } catch {
+    return false;
+  }
+}
 
 export const McpEntrySchema = z.object({
   id: z.string().regex(/^[a-z0-9-]+$/),
@@ -11,7 +21,13 @@ export const McpEntrySchema = z.object({
   runtime: RuntimeSchema,
   command: z.string().optional(),
   args: z.array(z.string()).default([]),
-  url: z.string().url().optional(),
+  url: z
+    .string()
+    .url()
+    .refine(isAllowedRemoteMcpUrl, {
+      message: "Remote MCP URLs must use http or https.",
+    })
+    .optional(),
   env: z.record(z.string()).default({}),
   headers: z.record(z.string()).default({}),
   requiredSecrets: z.array(z.string()).default([]),
