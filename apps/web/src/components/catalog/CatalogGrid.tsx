@@ -3,6 +3,7 @@
 import type { EnabledAuthProvider } from "@/auth.config";
 import { BasketPanel } from "@/components/basket/BasketPanel";
 import { useDebounce } from "@/hooks/use-debounce";
+import { sanitizeCatalogDescription } from "@/lib/catalog-text";
 import {
   type CatalogSort,
   type CatalogTrustFilter,
@@ -65,6 +66,7 @@ type CatalogApiItem = {
     };
   };
   verified?: boolean;
+  official?: boolean;
   sourceName?: string | null;
   sourceUrl?: string | null;
   lastSyncedAt?: string | null;
@@ -134,7 +136,7 @@ async function fetchCatalog(
             id: item.id,
             type: item.type,
             name: item.displayName,
-            description: item.description ?? "",
+            description: sanitizeCatalogDescription(item.description),
             icon: item.icon ?? undefined,
             mcpData: item.type === "mcp" ? (item.data as BasketItem["mcpData"]) : undefined,
             skillData: item.type === "skill" ? (item.data as BasketItem["skillData"]) : undefined,

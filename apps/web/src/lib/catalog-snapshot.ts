@@ -1,4 +1,5 @@
 import type { CatalogResponse } from "@/components/catalog/CatalogGrid";
+import { sanitizeCatalogDescription } from "@/lib/catalog-text";
 import { withCatalogTrust } from "@/lib/catalog-trust";
 import type { BasketItem } from "@/store/basketStore";
 import { catalogItems, db, ensureDatabaseIndexes } from "@vibebasket/core";
@@ -14,7 +15,7 @@ function mapCatalogItemToBasketItem(item: typeof catalogItems.$inferSelect): Bas
       id: item.id,
       type: itemType,
       name: item.displayName,
-      description: item.description ?? "",
+      description: sanitizeCatalogDescription(item.description),
       icon: item.icon ?? undefined,
       mcpData: itemType === "mcp" ? (item.data as BasketItem["mcpData"]) : undefined,
       skillData: itemType === "skill" ? (item.data as BasketItem["skillData"]) : undefined,
@@ -29,9 +30,9 @@ export async function getInitialCatalogSnapshot(): Promise<CatalogResponse> {
     await ensureDatabaseIndexes();
 
     const whereClause = eq(catalogItems.type, "mcp");
-    const officialSourcePriority = sql<number>`
+    const officialPriority = sql<number>`
       case
-        when ${catalogItems.sourceName} in ('official-mcp-registry', 'skills-sh-official') then 1
+        when ${catalogItems.official} = 1 then 1
         else 0
       end
     `;
@@ -56,7 +57,7 @@ export async function getInitialCatalogSnapshot(): Promise<CatalogResponse> {
         .where(whereClause)
         .orderBy(
           desc(catalogItems.verified),
-          desc(officialSourcePriority),
+          desc(officialPriority),
           desc(catalogItems.lastSyncedAt),
           asc(catalogItems.displayName),
           asc(catalogItems.id),

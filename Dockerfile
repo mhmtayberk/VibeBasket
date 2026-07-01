@@ -81,7 +81,7 @@ ENV HOSTNAME=0.0.0.0
 ENV NODE_PATH=/app/node_modules
 
 # Health check using the built-in /api/health endpoint
-HEALTHCHECK --interval=30s --timeout=10s --retries=3 --start-period=5s \
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 --start-period=30s \
   CMD node -e "fetch('http://localhost:3000/api/health').then(r => r.ok ? process.exit(0) : process.exit(1))"
 
 CMD ["node", "apps/web/server.js"]

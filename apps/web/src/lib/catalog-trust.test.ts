@@ -5,6 +5,7 @@ describe("deriveCatalogTrust", () => {
   it("prioritizes verified items with curated source label", () => {
     const trust = deriveCatalogTrust({
       verified: true,
+      official: false,
       sourceName: "verified-catalog",
     });
 
@@ -16,10 +17,12 @@ describe("deriveCatalogTrust", () => {
   it("classifies official upstream items separately from community ones", () => {
     const official = deriveCatalogTrust({
       verified: false,
+      official: true,
       sourceName: "official-mcp-registry",
     });
     const community = deriveCatalogTrust({
       verified: false,
+      official: false,
       sourceName: "some-community-source",
     });
 
@@ -32,6 +35,7 @@ describe("deriveCatalogTrust", () => {
   it("assigns community tier regardless of install metadata", () => {
     const withInstalls = deriveCatalogTrust({
       verified: false,
+      official: false,
       sourceName: "skills-sh-community",
     });
     expect(withInstalls.tier).toBe("community");
@@ -41,6 +45,7 @@ describe("deriveCatalogTrust", () => {
   it("carries lastSyncedAt through trust metadata when present", () => {
     const trust = deriveCatalogTrust({
       verified: false,
+      official: true,
       sourceName: "official-mcp-registry",
       lastSyncedAt: "2026-06-22T10:11:12.000Z",
     });

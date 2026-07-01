@@ -92,8 +92,8 @@ Start here:
 ## Core Capabilities
 
 ### Trusted catalog
-- Tens of thousands of items when synced from the official MCP Registry, the public skills.sh catalog, and curated sources
-- Trust tiers: Verified (curated), Official (upstream), Community — no misleading scores
+- Thousands of items when synced from the MCP Registry, the public skills.sh catalog, and curated sources
+- Trust tiers: Verified (curated), Official (explicit upstream certification), Community — no heuristic trust scoring
 - FTS5 full-text search with prefix matching across display name, description, and source URL
 - Filter by type, trust tier, freshness, and sort order
 
@@ -133,7 +133,7 @@ Catalog scope:
 
 ### Backup and storage
 - 6 backends: Local, AWS S3, Cloudflare R2, DigitalOcean Spaces, Azure Blob, GCS
-- Scheduled backups with configurable intervals
+- External-scheduler backups with configurable intervals
 - Encrypted credentials stored in SQLite, never in environment files
 - Backup restore works across local and supported cloud storage backends
 
@@ -182,6 +182,9 @@ The official package name is [`vibebasket`](https://www.npmjs.com/package/vibeba
 # Install from bundle URL
 npx vibebasket apply https://vibebasket.dev/api/bundle/cj2k9x
 
+# Install from a local bundle file
+npx vibebasket apply ./bundle.json
+
 # Options
 npx vibebasket apply <url> --scope project --dry-run --force
 
@@ -201,13 +204,28 @@ npx vibebasket init
 npx vibebasket rollback
 ```
 
+Example local bundle file:
+
+```json
+{
+  "schemaVersion": "0.1",
+  "name": "Local example",
+  "scope": "user",
+  "targets": ["cursor"],
+  "mcps": [],
+  "skills": [],
+  "rules": [],
+  "workflowPacks": []
+}
+```
+
 ## Configuration
 
 Most deployments only need a small subset to get started:
 
 | Variable | Required | Description |
 |----------|:--------:|-------------|
-| `AUTH_SECRET` | Yes | Session and encryption secret. Generate with `openssl rand -base64 32` |
+| `AUTH_SECRET` | Yes | Session and encryption secret. Also used to protect stored backup backend credentials. Generate with `openssl rand -base64 32` |
 | `NEXTAUTH_URL` | Yes | Public deployment URL used for OAuth callbacks |
 | `AUTH_<PROVIDER>_ENABLED` | No | Enables a provider only when its credentials are also present |
 | `AUTH_GITHUB_ID/SECRET` | No | GitHub OAuth credentials |

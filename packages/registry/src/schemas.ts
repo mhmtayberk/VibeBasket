@@ -90,6 +90,7 @@ export interface CatalogSeedItem {
   description?: string;
   icon?: string;
   verified: boolean;
+  official?: boolean;
   sourceName?: string;
   sourceUrl?: string;
   data: unknown;

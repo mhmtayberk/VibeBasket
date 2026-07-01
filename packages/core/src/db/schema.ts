@@ -10,6 +10,7 @@ export const catalogItems = sqliteTable("catalog_items", {
   sourceUrl: text("source_url"),
   data: text("data", { mode: "json" }).notNull(), // Full McpEntry, SkillEntry, etc.
   verified: integer("verified", { mode: "boolean" }).default(false),
+  official: integer("official", { mode: "boolean" }).default(false),
   firstSeenAt: integer("first_seen_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
   lastSeenAt: integer("last_seen_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
   lastSyncedAt: integer("last_synced_at", { mode: "timestamp" }).$defaultFn(() => new Date()),

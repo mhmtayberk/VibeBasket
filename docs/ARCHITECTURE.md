@@ -38,7 +38,7 @@ To keep the catalog fresh without relying on mostly manual entry, VibeBasket imp
 1. **Collectors**
    - curated `verified.yaml`
    - official MCP Registry
-   - public `skills.sh` catalog, including official and community entries
+   - public `skills.sh` catalog, including curated and community entries
 2. **Normalization**
    - external metadata is transformed into internal Zod-validated catalog item schemas
    - item-level freshness metadata is attached during persistence: `sourceName`, `sourceUrl`, `firstSeenAt`, `lastSeenAt`, `lastSyncedAt`
@@ -48,12 +48,14 @@ To keep the catalog fresh without relying on mostly manual entry, VibeBasket imp
    - this prevents multiple cards for the same logical server (e.g. nine `.FAF Context` variants) from cluttering the catalog
 4. **Canonical dedupe (cross-source)**
    - MCPs are deduped by runtime/command/args/url identity
-   - Skills are deduped by source identity such as `repo + path`, plus mirror-family collapse across collectors so curated/official/community mirrors do not render as separate cards
+   - Skills are deduped by source identity such as `repo + path`, plus mirror-family collapse across collectors so curated/community mirrors do not render as separate cards
    - generated catalog IDs include the same canonical runtime/source identity so upstream variants do not overwrite each other during persistence
 5. **Verified precedence**
    - if a curated verified record conflicts with an upstream record, the verified record wins
-6. **Trust scoring**
-   - trust is currently derived, not stored: curated `verified.yaml` entries map to `verified`, trusted upstream sources map to `official`, and everything else maps to `community`
+6. **Trust tier persistence**
+   - trust is explicit, not heuristic: curated `verified.yaml` entries map to `verified`
+   - `official` is stored only when an upstream source provides a machine-verifiable owner/vendor certification signal
+   - community or curated directory sources without that explicit signal remain `community`, even if they come from a trusted catalog feed
 7. **Source isolation**
    - one broken upstream source should not fail the entire sync run
    - sync summary now surfaces source-level errors explicitly
@@ -66,7 +68,7 @@ The admin panel provides a multi-cloud storage system for database backups with 
 - **Azure Blob Storage**: Via `@azure/storage-blob`.
 - **Google Cloud Storage**: Via `@google-cloud/storage`.
 
-Cloud SDKs are lazily loaded via dynamic `await import()` to prevent Next.js build-time module resolution errors. Storage credentials are encrypted with AES-256-GCM and a key derived from `AUTH_SECRET` via `scryptSync`; new encrypted records use a per-record random salt and IV, while legacy records remain readable for compatibility. The encrypted payload is stored in the `backup_storage_config` SQLite table. Configuration is managed through the admin panel UI — changing backends does not require a server restart. Backup cadence is stored in the app, but predictable scheduled execution is intentionally delegated to an external scheduler that calls the protected `/api/internal/backup` endpoint with `BACKUP_JOB_TOKEN`. Runtime backup status is persisted separately in `site_config` so the admin panel and release-readiness checks can report last success/failure state.
+Cloud SDKs are lazily loaded via dynamic `await import()` to prevent Next.js build-time module resolution errors. Storage credentials are encrypted with AES-256-GCM and a key derived from `AUTH_SECRET` via `scryptSync`; new encrypted records use a per-record random salt and IV, while legacy records remain readable for compatibility. The encrypted payload is stored in the `backup_storage_config` SQLite table. Configuration is managed through the admin panel UI — changing backends does not require a server restart. `AUTH_SECRET` is therefore required for backup credential protection as well as auth sessions. Backup cadence is stored in the app, but predictable scheduled execution is intentionally delegated to an external scheduler that calls the protected `/api/internal/backup` endpoint with `BACKUP_JOB_TOKEN`. Runtime backup status is persisted separately in `site_config` so the admin panel and release-readiness checks can report last success/failure state.
 
 ## Performance & Scalability
 - **Full-Text Search**: Global catalog search uses FTS5 virtual tables with automatic trigger-based content sync and rebuild support. Queries are run through parameterized SQL to prevent injection. FTS5 data column removed to reduce index size; prefix-matching enabled for partial word queries (e.g. "postgr" matches "postgresql").
@@ -76,7 +78,7 @@ Cloud SDKs are lazily loaded via dynamic `await import()` to prevent Next.js bui
 - **Sync Observability**: manual sync scripts emit collector-level progress and duration data to stderr, while runtime summaries retain source-level success/error details for operators.
 - **Page-Based Pagination**: `/api/catalog` returns `items + pagination` and the web UI only fetches the active tab and current page.
 - **Server-Rendered Initial Catalog**: the homepage reads the first MCP page from SQLite on the server and passes it into the catalog client component, so first paint is not dependent on client hydration or an initial `/api/catalog` fetch.
-- **Derived Trust Signals**: catalog cards render trust badges from source provenance and freshness labels from item metadata without needing a second scoring table.
+- **Persisted Trust Signals**: catalog rows store `verified` and `official` booleans directly, so trust filters and sort order do not depend on source-name heuristics.
 - **Trust-Aware Discovery**: trust and freshness metadata now participate in filtering and sorting, so recommended results prefer verified, official, and recently synced entries without breaking pagination.
 - **Reasonable Limits**: API defaults to `24` items per page and caps page size at `100`.
 - **Debounced Input**: Frontend uses a 300ms debounce to minimize API pressure while maintaining a responsive feel.
@@ -126,7 +128,7 @@ The `charts/vibebasket/` chart provides a production Kubernetes deployment:
 - **Strategy**: `Recreate` — single-replica to avoid SQLite write conflicts.
 - **Security Context**: `runAsUser: 1001`, `runAsGroup: 1001`, `fsGroup: 1001` for non-root operation.
 - **Secret Management**: Supports `existingSecret` for credentials. Non-secret runtime values are passed via `env`; sensitive values such as `AUTH_SECRET`, OAuth client secrets, and `CATALOG_REFRESH_TOKEN` are sourced from `secretEnv` or an existing Kubernetes Secret through `envFrom`.
-- **Persistence**: PVC-backed volume mount for SQLite at `/data`.
+- **Persistence**: PVC-backed volume mount for SQLite at `/data`, with a `5Gi` default to leave headroom for SQLite growth, WAL files, and simple local backup usage.
 - **Health Check**: Docker-style `livenessProbe` and `readinessProbe` via `/api/health`.
 
 ## Mobile & Responsive UI
@@ -150,6 +152,7 @@ The homepage (`/`) is `force-dynamic` and server-renders:
 - public catalog reads can schedule stale background sync, but forced refresh is protected in production to avoid unauthenticated expensive sync DoS
 - manual syncs can be run with `pnpm catalog:sync`, which now records audit rows in `catalog_sync_runs`
 - request-driven stale refresh is intentionally lightweight; deterministic production freshness still comes from an external scheduler invoking `pnpm catalog:sync`
+- expired bundle/session cleanup is also request-triggered today; quiet self-hosted instances should not assume idle-time cleanup without an external maintenance trigger
 - item-level freshness now lives on `catalog_items` itself, so future UI trust/freshness badges do not need a second storage model
 - the web package now participates in workspace `test` and `typecheck` runs, so catalog discovery logic is covered by the same verification path as the packages
 - catalog selection state in the web app is driven directly from the basket store state
