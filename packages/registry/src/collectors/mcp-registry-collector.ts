@@ -136,8 +136,8 @@ export class OfficialMcpRegistryCollector implements SourceCollector {
   private normalizeRegistryServer(server: McpRegistryServer) {
     const remoteDefinition = server.remotes?.find((remote) => {
       try {
-        new URL(remote.url);
-        return true;
+        const protocol = new URL(remote.url).protocol.toLowerCase();
+        return protocol === "http:" || protocol === "https:";
       } catch {
         return false;
       }

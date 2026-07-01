@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { BundleSchema, SCHEMA_VERSION } from "./manifest";
+import { BundleSchema, McpEntrySchema, SCHEMA_VERSION, isAllowedRemoteMcpUrl } from "./manifest";
 
 describe("manifest", () => {
   it("should validate a valid bundle", () => {
@@ -77,5 +77,28 @@ describe("manifest", () => {
 
     const result = BundleSchema.safeParse(bundleWithPack);
     expect(result.success).toBe(true);
+  });
+
+  it("allows only http and https remote MCP URLs", () => {
+    expect(isAllowedRemoteMcpUrl("https://example.com/mcp")).toBe(true);
+    expect(isAllowedRemoteMcpUrl("http://localhost:8080/mcp")).toBe(true);
+    expect(isAllowedRemoteMcpUrl("javascript:alert(1)")).toBe(false);
+    expect(isAllowedRemoteMcpUrl("file:///tmp/mcp")).toBe(false);
+  });
+
+  it("rejects non-http remote MCP URLs at schema level", () => {
+    const result = McpEntrySchema.safeParse({
+      id: "remote-bad",
+      displayName: "Remote Bad",
+      runtime: "remote",
+      url: "javascript:alert(1)",
+      args: [],
+      env: {},
+      headers: {},
+      requiredSecrets: [],
+      verified: false,
+    });
+
+    expect(result.success).toBe(false);
   });
 });
