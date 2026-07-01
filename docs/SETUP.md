@@ -179,6 +179,8 @@ Then apply it with:
 npx vibebasket apply ./bundle.json
 ```
 
+If a target is already in the requested MCP state, the CLI reports a no-op and skips both the backup and the config write for that target.
+
 ## Tests
 ```bash
 pnpm test
@@ -263,7 +265,7 @@ pnpm catalog:sync:strict
 - The main SQLite DB currently lives at the workspace root as `vibebasket.db`
 - Catalog sync can pull very large upstream datasets, so first syncs may take noticeably longer than normal page reads
 - The web app ensures useful catalog indexes at runtime for local development and simple deployments
-- The catalog status route reports current counts, freshness, and the latest recorded sync summary
+- The catalog status route reports current counts, freshness, and the latest recorded MCP/skill/rule sync summary
 - In production, `refresh=1` on `/api/catalog` is protected; callers must send `x-vibebasket-refresh-token` matching `CATALOG_REFRESH_TOKEN`
 - `pnpm catalog:sync` is the safest hook for cron or external schedulers because it records sync audit metadata as well as refreshing catalog rows
 - if you intentionally use a local npm token for a manual publish or private registry access, keep it only in `~/.npmrc`, not in repo files or `.env`

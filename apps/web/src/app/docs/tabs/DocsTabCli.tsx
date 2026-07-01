@@ -43,8 +43,8 @@ export function DocsTabCli() {
             CLI works as an idempotent local installer. When a bundle URL or local manifest file is
             passed, it fetches the manifest, applies only the capabilities the target adapter really
             supports, skips targets or MCP entries it cannot represent safely, writes backups before
-            mutating known config files, and verifies the written result when readback is
-            implemented for that target.
+            mutating known config files when a real config change is required, and verifies the
+            written result when readback is implemented for that target.
           </p>
         </section>
 
@@ -60,10 +60,10 @@ export function DocsTabCli() {
               <p className="text-xs text-[#bdc9c2] leading-relaxed">
                 The primary command. Accepts a hosted bundle URL or a local JSON manifest file,
                 validates its manifest, and applies each item (MCP servers, skills, rules) to every
-                compatible local adapter. Adapters back up existing config files before writing and
-                merge entries idempotently, so running apply twice is safe. If a target cannot
-                support part of the bundle cleanly, the CLI reports that target as skipped instead
-                of pretending the install succeeded.
+                compatible local adapter. Adapters back up existing config files only when an MCP
+                config mutation is actually needed and merge entries idempotently, so running apply
+                twice is safe. If a target cannot support part of the bundle cleanly, the CLI
+                reports that target as skipped instead of pretending the install succeeded.
               </p>
             </div>
           </div>
