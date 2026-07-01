@@ -67,7 +67,6 @@ export async function GET(request: Request) {
               mcps: latestSyncRun[0].mcps,
               skills: latestSyncRun[0].skills,
               rules: latestSyncRun[0].rules,
-              workflows: latestSyncRun[0].workflows,
               durationMs: latestSyncRun[0].durationMs,
               sourceErrors: latestSyncRun[0].sourceErrors,
               startedAt: latestSyncRun[0].startedAt,

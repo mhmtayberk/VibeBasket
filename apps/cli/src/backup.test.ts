@@ -56,4 +56,25 @@ describe("listBackups", () => {
       "2025-03-15T08:30:00.000Z",
     ]);
   });
+
+  it("preserves hyphenated target ids when parsing backup filenames", async () => {
+    fs.writeFileSync(
+      path.join(
+        tempDir,
+        ".vibebasket",
+        "backups",
+        "claude-code-user-2025-03-16T08-30-00-000Z.json",
+      ),
+      "{}",
+    );
+
+    const { listBackups } = await import("./backup.js");
+    const backups = listBackups();
+
+    expect(backups[0]).toMatchObject({
+      targetId: "claude-code",
+      scope: "user",
+      timestamp: "2025-03-16T08:30:00.000Z",
+    });
+  });
 });

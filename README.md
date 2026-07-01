@@ -4,7 +4,7 @@
 
 Bundle trusted MCP servers, agent skills, and project rules into one shareable install command. Apply across 24 AI IDEs and CLI tools with a single link.
 
-[![Version](https://img.shields.io/badge/version-0.9.4-blue)](package.json)
+[![Version](https://img.shields.io/badge/version-0.9.5-blue)](package.json)
 [![npm](https://img.shields.io/npm/v/vibebasket)](https://www.npmjs.com/package/vibebasket)
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue)](tsconfig.base.json)
 [![CI](https://img.shields.io/badge/ci-github_actions-green)](https://github.com/mhmtayberk/VibeBasket/actions/workflows/ci.yml)
@@ -106,6 +106,7 @@ Catalog scope:
 ### Install engine
 - One bundle can be applied across 24 supported targets
 - Writes are idempotent and backup-aware
+- If a target's MCP config is already in the requested state, the CLI skips both backup creation and the config write for that target
 - Target capability checks prevent pretending every IDE supports the same surface
 - Secrets are resolved locally by the CLI during apply
 
@@ -218,6 +219,8 @@ Example local bundle file:
   "workflowPacks": []
 }
 ```
+
+When the target adapter detects that the generated MCP config is identical to the current on-disk config, `vibebasket apply` reports a no-op for that target and does not create a redundant backup snapshot.
 
 ## Configuration
 
