@@ -1,14 +1,10 @@
-import {
-  DAY_MS,
-  OFFICIAL_SOURCE_NAMES,
-  normalizeCatalogDiscoveryInput,
-} from "@/lib/catalog-discovery";
+import { DAY_MS, normalizeCatalogDiscoveryInput } from "@/lib/catalog-discovery";
 import { buildCatalogCountCacheKey } from "@/lib/catalog-query";
 import { checkRateLimit, getClientAddress } from "@/lib/rate-limit";
 import { applySecurityHeaders, createTooManyRequestsResponse } from "@/lib/security-headers";
 import { and, catalogItems, db, ensureDatabaseIndexes, eq, like, or } from "@vibebasket/core";
 import { RegistrySyncService } from "@vibebasket/registry";
-import { type SQL, asc, desc, gte, inArray, isNull, lt, notInArray, sql } from "drizzle-orm";
+import { type SQL, asc, desc, gte, isNull, lt, sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
 const SYNC_INTERVAL_MS = 60 * 60 * 1000;
@@ -133,9 +129,9 @@ export async function GET(request: Request) {
   const normalizedSearch = search.toLowerCase();
   const searchLike = `%${normalizedSearch}%`;
   const searchPrefix = `${normalizedSearch}%`;
-  const officialSourcePriority = sql<number>`
+  const officialPriority = sql<number>`
     case
-      when ${catalogItems.sourceName} in ('official-mcp-registry', 'skills-sh-official') then 1
+      when ${catalogItems.official} = 1 then 1
       else 0
     end
   `;
@@ -243,21 +239,15 @@ export async function GET(request: Request) {
     if (discovery.trust === "verified") {
       conditions.push(eq(catalogItems.verified, true));
     } else if (discovery.trust === "official") {
-      const officialClause = and(
-        eq(catalogItems.verified, false),
-        inArray(catalogItems.sourceName, [...OFFICIAL_SOURCE_NAMES]),
-      );
+      const officialClause = and(eq(catalogItems.verified, false), eq(catalogItems.official, true));
       if (officialClause) {
         conditions.push(officialClause);
       }
     } else if (discovery.trust === "community") {
-      const communityTrustClause = or(
-        notInArray(catalogItems.sourceName, [...OFFICIAL_SOURCE_NAMES]),
-        isNull(catalogItems.sourceName),
+      const communityClause = and(
+        eq(catalogItems.verified, false),
+        eq(catalogItems.official, false),
       );
-      const communityClause = communityTrustClause
-        ? and(eq(catalogItems.verified, false), communityTrustClause)
-        : undefined;
       if (communityClause) {
         conditions.push(communityClause);
       }
@@ -302,7 +292,7 @@ export async function GET(request: Request) {
           : [
               ...(searchPriority ? [desc(searchPriority)] : []),
               desc(catalogItems.verified),
-              desc(officialSourcePriority),
+              desc(officialPriority),
               desc(catalogItems.lastSyncedAt),
               asc(catalogItems.displayName),
               asc(catalogItems.id),

@@ -71,7 +71,10 @@ export class OfficialMcpRegistryCollector implements SourceCollector {
           continue;
         }
 
-        const overrides: Partial<CatalogSeedItem> = { verified: false };
+        const overrides: Partial<CatalogSeedItem> = {
+          verified: false,
+          official: normalized.isOfficial,
+        };
         if (normalized.server.description) {
           overrides.description = normalized.server.description;
         }
@@ -109,28 +112,37 @@ export class OfficialMcpRegistryCollector implements SourceCollector {
   private unwrapRegistryEntry(registryEntry: McpRegistryEntry): {
     server: McpRegistryServer;
     status?: string;
+    isOfficial: boolean;
   } {
     if ("server" in registryEntry) {
       const metaRecord = registryEntry._meta as Record<string, { status?: string }> | undefined;
       const officialMeta = metaRecord?.["io.modelcontextprotocol.registry/official"];
-      return officialMeta?.status
-        ? {
-            server: registryEntry.server as McpRegistryServer,
-            status: officialMeta.status,
-          }
-        : {
-            server: registryEntry.server as McpRegistryServer,
-          };
+      const result: {
+        server: McpRegistryServer;
+        status?: string;
+        isOfficial: boolean;
+      } = {
+        server: registryEntry.server as McpRegistryServer,
+        isOfficial: Boolean(officialMeta && officialMeta.status !== "deleted"),
+      };
+      if (officialMeta?.status) {
+        result.status = officialMeta.status;
+      }
+      return result;
     }
 
-    return registryEntry.status
-      ? {
-          server: registryEntry,
-          status: registryEntry.status,
-        }
-      : {
-          server: registryEntry,
-        };
+    const result: {
+      server: McpRegistryServer;
+      status?: string;
+      isOfficial: boolean;
+    } = {
+      server: registryEntry,
+      isOfficial: false,
+    };
+    if (registryEntry.status) {
+      result.status = registryEntry.status;
+    }
+    return result;
   }
 
   private normalizeRegistryServer(server: McpRegistryServer) {

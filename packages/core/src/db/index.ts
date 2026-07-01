@@ -15,6 +15,7 @@ const CATALOG_ITEM_COLUMNS = [
   "icon",
   "source_name",
   "source_url",
+  "official",
   "first_seen_at",
   "last_seen_at",
   "last_synced_at",
@@ -443,6 +444,7 @@ async function bootstrapDatabase(targetClient: SqlExecutor) {
       source_url TEXT,
       data TEXT NOT NULL,
       verified INTEGER DEFAULT 0,
+      official INTEGER DEFAULT 0,
       first_seen_at INTEGER,
       last_seen_at INTEGER,
       last_synced_at INTEGER,
@@ -477,6 +479,7 @@ async function bootstrapDatabase(targetClient: SqlExecutor) {
     { name: "icon", sql: "icon TEXT" },
     { name: "source_name", sql: "source_name TEXT" },
     { name: "source_url", sql: "source_url TEXT" },
+    { name: "official", sql: "official INTEGER DEFAULT 0" },
     { name: "first_seen_at", sql: "first_seen_at INTEGER" },
     { name: "last_seen_at", sql: "last_seen_at INTEGER" },
     { name: "last_synced_at", sql: "last_synced_at INTEGER" },
@@ -486,6 +489,7 @@ async function bootstrapDatabase(targetClient: SqlExecutor) {
     await targetClient.execute(`
       UPDATE catalog_items
       SET
+        official = COALESCE(official, 0),
         first_seen_at = COALESCE(first_seen_at, created_at),
         last_seen_at = COALESCE(last_seen_at, created_at),
         last_synced_at = COALESCE(last_synced_at, created_at)
@@ -559,13 +563,13 @@ async function bootstrapDatabase(targetClient: SqlExecutor) {
   `);
   await targetClient.execute(`
     CREATE INDEX IF NOT EXISTS idx_catalog_items_sync
-    ON catalog_items(source_name, verified, last_synced_at)
+    ON catalog_items(source_name, verified, official, last_synced_at)
   `);
 
   // Compound index for recommended sort (avoids temp b-tree)
   await targetClient.execute(`
     CREATE INDEX IF NOT EXISTS idx_catalog_items_rec_sort
-    ON catalog_items(type, verified, source_name, last_synced_at DESC, display_name ASC)
+    ON catalog_items(type, verified, official, last_synced_at DESC, display_name ASC)
   `);
   await targetClient.execute(`
     CREATE INDEX IF NOT EXISTS idx_catalog_sync_runs_completed_at

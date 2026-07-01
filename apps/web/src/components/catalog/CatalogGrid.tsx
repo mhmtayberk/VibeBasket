@@ -11,6 +11,7 @@ import {
   getCatalogDiscoveryDefaults,
   isDefaultCatalogDiscoveryState,
 } from "@/lib/catalog-discovery";
+import { sanitizeCatalogDescription } from "@/lib/catalog-text";
 import { withCatalogTrust } from "@/lib/catalog-trust";
 import { cn } from "@/lib/utils";
 import type { BasketItem } from "@/store/basketStore";
@@ -65,6 +66,7 @@ type CatalogApiItem = {
     };
   };
   verified?: boolean;
+  official?: boolean;
   sourceName?: string | null;
   sourceUrl?: string | null;
   lastSyncedAt?: string | null;
@@ -134,7 +136,7 @@ async function fetchCatalog(
             id: item.id,
             type: item.type,
             name: item.displayName,
-            description: item.description ?? "",
+            description: sanitizeCatalogDescription(item.description),
             icon: item.icon ?? undefined,
             mcpData: item.type === "mcp" ? (item.data as BasketItem["mcpData"]) : undefined,
             skillData: item.type === "skill" ? (item.data as BasketItem["skillData"]) : undefined,

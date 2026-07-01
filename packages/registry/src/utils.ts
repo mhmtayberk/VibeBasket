@@ -319,6 +319,7 @@ export function buildMcpCatalogItem(
     type: "mcp",
     displayName: normalizeCatalogText(overrides.displayName ?? entry.displayName, entry.id),
     verified: overrides.verified ?? entry.verified,
+    official: overrides.official ?? false,
     data: entry,
   };
   if (overrides.description) item.description = normalizeCatalogText(overrides.description);
@@ -337,6 +338,7 @@ export function buildSkillCatalogItem(
     type: "skill",
     displayName: normalizeCatalogText(overrides.displayName ?? entry.displayName, entry.id),
     verified: overrides.verified ?? entry.verified,
+    official: overrides.official ?? false,
     data: entry,
   };
   if (overrides.description) item.description = normalizeCatalogText(overrides.description);
@@ -355,6 +357,7 @@ export function buildRuleCatalogItem(
     type: "rule",
     displayName: normalizeCatalogText(overrides.displayName ?? entry.displayName, entry.id),
     verified: overrides.verified ?? entry.verified,
+    official: overrides.official ?? false,
     data: entry,
   };
   if (overrides.description) item.description = normalizeCatalogText(overrides.description);
@@ -373,6 +376,7 @@ export function buildWorkflowCatalogItem(
     type: "workflow",
     displayName: normalizeCatalogText(overrides.displayName ?? entry.displayName, entry.id),
     verified: overrides.verified ?? false,
+    official: overrides.official ?? false,
     data: entry,
   };
   if (overrides.description) item.description = normalizeCatalogText(overrides.description);

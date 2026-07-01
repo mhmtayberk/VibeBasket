@@ -10,6 +10,7 @@ export interface CatalogTrust {
 
 interface CatalogLikeItem {
   verified?: boolean | null;
+  official?: boolean | null;
   sourceName?: string | null;
   lastSyncedAt?: string | Date | number | null;
 }
@@ -19,9 +20,9 @@ function sourceLabel(sourceName?: string | null) {
     case "verified-catalog":
       return "Curated by VibeBasket";
     case "official-mcp-registry":
-      return "Official MCP Registry";
+      return "MCP Registry";
     case "skills-sh-official":
-      return "skills.sh Official";
+      return "skills.sh Curated";
     case "skills-sh-community":
       return "skills.sh Community";
     default:
@@ -42,11 +43,12 @@ export function deriveCatalogTrust(item: CatalogLikeItem): CatalogTrust {
     };
   }
 
-  if (item.sourceName === "official-mcp-registry" || item.sourceName === "skills-sh-official") {
+  if (item.official) {
     return {
       tier: "official",
       label: "Official",
-      detail: "Synced directly from an official, trusted upstream catalog source.",
+      detail:
+        "Explicitly marked official by the upstream catalog owner or registry, without local heuristics.",
       sourceLabel: labelForSource,
       lastSyncedAt: item.lastSyncedAt ? String(item.lastSyncedAt) : undefined,
     };

@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
   DAY_MS,
-  OFFICIAL_SOURCE_NAMES,
   classifyCatalogFreshness,
   getCatalogDiscoveryDefaults,
   matchesCatalogFreshnessFilter,
@@ -37,21 +36,13 @@ describe("normalizeCatalogDiscoveryInput", () => {
 
 describe("matchesCatalogTrustFilter", () => {
   it("treats verified items as their own lane", () => {
-    expect(
-      matchesCatalogTrustFilter({ verified: true, sourceName: "verified-catalog" }, "verified"),
-    ).toBe(true);
-    expect(
-      matchesCatalogTrustFilter({ verified: true, sourceName: "verified-catalog" }, "official"),
-    ).toBe(false);
+    expect(matchesCatalogTrustFilter({ verified: true, official: false }, "verified")).toBe(true);
+    expect(matchesCatalogTrustFilter({ verified: true, official: true }, "official")).toBe(false);
   });
 
-  it("recognizes official upstream sources", () => {
-    for (const sourceName of OFFICIAL_SOURCE_NAMES) {
-      expect(matchesCatalogTrustFilter({ verified: false, sourceName }, "official")).toBe(true);
-    }
-    expect(
-      matchesCatalogTrustFilter({ verified: false, sourceName: "community-feed" }, "official"),
-    ).toBe(false);
+  it("recognizes explicitly official items only", () => {
+    expect(matchesCatalogTrustFilter({ verified: false, official: true }, "official")).toBe(true);
+    expect(matchesCatalogTrustFilter({ verified: false, official: false }, "official")).toBe(false);
   });
 });
 

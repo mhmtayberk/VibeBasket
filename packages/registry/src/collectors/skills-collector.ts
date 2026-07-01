@@ -111,7 +111,8 @@ export class SkillsShCuratedCollector implements SourceCollector {
         canonicalKey: canonicalSkillKey(entry),
         sourceName,
         catalogItem: buildSkillCatalogItem(entry, {
-          description: `${isOfficial ? "Official" : "Community"} skill from ${owner}/${repo} on skills.sh`,
+          description: `${isOfficial ? "Curated" : "Community"} skill from ${owner}/${repo} on skills.sh`,
+          official: false,
           sourceName,
           sourceUrl: skillUrl,
         }),
@@ -192,7 +193,8 @@ export class SkillsShCuratedCollector implements SourceCollector {
           canonicalKey: canonicalSkillKey(entry),
           sourceName,
           catalogItem: buildSkillCatalogItem(entry, {
-            description: `${isOfficial ? "Official" : "Community"} skill from ${repoPath} on skills.sh`,
+            description: `${isOfficial ? "Curated" : "Community"} skill from ${repoPath} on skills.sh`,
+            official: false,
             sourceName,
             sourceUrl: skillUrl,
           }),
@@ -252,7 +254,8 @@ export class SkillsShCuratedCollector implements SourceCollector {
           canonicalKey: canonicalSkillKey(entry),
           sourceName: "skills-sh-official",
           catalogItem: buildSkillCatalogItem(entry, {
-            description: `Official skill from ${owner}/${repo} on skills.sh`,
+            description: `Curated skill from ${owner}/${repo} on skills.sh`,
+            official: false,
             sourceName: "skills-sh-official",
             sourceUrl: `https://www.skills.sh/${owner}/${repo}/${skillSlug}`,
           }),
@@ -335,7 +338,8 @@ export class SkillsShCuratedCollector implements SourceCollector {
         canonicalKey: canonicalSkillKey(entry),
         sourceName,
         catalogItem: buildSkillCatalogItem(entry, {
-          description: `${isOfficial ? "Official" : "Community"} skill from ${owner}/${repo} on skills.sh`,
+          description: `${isOfficial ? "Curated" : "Community"} skill from ${owner}/${repo} on skills.sh`,
+          official: false,
           sourceName,
           sourceUrl: `https://www.skills.sh/${repoPath}/${skillSlug}`,
         }),
