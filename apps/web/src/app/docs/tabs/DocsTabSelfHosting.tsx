@@ -45,8 +45,8 @@ export function DocsTabSelfHosting() {
               <p className="font-mono text-[10px] uppercase tracking-widest text-[#a0fdda] mb-3">
                 Step 1 — Clone &amp; configure
               </p>
-              <pre className="bg-[#0a0f0d] p-6 border border-[#3e4944] font-mono text-xs text-[#bdc9c2] overflow-x-auto rounded-[2px] leading-relaxed">{`git clone https://github.com/vibebasket/vibebasket.git
-cd vibebasket
+              <pre className="bg-[#0a0f0d] p-6 border border-[#3e4944] font-mono text-xs text-[#bdc9c2] overflow-x-auto rounded-[2px] leading-relaxed">{`git clone https://github.com/mhmtayberk/VibeBasket.git
+cd VibeBasket
 
 # Copy the example env file and fill in your values
 cp .env.example .env`}</pre>
@@ -108,8 +108,8 @@ docker compose up -d --build`}</pre>
             </code>{" "}
             or an existing Kubernetes Secret.
           </p>
-          <pre className="bg-[#0a0f0d] p-6 border border-[#3e4944] font-mono text-xs text-[#bdc9c2] overflow-x-auto rounded-[2px] leading-relaxed">{`git clone https://github.com/vibebasket/vibebasket.git
-cd vibebasket
+          <pre className="bg-[#0a0f0d] p-6 border border-[#3e4944] font-mono text-xs text-[#bdc9c2] overflow-x-auto rounded-[2px] leading-relaxed">{`git clone https://github.com/mhmtayberk/VibeBasket.git
+cd VibeBasket
 
 helm install vibebasket ./charts/vibebasket \\
   --set env.NEXTAUTH_URL=https://vibebasket.example.com \\
@@ -134,7 +134,7 @@ helm install vibebasket ./charts/vibebasket -f my-values.yaml`}</pre>
             Requires Node.js &ge;20 and pnpm &ge;9. Suitable for VMs, bare-metal servers, or
             platforms that don&apos;t run Docker.
           </p>
-          <pre className="bg-[#0a0f0d] p-6 border border-[#3e4944] font-mono text-xs text-[#bdc9c2] overflow-x-auto rounded-[2px] leading-relaxed">{`git clone https://github.com/vibebasket/vibebasket.git && cd vibebasket
+          <pre className="bg-[#0a0f0d] p-6 border border-[#3e4944] font-mono text-xs text-[#bdc9c2] overflow-x-auto rounded-[2px] leading-relaxed">{`git clone https://github.com/mhmtayberk/VibeBasket.git && cd VibeBasket
 cp .env.example .env          # fill in values (see below)
 pnpm install --frozen-lockfile
 pnpm run build

@@ -39,6 +39,7 @@ Notes:
 - [ ] SQLite backups are configured and tested
 - [ ] Backup backend selection is validated so the app is not silently falling back to local storage
 - [ ] `BACKUP_JOB_TOKEN` is set if backup scheduling is enabled
+- [ ] Host-level disaster recovery for `/data`, `.env`, and deployment files is documented and tested separately from app-level backups
 
 ## 4. Deployment Shape
 

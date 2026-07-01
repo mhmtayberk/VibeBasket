@@ -27,6 +27,7 @@ out/
 
 # Internal working docs (keep local unless intentionally published)
 memory-bank/
+memory-bank-private/
 docs/superpowers/
 docs/CODING_STANDARDS.md
 
