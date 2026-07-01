@@ -239,6 +239,15 @@ export default async function Home() {
                 <TerminalSquare className="h-4 w-4" />
                 View catalog
               </a>
+              <Link
+                href="https://github.com/mhmtayberk/VibeBasket/blob/main/SELF_HOSTING.md"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex h-11 items-center justify-center gap-2 border border-border/80 bg-card/70 px-4 font-mono text-[10px] uppercase tracking-[0.16em] text-foreground transition-colors hover:border-accent/40 hover:text-accent sm:h-12 sm:px-5 sm:text-[11px] sm:tracking-[0.18em]"
+              >
+                <ArrowUpRight className="h-4 w-4" />
+                Self-host guide
+              </Link>
             </div>
 
             <div className="mt-8 overflow-hidden border-y border-border/70 py-4 sm:mt-10">
