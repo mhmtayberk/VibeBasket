@@ -21,7 +21,7 @@ import {
 } from "../utils";
 
 const REGISTRY_SYNC_USER_AGENT =
-  "VibeBasket Registry Sync/0.1 (+https://github.com/vibebasket/vibebasket)";
+  "VibeBasket Registry Sync/0.1 (+https://github.com/mhmtayberk/VibeBasket)";
 
 export class SkillsShCuratedCollector implements SourceCollector {
   readonly name = "skills-sh-directory";

@@ -240,6 +240,7 @@ Notes:
 - scheduled backups are supported
 - built-in local backup/restore flows assume a file-based SQLite `DATABASE_URL`
 - test at least one full restore cycle before trusting the setup operationally
+- for full VPS disaster recovery, also keep a host-level backup of your `/data` volume, deployment `.env`, and compose/runtime files; the built-in backup system protects app data, but it is not a complete server recovery plan by itself
 
 ## Kubernetes
 

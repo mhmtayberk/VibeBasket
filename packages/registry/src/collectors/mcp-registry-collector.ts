@@ -15,7 +15,7 @@ import {
 
 export const MCP_REGISTRY_BASE_URL = "https://registry.modelcontextprotocol.io/v0.1";
 const REGISTRY_SYNC_USER_AGENT =
-  "VibeBasket Registry Sync/0.1 (+https://github.com/vibebasket/vibebasket)";
+  "VibeBasket Registry Sync/0.1 (+https://github.com/mhmtayberk/VibeBasket)";
 
 export class OfficialMcpRegistryCollector implements SourceCollector {
   readonly name = "official-mcp-registry";
