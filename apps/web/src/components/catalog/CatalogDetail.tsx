@@ -1,5 +1,6 @@
 "use client";
 
+import { isAllowedRemoteMcpUrl } from "@vibebasket/core";
 import type { BasketItem } from "@/store/basketStore";
 import { ExternalLink, Globe, X } from "lucide-react";
 
@@ -33,6 +34,7 @@ export function CatalogDetail({ item, open, onClose }: CatalogDetailProps) {
   if (!open) return null;
 
   const mcpData = item.mcpData;
+  const safeRemoteUrl = mcpData?.url && isAllowedRemoteMcpUrl(mcpData.url) ? mcpData.url : null;
   const ruleData = item.ruleData;
   const skillData = item.skillData;
   const skillSource = skillData?.source;
@@ -119,16 +121,16 @@ export function CatalogDetail({ item, open, onClose }: CatalogDetailProps) {
                     <span className="text-muted-foreground"> {mcpData.args.join(" ")}</span>
                   ) : null}
                 </div>
-                {mcpData.url && (
+                {safeRemoteUrl && (
                   <div className="mt-1">
                     <span className="text-muted-foreground">url:</span>{" "}
                     <a
-                      href={mcpData.url as string}
+                      href={safeRemoteUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-accent hover:underline break-all"
                     >
-                      {mcpData.url as string}
+                      {safeRemoteUrl}
                     </a>
                   </div>
                 )}
