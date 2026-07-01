@@ -1,7 +1,7 @@
 "use client";
 
-import { isAllowedRemoteMcpUrl } from "@vibebasket/core";
 import type { BasketItem } from "@/store/basketStore";
+import { isAllowedRemoteMcpUrl } from "@vibebasket/core/manifest";
 import { ExternalLink, Globe, X } from "lucide-react";
 
 interface CatalogDetailProps {
