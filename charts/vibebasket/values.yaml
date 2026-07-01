@@ -59,7 +59,7 @@ persistence:
   enabled: true
   storageClassName: ""
   accessMode: ReadWriteOnce
-  size: 1Gi
+  size: 5Gi
 
 # Environment variables
 env:

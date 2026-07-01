@@ -39,10 +39,16 @@ Automatic local apply is fully supported for MCP configuration across all MCP-ca
 The catalog is no longer intended to be a mostly manual seed list. It is now designed around three layers:
 
 - `verified` curated entries maintained by VibeBasket
-- trusted upstream MCP metadata from the official MCP Registry
-- trusted upstream skill metadata from the public `skills.sh` catalog corpus, ingested through the published sitemap and directory surfaces
+- upstream MCP metadata from the official MCP Registry
+- public skill metadata from the `skills.sh` catalog corpus, ingested through the published sitemap and directory surfaces
 
 When multiple sources describe the same item, VibeBasket deduplicates by canonical identity and gives precedence to curated verified records. This also means MCP coverage is intentionally bounded by the official MCP Registry plus curated overrides; if a server is popular in the ecosystem but absent from the registry, it will not appear until it is either published there or explicitly curated by VibeBasket.
+
+Trust labels are intentionally narrower than source provenance:
+
+- `Verified` means VibeBasket-curated
+- `Official` means the upstream source exposed an explicit machine-verifiable owner/vendor certification signal
+- `Community` covers everything else, including public directory entries that are useful and trusted as inputs but not explicitly owner-certified
 
 ## Recent State
 

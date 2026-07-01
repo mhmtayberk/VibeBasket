@@ -1,7 +1,5 @@
 export const DAY_MS = 24 * 60 * 60 * 1000;
 
-export const OFFICIAL_SOURCE_NAMES = ["official-mcp-registry", "skills-sh-official"] as const;
-
 export type CatalogTrustFilter = "all" | "verified" | "official" | "community";
 export type CatalogFreshnessFilter = "all" | "fresh" | "recent" | "aging";
 export type CatalogSort = "recommended" | "freshest" | "name";
@@ -40,7 +38,7 @@ export const SORT_OPTIONS: Array<{ value: CatalogSort; label: string }> = [
 
 interface CatalogDiscoveryLikeItem {
   verified?: boolean | null;
-  sourceName?: string | null;
+  official?: boolean | null;
   lastSyncedAt?: Date | string | number | null;
 }
 
@@ -106,14 +104,8 @@ export function normalizeCatalogDiscoveryInput(
   };
 }
 
-export function isOfficialCatalogSource(sourceName?: string | null) {
-  return OFFICIAL_SOURCE_NAMES.includes(
-    (sourceName ?? "") as (typeof OFFICIAL_SOURCE_NAMES)[number],
-  );
-}
-
 export function matchesCatalogTrustFilter(
-  item: Pick<CatalogDiscoveryLikeItem, "verified" | "sourceName">,
+  item: Pick<CatalogDiscoveryLikeItem, "verified" | "official">,
   filter: CatalogTrustFilter,
 ) {
   if (filter === "all") {
@@ -129,10 +121,10 @@ export function matchesCatalogTrustFilter(
   }
 
   if (filter === "official") {
-    return isOfficialCatalogSource(item.sourceName);
+    return Boolean(item.official);
   }
 
-  return !isOfficialCatalogSource(item.sourceName);
+  return !item.official;
 }
 
 export function classifyCatalogFreshness(

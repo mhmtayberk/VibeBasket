@@ -48,6 +48,8 @@ docker compose up -d     # Starts non-root containers with automatic SQLite volu
 
 After startup, either wait for the background catalog bootstrap to finish or run `docker compose exec web node scripts/catalog-sync.mjs`, then check `http://localhost:3000/api/catalog/status`.
 
+The production image health check intentionally uses a `30s` start period so slower single-VPS cold starts do not get marked unhealthy before Next.js is actually ready.
+
 ## Recommended Deployment Shape
 
 If you are self-hosting VibeBasket for real usage, the recommended default is:
@@ -79,6 +81,8 @@ Set a session secret for any deployment that enables login:
 AUTH_SECRET=replace-with-a-long-random-secret
 AUTH_TRUST_HOST=true
 ```
+
+`AUTH_SECRET` is also the root secret used to encrypt stored cloud-backup credentials, so treat it as required for backup features as well as login sessions.
 
 Each provider is independently gated. A provider is shown only when its `*_ENABLED` flag is truthy (`1`, `true`, `yes`, or `on`) and its credentials are present.
 
@@ -152,6 +156,27 @@ ADMIN_OAUTH_EMAILS=you@example.com
 ```bash
 pnpm --filter vibebasket build
 node apps/cli/dist/index.js --help
+```
+
+If you want to test a local bundle file instead of a hosted URL, start from a minimal valid manifest like this:
+
+```json
+{
+  "schemaVersion": "0.1",
+  "name": "Local example",
+  "scope": "user",
+  "targets": ["cursor"],
+  "mcps": [],
+  "skills": [],
+  "rules": [],
+  "workflowPacks": []
+}
+```
+
+Then apply it with:
+
+```bash
+npx vibebasket apply ./bundle.json
 ```
 
 ## Tests
@@ -252,8 +277,10 @@ pnpm catalog:sync:strict
 - If you configure S3/R2/Spaces/Azure/GCS backups, confirm the admin panel does not show a storage fallback warning before assuming cloud backups are active
 - Cloud backup restore now uses provider-native download flows; validate one full restore cycle in your own environment before relying on it operationally
 - Backup schedules are now external-triggered by design: the admin panel stores cadence, but a cron/systemd/Coolify/Kubernetes scheduler should call `POST /api/internal/backup` with `x-vibebasket-backup-token: $BACKUP_JOB_TOKEN` on the desired interval
+- Expired bundle/session cleanup is request-triggered, not wall-clock scheduled; if you need predictable cleanup windows, wire a periodic maintenance trigger instead of assuming idle instances will self-clean
 - The admin `Release Readiness` panel will warn when backup scheduling is enabled but `BACKUP_JOB_TOKEN` is missing or no successful backup has been recorded yet
 - The Helm chart now expects sensitive values such as `AUTH_SECRET` and OAuth client secrets under `secretEnv`, or via `existingSecret`, rather than plain `.Values.env`
+- The Helm chart defaults the `/data` PVC to `5Gi` to leave room for the SQLite database, WAL growth, and local backup headroom on simple single-node installs
 - On Coolify, Cloudflare, Nginx, Caddy, or similar proxy/CDN setups, leaving `AUTH_TRUST_HOST` or `TRUST_PROXY` disabled is usually a conscious warning state rather than a hard failure; the app can still run, but forwarded host/IP handling is less trustworthy than the recommended production posture
 - Before exposing a public domain, walk through [Production Readiness Checklist](./PRODUCTION_READINESS_CHECKLIST.md)
 - Multi-instance or externally shared state deployments are not the default path documented here; operators who go beyond the single-node model should validate rate limiting, SQLite strategy, and backup assumptions themselves

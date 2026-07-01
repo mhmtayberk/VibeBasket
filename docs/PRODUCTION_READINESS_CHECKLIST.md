@@ -28,6 +28,7 @@ Notes:
 ## 3. Security Baseline
 
 - [ ] `AUTH_SECRET` is set to a strong random value
+- [ ] `AUTH_SECRET` is treated as both the session secret and the encryption root for stored backup backend credentials
 - [ ] `NEXTAUTH_URL` matches the final public domain exactly
 - [ ] Any new `NEXT_PUBLIC_*` environment variable has been consciously reviewed as safe for client-side exposure
 - [ ] `AUTH_TRUST_HOST=true` when deployed behind a reverse proxy
@@ -58,12 +59,13 @@ Choose one production shape and verify it end-to-end:
 - [ ] Ingress/TLS configuration matches `NEXTAUTH_URL`
 - [ ] Secret values are injected via `existingSecret` or sealed-secret flow
 - [ ] PVC persistence for `/data` is provisioned and recoverable
+- [ ] PVC sizing is reviewed consciously; the chart defaults to `5Gi`, but your real retention and backup strategy may require more
 
 ## 5. Catalog Integrity
 
 - [ ] `pnpm catalog:sync:strict` completes successfully
 - [ ] `/api/catalog/status` reports healthy freshness and recent successful syncs
-- [ ] skills.sh official/community rows appear with correct trust labels
+- [ ] skills.sh curated/community rows appear with correct trust labels, and only upstream-certified items receive the `Official` badge
 - [ ] Search returns relevant results for common queries such as `postgresql`, `filesystem`, and `github`
 - [ ] Bundle generation and bundle apply work on at least two MCP-only targets and two skill/rule-capable targets
 

@@ -2,7 +2,7 @@
 > Bundle trusted MCP servers, agent skills, and project rules into one shareable install command across supported AI IDEs.
 
 ## Getting Started
-- [Web Catalog](https://vibebasket.dev): Browse a live catalog that syncs tens of thousands of MCP servers, skills, and rules when fully refreshed. Build your basket and generate an install command.
+- [Web Catalog](https://vibebasket.dev): Browse a live catalog that syncs thousands of MCP servers, skills, and rules from trusted sources. Build your basket and generate an install command.
 - [Documentation](https://vibebasket.dev/docs): Full docs with Getting Started, CLI Reference, IDE Adapters, Block Delimiters, Security, and Self-Hosting guides.
 - [Quick Install](https://vibebasket.dev/docs?tab=cli): `npx vibebasket apply <bundle-url>` — one command to set up your entire AI dev stack.
 
