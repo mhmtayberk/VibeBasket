@@ -205,7 +205,7 @@ export default async function Home() {
 
             <h1
               id={sectionIds.heroTitle}
-              className="mt-8 max-w-3xl text-[2.55rem] font-semibold leading-[0.98] tracking-tight text-foreground sm:text-[3.55rem] sm:tracking-[-0.05em] lg:text-[4.45rem]"
+              className="mt-8 max-w-3xl text-[2.2rem] font-semibold leading-[0.96] tracking-tight text-foreground sm:text-[3.55rem] sm:tracking-[-0.05em] lg:text-[4.45rem]"
             >
               <span className="sm:hidden">Bundle your AI dev setup. Share it with one link.</span>
               <span className="hidden sm:inline">

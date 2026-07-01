@@ -26,11 +26,11 @@ export function FloatingBasket({
 
   return (
     <>
-      <div className="fixed bottom-4 left-1/2 z-50 w-[calc(100%-1.5rem)] -translate-x-1/2 lg:hidden">
+      <div className="fixed bottom-[calc(env(safe-area-inset-bottom,0px)+0.75rem)] left-1/2 z-50 w-[calc(100%-1.5rem)] max-w-[28rem] -translate-x-1/2 lg:hidden">
         <button
           type="button"
           onClick={() => setIsOpen(true)}
-          className="flex w-full items-center justify-between border border-border/80 bg-card/95 px-4 py-3 backdrop-blur-md transition-colors hover:border-accent/50"
+          className="flex w-full items-center justify-between border border-border/80 bg-card/95 px-4 py-3 shadow-[0_12px_40px_rgba(0,0,0,0.22)] backdrop-blur-md transition-colors hover:border-accent/50"
         >
           <div className="flex items-center gap-3">
             <div className="inline-flex h-10 w-10 items-center justify-center border border-accent/60 bg-accent/10 text-accent">

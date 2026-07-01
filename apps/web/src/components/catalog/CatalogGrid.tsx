@@ -2,7 +2,6 @@
 
 import type { EnabledAuthProvider } from "@/auth.config";
 import { BasketPanel } from "@/components/basket/BasketPanel";
-import { MobileBasketButton } from "@/components/basket/MobileBasketButton";
 import { useDebounce } from "@/hooks/use-debounce";
 import {
   type CatalogSort,
@@ -543,12 +542,6 @@ export function CatalogGrid({
           />
         </div>
       </div>
-
-      <MobileBasketButton
-        isSignedIn={isSignedIn}
-        enabledProviders={enabledProviders}
-        userRole={userRole}
-      />
     </div>
   );
 }
