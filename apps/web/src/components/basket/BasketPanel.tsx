@@ -122,7 +122,9 @@ export function BasketPanel({
     <aside
       className={cn(
         "border border-border/80 bg-card/85 backdrop-blur-sm lg:max-h-[calc(100vh-140px)] lg:overflow-y-auto custom-scrollbar",
-        variant === "desktop" ? "sticky top-24 rounded-lg" : "rounded-lg",
+        variant === "desktop"
+          ? "sticky top-24 rounded-lg"
+          : "h-[min(100vh-1.5rem,980px)] rounded-2xl sm:h-auto sm:rounded-lg",
         className,
       )}
     >
@@ -256,7 +258,7 @@ export function BasketPanel({
                 </span>
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 {supportedTargets.map((target) => {
                   const active = targets.includes(target.id);
                   return (
@@ -294,7 +296,7 @@ export function BasketPanel({
                   </span>
                 </div>
 
-                <div className="grid max-h-56 grid-cols-2 gap-2 overflow-y-auto pr-1">
+                <div className="grid max-h-56 grid-cols-1 gap-2 overflow-y-auto pr-1 sm:grid-cols-2">
                   {roadmapTargets.map((target) => (
                     <button
                       key={target.id}
@@ -406,8 +408,8 @@ export function BasketPanel({
           <div className="border border-border/70 bg-background/60 p-4 font-mono text-[12px] leading-6 text-muted-foreground">
             {bundleCommand ? (
               <div className="space-y-3">
-                <div className="flex items-center justify-between gap-3">
-                  <span className="truncate text-accent">{bundleCommand}</span>
+                <div className="flex items-start justify-between gap-3">
+                  <span className="min-w-0 break-all text-accent">{bundleCommand}</span>
                   <Copy className="h-4 w-4 shrink-0 text-foreground" />
                 </div>
                 <div className="space-y-1 text-[11px]">
