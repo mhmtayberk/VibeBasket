@@ -6,9 +6,9 @@ describe("resolveAdminEmails", () => {
     expect(
       resolveAdminEmails({
         databaseValue: "owner@example.com,team@example.com",
-        envValue: "mayberk71@gmail.com,owner@example.com",
+        envValue: "admin@example.com,owner@example.com",
       }),
-    ).toEqual(["owner@example.com", "team@example.com", "mayberk71@gmail.com"]);
+    ).toEqual(["owner@example.com", "team@example.com", "admin@example.com"]);
   });
 
   it("normalizes casing and drops blank entries", () => {
