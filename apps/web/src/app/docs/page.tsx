@@ -343,7 +343,7 @@ export default async function DocsPage({
 
           <div className="border-t border-border/70 p-4">
             <p className="font-mono text-[9px] uppercase tracking-[0.25em] text-muted-foreground/35 mb-2 pl-2">
-              v0.9 · 24 adapters
+              v0.9 · 24 supported targets
             </p>
           </div>
         </aside>

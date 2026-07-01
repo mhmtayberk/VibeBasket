@@ -18,7 +18,7 @@ Bundle trusted MCP servers, agent skills, and project rules into one shareable i
 - [What is VibeBasket?](#what-is-vibebasket)
 - [Who It's For](#who-its-for)
 - [What It Is Not](#what-it-is-not)
-- [Supported IDEs](#supported-ides-24-targets)
+- [Supported Targets](#supported-targets-24-ides--cli-tools)
 - [Core Capabilities](#core-capabilities)
 - [Quick Start](#quick-start)
 - [CLI Usage](#cli-usage)
@@ -39,7 +39,11 @@ Browse a trusted catalog, select what you want, and generate one `npx` command t
 npx vibebasket apply https://vibebasket.dev/api/bundle/cj2k9x
 ```
 
-Use the hosted app at [vibebasket.dev](https://vibebasket.dev) or the published CLI package at [npmjs.com/package/vibebasket](https://www.npmjs.com/package/vibebasket).
+Start here:
+
+- Hosted app: [vibebasket.dev](https://vibebasket.dev)
+- npm package: [npmjs.com/package/vibebasket](https://www.npmjs.com/package/vibebasket)
+- Self-host guide: [SELF_HOSTING.md](SELF_HOSTING.md)
 
 ## Who It's For
 
@@ -54,7 +58,7 @@ Use the hosted app at [vibebasket.dev](https://vibebasket.dev) or the published 
 - A multi-node control plane with shared cache/state infrastructure by default
 - A universal package manager for arbitrary IDE extensions outside MCPs, Skills, and Rules
 
-## Supported IDEs (24 Targets)
+## Supported Targets (24 IDEs & CLI tools)
 
 | IDE | MCP | Skills | Rules |
 |-----|:---:|:------:|:-----:|
@@ -83,7 +87,7 @@ Use the hosted app at [vibebasket.dev](https://vibebasket.dev) or the published 
 | CodeBuddy | ✅ | ✅ | — |
 | OpenCode | ✅ | ✅ | ✅ |
 
-16 adapters auto-install Skills. 6 auto-install Rules. All MCP-capable adapters auto-install MCP servers.
+16 supported targets auto-install Skills. 6 supported targets auto-install Rules. All MCP-capable targets auto-install MCP servers.
 
 ## Core Capabilities
 
