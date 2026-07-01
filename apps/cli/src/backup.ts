@@ -2,25 +2,22 @@ import fs from "node:fs";
 import path from "node:path";
 
 const BACKUP_DIR = ".vibebasket/backups";
+const BACKUP_FILENAME_PATTERN =
+  /^(?<targetId>[a-z0-9-]+)-(?<scope>user|project)-(?<timestamp>\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}-\d{3}Z)\.json$/i;
 
 function parseBackupFilename(filename: string) {
-  const basename = filename.replace(/\.json$/, "");
-  const firstSeparator = basename.indexOf("-");
-  const secondSeparator = basename.indexOf("-", firstSeparator + 1);
-
-  if (firstSeparator === -1 || secondSeparator === -1) {
+  const match = filename.match(BACKUP_FILENAME_PATTERN);
+  const groups = match?.groups;
+  if (!groups) {
     return null;
   }
 
-  const targetId = basename.slice(0, firstSeparator);
-  const scope = basename.slice(firstSeparator + 1, secondSeparator);
-  const timestampSlug = basename.slice(secondSeparator + 1);
-  const timestamp = timestampSlug.replace(
+  const timestamp = groups.timestamp.replace(
     /^(\d{4})-(\d{2})-(\d{2})T(\d{2})-(\d{2})-(\d{2})-(\d{3})Z$/,
     "$1-$2-$3T$4:$5:$6.$7Z",
   );
 
-  return { targetId, scope, timestamp };
+  return { targetId: groups.targetId, scope: groups.scope, timestamp };
 }
 
 export async function createBackup(targetId: string, scope: string, config: unknown) {

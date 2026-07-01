@@ -27,8 +27,21 @@ class FakeAdapter {
   supportsSkills = false;
   supportsRules = false;
   readConfig = readConfigMock;
-  applyMcps(config: unknown) {
-    return config;
+  applyMcps(config: unknown, mcps: Array<{ id: string; command?: string; args?: string[] }>) {
+    const current =
+      config && typeof config === "object" && "mcpServers" in (config as Record<string, unknown>)
+        ? ((config as { mcpServers?: Record<string, unknown> }).mcpServers ?? {})
+        : {};
+
+    return {
+      ...(config && typeof config === "object" ? config : {}),
+      mcpServers: {
+        ...current,
+        ...Object.fromEntries(
+          mcps.map((mcp) => [mcp.id, { command: mcp.command ?? "npx", args: mcp.args ?? [] }]),
+        ),
+      },
+    };
   }
   writeConfig = writeConfigMock;
   diff = diffMock;
@@ -313,6 +326,46 @@ describe("applyBundle", () => {
     expect(diffMock).toHaveBeenCalled();
     expect(writeConfigMock).not.toHaveBeenCalled();
     expect(createBackupMock).not.toHaveBeenCalled();
+  });
+
+  it("skips backup creation and config writes when MCP config is unchanged", async () => {
+    const { applyBundle } = await import("./apply.js");
+    readConfigMock.mockResolvedValueOnce({
+      mcpServers: {
+        github: {
+          command: "npx",
+          args: ["-y", "@modelcontextprotocol/server-github"],
+        },
+      },
+    });
+    fs.writeFileSync(
+      tempFile,
+      JSON.stringify({
+        schemaVersion: "0.1",
+        scope: "user",
+        targets: ["cursor"],
+        mcps: [
+          {
+            id: "github",
+            displayName: "GitHub",
+            runtime: "npx",
+            command: "npx",
+            args: ["-y", "@modelcontextprotocol/server-github"],
+            env: {},
+            requiredSecrets: [],
+            verified: true,
+          },
+        ],
+        skills: [],
+        rules: [],
+        workflowPacks: [],
+      }),
+    );
+
+    await applyBundle(tempFile, { force: true });
+    expect(createBackupMock).not.toHaveBeenCalled();
+    expect(writeConfigMock).not.toHaveBeenCalled();
+    expect(verifyTargetInstallMock).toHaveBeenCalledTimes(1);
   });
 
   it("rejects when a target is not supported by any adapter (fails at Zod validation)", async () => {

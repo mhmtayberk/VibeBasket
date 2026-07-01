@@ -6,6 +6,14 @@ This changelog stays intentionally high-signal: it tracks meaningful product and
 
 ## [Unreleased]
 
+## [0.9.5] — 2026-07-02
+
+### CLI No-op Safety & Public Surface Cleanup
+- Stopped `vibebasket apply` from creating redundant backups and rewriting MCP config files when the generated target config is unchanged.
+- Fixed backup filename parsing for hyphenated adapter ids such as `claude-code`, improving rollback accuracy across the 24-target matrix.
+- Removed hidden workflow-pack counters from the public `/api/catalog/status` response so the public status surface matches the product UI and docs more closely.
+- Corrected the GitHub issue-template security advisory link and refreshed CLI/docs copy to match the new no-op backup behavior.
+
 - Hardened the npm publish workflow so the provenance-attested path matches the documented release process.
 - Upgraded encrypted backup-storage writes to a versioned per-record random-salt format while keeping legacy records readable.
 - Tightened maintainer docs around trusted publishing, manual dispatch, and local npm credential expectations.

@@ -69,6 +69,23 @@ const ADAPTERS = {
   opencode: new OpenCodeAdapter(),
 } as const;
 
+function stableStringify(value: unknown): string {
+  if (Array.isArray(value)) {
+    return `[${value.map((item) => stableStringify(item)).join(",")}]`;
+  }
+
+  if (value && typeof value === "object") {
+    const entries = Object.entries(value as Record<string, unknown>).sort(([a], [b]) =>
+      a.localeCompare(b),
+    );
+    return `{${entries
+      .map(([key, entryValue]) => `${JSON.stringify(key)}:${stableStringify(entryValue)}`)
+      .join(",")}}`;
+  }
+
+  return JSON.stringify(value);
+}
+
 function getAdapter(targetId: IdeId): IdeAdapter | undefined {
   return ADAPTERS[targetId as keyof typeof ADAPTERS];
 }
@@ -277,10 +294,18 @@ export async function applyBundle(
           const pendingConfig = adapter.applyMcps(config, mcpPlan.supported, secrets, {
             force: options.force || false,
           });
-          const backupPath = await createBackup(targetId, scope, config);
-          console.log(chalk.gray(`  - Created backup: ${backupPath}`));
+          if (stableStringify(config) === stableStringify(pendingConfig)) {
+            console.log(
+              chalk.gray(
+                "  - No MCP config changes detected; skipped backup creation and config write.",
+              ),
+            );
+          } else {
+            const backupPath = await createBackup(targetId, scope, config);
+            console.log(chalk.gray(`  - Created backup: ${backupPath}`));
 
-          await adapter.writeConfig(scope, pendingConfig, projectRoot);
+            await adapter.writeConfig(scope, pendingConfig, projectRoot);
+          }
         }
 
         if (shouldApplyRules && adapter.applyRules) {
