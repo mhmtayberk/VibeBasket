@@ -3,7 +3,6 @@
 import type { EnabledAuthProvider } from "@/auth.config";
 import { BasketPanel } from "@/components/basket/BasketPanel";
 import { useDebounce } from "@/hooks/use-debounce";
-import { sanitizeCatalogDescription } from "@/lib/catalog-text";
 import {
   type CatalogSort,
   type CatalogTrustFilter,
@@ -12,6 +11,7 @@ import {
   getCatalogDiscoveryDefaults,
   isDefaultCatalogDiscoveryState,
 } from "@/lib/catalog-discovery";
+import { sanitizeCatalogDescription } from "@/lib/catalog-text";
 import { withCatalogTrust } from "@/lib/catalog-trust";
 import { cn } from "@/lib/utils";
 import type { BasketItem } from "@/store/basketStore";
