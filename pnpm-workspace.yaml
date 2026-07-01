@@ -2,6 +2,9 @@ nodeLinker: hoisted
 shamefullyHoist: true
 verifyDepsBeforeRun: warn
 enableGlobalVirtualStore: false
+overrides:
+  form-data: 2.5.6
+  ws: 8.21.0
 
 packages:
   - "apps/*"
