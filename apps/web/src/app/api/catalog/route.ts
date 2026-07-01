@@ -1,7 +1,4 @@
-import {
-  DAY_MS,
-  normalizeCatalogDiscoveryInput,
-} from "@/lib/catalog-discovery";
+import { DAY_MS, normalizeCatalogDiscoveryInput } from "@/lib/catalog-discovery";
 import { buildCatalogCountCacheKey } from "@/lib/catalog-query";
 import { checkRateLimit, getClientAddress } from "@/lib/rate-limit";
 import { applySecurityHeaders, createTooManyRequestsResponse } from "@/lib/security-headers";
@@ -247,7 +244,10 @@ export async function GET(request: Request) {
         conditions.push(officialClause);
       }
     } else if (discovery.trust === "community") {
-      const communityClause = and(eq(catalogItems.verified, false), eq(catalogItems.official, false));
+      const communityClause = and(
+        eq(catalogItems.verified, false),
+        eq(catalogItems.official, false),
+      );
       if (communityClause) {
         conditions.push(communityClause);
       }

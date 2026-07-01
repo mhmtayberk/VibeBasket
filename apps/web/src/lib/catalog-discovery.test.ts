@@ -36,19 +36,13 @@ describe("normalizeCatalogDiscoveryInput", () => {
 
 describe("matchesCatalogTrustFilter", () => {
   it("treats verified items as their own lane", () => {
-    expect(
-      matchesCatalogTrustFilter({ verified: true, official: false }, "verified"),
-    ).toBe(true);
-    expect(
-      matchesCatalogTrustFilter({ verified: true, official: true }, "official"),
-    ).toBe(false);
+    expect(matchesCatalogTrustFilter({ verified: true, official: false }, "verified")).toBe(true);
+    expect(matchesCatalogTrustFilter({ verified: true, official: true }, "official")).toBe(false);
   });
 
   it("recognizes explicitly official items only", () => {
     expect(matchesCatalogTrustFilter({ verified: false, official: true }, "official")).toBe(true);
-    expect(matchesCatalogTrustFilter({ verified: false, official: false }, "official")).toBe(
-      false,
-    );
+    expect(matchesCatalogTrustFilter({ verified: false, official: false }, "official")).toBe(false);
   });
 });
 
