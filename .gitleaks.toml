@@ -58,4 +58,12 @@ keywords = [
   "CODEX_API_KEY",
   "CONTEXT7_TOKEN",
 ]
-entropy = 3.2
+stopwords = [
+  "dummy-secret",
+  "vibebasket-ci-secret",
+  "vibebasket-e2e-secret",
+  "backup-token",
+  "backup-job-token",
+  "replace-with-a-long-random-secret",
+]
+entropy = 4.0
