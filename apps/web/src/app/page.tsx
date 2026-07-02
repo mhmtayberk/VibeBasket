@@ -30,6 +30,33 @@ export default async function Home() {
   ]);
   const nonce = headerStore.get("x-nonce") ?? undefined;
   const enabledProviders = getEnabledAuthProviders();
+  const faqEntries = [
+    {
+      question: "Does VibeBasket ever receive my runtime API keys?",
+      answer:
+        "No. Bundle manifests do not carry end-user runtime secrets. When a selected MCP needs credentials, the CLI resolves that value locally during apply and writes it into the target tool's own config surface on your machine.",
+    },
+    {
+      question: "What happens if my IDE already has MCPs, skills, or rules configured?",
+      answer:
+        "VibeBasket merges into the target's supported config surface instead of pretending every file is blank. Existing blocks stay in place, VibeBasket-managed blocks remain idempotent, and unchanged MCP state is skipped so repeated applies do not keep rewriting the same target.",
+    },
+    {
+      question: "What do Verified, Official, and Community mean?",
+      answer:
+        "Verified means the item was curated by VibeBasket. Official means the upstream source exposed an explicit owner- or vendor-certified signal. Community is everything else that still passes the catalog normalization and deduplication pipeline.",
+    },
+    {
+      question: "Can I self-host VibeBasket for my team?",
+      answer:
+        "Yes. The web app, CLI, catalog sync, auth, admin tools, and backup flows all live in this repo. The default self-hosting shape is one VPS, one app instance, and one SQLite database with persistent storage and external backups.",
+    },
+    {
+      question: "Is re-running npx vibebasket apply safe?",
+      answer:
+        "That is the default expectation. The CLI is backup-aware, skips no-op MCP writes, and keeps target-specific install behavior idempotent so the same basket can be re-applied without turning every run into a destructive rewrite.",
+    },
+  ] as const;
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
@@ -44,12 +71,25 @@ export default async function Home() {
       priceCurrency: "USD",
     },
   };
+  const faqStructuredData = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqEntries.map((entry) => ({
+      "@type": "Question",
+      name: entry.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: entry.answer,
+      },
+    })),
+  };
   const sectionIds = {
     heroTitle: "hero-title",
     who: "who",
     how: "how",
     catalog: "catalog",
     command: "command",
+    faq: "faq",
   } as const;
 
   const iconMap: Record<string, string | undefined> = {
@@ -137,6 +177,13 @@ export default async function Home() {
                 Install flow
               </a>
               <span className="text-border/60 select-none">|</span>
+              <a
+                href={`#${sectionIds.faq}`}
+                className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:text-accent cursor-pointer"
+              >
+                FAQ
+              </a>
+              <span className="text-border/60 select-none">|</span>
               <Link
                 href="/docs"
                 className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:text-accent cursor-pointer"
@@ -170,6 +217,9 @@ export default async function Home() {
 
       <script nonce={nonce} type="application/ld+json">
         {JSON.stringify(structuredData)}
+      </script>
+      <script nonce={nonce} type="application/ld+json">
+        {JSON.stringify(faqStructuredData)}
       </script>
 
       <section className="border-b border-border/80" aria-labelledby={sectionIds.heroTitle}>
@@ -476,6 +526,35 @@ export default async function Home() {
         </div>
       </section>
 
+      <section id={sectionIds.faq} className="border-b border-border/80">
+        <div className="mx-auto max-w-[1440px] px-4 py-14 sm:px-6 lg:px-8">
+          <div className="max-w-3xl">
+            <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-accent">FAQ</p>
+            <h2 className="mt-5 text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
+              The questions that usually come up first.
+            </h2>
+            <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground">
+              Short answers for the trust, install, and self-hosting details people usually want
+              before they standardize a workflow around VibeBasket.
+            </p>
+          </div>
+
+          <div className="mt-10 grid gap-4 lg:grid-cols-2">
+            {faqEntries.map((entry) => (
+              <details
+                key={entry.question}
+                className="group border border-border/80 bg-card/60 p-5 open:border-accent/40 open:bg-card/80"
+              >
+                <summary className="cursor-pointer list-none pr-6 text-lg font-semibold text-foreground marker:hidden">
+                  {entry.question}
+                </summary>
+                <p className="mt-4 text-sm leading-7 text-muted-foreground">{entry.answer}</p>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <footer className="mx-auto max-w-[1440px] px-4 py-10 sm:px-6 lg:px-8 border-t border-border/40 mt-20">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div>
@@ -498,7 +577,7 @@ export default async function Home() {
               href={`#${sectionIds.how}`}
               className="transition-colors hover:text-accent cursor-pointer"
             >
-              Workflow
+              How it works
             </a>
             <span className="text-border/60 select-none">|</span>
             <a
@@ -513,6 +592,13 @@ export default async function Home() {
               className="transition-colors hover:text-accent cursor-pointer"
             >
               Install flow
+            </a>
+            <span className="text-border/60 select-none">|</span>
+            <a
+              href={`#${sectionIds.faq}`}
+              className="transition-colors hover:text-accent cursor-pointer"
+            >
+              FAQ
             </a>
             <span className="text-border/60 select-none">|</span>
             <Link href="/docs" className="transition-colors hover:text-accent cursor-pointer">

@@ -211,7 +211,15 @@ The repository is prepared for npm Trusted Publisher + provenance publishing thr
 5. set workflow filename to `publish.yml`
 6. allow the `npm publish` action
 
-After that, publishing a GitHub release triggers an OIDC-backed `npm publish --access public --provenance` flow. The workflow also keeps a manual `workflow_dispatch` path for maintainers who intentionally need a manual publish run. No long-lived npm token is required in the repository for either path.
+After that, publishing is intentionally version-tag driven instead of PR-driven:
+
+1. bump `apps/cli/package.json`
+2. merge the change normally
+3. push a semver tag such as `v0.9.6`
+
+That tag triggers the OIDC-backed `npm publish --access public --provenance` workflow. The workflow also keeps a manual `workflow_dispatch` path for maintainers who intentionally need a manual publish run. No long-lived npm token is required in the repository for either path.
+
+Creating a GitHub Release is optional and can happen after the npm publish if you want release notes on the repo surface, but the Release object itself is no longer the publish trigger.
 
 The publish workflow intentionally runs on Node 24 so the bundled npm CLI satisfies npm's current Trusted Publishing requirement (`npm` 11.5.1+).
 
