@@ -59,11 +59,7 @@ export function TypingTerminal({
   }, []);
 
   return (
-    <div
-      ref={ref}
-      data-typing-state={state}
-      className={className}
-    >
+    <div ref={ref} data-typing-state={state} className={className}>
       {lines.map((line, index) => {
         const durationMs = Math.max(700, Math.min(2600, line.text.length * 28));
         const delayMs = index * 520;

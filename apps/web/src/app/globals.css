@@ -192,9 +192,8 @@
   [data-typing-state="active"] .vb-typing-line {
     width: 0;
     border-right: 1px solid currentColor;
-    animation:
-      vb-typing-reveal var(--vb-typing-duration) steps(var(--vb-typing-chars)) var(--vb-typing-delay) forwards,
-      vb-typing-caret 900ms step-end var(--vb-typing-delay) 4;
+    animation: vb-typing-reveal var(--vb-typing-duration) steps(var(--vb-typing-chars))
+      var(--vb-typing-delay) forwards, vb-typing-caret 900ms step-end var(--vb-typing-delay) 4;
   }
 
   [data-typing-state="reduced"] .vb-typing-line {
