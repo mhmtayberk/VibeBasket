@@ -9,6 +9,8 @@ paths = [
   '''(^|/)apps/web/playwright\.config\.ts$''',
   '''(^|/)docs/.*$''',
   '''(^|/)README\.md$''',
+  '''(^|/)SELF_HOSTING\.md$''',
+  '''(^|/)SECURITY\.md$''',
   '''(^|/)apps/cli/README\.md$''',
   '''(^|/).+\.test\.(ts|tsx|js|mjs|cjs)$''',
 ]
@@ -20,4 +22,50 @@ regexes = [
   '''vibebasket-ci-secret''',
   '''vibebasket-dev-only-secret-change-me''',
   '''(client|github|google|apple|ms)-secret''',
+  '''<generated-secret>''',
+  '''<refresh-token>''',
+  '''<backup-token>''',
+  '''<your-token>''',
+  '''<your_key>''',
 ]
+
+[[rules]]
+id = "vibebasket-openai-style-secret"
+description = "Detects OpenAI/Codex-style secret keys embedded directly in repo content."
+regex = '''(?i)(sk-(?:(?:live|test|proj|svcacct)-)?[a-z0-9]{20,}|sess-[a-z0-9]{20,})'''
+keywords = ["sk-", "sess-"]
+
+[[rules]]
+id = "vibebasket-sensitive-env-assignment"
+description = "Detects direct assignment of high-risk app, backup, and storage secrets."
+regex = '''(?i)\b(?:AUTH_SECRET|CATALOG_REFRESH_TOKEN|BACKUP_JOB_TOKEN|(?:BACKUP_(?:S3|R2|SPACES)_(?:ACCESS_KEY|SECRET_KEY))|AWS_(?:ACCESS_KEY_ID|SECRET_ACCESS_KEY)|CLOUDFLARE_(?:API_TOKEN|ACCOUNT_ID)|OPENAI_API_KEY|CODEX_API_KEY|CONTEXT7_TOKEN)\b\s*[:=]\s*["']?([A-Za-z0-9_/\-+=]{12,})["']?'''
+secretGroup = 1
+keywords = [
+  "AUTH_SECRET",
+  "CATALOG_REFRESH_TOKEN",
+  "BACKUP_JOB_TOKEN",
+  "BACKUP_R2_ACCESS_KEY",
+  "BACKUP_R2_SECRET_KEY",
+  "AWS_ACCESS_KEY_ID",
+  "AWS_SECRET_ACCESS_KEY",
+  "OPENAI_API_KEY",
+  "CODEX_API_KEY",
+  "CONTEXT7_TOKEN",
+]
+entropy = 3.2
+
+[[rules]]
+id = "vibebasket-generic-credential-assignment"
+description = "Detects generic API key, bearer token, access token, and client secret assignments."
+regex = '''(?i)\b(?:api[\s_-]?key|x[\s_-]?api[\s_-]?key|access[\s_-]?token|auth[\s_-]?token|bearer[\s_-]?token|secret[\s_-]?key|client[\s_-]?secret)\b\s*[:=]\s*["']?([A-Za-z0-9_/\-+=]{16,})["']?'''
+secretGroup = 1
+keywords = [
+  "api_key",
+  "api-key",
+  "access_token",
+  "auth_token",
+  "bearer_token",
+  "secret_key",
+  "client_secret",
+]
+entropy = 3.4

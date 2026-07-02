@@ -152,8 +152,64 @@
   }
 }
 
+@keyframes vb-typing-reveal {
+  from {
+    width: 0;
+  }
+
+  to {
+    width: calc(var(--vb-typing-chars) * 1ch);
+  }
+}
+
+@keyframes vb-typing-caret {
+  0%,
+  49% {
+    border-right-color: currentColor;
+  }
+
+  50%,
+  100% {
+    border-right-color: transparent;
+  }
+}
+
 /* Custom Scrollbar for desktop independent scrolling columns */
 @layer utilities {
+  .vb-typing-line {
+    display: inline-block;
+    max-width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    vertical-align: bottom;
+  }
+
+  [data-typing-state="idle"] .vb-typing-line {
+    width: 0;
+    border-right: 1px solid transparent;
+  }
+
+  [data-typing-state="active"] .vb-typing-line {
+    width: 0;
+    border-right: 1px solid currentColor;
+    animation:
+      vb-typing-reveal var(--vb-typing-duration) steps(var(--vb-typing-chars)) var(--vb-typing-delay) forwards,
+      vb-typing-caret 900ms step-end var(--vb-typing-delay) 4;
+  }
+
+  [data-typing-state="reduced"] .vb-typing-line {
+    width: auto;
+    border-right: 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .vb-typing-line {
+      width: auto !important;
+      border-right: 0 !important;
+      animation: none !important;
+    }
+  }
+
   .custom-scrollbar::-webkit-scrollbar {
     width: 5px;
     height: 5px;

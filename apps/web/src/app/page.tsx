@@ -4,6 +4,7 @@ import { SignInDialog } from "@/components/auth/SignInDialog";
 import { FloatingBasket } from "@/components/basket/FloatingBasket";
 import { CatalogGrid } from "@/components/catalog/CatalogGrid";
 import { TopToTopButton } from "@/components/layout/TopToTopButton";
+import { TypingTerminal } from "@/components/marketing/TypingTerminal";
 import { getInitialCatalogSnapshot } from "@/lib/catalog-snapshot";
 import { SUPPORTED_TARGET_COUNT, TARGET_OPTIONS } from "@/lib/targets";
 import {
@@ -173,13 +174,6 @@ export default async function Home() {
                 className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:text-accent"
               >
                 Catalog
-              </a>
-              <span className="text-border/60 select-none">|</span>
-              <a
-                href={`#${sectionIds.command}`}
-                className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:text-accent cursor-pointer"
-              >
-                Install flow
               </a>
               <span className="text-border/60 select-none">|</span>
               <a
@@ -373,13 +367,21 @@ export default async function Home() {
                     copied
                   </span>
                 </div>
-                <div className="mt-4 space-y-1 font-mono text-[11px] leading-6 text-muted-foreground">
-                  <p>&gt; Fetching trusted basket configuration...</p>
-                  <p>&gt; Writing MCP config for your selected targets...</p>
-                  <p className="text-accent">
-                    &gt; Context ready in Cursor, Windsurf, and VS Code.
-                  </p>
-                </div>
+                <TypingTerminal
+                  className="mt-4 space-y-1"
+                  lines={[
+                    {
+                      text: "> Fetching trusted basket configuration...",
+                    },
+                    {
+                      text: "> Writing MCP config for your selected targets...",
+                    },
+                    {
+                      text: "> Context ready in Cursor, Windsurf, and VS Code.",
+                      className: "font-mono text-[11px] leading-6 text-accent",
+                    },
+                  ]}
+                />
               </div>
 
               <div className="grid gap-3 border-t border-border/70 pt-5 sm:grid-cols-3">
@@ -518,9 +520,15 @@ export default async function Home() {
 
           <div className="mx-auto mt-10 max-w-xl border border-border/80 bg-card/70 p-4 sm:p-5">
             <div className="flex items-center justify-between gap-3">
-              <span className="truncate font-mono text-[12px] text-accent">
-                $ npx vibebasket apply &lt;bundle-url&gt;
-              </span>
+              <TypingTerminal
+                className="min-w-0"
+                lineClassName="truncate font-mono text-[12px] text-accent"
+                lines={[
+                  {
+                    text: "$ npx vibebasket apply <bundle-url>",
+                  },
+                ]}
+              />
               <TerminalSquare className="h-4 w-4 shrink-0 text-foreground" />
             </div>
           </div>

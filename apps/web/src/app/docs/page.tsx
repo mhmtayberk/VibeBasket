@@ -210,13 +210,6 @@ export default async function DocsPage({
               </Link>
               <span className="text-border/60 select-none">|</span>
               <Link
-                href="/#command"
-                className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:text-accent"
-              >
-                Install flow
-              </Link>
-              <span className="text-border/60 select-none">|</span>
-              <Link
                 href="/docs"
                 className={`font-mono text-[11px] uppercase tracking-[0.18em] transition-colors hover:text-accent ${
                   activeTab === "hub" ? "text-accent font-semibold" : "text-muted-foreground"
