@@ -75,7 +75,22 @@ jobs:
       - name: Validate publish tarball
         run: pnpm --filter vibebasket pack --dry-run
 
-      - name: Publish to npm with provenance
+      - name: Check if version already exists on npm
+        id: npm-version-check
         if: startsWith(github.ref, 'refs/tags/v') || inputs.publish == true
+        working-directory: apps/cli
+        run: |
+          package_version="$(node -p "require('./package.json').version")"
+
+          if npm view "vibebasket@${package_version}" version --registry https://registry.npmjs.org >/dev/null 2>&1; then
+            echo "already_published=true" >> "$GITHUB_OUTPUT"
+            echo "vibebasket@${package_version} is already published on npm. Skipping publish."
+          else
+            echo "already_published=false" >> "$GITHUB_OUTPUT"
+            echo "vibebasket@${package_version} is not published yet. Continuing."
+          fi
+
+      - name: Publish to npm with provenance
+        if: (startsWith(github.ref, 'refs/tags/v') || inputs.publish == true) && steps.npm-version-check.outputs.already_published != 'true'
         working-directory: apps/cli
         run: npm publish --access public --provenance
