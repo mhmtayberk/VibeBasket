@@ -7,6 +7,10 @@ paths = [
   '''(^|/)\.env\.example$''',
   '''(^|/)\.github/workflows/ci\.yml$''',
   '''(^|/)apps/web/playwright\.config\.ts$''',
+  '''(^|/)apps/web/src/app/docs/.*$''',
+  '''(^|/)apps/cli/src/init\.ts$''',
+  '''(^|/)charts/vibebasket/values\.yaml$''',
+  '''(^|/)charts/vibebasket/templates/secret\.yaml$''',
   '''(^|/)docs/.*$''',
   '''(^|/)README\.md$''',
   '''(^|/)SELF_HOSTING\.md$''',
@@ -27,6 +31,8 @@ regexes = [
   '''<backup-token>''',
   '''<your-token>''',
   '''<your_key>''',
+  '''your-client-id''',
+  '''your-client-secret''',
 ]
 
 [[rules]]
@@ -53,19 +59,3 @@ keywords = [
   "CONTEXT7_TOKEN",
 ]
 entropy = 3.2
-
-[[rules]]
-id = "vibebasket-generic-credential-assignment"
-description = "Detects generic API key, bearer token, access token, and client secret assignments."
-regex = '''(?i)\b(?:api[\s_-]?key|x[\s_-]?api[\s_-]?key|access[\s_-]?token|auth[\s_-]?token|bearer[\s_-]?token|secret[\s_-]?key|client[\s_-]?secret)\b\s*[:=]\s*["']?([A-Za-z0-9_/\-+=]{16,})["']?'''
-secretGroup = 1
-keywords = [
-  "api_key",
-  "api-key",
-  "access_token",
-  "auth_token",
-  "bearer_token",
-  "secret_key",
-  "client_secret",
-]
-entropy = 3.4
