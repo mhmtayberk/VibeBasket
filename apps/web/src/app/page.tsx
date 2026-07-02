@@ -56,6 +56,11 @@ export default async function Home() {
       answer:
         "That is the default expectation. The CLI is backup-aware, skips no-op MCP writes, and keeps target-specific install behavior idempotent so the same basket can be re-applied without turning every run into a destructive rewrite.",
     },
+    {
+      question: "Can I use a bundle again later after I create it?",
+      answer:
+        "Yes. If you sign in, saved stacks and your account-level basket history let you come back to the same setup later. Even outside that flow, a generated bundle URL can still be re-used or shared as long as that bundle remains available on the hosted or self-hosted instance.",
+    },
   ] as const;
   const structuredData = {
     "@context": "https://schema.org",
