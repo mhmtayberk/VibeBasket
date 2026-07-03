@@ -131,6 +131,7 @@ Catalog scope:
 - Path sanitization on all file operations
 - 4 optional OAuth providers: GitHub, Google, Apple, Microsoft Entra ID
 - GitHub Actions CI, CodeQL, gitleaks, Dependabot, and `NEXT_PUBLIC_*` allowlist enforcement
+- pnpm install-time supply-chain guardrails: reviewed build-script allowlist, immutable lockfile installs in CI, blocked exotic transitive sources, and a 60-minute release-age delay for newly published packages
 
 ### Backup and storage
 - 6 backends: Local, AWS S3, Cloudflare R2, DigitalOcean Spaces, Azure Blob, GCS

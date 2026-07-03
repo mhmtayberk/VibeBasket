@@ -2,6 +2,10 @@ nodeLinker: hoisted
 shamefullyHoist: true
 verifyDepsBeforeRun: warn
 enableGlobalVirtualStore: false
+minimumReleaseAge: 60
+minimumReleaseAgeStrict: true
+blockExoticSubdeps: true
+strictDepBuilds: true
 overrides:
   form-data: 2.5.6
   ws: 8.21.0

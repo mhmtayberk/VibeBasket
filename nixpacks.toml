@@ -4,7 +4,8 @@ NPM_CONFIG_PRODUCTION = "false"
 
 [phases.install]
 cmds = [
-  "npm install -g pnpm@11.7.0",
+  "corepack enable",
+  "corepack prepare pnpm@11.7.0 --activate",
   "pnpm install --frozen-lockfile"
 ]
 

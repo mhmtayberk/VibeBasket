@@ -50,6 +50,7 @@ Important note:
 
 - `pnpm verify:ci` is the main CI gate and already includes `pnpm typecheck`.
 - If you are touching deployment, catalog sync, or self-hosting surfaces, also run the relevant focused checks such as `pnpm catalog:sync:strict` before shipping.
+- New dependency installs are intentionally delayed by 60 minutes (`minimumReleaseAge: 60`) to reduce supply-chain blast radius from freshly published malicious packages. If you genuinely need a brand-new release immediately, document why before relaxing that guardrail.
 
 ## Adding an IDE Adapter
 

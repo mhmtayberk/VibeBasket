@@ -59,6 +59,8 @@ Older releases are best effort unless stated otherwise.
 
 - GitHub Actions CI verifies the main build and test surface
 - GitHub Actions CI runs repository secret scanning with `gitleaks`
+- GitHub Actions workflows pin third-party actions to immutable commit SHAs and pin the `gitleaks` container by digest
 - new `NEXT_PUBLIC_*` variables are blocked unless they are explicitly allowlisted and reviewed
 - CodeQL is enabled for JavaScript and TypeScript analysis
 - Dependabot is configured for npm dependencies and GitHub Actions updates
+- pnpm install policy enforces reviewed dependency build scripts, blocks exotic transitive dependency sources, and delays installs of very new registry releases
