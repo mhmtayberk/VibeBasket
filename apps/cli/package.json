@@ -28,7 +28,7 @@
   "keywords": ["vibebasket", "mcp", "ai-ide", "cli"],
   "license": "MIT",
   "dependencies": {
-    "@inquirer/prompts": "^8.4.2",
+    "@inquirer/prompts": "^8.5.2",
     "chalk": "^5.6.2",
     "commander": "^14.0.3",
     "dotenv": "^17.4.2"
