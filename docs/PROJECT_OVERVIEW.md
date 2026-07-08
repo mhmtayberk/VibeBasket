@@ -54,6 +54,8 @@ Trust labels are intentionally narrower than source provenance:
 
 Recent work significantly changed the catalog behavior, deployment, and security baseline:
 
+- **Phase 1 localization:** public routes, metadata, docs shell, login surface, and key admin shell labels now support English, Turkish, and Spanish under `/en`, `/tr`, and `/es`.
+- **Localized SEO:** canonical and `hreflang` output now comes from shared locale helpers so translated routes stay indexable without drifting from the main URL model.
 - **Dockerization & Production Config:** Multi-stage production `Dockerfile` based on Node.js 22 Alpine utilizing lean Next.js standalone build outputs, root privilege isolation, and SQLite volume persistence. Added `docker-compose.yml` with automated container health probes and `.dockerignore` shielding.
 - **Kubernetes Helm Chart:** Chart at `charts/vibebasket/` with Recreate strategy, securityContext uid 1001, existingSecret support, PVC-backed SQLite persistence, and `/api/health`-based liveness/readiness probes.
 - **Health Check (`/api/health`):** Real-time database connectivity check through a lightweight Drizzle select. Safeguarded against flooding/DoS attacks via a 5-second in-memory status cache, with explicit HTTP no-cache headers. Used by Docker HEALTHCHECK and Kubernetes probes.

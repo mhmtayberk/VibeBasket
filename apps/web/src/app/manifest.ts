@@ -6,7 +6,7 @@ export default function manifest(): MetadataRoute.Manifest {
     short_name: "VibeBasket",
     description:
       "Bundle trusted MCP servers, skills, and rules into one shareable install flow for AI IDEs and CLI tools.",
-    start_url: "/",
+    start_url: "/en",
     display: "standalone",
     background_color: "#0f1512",
     theme_color: "#0f1512",

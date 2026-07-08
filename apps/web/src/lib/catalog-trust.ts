@@ -2,6 +2,12 @@ export type TrustTier = "verified" | "official" | "community";
 
 export interface CatalogTrust {
   tier: TrustTier;
+  sourceKey:
+    | "verified-catalog"
+    | "official-mcp-registry"
+    | "skills-sh-official"
+    | "skills-sh-community"
+    | "community";
   label: string;
   detail: string;
   sourceLabel: string;
@@ -30,12 +36,26 @@ function sourceLabel(sourceName?: string | null) {
   }
 }
 
+function sourceKey(sourceName?: string | null): CatalogTrust["sourceKey"] {
+  switch (sourceName) {
+    case "verified-catalog":
+    case "official-mcp-registry":
+    case "skills-sh-official":
+    case "skills-sh-community":
+      return sourceName;
+    default:
+      return "community";
+  }
+}
+
 export function deriveCatalogTrust(item: CatalogLikeItem): CatalogTrust {
   const labelForSource = sourceLabel(item.sourceName);
+  const keyForSource = sourceKey(item.sourceName);
 
   if (item.verified) {
     return {
       tier: "verified",
+      sourceKey: keyForSource,
       label: "Verified",
       detail: "Hand-curated by the VibeBasket team. Takes precedence over upstream sources.",
       sourceLabel: labelForSource,
@@ -46,6 +66,7 @@ export function deriveCatalogTrust(item: CatalogLikeItem): CatalogTrust {
   if (item.official) {
     return {
       tier: "official",
+      sourceKey: keyForSource,
       label: "Official",
       detail:
         "Explicitly marked official by the upstream catalog owner or registry, without local heuristics.",
@@ -56,6 +77,7 @@ export function deriveCatalogTrust(item: CatalogLikeItem): CatalogTrust {
 
   return {
     tier: "community",
+    sourceKey: keyForSource,
     label: "Community",
     detail: "Discovered from community repositories and public skill directories.",
     sourceLabel: labelForSource,

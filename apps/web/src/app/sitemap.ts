@@ -1,3 +1,5 @@
+import { SUPPORTED_LOCALES } from "@/i18n/config";
+import { localizePath } from "@/i18n/locale-routing";
 import { resolvePublicBaseUrl } from "@/lib/public-url";
 import { PUBLIC_SITEMAP_ROUTES } from "@/lib/seo";
 import { catalogItems, db } from "@vibebasket/core";
@@ -29,12 +31,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   let latestUpdate = new Date();
   const buildEntries = (lastModified: Date): MetadataRoute.Sitemap =>
-    PUBLIC_SITEMAP_ROUTES.map((route) => ({
-      url: `${normalizedBase}${route.path}`,
-      lastModified,
-      changeFrequency: route.changeFrequency,
-      priority: route.priority,
-    }));
+    PUBLIC_SITEMAP_ROUTES.flatMap((route) =>
+      SUPPORTED_LOCALES.map((locale) => ({
+        url: `${normalizedBase}${localizePath(locale, route.path)}`,
+        lastModified,
+        changeFrequency: route.changeFrequency,
+        priority: route.priority,
+      })),
+    );
 
   try {
     // Fetch the latest sync date from catalog metadata to reflect true content freshness

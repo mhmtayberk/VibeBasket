@@ -136,6 +136,28 @@ test.describe("VibeBasket — Security + Docs", () => {
     await expect(page.getByRole("searchbox", { name: /search documentation/i })).toBeVisible();
   });
 
+  test("localized docs and login routes keep their own language shell", async ({ page }) => {
+    await page.goto("/tr/docs?tab=hub");
+    await expect(page.locator("html")).toHaveAttribute("lang", "tr");
+    await expect(page.getByRole("searchbox", { name: /dokümantasyonda ara/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /dokümantasyon merkezi/i })).toBeVisible();
+
+    await page.goto("/es/login");
+    await expect(page.locator("html")).toHaveAttribute("lang", "es");
+    await expect(page.getByRole("link", { name: /^Volver$/ })).toHaveAttribute("href", "/es");
+    await expect(
+      page.getByRole("heading", { name: /inicia sesión para guardar tus stacks/i }),
+    ).toBeVisible();
+
+    await page.goto("/zh/login");
+    await expect(page.locator("html")).toHaveAttribute("lang", "zh");
+    await expect(page.getByRole("link", { name: /^返回$/ })).toHaveAttribute("href", "/zh");
+
+    await page.goto("/hi/docs?tab=hub");
+    await expect(page.locator("html")).toHaveAttribute("lang", "hi");
+    await expect(page.getByRole("searchbox", { name: /दस्तावेज़ खोजें/i })).toBeVisible();
+  });
+
   test("selected docs tabs render successfully", async ({ page }) => {
     for (const tab of ["hub", "cli", "security", "self-hosting"]) {
       await page.goto(`/docs?tab=${tab}`);

@@ -3,10 +3,12 @@ import { expect, test } from "@playwright/test";
 test.describe("UI — Responsive Breakpoints", () => {
   const viewports = [
     { name: "mobile-sm", width: 375, height: 667 },
+    { name: "mobile-md", width: 390, height: 844 },
     { name: "mobile-lg", width: 428, height: 926 },
     { name: "tablet", width: 768, height: 1024 },
     { name: "desktop-sm", width: 1024, height: 768 },
     { name: "desktop-lg", width: 1440, height: 900 },
+    { name: "desktop-xl", width: 1728, height: 1117 },
   ];
 
   for (const vp of viewports) {
@@ -23,6 +25,32 @@ test.describe("UI — Responsive Breakpoints", () => {
       );
       expect(overflowX).toBe(false);
     });
+  }
+
+  const localeRoutes = [
+    { path: "/en", expectedLang: "en" },
+    { path: "/tr/docs?tab=hub", expectedLang: "tr" },
+    { path: "/es/login", expectedLang: "es" },
+    { path: "/zh/docs?tab=hub", expectedLang: "zh" },
+    { path: "/hi/login", expectedLang: "hi" },
+  ];
+
+  for (const route of localeRoutes) {
+    for (const vp of viewports.slice(0, 5)) {
+      test(`${route.path} stays responsive at ${vp.name} (${vp.width}x${vp.height})`, async ({
+        page,
+      }) => {
+        await page.setViewportSize({ width: vp.width, height: vp.height });
+        await page.goto(route.path);
+
+        await expect(page.locator("html")).toHaveAttribute("lang", route.expectedLang);
+
+        const overflowX = await page.evaluate(
+          () => document.documentElement.scrollWidth > window.innerWidth + 1,
+        );
+        expect(overflowX).toBe(false);
+      });
+    }
   }
 
   test("basket FAB visible on mobile, hidden on desktop", async ({ page }) => {
@@ -156,6 +184,19 @@ test.describe("UI — Loading & Empty States", () => {
 });
 
 test.describe("UI — Visual Consistency", () => {
+  test("typing terminals activate on the localized homepage", async ({ page }) => {
+    await page.goto("/en");
+
+    await expect(page.locator('[data-typing-state="active"]').first()).toBeVisible({
+      timeout: 5000,
+    });
+
+    await page.locator("#command").scrollIntoViewIfNeeded();
+    await expect(page.locator('#command [data-typing-state="active"]')).toBeVisible({
+      timeout: 5000,
+    });
+  });
+
   test("all text is in English only", async ({ page }) => {
     await page.goto("/");
     const text = (await page.textContent("body")) ?? "";

@@ -1,6 +1,7 @@
 "use client";
 
 import type { EnabledAuthProvider } from "@/auth.config";
+import type { AppDictionary } from "@/i18n/dictionaries/en";
 import { useBasketStore } from "@/store/basketStore";
 import { Layers3 } from "lucide-react";
 import { useState } from "react";
@@ -10,12 +11,21 @@ type FloatingBasketProps = {
   isSignedIn?: boolean;
   enabledProviders?: EnabledAuthProvider[];
   userRole?: string;
+  copy: AppDictionary["basketUi"];
 };
+
+function formatTemplate(template: string, values: Record<string, string | number>) {
+  return Object.entries(values).reduce(
+    (result, [key, value]) => result.replaceAll(`{${key}}`, String(value)),
+    template,
+  );
+}
 
 export function FloatingBasket({
   isSignedIn = false,
   enabledProviders = [],
   userRole,
+  copy,
 }: FloatingBasketProps) {
   const items = useBasketStore((s) => s.items);
   const [isOpen, setIsOpen] = useState(false);
@@ -38,16 +48,18 @@ export function FloatingBasket({
             </div>
             <div className="text-left">
               <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-                Basket
+                {copy.eyebrow}
               </p>
               <p className="text-sm font-medium text-foreground">
-                {items.length} selected component{items.length === 1 ? "" : "s"}
+                {formatTemplate(items.length === 1 ? copy.itemsOne : copy.itemsOther, {
+                  count: items.length,
+                })}
               </p>
             </div>
           </div>
 
           <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-accent">
-            Open
+            {copy.open}
           </span>
         </button>
       </div>
@@ -67,6 +79,7 @@ export function FloatingBasket({
               isSignedIn={isSignedIn}
               enabledProviders={enabledProviders}
               userRole={userRole}
+              copy={copy}
             />
           </div>
         </div>

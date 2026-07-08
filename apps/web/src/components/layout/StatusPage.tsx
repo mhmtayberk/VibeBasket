@@ -1,3 +1,5 @@
+import type { AppLocale } from "@/i18n/config";
+import { localizePath } from "@/i18n/locale-routing";
 import { ArrowLeft, ArrowRight, ShieldAlert, TriangleAlert } from "lucide-react";
 import Link from "next/link";
 
@@ -13,6 +15,10 @@ type StatusPageProps = {
   primaryAction: StatusPageAction;
   secondaryAction?: StatusPageAction;
   tone?: "neutral" | "warning";
+  locale?: AppLocale;
+  homeLabel?: string;
+  nextStepLabel?: string;
+  nextStepBody?: string;
 };
 
 export function StatusPage({
@@ -22,6 +28,10 @@ export function StatusPage({
   primaryAction,
   secondaryAction,
   tone = "neutral",
+  locale = "en",
+  homeLabel = "Home",
+  nextStepLabel = "Next step",
+  nextStepBody = "Head back to a known route, continue browsing the catalog, or reopen the docs.",
 }: StatusPageProps) {
   const accentClass = tone === "warning" ? "text-amber-300" : "text-accent";
   const borderClass =
@@ -32,15 +42,18 @@ export function StatusPage({
     <main className="min-h-screen bg-background px-4 py-16 text-foreground sm:px-6 lg:px-8">
       <div className="mx-auto flex max-w-6xl flex-col gap-10">
         <div className="flex items-center justify-between gap-4">
-          <Link href="/" className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+          <Link
+            href={localizePath(locale, "/")}
+            className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl"
+          >
             VibeBasket
           </Link>
           <Link
-            href="/"
+            href={localizePath(locale, "/")}
             className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:text-accent"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
-            Home
+            {homeLabel}
           </Link>
         </div>
 
@@ -64,11 +77,9 @@ export function StatusPage({
           <div className="flex flex-col justify-between gap-6 border border-border/70 bg-background/40 p-5">
             <div className="space-y-3">
               <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-                Next step
+                {nextStepLabel}
               </p>
-              <p className="text-sm leading-7 text-foreground">
-                Head back to a known route, continue browsing the catalog, or reopen the docs.
-              </p>
+              <p className="text-sm leading-7 text-foreground">{nextStepBody}</p>
             </div>
 
             <div className="flex flex-col gap-3">

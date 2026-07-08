@@ -5,6 +5,12 @@ import { DEFAULT_TARGET_IDS, isSupportedTargetId } from "../lib/targets";
 
 export interface BasketItemTrust {
   tier: "verified" | "official" | "community";
+  sourceKey:
+    | "verified-catalog"
+    | "official-mcp-registry"
+    | "skills-sh-official"
+    | "skills-sh-community"
+    | "community";
   label: string;
   detail: string;
   sourceLabel: string;

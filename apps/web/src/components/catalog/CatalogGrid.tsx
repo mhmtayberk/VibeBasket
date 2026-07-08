@@ -3,6 +3,7 @@
 import type { EnabledAuthProvider } from "@/auth.config";
 import { BasketPanel } from "@/components/basket/BasketPanel";
 import { useDebounce } from "@/hooks/use-debounce";
+import type { AppDictionary } from "@/i18n/dictionaries/en";
 import {
   type CatalogSort,
   type CatalogTrustFilter,
@@ -46,6 +47,8 @@ interface CatalogGridProps {
   isSignedIn?: boolean;
   enabledProviders?: EnabledAuthProvider[];
   userRole?: string;
+  catalogUi: AppDictionary["catalogUi"];
+  basketUi: AppDictionary["basketUi"];
 }
 
 type CatalogApiItem = {
@@ -71,6 +74,13 @@ type CatalogApiItem = {
   sourceUrl?: string | null;
   lastSyncedAt?: string | null;
 };
+
+function formatTemplate(template: string, values: Record<string, string | number>) {
+  return Object.entries(values).reduce(
+    (result, [key, value]) => result.replaceAll(`{${key}}`, String(value)),
+    template,
+  );
+}
 
 function deriveSourceHint(item: CatalogApiItem) {
   const source = item?.data?.source;
@@ -165,6 +175,8 @@ export function CatalogGrid({
   isSignedIn = false,
   enabledProviders = [],
   userRole,
+  catalogUi,
+  basketUi,
 }: CatalogGridProps) {
   const defaultDiscovery = getCatalogDiscoveryDefaults();
   const [items, setItems] = useState<BasketItem[]>(initialCatalog?.items ?? []);
@@ -229,35 +241,28 @@ export function CatalogGrid({
       });
   }, [activeTab, debouncedSearch, discoveryState, page]);
 
-  const tabMap: Record<TabKey, { label: string; eyebrow: string; empty: string }> = {
-    mcps: {
-      label: "MCP Servers",
-      eyebrow: "Trusted runtime connectors",
-      empty: "No MCP servers match this search yet.",
-    },
-    skills: {
-      label: "Skills",
-      eyebrow: "Reusable agent capabilities",
-      empty: "No skills match this search yet.",
-    },
-    rules: {
-      label: "Rules",
-      eyebrow: "Portable working conventions",
-      empty: "No rules match this search yet.",
-    },
-  };
-
+  const tabMap: Record<TabKey, { label: string; eyebrow: string; empty: string }> = catalogUi.tabs;
   const currentTab = tabMap[activeTab];
   const pageStart = pagination.total === 0 ? 0 : (pagination.page - 1) * pagination.limit + 1;
   const pageEnd =
     pagination.total === 0 ? 0 : Math.min(pagination.total, pagination.page * pagination.limit);
   const hasActiveDiscoveryFilters = !isDefaultCatalogDiscoveryState(discoveryState);
+  const trustOptions = TRUST_FILTER_OPTIONS.map((option) => ({
+    ...option,
+    label:
+      catalogUi.filters.trustOptions[option.value as keyof typeof catalogUi.filters.trustOptions],
+  }));
+  const sortOptions = SORT_OPTIONS.map((option) => ({
+    ...option,
+    label:
+      catalogUi.filters.sortOptions[option.value as keyof typeof catalogUi.filters.sortOptions],
+  }));
   const activeFilterSummaries = [
     trustFilter !== defaultDiscovery.trust
-      ? TRUST_FILTER_OPTIONS.find((option) => option.value === trustFilter)?.label
+      ? trustOptions.find((option) => option.value === trustFilter)?.label
       : null,
     sortOption !== defaultDiscovery.sort
-      ? SORT_OPTIONS.find((option) => option.value === sortOption)?.label
+      ? sortOptions.find((option) => option.value === sortOption)?.label
       : null,
   ].filter(Boolean) as string[];
 
@@ -266,28 +271,29 @@ export function CatalogGrid({
       <div className="mx-auto max-w-[1440px] px-4 py-16 pb-36 sm:px-6 sm:pb-40 lg:px-8 lg:py-20 lg:pb-20">
         <div className="max-w-3xl">
           <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-accent">
-            The Builder
+            {catalogUi.builderEyebrow}
           </p>
           <h2 className="mt-5 text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
-            Build your stack without reconfiguring everything by hand.
+            {catalogUi.builderTitle}
           </h2>
           <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground">
-            Browse trusted components, assemble your basket, and generate a single install command
-            for the editors your team actually uses.
+            {catalogUi.builderDescription}
           </p>
         </div>
 
         <div className="mt-8 flex flex-wrap gap-2">
-          {["Trusted sources", "Trust-aware discovery", `${PAGE_SIZE} items per page`].map(
-            (chip) => (
-              <span
-                key={chip}
-                className="inline-flex border border-border/70 bg-background/40 px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground"
-              >
-                {chip}
-              </span>
-            ),
-          )}
+          {[
+            catalogUi.chips.trustedSources,
+            catalogUi.chips.trustAwareDiscovery,
+            formatTemplate(catalogUi.chips.itemsPerPage, { count: PAGE_SIZE }),
+          ].map((chip) => (
+            <span
+              key={chip}
+              className="inline-flex border border-border/70 bg-background/40 px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground"
+            >
+              {chip}
+            </span>
+          ))}
         </div>
 
         <div className="mt-10 grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
@@ -326,8 +332,12 @@ export function CatalogGrid({
                       <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                       <input
                         type="text"
-                        aria-label={`Search ${currentTab.label.toLowerCase()}`}
-                        placeholder={`Search ${currentTab.label.toLowerCase()}...`}
+                        aria-label={formatTemplate(catalogUi.searchPlaceholder, {
+                          label: currentTab.label.toLowerCase(),
+                        })}
+                        placeholder={formatTemplate(catalogUi.searchPlaceholder, {
+                          label: currentTab.label.toLowerCase(),
+                        })}
                         value={searchQuery}
                         onChange={(e) => {
                           setSearchQuery(e.target.value);
@@ -353,7 +363,7 @@ export function CatalogGrid({
                           )}
                         >
                           <SlidersHorizontal className="h-4 w-4" />
-                          Filters
+                          {catalogUi.filters.toggle}
                           {activeFilterSummaries.length > 0 ? (
                             <span className="inline-flex min-w-5 items-center justify-center border border-accent/40 px-1.5 py-0.5 text-[10px] text-accent">
                               {activeFilterSummaries.length}
@@ -388,7 +398,7 @@ export function CatalogGrid({
                               className="inline-flex h-9 items-center gap-2 border border-border/70 px-3 font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:border-accent/40 hover:text-foreground"
                             >
                               <X className="h-3.5 w-3.5" />
-                              Clear
+                              {catalogUi.filters.clear}
                             </button>
                           </>
                         ) : null}
@@ -398,16 +408,16 @@ export function CatalogGrid({
                         <div className="grid gap-3 border border-border/70 bg-background/20 p-3 md:grid-cols-2">
                           {[
                             {
-                              label: "Trust",
+                              label: catalogUi.filters.trust,
                               value: trustFilter,
                               onChange: setTrustFilter,
-                              options: TRUST_FILTER_OPTIONS,
+                              options: trustOptions,
                             },
                             {
-                              label: "Sort",
+                              label: catalogUi.filters.sort,
                               value: sortOption,
                               onChange: setSortOption,
-                              options: SORT_OPTIONS,
+                              options: sortOptions,
                             },
                           ].map((group) => (
                             <div key={group.label}>
@@ -439,15 +449,21 @@ export function CatalogGrid({
 
                     <div className="grid gap-1 text-sm text-muted-foreground xl:text-right">
                       <span>
-                        Showing{" "}
-                        <span className="font-medium text-foreground">
-                          {pageStart}-{pageEnd}
-                        </span>{" "}
-                        of <span className="font-medium text-foreground">{pagination.total}</span>
+                        {formatTemplate(catalogUi.summary.showing, {
+                          start: pageStart,
+                          end: pageEnd,
+                          total: pagination.total,
+                        })}
                       </span>
                       <span className="font-mono text-[11px] uppercase tracking-[0.18em]">
-                        Page {pagination.page}
-                        {pagination.totalPages > 0 ? ` / ${pagination.totalPages}` : ""}
+                        {pagination.totalPages > 0
+                          ? formatTemplate(catalogUi.summary.pageOf, {
+                              page: pagination.page,
+                              totalPages: pagination.totalPages,
+                            })
+                          : formatTemplate(catalogUi.summary.page, {
+                              page: pagination.page,
+                            })}
                       </span>
                     </div>
                   </div>
@@ -459,7 +475,7 @@ export function CatalogGrid({
                   <div className="flex min-h-[420px] flex-col items-center justify-center gap-4 border border-dashed border-border/70 bg-background/20">
                     <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-accent" />
                     <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-                      Loading catalog
+                      {catalogUi.states.loading}
                     </p>
                   </div>
                 ) : error ? (
@@ -479,27 +495,29 @@ export function CatalogGrid({
                           })
                           .catch((retryError) => {
                             setError(
-                              retryError instanceof Error ? retryError.message : "Retry failed",
+                              retryError instanceof Error
+                                ? retryError.message
+                                : catalogUi.states.retryFailed,
                             );
                             setLoading(false);
                           });
                       }}
                       className="border border-border/70 px-4 py-2 font-mono text-[11px] uppercase tracking-[0.18em] text-foreground transition-colors hover:border-accent/50 hover:text-accent"
                     >
-                      Retry request
+                      {catalogUi.states.retry}
                     </button>
                   </div>
                 ) : items.length > 0 ? (
                   <div className="space-y-3">
                     {items.map((item) => (
-                      <ItemCard key={item.id} item={item} />
+                      <ItemCard key={item.id} item={item} copy={catalogUi} />
                     ))}
                   </div>
                 ) : (
                   <div className="flex min-h-[420px] flex-col items-center justify-center gap-3 border border-dashed border-border/70 bg-background/20 px-6 text-center">
                     <p className="text-base font-medium text-foreground">{currentTab.empty}</p>
                     <p className="max-w-md text-sm text-muted-foreground">
-                      Try a broader search term or switch to another catalog category.
+                      {catalogUi.states.emptyHint}
                     </p>
                   </div>
                 )}
@@ -508,7 +526,7 @@ export function CatalogGrid({
               <div className="border-t border-border/70 px-4 py-4 sm:px-5">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <p className="text-sm text-muted-foreground">
-                    Large catalogs stay fast by loading only the current page and active category.
+                    {catalogUi.states.performanceHint}
                   </p>
 
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
@@ -519,7 +537,7 @@ export function CatalogGrid({
                       className="inline-flex h-10 w-full items-center justify-center gap-2 border border-border/70 px-3 font-mono text-[11px] uppercase tracking-[0.18em] text-foreground transition-colors hover:border-accent/40 hover:text-accent disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
                     >
                       <ChevronLeft className="h-4 w-4" />
-                      Previous
+                      {catalogUi.pagination.previous}
                     </button>
                     <button
                       type="button"
@@ -527,7 +545,7 @@ export function CatalogGrid({
                       disabled={!pagination.hasNextPage}
                       className="inline-flex h-10 w-full items-center justify-center gap-2 border border-border/70 px-3 font-mono text-[11px] uppercase tracking-[0.18em] text-foreground transition-colors hover:border-accent/40 hover:text-accent disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
                     >
-                      Next
+                      {catalogUi.pagination.next}
                       <ChevronRight className="h-4 w-4" />
                     </button>
                   </div>
@@ -541,6 +559,7 @@ export function CatalogGrid({
             isSignedIn={isSignedIn}
             enabledProviders={enabledProviders}
             userRole={userRole}
+            copy={basketUi}
           />
         </div>
       </div>

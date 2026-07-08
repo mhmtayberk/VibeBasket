@@ -1,4 +1,9 @@
 import {
+  buildDefaultLocaleRedirectPath,
+  getLocaleFromPathname,
+  shouldRedirectToDefaultLocale,
+} from "@/i18n/locale-routing";
+import {
   DEFAULT_SECURITY_HEADERS,
   createDocumentContentSecurityPolicy,
 } from "@/lib/security-headers";
@@ -21,8 +26,20 @@ function generateNonce() {
 
 export function proxy(request: NextRequest) {
   const nonce = generateNonce();
+  const { pathname, search } = request.nextUrl;
+  const locale = getLocaleFromPathname(pathname) ?? "en";
+
+  if (shouldRedirectToDefaultLocale(pathname)) {
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = buildDefaultLocaleRedirectPath(pathname, "").replace(/\?.*$/, "");
+    redirectUrl.search = search;
+
+    return applyDocumentSecurityHeaders(NextResponse.redirect(redirectUrl, 308), nonce);
+  }
+
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-nonce", nonce);
+  requestHeaders.set("x-locale", locale);
 
   const response = NextResponse.next({
     request: {
@@ -34,5 +51,13 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/", "/admin/:path*", "/docs/:path*", "/login/:path*", "/stacks/:path*"],
+  matcher: [
+    "/",
+    "/admin/:path*",
+    "/docs/:path*",
+    "/login/:path*",
+    "/stacks/:path*",
+    "/:locale(en|tr|es|zh|hi)",
+    "/:locale(en|tr|es|zh|hi)/:path*",
+  ],
 };

@@ -1,5 +1,7 @@
 "use client";
 
+import type { AppLocale } from "@/i18n/config";
+import { localizePath } from "@/i18n/locale-routing";
 import { useRouter } from "next/navigation";
 
 const ALLOWED_TABS = [
@@ -12,21 +14,19 @@ const ALLOWED_TABS = [
   "self-hosting",
 ] as const;
 
-const TAB_LABELS: Record<string, string> = {
-  hub: "Documentation Hub",
-  "getting-started": "Getting Started",
-  cli: "CLI Reference",
-  adapters: "IDE Adapters",
-  delimiters: "Block Delimiters",
-  security: "Secret Security",
-  "self-hosting": "Self-Hosting Guide",
-};
-
 interface MobileTabSelectorProps {
   activeTab: string;
+  locale: AppLocale;
+  tabLabels: Record<string, string>;
+  ariaLabel: string;
 }
 
-export function MobileTabSelector({ activeTab }: MobileTabSelectorProps) {
+export function MobileTabSelector({
+  activeTab,
+  locale,
+  tabLabels,
+  ariaLabel,
+}: MobileTabSelectorProps) {
   const router = useRouter();
 
   return (
@@ -34,14 +34,14 @@ export function MobileTabSelector({ activeTab }: MobileTabSelectorProps) {
       <select
         value={activeTab}
         onChange={(e) => {
-          router.push(`/docs?tab=${e.target.value}`);
+          router.push(`${localizePath(locale, "/docs")}?tab=${e.target.value}`);
         }}
         className="w-full h-10 border border-border/70 bg-card/60 px-3 font-mono text-[11px] uppercase tracking-[0.16em] text-foreground focus:border-accent focus:outline-none"
-        aria-label="Documentation section"
+        aria-label={ariaLabel}
       >
         {ALLOWED_TABS.map((tab) => (
           <option key={tab} value={tab}>
-            {TAB_LABELS[tab]}
+            {tabLabels[tab]}
           </option>
         ))}
       </select>

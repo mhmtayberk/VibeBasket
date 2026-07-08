@@ -1,8 +1,9 @@
 "use client";
 
 import type { EnabledAuthProvider } from "@/auth.config";
+import type { AppDictionary } from "@/i18n/dictionaries/en";
 import { cn } from "@/lib/utils";
-import { ShoppingBasket, X } from "lucide-react";
+import { ShoppingBasket } from "lucide-react";
 import { useEffect, useState } from "react";
 import { BasketPanel } from "./BasketPanel";
 
@@ -11,6 +12,7 @@ interface MobileBasketButtonProps {
   enabledProviders?: EnabledAuthProvider[];
   userRole?: string;
   className?: string;
+  copy: AppDictionary["basketUi"];
 }
 
 export function MobileBasketButton({
@@ -18,6 +20,7 @@ export function MobileBasketButton({
   enabledProviders,
   userRole,
   className,
+  copy,
 }: MobileBasketButtonProps) {
   const [open, setOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -53,7 +56,7 @@ export function MobileBasketButton({
           open && "opacity-0 pointer-events-none",
           className,
         )}
-        aria-label="Open basket"
+        aria-label={copy.title}
       >
         <ShoppingBasket className="h-5 w-5" />
       </button>
@@ -67,6 +70,7 @@ export function MobileBasketButton({
             enabledProviders={enabledProviders}
             userRole={userRole}
             className="h-full w-full rounded-none border-none"
+            copy={copy}
           />
         </div>
       )}

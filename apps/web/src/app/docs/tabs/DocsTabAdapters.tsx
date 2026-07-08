@@ -1,3 +1,5 @@
+import type { AppLocale } from "@/i18n/config";
+import { localizePath } from "@/i18n/locale-routing";
 import {
   RULES_SUPPORTED_TARGET_COUNT,
   SKILLS_SUPPORTED_TARGET_COUNT,
@@ -6,31 +8,81 @@ import {
 import { Power } from "lucide-react";
 import Link from "next/link";
 
-export function DocsTabAdapters() {
+const ADAPTERS_COPY = {
+  en: {
+    title: "IDE Adapters",
+    representative: "Representative Targets",
+    intro:
+      "24 supported targets, each with its own adapter that reads the target's config format, merges entries idempotently, and backs up the original file before writing. MCP configuration is supported on every MCP-capable adapter. Skills are auto-applied on {SKILLS} targets and rules on {RULES}. The CLI now performs post-install verification so adapter writes are checked again after persistence.",
+    representativeLead:
+      "Each adapter is a standalone module in packages/adapters. It resolves the target config path, merges the new MCP entries (and optionally skills/rules), creates a timestamped backup before writing, and is expected to pass a post-install verification step in the CLI.",
+  },
+  tr: {
+    title: "IDE Adaptörleri",
+    representative: "Temsilî Hedefler",
+    intro:
+      "{TOTAL} desteklenen hedef bulunur ve her birinin, hedefin config formatını okuyup girdileri idempotent biçimde merge eden ve yazmadan önce orijinal dosyayı yedekleyen kendi adaptörü vardır. MCP yapılandırması tüm MCP destekli adaptörlerde bulunur. Skill’ler {SKILLS} hedefte, rule’lar ise {RULES} hedefte otomatik uygulanır. CLI artık adaptör yazımlarını kalıcılıktan sonra yeniden kontrol eden post-install verification çalıştırır.",
+    representativeLead:
+      "Her adaptör packages/adapters içinde bağımsız bir modüldür. Hedef config yolunu çözer, yeni MCP girdilerini (ve gerekirse skill/rule içeriklerini) merge eder, yazmadan önce zaman damgalı yedek oluşturur ve CLI içindeki post-install verification adımını geçmesi beklenir.",
+  },
+  es: {
+    title: "Adaptadores IDE",
+    representative: "Objetivos representativos",
+    intro:
+      "Hay {TOTAL} objetivos soportados y cada uno tiene su propio adaptador que lee el formato de configuración del destino, hace merge de entradas de forma idempotente y crea un backup del archivo original antes de escribir. La configuración MCP está soportada en todos los adaptadores con capacidad MCP. Los skills se aplican automáticamente en {SKILLS} objetivos y las rules en {RULES}. El CLI ya realiza verificación posterior a la instalación para volver a comprobar las escrituras del adaptador después de persistir.",
+    representativeLead:
+      "Cada adaptador es un módulo independiente dentro de packages/adapters. Resuelve la ruta de configuración del destino, hace merge de las nuevas entradas MCP (y opcionalmente skills/rules), crea un backup con marca temporal antes de escribir y debe superar el paso de verificación posterior del CLI.",
+  },
+  zh: {
+    title: "IDE 适配器",
+    representative: "代表性目标",
+    intro:
+      "共有 {TOTAL} 个受支持目标，每个目标都有自己的 adapter：读取目标配置格式、以幂等方式合并条目，并在写入前备份原始文件。所有具备 MCP 能力的 adapter 都支持 MCP 配置。Skills 会自动应用到 {SKILLS} 个目标，Rules 会自动应用到 {RULES} 个目标。CLI 现在还会执行安装后校验，确保持久化后的 adapter 写入可再次验证。",
+    representativeLead:
+      "每个 adapter 都是 packages/adapters 中的独立模块。它会解析目标配置路径，合并新的 MCP 条目（必要时也包括 skills/rules），在写入前创建带时间戳的备份，并预期通过 CLI 的安装后校验步骤。",
+  },
+  hi: {
+    title: "IDE Adapters",
+    representative: "प्रतिनिधि targets",
+    intro:
+      "कुल {TOTAL} supported targets हैं, और हर target का अपना adapter है जो target के config format को पढ़ता है, entries को idempotent तरीके से merge करता है, और लिखने से पहले original file का backup बनाता है। हर MCP-capable adapter में MCP configuration supported है। Skills {SKILLS} targets पर और Rules {RULES} targets पर auto-apply होते हैं। CLI अब post-install verification भी चलाता है ताकि persistence के बाद adapter writes दोबारा जाँची जा सकें।",
+    representativeLead:
+      "हर adapter packages/adapters के अंदर एक standalone module है। यह target config path resolve करता है, नई MCP entries (और आवश्यकता होने पर skills/rules) को merge करता है, लिखने से पहले timestamped backup बनाता है, और CLI के post-install verification step को pass करने की अपेक्षा रखता है।",
+  },
+} as const;
+
+const DOCS_HOME_LABEL = {
+  en: "Docs",
+  tr: "Dokümanlar",
+  es: "Documentación",
+  zh: "文档",
+  hi: "दस्तावेज़",
+} as const;
+
+export function DocsTabAdapters({ locale }: { locale: AppLocale }) {
+  const copy = ADAPTERS_COPY[locale];
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
       <div className="font-mono text-[10px] uppercase tracking-widest text-[#a0fdda] mb-12 flex items-center gap-2 select-none">
         <Link
-          href="/docs"
+          href={localizePath(locale, "/docs")}
           className="opacity-80 hover:text-[#a0fdda] transition-colors cursor-pointer"
         >
-          Docs
+          {DOCS_HOME_LABEL[locale]}
         </Link>
         <span className="text-[#bdc9c2]/30">/</span>
-        <span className="text-foreground">IDE Adapters</span>
+        <span className="text-foreground">{copy.title}</span>
       </div>
 
       <div className="mb-24">
         <h1 className="text-4xl sm:text-6xl font-bold tracking-tight text-foreground mb-8 leading-tight">
-          IDE Adapters
+          {copy.title}
         </h1>
         <p className="text-base sm:text-lg text-[#bdc9c2] max-w-3xl leading-relaxed">
-          {SUPPORTED_TARGET_COUNT} supported targets, each with its own adapter that reads the
-          target&apos;s config format, merges entries idempotently, and backs up the original file
-          before writing. MCP configuration is supported on every MCP-capable adapter. Skills are
-          auto-applied on {SKILLS_SUPPORTED_TARGET_COUNT} targets and rules on{" "}
-          {RULES_SUPPORTED_TARGET_COUNT}. The CLI now performs post-install verification so adapter
-          writes are checked again after persistence.
+          {copy.intro
+            .replace("{TOTAL}", String(SUPPORTED_TARGET_COUNT))
+            .replace("{SKILLS}", String(SKILLS_SUPPORTED_TARGET_COUNT))
+            .replace("{RULES}", String(RULES_SUPPORTED_TARGET_COUNT))}
         </p>
       </div>
 
@@ -39,17 +91,15 @@ export function DocsTabAdapters() {
           <div className="flex items-center gap-2.5 mb-8">
             <Power className="h-6 w-6 text-[#ff5722]" />
             <h2 className="text-2xl font-semibold tracking-tight text-foreground">
-              Representative Targets
+              {copy.representative}
             </h2>
           </div>
           <p className="text-sm text-[#bdc9c2] leading-relaxed max-w-3xl mb-10">
-            Each adapter is a standalone module in{" "}
+            {copy.representativeLead.split("packages/adapters")[0]}
             <code className="font-mono text-[11px] text-foreground bg-card px-1.5 py-0.5 rounded-[2px] border border-[#3e4944]">
               packages/adapters
             </code>
-            . It resolves the target config path, merges the new MCP entries (and optionally
-            skills/rules), creates a timestamped backup before writing, and is expected to pass a
-            post-install verification step in the CLI.
+            {copy.representativeLead.split("packages/adapters")[1]}
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-10">

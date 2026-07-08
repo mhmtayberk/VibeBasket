@@ -1,3 +1,4 @@
+import { SUPPORTED_LOCALES } from "@/i18n/config";
 import { resolvePublicBaseUrl } from "@/lib/public-url";
 import { ROBOTS_DISALLOW_PATHS } from "@/lib/seo";
 import type { MetadataRoute } from "next";
@@ -22,7 +23,7 @@ export default async function robots(): Promise<MetadataRoute.Robots> {
   return {
     rules: {
       userAgent: "*",
-      allow: ["/", "/docs"],
+      allow: SUPPORTED_LOCALES.flatMap((locale) => [`/${locale}`, `/${locale}/docs`]),
       disallow: [...ROBOTS_DISALLOW_PATHS],
     },
     sitemap: `${baseUrl.replace(/\/$/, "")}/sitemap.xml`,

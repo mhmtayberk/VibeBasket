@@ -1,5 +1,6 @@
 "use client";
 
+import type { AppLocale } from "@/i18n/config";
 import { useEffect, useState } from "react";
 
 type HealthTone = "healthy" | "warning" | "critical";
@@ -24,7 +25,92 @@ const toneClasses: Record<HealthTone, string> = {
   critical: "border-destructive/30 bg-destructive/10 text-destructive",
 };
 
-export function ReleaseReadinessPanel() {
+const COPY = {
+  en: {
+    eyebrow: "Release Readiness",
+    title: "Prod blockers and deploy-time warnings",
+    description:
+      "This is a lightweight preflight view over auth, backup, storage, and catalog refresh configuration so broken deploys are visible before launch day.",
+    loading: "loading",
+    loadError: "Failed to load release readiness.",
+    blockers: "Blockers",
+    warnings: "Warnings",
+    passingChecks: "Passing Checks",
+    noBlockers: "No immediate prod blockers detected from the current runtime configuration.",
+    blocker: "Blocker",
+    warning: "Warning",
+    currentRuntime: "Current runtime",
+    loadingBody: "Loading release readiness...",
+  },
+  tr: {
+    eyebrow: "Release Readiness",
+    title: "Prod blocker'ları ve deploy sırasında görülen uyarılar",
+    description:
+      "Bu bölüm auth, backup, storage ve catalog refresh yapılandırması üzerinde hafif bir preflight görünümü sunar; böylece bozuk deploy'lar launch öncesinde görünür olur.",
+    loading: "yükleniyor",
+    loadError: "Release readiness yüklenemedi.",
+    blockers: "Blocker'lar",
+    warnings: "Uyarılar",
+    passingChecks: "Geçen kontroller",
+    noBlockers: "Geçerli runtime yapılandırmasında anlık prod blocker tespit edilmedi.",
+    blocker: "Blocker",
+    warning: "Uyarı",
+    currentRuntime: "Mevcut runtime",
+    loadingBody: "Release readiness yükleniyor...",
+  },
+  es: {
+    eyebrow: "Release Readiness",
+    title: "Bloqueos de prod y advertencias de despliegue",
+    description:
+      "Esta es una vista ligera de preflight sobre auth, backup, storage y catalog refresh para que los despliegues rotos sean visibles antes del launch.",
+    loading: "cargando",
+    loadError: "No se pudo cargar release readiness.",
+    blockers: "Bloqueos",
+    warnings: "Advertencias",
+    passingChecks: "Checks correctos",
+    noBlockers:
+      "No se detectaron bloqueos inmediatos de prod en la configuración actual del runtime.",
+    blocker: "Bloqueo",
+    warning: "Advertencia",
+    currentRuntime: "Runtime actual",
+    loadingBody: "Cargando release readiness...",
+  },
+  zh: {
+    eyebrow: "发布准备",
+    title: "生产阻塞项与部署期告警",
+    description:
+      "这是一个针对认证、备份、存储和目录刷新配置的轻量预检视图，让损坏的部署在正式上线前就暴露出来。",
+    loading: "加载中",
+    loadError: "无法加载发布准备状态。",
+    blockers: "阻塞项",
+    warnings: "告警",
+    passingChecks: "通过的检查",
+    noBlockers: "当前运行时配置下未发现立即影响生产的阻塞项。",
+    blocker: "阻塞",
+    warning: "告警",
+    currentRuntime: "当前运行时",
+    loadingBody: "正在加载发布准备状态...",
+  },
+  hi: {
+    eyebrow: "रिलीज़ तैयारी",
+    title: "Prod blockers और तैनाती समय चेतावनियाँ",
+    description:
+      "यह auth, backup, storage और catalog refresh कॉन्फ़िगरेशन का एक हल्का preflight view है, ताकि launch से पहले खराब deploy दिख जाए।",
+    loading: "लोड हो रहा है",
+    loadError: "Release readiness लोड नहीं हो सका।",
+    blockers: "ब्लॉकर",
+    warnings: "चेतावनी",
+    passingChecks: "सफल जांचें",
+    noBlockers: "मौजूदा runtime configuration में कोई तत्काल prod blocker नहीं मिला।",
+    blocker: "ब्लॉकर",
+    warning: "चेतावनी",
+    currentRuntime: "मौजूदा रनटाइम",
+    loadingBody: "Release readiness लोड हो रहा है...",
+  },
+} as const;
+
+export function ReleaseReadinessPanel({ locale }: { locale: AppLocale }) {
+  const copy = COPY[locale];
   const [report, setReport] = useState<ReleaseReadinessReport | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -38,26 +124,23 @@ export function ReleaseReadinessPanel() {
           return;
         }
 
-        setError(result.error ?? "Failed to load release readiness.");
+        setError(result.error ?? copy.loadError);
       })
       .catch(() => {
-        setError("Failed to load release readiness.");
+        setError(copy.loadError);
       });
-  }, []);
+  }, [copy.loadError]);
 
   return (
     <section className="mb-8 border border-border/80 bg-card/70 p-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <div className="font-mono text-[11px] uppercase tracking-[0.18em] text-accent">
-            Release Readiness
+            {copy.eyebrow}
           </div>
-          <h2 className="mt-2 text-xl font-semibold text-foreground">
-            Prod blockers and deploy-time warnings
-          </h2>
+          <h2 className="mt-2 text-xl font-semibold text-foreground">{copy.title}</h2>
           <p className="mt-2 max-w-3xl text-sm leading-relaxed text-muted-foreground">
-            This is a lightweight preflight view over auth, backup, storage, and catalog refresh
-            configuration so broken deploys are visible before launch day.
+            {copy.description}
           </p>
         </div>
         <span
@@ -67,7 +150,7 @@ export function ReleaseReadinessPanel() {
               : "border-border/70 bg-background/50 text-muted-foreground"
           }`}
         >
-          {report ? report.tone : "loading"}
+          {report ? report.tone : copy.loading}
         </span>
       </div>
 
@@ -82,7 +165,7 @@ export function ReleaseReadinessPanel() {
           <div className="mt-6 grid gap-4 md:grid-cols-3">
             <div className="border border-border/70 bg-background/40 p-4">
               <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-                Blockers
+                {copy.blockers}
               </div>
               <div className="mt-2 text-3xl font-bold text-foreground">
                 {report.blockers.length}
@@ -90,7 +173,7 @@ export function ReleaseReadinessPanel() {
             </div>
             <div className="border border-border/70 bg-background/40 p-4">
               <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-                Warnings
+                {copy.warnings}
               </div>
               <div className="mt-2 text-3xl font-bold text-foreground">
                 {report.warnings.length}
@@ -98,7 +181,7 @@ export function ReleaseReadinessPanel() {
             </div>
             <div className="border border-border/70 bg-background/40 p-4">
               <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-                Passing Checks
+                {copy.passingChecks}
               </div>
               <div className="mt-2 text-3xl font-bold text-foreground">{report.checks.length}</div>
             </div>
@@ -108,7 +191,7 @@ export function ReleaseReadinessPanel() {
             <div className="space-y-3">
               {report.blockers.length === 0 && report.warnings.length === 0 ? (
                 <div className="border border-accent/30 bg-accent/10 p-4 text-sm text-accent">
-                  No immediate prod blockers detected from the current runtime configuration.
+                  {copy.noBlockers}
                 </div>
               ) : null}
 
@@ -116,7 +199,7 @@ export function ReleaseReadinessPanel() {
                 <div key={item.key} className="border border-destructive/30 bg-destructive/10 p-4">
                   <div className="flex items-center gap-2">
                     <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-destructive">
-                      Blocker
+                      {copy.blocker}
                     </span>
                     <span className="text-sm font-medium text-foreground">{item.label}</span>
                   </div>
@@ -130,7 +213,7 @@ export function ReleaseReadinessPanel() {
                 <div key={item.key} className="border border-amber-400/30 bg-amber-400/10 p-4">
                   <div className="flex items-center gap-2">
                     <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-amber-300">
-                      Warning
+                      {copy.warning}
                     </span>
                     <span className="text-sm font-medium text-foreground">{item.label}</span>
                   </div>
@@ -144,10 +227,10 @@ export function ReleaseReadinessPanel() {
             <div className="border border-border/70 bg-background/40 p-4">
               <div className="flex items-center justify-between gap-3">
                 <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-accent">
-                  Passing Checks
+                  {copy.passingChecks}
                 </span>
                 <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-                  Current runtime
+                  {copy.currentRuntime}
                 </span>
               </div>
               <div className="mt-4 space-y-3">
@@ -165,7 +248,7 @@ export function ReleaseReadinessPanel() {
         </>
       ) : (
         <div className="mt-6 border border-border/70 bg-background/40 p-4 text-sm text-muted-foreground">
-          Loading release readiness...
+          {copy.loadingBody}
         </div>
       )}
     </section>

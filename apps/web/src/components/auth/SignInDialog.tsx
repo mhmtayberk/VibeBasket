@@ -1,4 +1,6 @@
 import type { EnabledAuthProvider } from "@/auth.config";
+import type { AppLocale } from "@/i18n/config";
+import { localizePath } from "@/i18n/locale-routing";
 import { sanitizeCallbackUrl } from "@/lib/safe-redirect";
 import { LogIn } from "lucide-react";
 import Link from "next/link";
@@ -8,12 +10,13 @@ type SignInDialogProps = {
   callbackUrl?: string;
   triggerLabel?: string;
   triggerClassName?: string;
+  locale?: AppLocale;
 };
 
-function buildLoginHref(callbackUrl: string) {
+function buildLoginHref(locale: AppLocale, callbackUrl: string) {
   const params = new URLSearchParams();
   params.set("callbackUrl", sanitizeCallbackUrl(callbackUrl));
-  return `/login?${params.toString()}`;
+  return `${localizePath(locale, "/login")}?${params.toString()}`;
 }
 
 export function SignInDialog({
@@ -21,8 +24,9 @@ export function SignInDialog({
   callbackUrl = "/",
   triggerLabel = "Sign in",
   triggerClassName,
+  locale = "en",
 }: SignInDialogProps) {
-  const href = buildLoginHref(callbackUrl);
+  const href = buildLoginHref(locale, callbackUrl);
 
   return (
     <Link
