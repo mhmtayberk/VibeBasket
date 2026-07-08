@@ -1,14 +1,19 @@
 "use client";
 
+import type { AppLocale } from "@/i18n/config";
+import { localizePath } from "@/i18n/locale-routing";
 import { Search } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 interface DocSearchBarProps {
   initialQuery: string;
+  locale: AppLocale;
+  placeholder: string;
+  ariaLabel: string;
 }
 
-export function DocSearchBar({ initialQuery }: DocSearchBarProps) {
+export function DocSearchBar({ initialQuery, locale, placeholder, ariaLabel }: DocSearchBarProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [value, setValue] = useState(initialQuery);
@@ -38,10 +43,10 @@ export function DocSearchBar({ initialQuery }: DocSearchBarProps) {
           params.delete("q");
         }
 
-        router.push(`/docs?${params.toString()}`, { scroll: false });
+        router.push(`${localizePath(locale, "/docs")}?${params.toString()}`, { scroll: false });
       }, 300);
     },
-    [router, searchParams],
+    [locale, router, searchParams],
   );
 
   // Clear on Escape
@@ -51,10 +56,10 @@ export function DocSearchBar({ initialQuery }: DocSearchBarProps) {
         setValue("");
         const params = new URLSearchParams(searchParams.toString());
         params.delete("q");
-        router.push(`/docs?${params.toString()}`, { scroll: false });
+        router.push(`${localizePath(locale, "/docs")}?${params.toString()}`, { scroll: false });
       }
     },
-    [router, searchParams],
+    [locale, router, searchParams],
   );
 
   return (
@@ -65,8 +70,8 @@ export function DocSearchBar({ initialQuery }: DocSearchBarProps) {
         value={value}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
-        placeholder="Search docs…"
-        aria-label="Search documentation"
+        placeholder={placeholder}
+        aria-label={ariaLabel}
         className="bg-transparent border-none p-0 text-xs font-mono focus:ring-0 text-foreground placeholder:text-[#bdc9c2]/50 w-full focus:outline-none"
       />
     </div>

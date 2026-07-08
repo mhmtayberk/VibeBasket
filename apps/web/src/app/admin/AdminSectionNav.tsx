@@ -7,12 +7,13 @@ export type AdminSectionLink = {
 
 type AdminSectionNavProps = {
   sections: AdminSectionLink[];
+  ariaLabel?: string;
 };
 
-export function AdminSectionNav({ sections }: AdminSectionNavProps) {
+export function AdminSectionNav({ sections, ariaLabel = "Admin sections" }: AdminSectionNavProps) {
   return (
     <nav
-      aria-label="Admin sections"
+      aria-label={ariaLabel}
       className="sticky top-[73px] z-30 -mx-4 mb-8 border-y border-border/80 bg-background/90 px-4 py-3 backdrop-blur-md sm:top-[81px] sm:mx-0 sm:px-0"
     >
       <div className="overflow-x-auto">

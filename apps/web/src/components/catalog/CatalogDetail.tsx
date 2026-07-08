@@ -1,5 +1,6 @@
 "use client";
 
+import type { AppDictionary } from "@/i18n/dictionaries/en";
 import type { BasketItem } from "@/store/basketStore";
 import { isAllowedRemoteMcpUrl } from "@vibebasket/core/manifest";
 import { ExternalLink, Globe, X } from "lucide-react";
@@ -8,6 +9,14 @@ interface CatalogDetailProps {
   item: BasketItem;
   open: boolean;
   onClose: () => void;
+  copy: AppDictionary["catalogUi"];
+}
+
+function formatTemplate(template: string, values: Record<string, string | number>) {
+  return Object.entries(values).reduce(
+    (result, [key, value]) => result.replaceAll(`{${key}}`, String(value)),
+    template,
+  );
 }
 
 function isGithubSource(
@@ -30,7 +39,7 @@ function isNpmSource(data: unknown): data is { type: "npm"; package: string; ver
   );
 }
 
-export function CatalogDetail({ item, open, onClose }: CatalogDetailProps) {
+export function CatalogDetail({ item, open, onClose, copy }: CatalogDetailProps) {
   if (!open) return null;
 
   const mcpData = item.mcpData;
@@ -40,23 +49,22 @@ export function CatalogDetail({ item, open, onClose }: CatalogDetailProps) {
   const skillSource = skillData?.source;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
       <button
         type="button"
-        aria-label="Close item details"
+        aria-label={copy.detail.close}
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         onClick={onClose}
       />
       <dialog
         open
-        className="relative z-10 w-full sm:max-w-lg max-h-[85vh] overflow-y-auto border-t sm:border border-border/80 bg-card px-0 pb-0 shadow-[0_0_60px_rgba(0,0,0,0.9)] sm:rounded-[2px]"
+        className="relative z-10 max-h-[85vh] w-full overflow-y-auto border-t border-border/80 bg-card px-0 pb-0 shadow-[0_0_60px_rgba(0,0,0,0.9)] sm:max-w-lg sm:rounded-[2px] sm:border"
       >
-        {/* Header */}
-        <div className="sticky top-0 z-10 flex items-start justify-between border-b border-border/70 bg-card px-5 sm:px-6 py-4">
+        <div className="sticky top-0 z-10 flex items-start justify-between border-b border-border/70 bg-card px-5 py-4 sm:px-6">
           <div className="min-w-0 pr-4">
-            <div className="flex items-center gap-2 mb-1">
+            <div className="mb-1 flex items-center gap-2">
               <span
-                className={`font-mono text-[10px] uppercase tracking-[0.16em] px-2 py-0.5 border shrink-0 ${
+                className={`shrink-0 border px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.16em] ${
                   item.type === "mcp"
                     ? "border-orange-500/30 bg-orange-500/10 text-orange-400"
                     : "border-accent/30 bg-accent/10 text-accent"
@@ -66,7 +74,7 @@ export function CatalogDetail({ item, open, onClose }: CatalogDetailProps) {
               </span>
               {item.trust && (
                 <span
-                  className={`font-mono text-[9px] uppercase tracking-[0.14em] px-1.5 py-0.5 border ${
+                  className={`border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em] ${
                     item.trust.tier === "verified"
                       ? "border-accent/30 bg-accent/10 text-accent"
                       : item.trust.tier === "official"
@@ -74,7 +82,7 @@ export function CatalogDetail({ item, open, onClose }: CatalogDetailProps) {
                         : "border-border/50 bg-background/30 text-muted-foreground"
                   }`}
                 >
-                  {item.trust.label}
+                  {copy.trust.tiers[item.trust.tier]}
                 </span>
               )}
             </div>
@@ -83,33 +91,30 @@ export function CatalogDetail({ item, open, onClose }: CatalogDetailProps) {
           <button
             type="button"
             onClick={onClose}
-            className="shrink-0 inline-flex h-8 w-8 items-center justify-center border border-border/60 text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
+            className="inline-flex h-8 w-8 shrink-0 items-center justify-center border border-border/60 text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
-        <div className="px-5 sm:px-6 py-5 space-y-5">
-          {/* Description */}
+        <div className="space-y-5 px-5 py-5 sm:px-6">
           {item.description && (
-            <p className="text-sm text-muted-foreground leading-relaxed">{item.description}</p>
+            <p className="text-sm leading-relaxed text-muted-foreground">{item.description}</p>
           )}
 
-          {/* Trust info */}
           {item.trust && (
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <Globe className="h-3.5 w-3.5 shrink-0" />
               <span>
-                {item.trust.sourceLabel} · {item.trust.detail}
+                {copy.trust.sources[item.trust.sourceKey]} · {copy.trust.details[item.trust.tier]}
               </span>
             </div>
           )}
 
-          {/* MCP Installation */}
           {mcpData && item.type === "mcp" && (
             <div className="space-y-2">
               <h3 className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-                Install Command
+                {copy.detail.installCommand}
               </h3>
               <div className="border border-border/50 bg-background/30 p-4 font-mono text-[11px] text-foreground">
                 <div>
@@ -123,20 +128,20 @@ export function CatalogDetail({ item, open, onClose }: CatalogDetailProps) {
                 </div>
                 {safeRemoteUrl && (
                   <div className="mt-1">
-                    <span className="text-muted-foreground">url:</span>{" "}
+                    <span className="text-muted-foreground">{copy.detail.url}:</span>{" "}
                     <a
                       href={safeRemoteUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-accent hover:underline break-all"
+                      className="break-all text-accent hover:underline"
                     >
                       {safeRemoteUrl}
                     </a>
                   </div>
                 )}
                 {mcpData.env && Object.keys(mcpData.env).length > 0 && (
-                  <div className="mt-2 pt-2 border-t border-border/30">
-                    <span className="text-muted-foreground">env:</span>
+                  <div className="mt-2 border-t border-border/30 pt-2">
+                    <span className="text-muted-foreground">{copy.detail.env}:</span>
                     {Object.entries(mcpData.env).map(([k, v]) => (
                       <div key={k} className="ml-2">
                         <span className="text-accent">{k}</span>=
@@ -147,21 +152,21 @@ export function CatalogDetail({ item, open, onClose }: CatalogDetailProps) {
                 )}
               </div>
               {mcpData.requiredSecrets?.length ? (
-                <p className="text-[10px] text-muted-foreground/70 leading-relaxed">
-                  Requires secrets: {mcpData.requiredSecrets.join(", ")}. Prompts locally by CLI.
-                  Never sent to servers.
+                <p className="text-[10px] leading-relaxed text-muted-foreground/70">
+                  {formatTemplate(copy.detail.requiresSecrets, {
+                    secrets: mcpData.requiredSecrets.join(", "),
+                  })}
                 </p>
               ) : null}
             </div>
           )}
 
-          {/* Skill Source */}
           {skillSource && item.type === "skill" && (
             <div className="space-y-2">
               <h3 className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-                Source
+                {copy.detail.source}
               </h3>
-              <div className="border border-border/50 bg-background/30 p-4 space-y-1.5 font-mono text-[11px]">
+              <div className="space-y-1.5 border border-border/50 bg-background/30 p-4 font-mono text-[11px]">
                 {isGithubSource(skillSource) && (
                   <>
                     <div>
@@ -170,7 +175,7 @@ export function CatalogDetail({ item, open, onClose }: CatalogDetailProps) {
                         href={`https://github.com/${skillSource.repo}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-accent hover:underline break-all"
+                        className="break-all text-accent hover:underline"
                       >
                         github.com/{skillSource.repo}
                       </a>
@@ -204,26 +209,26 @@ export function CatalogDetail({ item, open, onClose }: CatalogDetailProps) {
             </div>
           )}
 
-          {/* Rule Content */}
           {ruleData && item.type === "rule" && (
             <div className="space-y-2">
               <h3 className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-                Rule Content
+                {copy.detail.ruleContent}
               </h3>
               <div className="border border-border/50 bg-background/30 p-4">
-                <pre className="font-mono text-[11px] text-foreground whitespace-pre-wrap break-words leading-relaxed max-h-64 overflow-y-auto custom-scrollbar">
+                <pre className="custom-scrollbar max-h-64 overflow-y-auto whitespace-pre-wrap break-words font-mono text-[11px] leading-relaxed text-foreground">
                   {ruleData.content}
                 </pre>
               </div>
             </div>
           )}
 
-          {/* Freshness + ID */}
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground border-t border-border/30 pt-4">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-border/30 pt-4 text-xs text-muted-foreground">
             {item.trust?.lastSyncedAt && (
               <span className="flex items-center gap-1">
                 <Globe className="h-3 w-3" />
-                Synced {new Date(item.trust.lastSyncedAt).toLocaleDateString()}
+                {formatTemplate(copy.detail.synced, {
+                  date: new Date(item.trust.lastSyncedAt).toLocaleDateString(),
+                })}
               </span>
             )}
             <span className="flex items-center gap-1 font-mono text-[10px]">

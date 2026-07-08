@@ -1,13 +1,15 @@
 "use client";
 
+import type { AppDictionary } from "@/i18n/dictionaries/en";
 import { cn } from "@/lib/utils";
 import { type BasketItem, useBasketStore } from "@/store/basketStore";
-import { Check, ExternalLink, FileText, Server, Sparkles } from "lucide-react";
+import { Check, FileText, Server, Sparkles } from "lucide-react";
 import { memo, useState } from "react";
 import { CatalogDetail } from "./CatalogDetail";
 
 interface ItemCardProps {
   item: BasketItem;
+  copy: AppDictionary["catalogUi"];
 }
 
 function ItemIcon({ type }: Pick<BasketItem, "type">) {
@@ -16,7 +18,7 @@ function ItemIcon({ type }: Pick<BasketItem, "type">) {
   return <FileText className="h-4 w-4" />;
 }
 
-function ItemCardRaw({ item }: ItemCardProps) {
+function ItemCardRaw({ item, copy }: ItemCardProps) {
   const toggleItem = useBasketStore((s) => s.toggleItem);
   const selected = useBasketStore((s) => s.items.some((x) => x.id === item.id));
   const [showDetail, setShowDetail] = useState(false);
@@ -73,30 +75,31 @@ function ItemCardRaw({ item }: ItemCardProps) {
                 </span>
                 {item.trust ? (
                   <span
-                    title={item.trust.detail}
+                    title={copy.trust.details[item.trust.tier]}
                     className={cn(
                       "inline-flex border px-2 py-1 font-mono text-[10px] uppercase tracking-[0.18em]",
                       trustTone,
                     )}
                   >
-                    {item.trust.label}
+                    {copy.trust.tiers[item.trust.tier]}
                   </span>
                 ) : null}
                 {selected ? (
                   <span className="inline-flex border border-accent/60 bg-accent/10 px-2 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-accent">
-                    Selected
+                    {copy.itemCard.selected}
                   </span>
                 ) : null}
               </div>
 
               <p className="mt-2 line-clamp-2 max-w-3xl text-sm leading-6 text-muted-foreground">
-                {item.description ||
-                  "Trusted catalog component ready to bundle into your AI dev setup."}
+                {item.description || copy.itemCard.fallbackDescription}
               </p>
 
               <div className="mt-3 flex flex-wrap items-center gap-3 text-xs">
                 {item.trust ? (
-                  <span className="text-muted-foreground">{item.trust.sourceLabel}</span>
+                  <span className="text-muted-foreground">
+                    {copy.trust.sources[item.trust.sourceKey]}
+                  </span>
                 ) : null}
                 {item.sourceMeta?.hint ? (
                   <span className="truncate text-muted-foreground/90">{item.sourceMeta.hint}</span>
@@ -120,12 +123,17 @@ function ItemCardRaw({ item }: ItemCardProps) {
       <button
         type="button"
         onClick={() => setShowDetail(true)}
-        className="w-full border-x border-b border-border/80 bg-card/50 px-4 py-1.5 text-right font-mono text-[9px] uppercase tracking-[0.14em] text-muted-foreground/60 hover:text-accent hover:bg-accent/5 transition-colors"
+        className="w-full border-x border-b border-border/80 bg-card/50 px-4 py-1.5 text-right font-mono text-[9px] uppercase tracking-[0.14em] text-muted-foreground/60 transition-colors hover:bg-accent/5 hover:text-accent"
       >
-        Details →
+        {copy.itemCard.details} →
       </button>
       {showDetail && (
-        <CatalogDetail item={item} open={showDetail} onClose={() => setShowDetail(false)} />
+        <CatalogDetail
+          item={item}
+          open={showDetail}
+          onClose={() => setShowDetail(false)}
+          copy={copy}
+        />
       )}
     </div>
   );

@@ -4,6 +4,7 @@ import type { EnabledAuthProvider } from "@/auth.config";
 import { SignInDialog } from "@/components/auth/SignInDialog";
 import { SaveStackDialog } from "@/components/stacks/SaveStackDialog";
 import { SavedStacksPanel } from "@/components/stacks/SavedStacksPanel";
+import type { AppDictionary } from "@/i18n/dictionaries/en";
 import {
   TARGET_OPTIONS,
   getSharedTargetScopes,
@@ -23,6 +24,14 @@ interface BasketPanelProps {
   isSignedIn?: boolean;
   enabledProviders?: EnabledAuthProvider[];
   userRole?: string;
+  copy: AppDictionary["basketUi"];
+}
+
+function formatTemplate(template: string, values: Record<string, string | number>) {
+  return Object.entries(values).reduce(
+    (result, [key, value]) => result.replaceAll(`{${key}}`, String(value)),
+    template,
+  );
 }
 
 export function BasketPanel({
@@ -32,6 +41,7 @@ export function BasketPanel({
   isSignedIn = false,
   enabledProviders = [],
   userRole,
+  copy,
 }: BasketPanelProps) {
   const items = useBasketStore((s) => s.items);
   const targets = useBasketStore((s) => s.targetIds);
@@ -67,16 +77,33 @@ export function BasketPanel({
     return false;
   });
 
+  const breakdown = (["mcp", "skill", "rule"] as const)
+    .filter((type) => itemCounts[type])
+    .map((type) => {
+      const count = itemCounts[type];
+      const label =
+        count === 1
+          ? copy.typeLabels[type]
+          : copy.typeLabels[`${type}s` as keyof typeof copy.typeLabels];
+      return `${count} ${label}`;
+    })
+    .join(", ");
+
+  const unsupportedCapabilities = [
+    hasSkills ? copy.typeLabels.skills : "",
+    hasRules ? copy.typeLabels.rules : "",
+  ]
+    .filter(Boolean)
+    .join(" / ");
+
   const handleBuild = async () => {
     if (items.length === 0 || targets.length === 0) {
-      toast.error("Pick at least one item and one target IDE.");
+      toast.error(copy.pickAtLeastOne);
       return;
     }
 
     if (!resolvedScope) {
-      toast.error(
-        "Those targets do not share one install scope yet. Pick only user-scope or only project-scope targets together.",
-      );
+      toast.error(copy.sharedScopeRequired);
       return;
     }
 
@@ -92,7 +119,7 @@ export function BasketPanel({
         }),
       });
       if (!response.ok) {
-        throw new Error("Failed to build bundle");
+        throw new Error(copy.failedToBuild);
       }
 
       const data = await response.json();
@@ -101,9 +128,9 @@ export function BasketPanel({
       if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(command);
       }
-      toast.success("Install command copied to clipboard.");
+      toast.success(copy.copiedToClipboard);
     } catch {
-      toast.error("Failed to generate bundle command.");
+      toast.error(copy.failedToGenerate);
     } finally {
       setIsBuilding(false);
     }
@@ -111,7 +138,7 @@ export function BasketPanel({
 
   const toggleTarget = (targetId: string) => {
     if (!isSupportedTargetId(targetId)) {
-      toast.message("This target is planned, but not supported by the apply engine yet.");
+      toast.message(copy.plannedTarget);
       return;
     }
 
@@ -131,21 +158,23 @@ export function BasketPanel({
       <div className="flex items-center justify-between border-b border-border/70 px-4 py-4">
         <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-            Your Basket
+            {copy.eyebrow}
           </p>
-          <h2 className="mt-2 text-2xl font-semibold text-foreground">Ready to bundle</h2>
+          <h2 className="mt-2 text-2xl font-semibold text-foreground">{copy.title}</h2>
         </div>
 
         <div className="flex items-center gap-2">
           <span className="inline-flex min-w-10 justify-center border border-border/70 bg-background/50 px-2 py-1 font-mono text-[11px] text-foreground">
-            {items.length} item{items.length === 1 ? "" : "s"}
+            {formatTemplate(items.length === 1 ? copy.itemsOne : copy.itemsOther, {
+              count: items.length,
+            })}
           </span>
           {variant === "modal" && onClose ? (
             <button
               type="button"
               onClick={onClose}
               className="inline-flex h-9 w-9 items-center justify-center border border-border/70 text-muted-foreground transition-colors hover:border-accent/60 hover:text-foreground"
-              aria-label="Close basket"
+              aria-label={copy.closeAria}
             >
               <X className="h-4 w-4" />
             </button>
@@ -157,7 +186,7 @@ export function BasketPanel({
         <div className="space-y-3">
           {items.length === 0 ? (
             <div className="border border-dashed border-border/70 px-4 py-8 text-center text-sm text-muted-foreground">
-              Select MCPs, skills, and rules from the builder to assemble your setup.
+              {copy.empty}
             </div>
           ) : (
             <>
@@ -169,7 +198,7 @@ export function BasketPanel({
                       className="inline-flex items-center gap-2 border border-border/70 bg-background/45 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground"
                     >
                       <span className="text-accent">{itemCounts[type]}</span>
-                      <span>{`${type}s`}</span>
+                      <span>{copy.typeLabels[`${type}s` as keyof typeof copy.typeLabels]}</span>
                     </div>
                   ) : null,
                 )}
@@ -202,7 +231,7 @@ export function BasketPanel({
                       type="button"
                       onClick={() => removeItem(item.id)}
                       className="inline-flex h-8 w-8 shrink-0 items-center justify-center text-muted-foreground transition-colors hover:text-destructive"
-                      aria-label={`Remove ${item.name}`}
+                      aria-label={formatTemplate(copy.removeAria, { name: item.name })}
                     >
                       <X className="h-4 w-4" />
                     </button>
@@ -223,7 +252,9 @@ export function BasketPanel({
               ) : (
                 <ChevronsDown className="h-3.5 w-3.5" />
               )}
-              {showAllItems ? "Collapse list" : `Show ${items.length - 6} more`}
+              {showAllItems
+                ? copy.collapseList
+                : formatTemplate(copy.showMore, { count: items.length - 6 })}
             </button>
           ) : null}
         </div>
@@ -231,19 +262,19 @@ export function BasketPanel({
         <div className="space-y-3 border-t border-border/70 pt-5">
           <div className="flex items-center justify-between">
             <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-              Target IDEs
+              {copy.targetIdes}
             </p>
             <button
               type="button"
               onClick={() => {
                 clearBasket();
                 setBundleCommand(null);
-                toast.success("Basket cleared.");
+                toast.success(copy.basketCleared);
               }}
               className="inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
             >
               <Trash2 className="h-3.5 w-3.5" />
-              Clear
+              {copy.clear}
             </button>
           </div>
 
@@ -251,10 +282,10 @@ export function BasketPanel({
             <div>
               <div className="mb-2 flex items-center justify-between">
                 <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-accent">
-                  Works today
+                  {copy.worksToday}
                 </p>
                 <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-                  {supportedTargets.length} targets
+                  {formatTemplate(copy.targetsCount, { count: supportedTargets.length })}
                 </span>
               </div>
 
@@ -289,10 +320,10 @@ export function BasketPanel({
               <div>
                 <div className="mb-2 flex items-center justify-between">
                   <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-                    Ecosystem watchlist
+                    {copy.ecosystemWatchlist}
                   </p>
                   <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground/80">
-                    {roadmapTargets.length} soon
+                    {formatTemplate(copy.soonCount, { count: roadmapTargets.length })}
                   </span>
                 </div>
 
@@ -320,16 +351,14 @@ export function BasketPanel({
 
           {incompatibleTargets.length > 0 && (
             <p className="text-xs leading-6 text-amber-300/90">
-              {incompatibleTargets.map((t) => t.label).join(", ")}: doesn&apos;t support{" "}
-              {[hasSkills ? "Skills" : "", hasRules ? "Rules" : ""].filter(Boolean).join(" or ")}.
-              These will be skipped during apply.
+              {formatTemplate(copy.unsupportedTargets, {
+                targets: incompatibleTargets.map((t) => t.label).join(", "),
+                capabilities: unsupportedCapabilities,
+              })}
             </p>
           )}
           {hasScopeConflict && (
-            <p className="text-xs leading-6 text-amber-300/90">
-              Selected targets do not share one install scope. Combine user-scope targets together,
-              or switch to a project-scope-only target set.
-            </p>
+            <p className="text-xs leading-6 text-amber-300/90">{copy.scopeConflict}</p>
           )}
         </div>
 
@@ -347,9 +376,7 @@ export function BasketPanel({
                 <SignInDialog providers={enabledProviders} callbackUrl="/stacks" />
               ) : null}
               {!isSignedIn ? (
-                <p className="text-xs leading-6 text-muted-foreground">
-                  Sign in to save reusable stacks to your profile.
-                </p>
+                <p className="text-xs leading-6 text-muted-foreground">{copy.signInToSave}</p>
               ) : null}
             </div>
           )}
@@ -363,39 +390,41 @@ export function BasketPanel({
 
         <div className="space-y-3 border-t border-border/70 pt-5">
           <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-            Bundle Preview
+            {copy.bundlePreview}
           </p>
-          <div className="border border-border/70 bg-background/60 p-4 font-mono text-[11px] leading-6 text-muted-foreground space-y-1">
+          <div className="space-y-1 border border-border/70 bg-background/60 p-4 font-mono text-[11px] leading-6 text-muted-foreground">
             {items.length === 0 ? (
-              <p>Select items to preview your bundle.</p>
+              <p>{copy.previewEmpty}</p>
             ) : (
               <>
                 <p>
-                  {items.length} item{items.length !== 1 ? "s" : ""}:{" "}
-                  {(["mcp", "skill", "rule"] as const)
-                    .filter((t) => itemCounts[t])
-                    .map((t) => `${itemCounts[t]} ${t}${itemCounts[t] !== 1 ? "s" : ""}`)
-                    .join(", ")}
+                  {formatTemplate(items.length === 1 ? copy.previewItemsOne : copy.previewItems, {
+                    count: items.length,
+                    breakdown,
+                  })}
                 </p>
                 <p>
-                  → {targets.length} target{targets.length !== 1 ? "s" : ""}
+                  →{" "}
+                  {formatTemplate(
+                    targets.length === 1 ? copy.previewTargetsOne : copy.previewTargets,
+                    { count: targets.length },
+                  )}
                 </p>
                 {resolvedScope ? (
                   <p>
-                    → scope: {resolvedScope}
-                    {sharedScopes.length > 1 ? " (auto-selected)" : ""}
+                    → {formatTemplate(copy.previewScope, { scope: resolvedScope })}
+                    {sharedScopes.length > 1 ? copy.previewAutoSelected : ""}
                   </p>
                 ) : null}
                 {incompatibleTargets.length > 0 && (
                   <p className="text-amber-300/90">
-                    → {incompatibleTargets.map((t) => t.label).join(", ")}: skills/rules skipped
+                    →{" "}
+                    {formatTemplate(copy.previewIncompatible, {
+                      targets: incompatibleTargets.map((t) => t.label).join(", "),
+                    })}
                   </p>
                 )}
-                {hasScopeConflict && (
-                  <p className="text-amber-300/90">
-                    → no shared scope across selected targets; bundle generation is blocked
-                  </p>
-                )}
+                {hasScopeConflict && <p className="text-amber-300/90">→ {copy.previewBlocked}</p>}
               </>
             )}
           </div>
@@ -403,7 +432,7 @@ export function BasketPanel({
 
         <div className="space-y-3 border-t border-border/70 pt-5">
           <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-            Install Command
+            {copy.installCommand}
           </p>
           <div className="border border-border/70 bg-background/60 p-4 font-mono text-[12px] leading-6 text-muted-foreground">
             {bundleCommand ? (
@@ -413,17 +442,19 @@ export function BasketPanel({
                   <Copy className="h-4 w-4 shrink-0 text-foreground" />
                 </div>
                 <div className="space-y-1 text-[11px]">
-                  <p>&gt; Fetching basket configuration...</p>
-                  <p>&gt; Resolving trusted MCP components...</p>
-                  <p className="text-accent">&gt; Ready to apply across your selected IDEs.</p>
+                  <p>&gt; {copy.fetching}</p>
+                  <p>&gt; {copy.resolving}</p>
+                  <p className="text-accent">&gt; {copy.ready}</p>
                 </div>
               </div>
             ) : (
               <div className="space-y-1 text-[11px]">
                 <p className="text-accent">$ npx vibebasket apply &lt;bundle-url&gt;</p>
                 <p>
-                  &gt; Your generated command will appear here
-                  {resolvedScope ? ` (${resolvedScope} scope).` : "."}
+                  &gt;{" "}
+                  {formatTemplate(copy.generatedCommandWillAppear, {
+                    scopeSuffix: resolvedScope ? ` (${resolvedScope} scope).` : ".",
+                  })}
                 </p>
               </div>
             )}
@@ -437,10 +468,10 @@ export function BasketPanel({
           >
             {isBuilding ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
             {isBuilding
-              ? "Generating"
+              ? copy.generating
               : bundleCommand
-                ? "Copy Fresh Command"
-                : "Generate Install Command"}
+                ? copy.copyFreshCommand
+                : copy.generateInstallCommand}
           </button>
         </div>
       </div>

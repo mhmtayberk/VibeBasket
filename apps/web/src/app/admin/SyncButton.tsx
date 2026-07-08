@@ -1,9 +1,66 @@
 "use client";
 
+import type { AppLocale } from "@/i18n/config";
 import { useState, useTransition } from "react";
 import { triggerSyncAction } from "./sync-actions";
 
-export function SyncButton() {
+const COPY = {
+  en: {
+    syncing: "Syncing Registry...",
+    trigger: "Trigger Manual Sync",
+    syncingFailed: "Failed to complete registry synchronization.",
+    networkError: "Network error — the sync service may be unavailable.",
+    synced: (items: number, mcps: number, skills: number, duration: number) =>
+      `Synced ${items} items (${mcps} MCPs, ${skills} Skills) in ${duration.toFixed(2)}s.`,
+    okPrefix: "[OK]",
+    errPrefix: "[ERR]",
+  },
+  tr: {
+    syncing: "Registry senkronu başlatılıyor...",
+    trigger: "Manuel Senkronu Başlat",
+    syncingFailed: "Katalog senkronizasyonu tamamlanamadı.",
+    networkError: "Ağ hatası — senkron servisi şu an ulaşılamıyor olabilir.",
+    synced: (items: number, mcps: number, skills: number, duration: number) =>
+      `${items} öğe senkronlandı (${mcps} MCP, ${skills} Skill) ${duration.toFixed(2)}s.`,
+    okPrefix: "[TAMAM]",
+    errPrefix: "[HATA]",
+  },
+  es: {
+    syncing: "Sincronizando registro...",
+    trigger: "Ejecutar sincronización manual",
+    syncingFailed: "No se pudo completar la sincronización del catálogo.",
+    networkError: "Error de red: puede que el servicio de sincronización no esté disponible.",
+    synced: (items: number, mcps: number, skills: number, duration: number) =>
+      `Sincronizados ${items} elementos (${mcps} MCPs, ${skills} Skills) en ${duration.toFixed(2)}s.`,
+    okPrefix: "[OK]",
+    errPrefix: "[ERR]",
+  },
+  zh: {
+    syncing: "正在同步注册表…",
+    trigger: "触发手动同步",
+    syncingFailed: "无法完成目录同步。",
+    networkError: "网络错误 — 同步服务可能暂时不可用。",
+    synced: (items: number, mcps: number, skills: number, duration: number) =>
+      `已同步 ${items} 项（${mcps} 个 MCP，${skills} 个 Skill）用时 ${duration.toFixed(2)} 秒。`,
+    okPrefix: "[完成]",
+    errPrefix: "[错误]",
+  },
+  hi: {
+    syncing: "रजिस्ट्री सिंक हो रही है...",
+    trigger: "मैनुअल सिंक चलाएं",
+    syncingFailed: "कैटलॉग सिंक पूरा नहीं हुआ।",
+    networkError: "नेटवर्क त्रुटि — सिंक सेवा उपलब्ध नहीं हो सकती।",
+    synced: (items: number, mcps: number, skills: number, duration: number) =>
+      `${items} आइटम सिंक हो गए (${mcps} MCP, ${skills} Skills) ${duration.toFixed(2)}s में।`,
+    okPrefix: "[ठीक]",
+    errPrefix: "[त्रुटि]",
+  },
+} as const;
+
+const copyForLocale = (locale: AppLocale) => COPY[locale];
+
+export function SyncButton({ locale }: { locale: AppLocale }) {
+  const copy = copyForLocale(locale);
   const [isPending, startTransition] = useTransition();
   const [result, setResult] = useState<{
     success: boolean;
@@ -18,19 +75,21 @@ export function SyncButton() {
         if (response.success && response.summary) {
           setResult({
             success: true,
-            message: `Synced ${response.summary.totalItems} items (${response.summary.mcps} MCPs, ${response.summary.skills} Skills) in ${(response.summary.durationMs / 1000).toFixed(2)}s.`,
+            message: copy.synced(
+              response.summary.totalItems,
+              response.summary.mcps,
+              response.summary.skills,
+              response.summary.durationMs / 1000,
+            ),
           });
         } else {
           setResult({
             success: false,
-            message: response.error || "Failed to complete registry synchronization.",
+            message: response.error || copy.syncingFailed,
           });
         }
       } catch (error: unknown) {
-        const message =
-          error instanceof Error
-            ? error.message
-            : "Network error — the sync service may be unavailable.";
+        const message = error instanceof Error ? error.message : copy.networkError;
         setResult({ success: false, message });
       }
     });
@@ -71,10 +130,10 @@ export function SyncButton() {
                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
               />
             </svg>
-            Syncing Registry...
+            {copy.syncing}
           </>
         ) : (
-          "Trigger Manual Sync"
+          copy.trigger
         )}
       </button>
 
@@ -86,7 +145,8 @@ export function SyncButton() {
               : "border-destructive/30 bg-destructive/10 text-destructive"
           }`}
         >
-          <span className="font-bold">{result.success ? "[OK]" : "[ERR]"}</span> {result.message}
+          <span className="font-bold">{result.success ? copy.okPrefix : copy.errPrefix}</span>{" "}
+          {result.message}
         </div>
       )}
     </div>

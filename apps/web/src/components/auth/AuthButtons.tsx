@@ -9,6 +9,7 @@ type AuthButtonsProps = {
   providers: EnabledAuthProvider[];
   callbackUrl?: string;
   className?: string;
+  continueWithLabel?: string;
 };
 
 type ProviderIconProps = SVGProps<SVGSVGElement> & {
@@ -117,7 +118,12 @@ function MicrosoftProviderIcon(props: ProviderIconProps) {
   );
 }
 
-export function AuthButtons({ providers, callbackUrl = "/", className }: AuthButtonsProps) {
+export function AuthButtons({
+  providers,
+  callbackUrl = "/",
+  className,
+  continueWithLabel = "Continue with",
+}: AuthButtonsProps) {
   const redirectTo = sanitizeCallbackUrl(callbackUrl);
 
   return (
@@ -136,7 +142,9 @@ export function AuthButtons({ providers, callbackUrl = "/", className }: AuthBut
           >
             <span className="inline-flex items-center gap-3">
               {getProviderIcon(provider.id)}
-              <span>Continue with {provider.label}</span>
+              <span>
+                {continueWithLabel} {provider.label}
+              </span>
             </span>
             <ArrowRight className="h-4 w-4 text-muted-foreground" />
           </button>

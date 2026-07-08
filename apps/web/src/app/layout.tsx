@@ -2,46 +2,19 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { resolveLocale } from "@/i18n/config";
 import { resolvePublicBaseUrl } from "@/lib/public-url";
+import { headers } from "next/headers";
 
 export const metadata: Metadata = {
   metadataBase: new URL(resolvePublicBaseUrl()),
   applicationName: "VibeBasket",
-  title: "VibeBasket — AI Setup Bundles for MCPs, Skills, and Rules",
-  description:
-    "Bundle trusted MCP servers, skills, and rules into one shareable install. Pick your stack, generate a link, and apply it across every AI IDE and CLI.",
-  keywords: [
-    "AI coding",
-    "MCP server",
-    "Cursor IDE",
-    "Windsurf IDE",
-    "vibe coding",
-    "LLM development",
-    "Claude Desktop",
-    "coding automation",
-  ],
+  title: "VibeBasket",
+  description: "Bundle trusted MCP servers, skills, and rules into one shareable install flow.",
   authors: [{ name: "VibeBasket Team" }],
   icons: {
     icon: [{ url: "/icon", type: "image/png", sizes: "64x64" }],
     apple: [{ url: "/apple-icon", sizes: "180x180", type: "image/png" }],
-  },
-  alternates: {
-    canonical: "/",
-  },
-  openGraph: {
-    title: "VibeBasket — AI Setup Bundles for MCPs, Skills, and Rules",
-    description:
-      "Share one install flow for your AI dev stack. Trusted MCPs, skills, and rules for Cursor, Windsurf, Claude Code, and more.",
-    url: "/",
-    siteName: "VibeBasket",
-    locale: "en_US",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "VibeBasket — AI Setup Bundles for MCPs, Skills, and Rules",
-    description:
-      "Share one install flow for trusted MCPs, skills, and rules across every AI coding tool.",
   },
   robots: {
     index: true,
@@ -57,13 +30,16 @@ export const viewport: Viewport = {
   colorScheme: "dark",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const requestHeaders = await headers();
+  const locale = resolveLocale(requestHeaders.get("x-locale"));
+
   return (
-    <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth">
+    <html lang={locale} suppressHydrationWarning data-scroll-behavior="smooth">
       <body className="font-sans antialiased">
         <ThemeProvider
           attribute="class"

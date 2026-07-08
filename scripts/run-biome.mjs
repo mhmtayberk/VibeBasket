@@ -6,8 +6,8 @@ import { fileURLToPath } from "node:url";
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const workspaceRoot = path.resolve(scriptDir, "..");
 const packageCandidates = [
-  path.join(process.cwd(), "package.json"),
   path.join(workspaceRoot, "package.json"),
+  path.join(process.cwd(), "package.json"),
 ];
 
 function resolveBiomeEntry() {
