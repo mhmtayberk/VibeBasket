@@ -34,7 +34,7 @@
     "verify:ci": "pnpm guard:public-env && pnpm test:guards && pnpm lint && pnpm typecheck && pnpm build:packages && pnpm build:web && pnpm test"
   },
   "devDependencies": {
-    "@biomejs/biome": "^1.9.4",
+    "@biomejs/biome": "^2.5.3",
     "typescript": "^5.7.3",
     "vitest": "^3.2.6"
   }
