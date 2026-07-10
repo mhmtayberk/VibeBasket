@@ -10,7 +10,7 @@ import {
 
 describe("i18n config", () => {
   it("keeps the expected supported locales", () => {
-    expect(SUPPORTED_LOCALES).toEqual(["en", "tr", "es", "zh", "hi"]);
+    expect(SUPPORTED_LOCALES).toEqual(["en", "tr", "es", "zh", "hi", "ru"]);
     expect(DEFAULT_LOCALE).toBe("en");
   });
 
@@ -18,6 +18,7 @@ describe("i18n config", () => {
     expect(isSupportedLocale("en")).toBe(true);
     expect(isSupportedLocale("zh")).toBe(true);
     expect(isSupportedLocale("hi")).toBe(true);
+    expect(isSupportedLocale("ru")).toBe(true);
     expect(isSupportedLocale("de")).toBe(false);
     expect(resolveLocale("tr")).toBe("tr");
     expect(resolveLocale("zh")).toBe("zh");
@@ -39,6 +40,7 @@ describe("locale routing", () => {
   it("localizes public paths", () => {
     expect(localizePath("tr", "/docs")).toBe("/tr/docs");
     expect(localizePath("es", "/")).toBe("/es");
+    expect(localizePath("ru", "/docs")).toBe("/ru/docs");
   });
 
   it("knows which public routes should redirect to default locale", () => {

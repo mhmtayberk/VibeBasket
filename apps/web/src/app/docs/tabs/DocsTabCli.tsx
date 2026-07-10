@@ -187,6 +187,43 @@ const CLI_COPY = {
     rollbackDescription:
       "Interactive restore flow खोलता है, हाल के timestamped backups में से चुनने देता है, और फिर चुना गया adapter config snapshot restore करता है। Project-scoped backups के लिए इसे उसी project root से चलाएँ जहाँ restore करना है।",
   },
+  ru: {
+    title: "Справочник CLI",
+    intro:
+      "Справочник по локальному установщику и диагностическим командам. CLI спроектирован так, чтобы запускаться на машине оператора, идемпотентно применять bundle’ы и не изображать поддержку того, чего адаптер на самом деле не умеет.",
+    architecture: "Базовая архитектура",
+    commands: "Доступные команды",
+    scope: "Текущий scope",
+    architectureBody:
+      "CLI vibebasket работает как идемпотентный локальный установщик. Когда ему передают bundle URL или локальный manifest-файл, он получает manifest, применяет только те возможности, которые реально поддерживает целевой адаптер, пропускает цели или MCP-записи, которые не может безопасно представить, создаёт backup известных конфигов перед реальным изменением и проверяет результат записи там, где поддерживается readback.",
+    applyDescription:
+      "Основная команда. Принимает hosted bundle URL или локальный JSON manifest-файл, валидирует manifest и применяет каждый элемент (MCP servers, skills, rules) ко всем совместимым локальным адаптерам. Адаптеры создают backup только тогда, когда действительно требуется мутация MCP-конфига, и выполняют merge идемпотентно, поэтому запускать apply дважды безопасно. Если цель не может корректно поддержать часть bundle, CLI честно помечает её как skipped, а не делает вид, что установка прошла успешно.",
+    scopeBody:
+      "apply остаётся основным путём установки. Также уже доступны вспомогательные команды list, search, doctor, init и rollback.",
+    flagsTitle: "apply — Флаги",
+    otherCommands: "Другие команды",
+    flagColumn: "Флаг",
+    typeColumn: "Тип",
+    descriptionColumn: "Описание",
+    forceDescription:
+      "Пропускает интерактивное подтверждение доверия и позволяет merge MCP в адаптере перезаписывать существующую запись MCP, если уже встречается тот же id.",
+    scopeDescription:
+      "Переопределяет scope bundle’а. user устанавливает в домашнюю директорию, project — относительно текущей рабочей директории.",
+    dryRunDescription:
+      "Показывает ожидаемые изменения конфигурации без записи на диск. Отображает конфигурацию цели, которая была бы применена.",
+    noVerifyDescription:
+      "Пропускает post-install проверки readback. Полезно только для debugging или редких локальных сред, где readback временно ненадёжен.",
+    listDescription:
+      "Сканирует все {TARGETS} IDE-целей и показывает установленные MCP servers, skills и rules по каждой цели.",
+    searchDescription:
+      "Ищет по каталогу VibeBasket из терминала через FTS5 full-text index. Возвращает до 10 совпадений из hosted каталога по MCP, Skills и Rules. Текущая terminal-поверхность намеренно лёгкая и больше подходит для быстрого discovery, чем для полного визуального просмотра.",
+    initDescription:
+      "Создаёт структуру рабочей директории .vibebasket/ и локальный шаблон файла .vibebasket.env для project-scoped secret’ов и assets.",
+    doctorDescription:
+      "Диагностирует локальную среду: проверяет структуру проекта .vibebasket, наличие конфигов адаптеров, при возможности считает MCP и печатает краткую сводку окружения для текущей машины.",
+    rollbackDescription:
+      "Открывает интерактивный restore flow, позволяет выбрать один из недавних backup’ов с timestamp и затем восстанавливает выбранный snapshot конфигурации адаптера. Для project-scoped backup’ов запускайте команду из того же корня проекта, который хотите восстановить.",
+  },
 } as const;
 
 const DOCS_HOME_LABEL = {
@@ -195,10 +232,13 @@ const DOCS_HOME_LABEL = {
   es: "Documentación",
   zh: "文档",
   hi: "दस्तावेज़",
+  ru: "Документация",
 } as const;
 
 export function DocsTabCli({ locale }: { locale: AppLocale }) {
-  const copy = CLI_COPY[locale];
+  const copy = CLI_COPY[locale as keyof typeof CLI_COPY] ?? CLI_COPY.en;
+  const docsHomeLabel =
+    DOCS_HOME_LABEL[locale as keyof typeof DOCS_HOME_LABEL] ?? DOCS_HOME_LABEL.en;
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
       <div className="font-mono text-[10px] uppercase tracking-widest text-[#a0fdda] mb-12 flex items-center gap-2 select-none">
@@ -206,7 +246,7 @@ export function DocsTabCli({ locale }: { locale: AppLocale }) {
           href={localizePath(locale, "/docs")}
           className="opacity-80 hover:text-[#a0fdda] transition-colors cursor-pointer"
         >
-          {DOCS_HOME_LABEL[locale]}
+          {docsHomeLabel}
         </Link>
         <span className="text-[#bdc9c2]/30">/</span>
         <span className="text-foreground">{copy.title}</span>

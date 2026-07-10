@@ -26,7 +26,7 @@ test.describe("VibeBasket — Smoke", () => {
     await expect(page).toHaveTitle(/VibeBasket/);
     await expect(page.locator("#hero-title")).toBeVisible();
     await expect(page.locator("#catalog")).toBeVisible();
-    await expect(page.getByRole("heading", { name: /ready to bundle/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /assemble your basket/i })).toBeVisible();
     await expect(page.getByRole("link", { name: /^GitHub$/i })).toBeVisible();
     await expect(page.getByRole("link", { name: /^npm$/i })).toBeVisible();
   });

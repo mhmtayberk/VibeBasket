@@ -160,6 +160,7 @@ export default async function LocalizedHomePage({
     es: "ES",
     zh: "中文",
     hi: "हि",
+    ru: "RU",
   } satisfies Record<AppLocale, string>;
 
   return (

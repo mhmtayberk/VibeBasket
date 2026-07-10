@@ -57,7 +57,7 @@ export const config = {
     "/docs/:path*",
     "/login/:path*",
     "/stacks/:path*",
-    "/:locale(en|tr|es|zh|hi)",
-    "/:locale(en|tr|es|zh|hi)/:path*",
+    "/:locale(en|tr|es|zh|hi|ru)",
+    "/:locale(en|tr|es|zh|hi|ru)/:path*",
   ],
 };

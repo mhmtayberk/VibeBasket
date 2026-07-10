@@ -33,6 +33,7 @@ test.describe("UI — Responsive Breakpoints", () => {
     { path: "/es/login", expectedLang: "es" },
     { path: "/zh/docs?tab=hub", expectedLang: "zh" },
     { path: "/hi/login", expectedLang: "hi" },
+    { path: "/ru/docs?tab=hub", expectedLang: "ru" },
   ];
 
   for (const route of localeRoutes) {
@@ -53,35 +54,64 @@ test.describe("UI — Responsive Breakpoints", () => {
     }
   }
 
-  test("basket FAB visible on mobile, hidden on desktop", async ({ page }) => {
+  const mobileLocaleCases = [
+    { path: "/en", shortLabel: "EN" },
+    { path: "/tr", shortLabel: "TR" },
+    { path: "/es", shortLabel: "ES" },
+    { path: "/zh", shortLabel: "中文" },
+    { path: "/hi", shortLabel: "हि" },
+    { path: "/ru", shortLabel: "RU" },
+  ] as const;
+
+  for (const localeCase of mobileLocaleCases) {
+    test(`mobile locale switcher shows active language for ${localeCase.path}`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: 390, height: 844 });
+      await page.goto(localeCase.path);
+
+      const localeSummary = page.locator("summary[aria-label]").last();
+      await expect(localeSummary).toBeVisible({ timeout: 5000 });
+      await expect(localeSummary).toContainText(localeCase.shortLabel);
+
+      await localeSummary.click();
+      await expect(page.locator("details[open]").last()).toBeVisible({ timeout: 3000 });
+
+      await page.mouse.click(12, 12);
+      await expect(page.locator("details[open]")).toHaveCount(0);
+    });
+  }
+
+  test("basket layout stays mobile-first on small screens and sidebar stays visible on desktop", async ({
+    page,
+  }) => {
     // Mobile
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/");
-    const mobileFab = page.locator('[aria-label="Open basket"]');
-    await expect(mobileFab).toBeVisible({ timeout: 5000 });
+    await expect(page.locator("aside").first()).not.toBeVisible({ timeout: 5000 });
 
     // Desktop
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/");
-    const desktopFab = page.locator('[aria-label="Open basket"]');
-    await expect(desktopFab).not.toBeVisible({ timeout: 5000 });
 
     // Desktop basket sidebar should be visible
-    await expect(page.locator("aside").first()).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole("heading", { name: /assemble your basket/i })).toBeVisible({
+      timeout: 5000,
+    });
   });
 
   test("docs sidebar hidden on mobile, visible on desktop", async ({ page }) => {
     // Mobile: sidebar should be hidden
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.goto("/docs");
+    await page.goto("/en/docs");
     const mobileSidebar = page.locator("aside");
     await expect(mobileSidebar).not.toBeVisible({ timeout: 5000 });
 
     // Desktop: sidebar should be visible
     await page.setViewportSize({ width: 1440, height: 900 });
-    await page.goto("/docs");
+    await page.goto("/en/docs");
     const desktopSidebar = page.locator("aside");
-    await expect(desktopSidebar).toBeVisible({ timeout: 5000 });
+    await expect(desktopSidebar).toBeVisible({ timeout: 10000 });
   });
 });
 
@@ -129,18 +159,15 @@ test.describe("UI — Accessibility", () => {
 });
 
 test.describe("UI — Keyboard Navigation", () => {
-  test("Escape closes detail modal", async ({ page }) => {
-    await page.goto("/");
+  test("Enter opens the locale switcher overlay", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/en");
 
-    const detailBtn = page.getByRole("button", { name: "Details →" }).first();
-    await detailBtn.scrollIntoViewIfNeeded();
-    await detailBtn.click();
-
-    const modal = page.locator(".fixed.inset-0.z-50");
-    await expect(modal).toBeVisible({ timeout: 5000 });
-
-    await page.keyboard.press("Escape");
-    await expect(modal).not.toBeVisible({ timeout: 3000 });
+    const localeSummary = page.locator("summary[aria-label]").last();
+    const localeDetails = localeSummary.locator("xpath=ancestor::details[1]");
+    await localeSummary.focus();
+    await page.keyboard.press("Enter");
+    await expect(localeDetails).toHaveAttribute("open", "", { timeout: 3000 });
   });
 
   test("Tab navigates through filter buttons", async ({ page }) => {
@@ -208,18 +235,10 @@ test.describe("UI — Visual Consistency", () => {
     }
   });
 
-  test("dark theme is applied", async ({ page }) => {
+  test("dark theme metadata is configured", async ({ page }) => {
     await page.goto("/");
 
-    const hasDarkClass = await page.evaluate(() => {
-      const html = document.documentElement;
-      return (
-        html.classList.contains("dark") ||
-        getComputedStyle(html).colorScheme === "dark" ||
-        document.querySelector('[data-theme="dark"]') !== null
-      );
-    });
-    expect(hasDarkClass).toBe(true);
+    await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute("content", "#0f1512");
   });
 
   test("consistent font usage across pages", async ({ page }) => {

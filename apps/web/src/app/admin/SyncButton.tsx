@@ -55,9 +55,19 @@ const COPY = {
     okPrefix: "[ठीक]",
     errPrefix: "[त्रुटि]",
   },
+  ru: {
+    syncing: "Синхронизация registry...",
+    trigger: "Запустить ручную синхронизацию",
+    syncingFailed: "Не удалось завершить синхронизацию каталога.",
+    networkError: "Сетевая ошибка — сервис синхронизации может быть недоступен.",
+    synced: (items: number, mcps: number, skills: number, duration: number) =>
+      `Синхронизировано ${items} элементов (${mcps} MCP, ${skills} Skills) за ${duration.toFixed(2)}s.`,
+    okPrefix: "[OK]",
+    errPrefix: "[ERR]",
+  },
 } as const;
 
-const copyForLocale = (locale: AppLocale) => COPY[locale];
+const copyForLocale = (locale: AppLocale) => COPY[locale as keyof typeof COPY] ?? COPY.en;
 
 export function SyncButton({ locale }: { locale: AppLocale }) {
   const copy = copyForLocale(locale);

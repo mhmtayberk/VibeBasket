@@ -8,7 +8,7 @@ export const esDictionary: AppDictionary = {
       who: "Para quién es",
       how: "Cómo funciona",
       catalog: "Catálogo",
-      faq: "FAQ",
+      faq: "Preguntas frecuentes",
       documentation: "Documentación",
       installFlow: "Flujo de instalación",
       buildBasket: "Construye tu cesta",

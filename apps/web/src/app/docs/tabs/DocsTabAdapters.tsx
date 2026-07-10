@@ -49,6 +49,14 @@ const ADAPTERS_COPY = {
     representativeLead:
       "हर adapter packages/adapters के अंदर एक standalone module है। यह target config path resolve करता है, नई MCP entries (और आवश्यकता होने पर skills/rules) को merge करता है, लिखने से पहले timestamped backup बनाता है, और CLI के post-install verification step को pass करने की अपेक्षा रखता है।",
   },
+  ru: {
+    title: "IDE-адаптеры",
+    representative: "Представительные цели",
+    intro:
+      "Поддерживаются {TOTAL} целей, и у каждой есть собственный адаптер, который читает формат конфигурации цели, идемпотентно объединяет записи и сохраняет резервную копию исходного файла перед записью. MCP-конфигурация поддерживается во всех адаптерах с поддержкой MCP. Skills автоматически применяются на {SKILLS} целях, а rules — на {RULES}. CLI также выполняет post-install verification, чтобы повторно проверить запись адаптера после сохранения.",
+    representativeLead:
+      "Каждый адаптер — это отдельный модуль в packages/adapters. Он определяет путь к конфигу цели, объединяет новые MCP-записи (и при необходимости skills/rules), создаёт резервную копию с timestamp перед записью и должен проходить этап post-install verification в CLI.",
+  },
 } as const;
 
 const DOCS_HOME_LABEL = {
@@ -57,10 +65,13 @@ const DOCS_HOME_LABEL = {
   es: "Documentación",
   zh: "文档",
   hi: "दस्तावेज़",
+  ru: "Документация",
 } as const;
 
 export function DocsTabAdapters({ locale }: { locale: AppLocale }) {
-  const copy = ADAPTERS_COPY[locale];
+  const copy = ADAPTERS_COPY[locale as keyof typeof ADAPTERS_COPY] ?? ADAPTERS_COPY.en;
+  const docsHomeLabel =
+    DOCS_HOME_LABEL[locale as keyof typeof DOCS_HOME_LABEL] ?? DOCS_HOME_LABEL.en;
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
       <div className="font-mono text-[10px] uppercase tracking-widest text-[#a0fdda] mb-12 flex items-center gap-2 select-none">
@@ -68,7 +79,7 @@ export function DocsTabAdapters({ locale }: { locale: AppLocale }) {
           href={localizePath(locale, "/docs")}
           className="opacity-80 hover:text-[#a0fdda] transition-colors cursor-pointer"
         >
-          {DOCS_HOME_LABEL[locale]}
+          {docsHomeLabel}
         </Link>
         <span className="text-[#bdc9c2]/30">/</span>
         <span className="text-foreground">{copy.title}</span>

@@ -5,7 +5,7 @@ import { localizePath, stripLocaleFromPathname } from "@/i18n/locale-routing";
 import { Check, ChevronDown, Languages } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type LocaleSwitcherProps = {
   locale: AppLocale;
@@ -19,6 +19,7 @@ const localeNames: Record<AppLocale, string> = {
   es: "Español",
   zh: "简体中文",
   hi: "हिन्दी",
+  ru: "Русский",
 };
 
 export function LocaleSwitcher({ locale, label, localeLabels }: LocaleSwitcherProps) {
@@ -26,32 +27,39 @@ export function LocaleSwitcher({ locale, label, localeLabels }: LocaleSwitcherPr
   const searchParams = useSearchParams();
   const search = searchParams.toString();
   const basePath = stripLocaleFromPathname(pathname);
+  const currentLocaleLabel = localeLabels[locale] ?? locale.toUpperCase();
   const detailsRef = useRef<HTMLDetailsElement | null>(null);
   const [isOpen, setIsOpen] = useState(false);
+
+  const closeMenu = useCallback(() => {
+    if (detailsRef.current) {
+      detailsRef.current.open = false;
+      detailsRef.current.removeAttribute("open");
+    }
+    setIsOpen(false);
+  }, []);
 
   useEffect(() => {
     if (!detailsRef.current) {
       return;
     }
 
-    detailsRef.current.removeAttribute("open");
-    setIsOpen(false);
-  }, []);
+    closeMenu();
+  }, [closeMenu]);
 
   useEffect(() => {
     function handleEscape(event: KeyboardEvent) {
       if (event.key === "Escape") {
-        detailsRef.current?.removeAttribute("open");
-        setIsOpen(false);
+        closeMenu();
       }
     }
 
-    window.addEventListener("keydown", handleEscape);
+    document.addEventListener("keydown", handleEscape, true);
 
     return () => {
-      window.removeEventListener("keydown", handleEscape);
+      document.removeEventListener("keydown", handleEscape, true);
     };
-  }, []);
+  }, [closeMenu]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -60,8 +68,7 @@ export function LocaleSwitcher({ locale, label, localeLabels }: LocaleSwitcherPr
 
     function handlePointerDown(event: PointerEvent) {
       if (!detailsRef.current?.contains(event.target as Node)) {
-        detailsRef.current?.removeAttribute("open");
-        setIsOpen(false);
+        closeMenu();
       }
     }
 
@@ -70,18 +77,32 @@ export function LocaleSwitcher({ locale, label, localeLabels }: LocaleSwitcherPr
     return () => {
       window.removeEventListener("pointerdown", handlePointerDown, true);
     };
-  }, [isOpen]);
+  }, [closeMenu, isOpen]);
 
   return (
     <details
       ref={detailsRef}
       className="relative"
-      onToggle={(event) => {
-        setIsOpen((event.currentTarget as HTMLDetailsElement).open);
+      open={isOpen}
+      onKeyDownCapture={(event) => {
+        if (event.key === "Escape") {
+          event.preventDefault();
+          closeMenu();
+        }
       }}
     >
       <summary
-        className={`flex h-9 list-none items-center gap-1.5 border px-2.5 transition-colors cursor-pointer [&::-webkit-details-marker]:hidden ${
+        onClick={(event) => {
+          event.preventDefault();
+          setIsOpen((current) => !current);
+        }}
+        onKeyDown={(event) => {
+          if (event.key === "Escape") {
+            event.preventDefault();
+            closeMenu();
+          }
+        }}
+        className={`flex h-9 min-w-[4.5rem] list-none items-center justify-between gap-1.5 border px-2.5 transition-colors cursor-pointer [&::-webkit-details-marker]:hidden ${
           isOpen
             ? "border-accent/60 bg-card text-foreground"
             : "border-border/80 bg-card/70 text-muted-foreground hover:border-accent/40 hover:text-foreground"
@@ -89,7 +110,12 @@ export function LocaleSwitcher({ locale, label, localeLabels }: LocaleSwitcherPr
         aria-label={label}
         title={label}
       >
-        <Languages className="h-3.5 w-3.5" aria-hidden="true" />
+        <div className="flex items-center gap-1.5">
+          <Languages className="h-3.5 w-3.5" aria-hidden="true" />
+          <span className="min-w-[1.5rem] text-center text-[11px] font-semibold leading-none">
+            {currentLocaleLabel}
+          </span>
+        </div>
         <ChevronDown
           className={`h-3 w-3 transition-transform ${isOpen ? "rotate-180 text-accent" : ""}`}
           aria-hidden="true"
@@ -121,8 +147,7 @@ export function LocaleSwitcher({ locale, label, localeLabels }: LocaleSwitcherPr
                       : "border-transparent text-muted-foreground hover:border-accent/30 hover:bg-background/50 hover:text-foreground"
                   }`}
                   onClick={() => {
-                    detailsRef.current?.removeAttribute("open");
-                    setIsOpen(false);
+                    closeMenu();
                   }}
                 >
                   <span className="font-mono text-[10px] uppercase tracking-[0.18em]">

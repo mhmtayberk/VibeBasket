@@ -7,6 +7,7 @@ const dictionaryLoaders: Record<AppLocale, () => Promise<AppDictionary>> = {
   es: async () => (await import("./dictionaries/es")).esDictionary,
   zh: async () => (await import("./dictionaries/zh")).zhDictionary,
   hi: async () => (await import("./dictionaries/hi")).hiDictionary,
+  ru: async () => (await import("./dictionaries/ru")).ruDictionary,
 };
 
 export async function getDictionary(locale: AppLocale): Promise<AppDictionary> {

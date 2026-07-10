@@ -9,6 +9,7 @@ const OPEN_GRAPH_LOCALE_MAP: Record<AppLocale, string> = {
   es: "es_ES",
   zh: "zh_CN",
   hi: "hi_IN",
+  ru: "ru_RU",
 };
 
 export function buildLocaleAlternates(basePath: string) {

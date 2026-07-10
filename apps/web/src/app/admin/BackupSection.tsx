@@ -58,65 +58,75 @@ async function getJson<T>(input: RequestInfo, init?: RequestInit): Promise<T> {
   return response.json() as Promise<T>;
 }
 
-const FIELD_LABELS: Record<string, { en: string; tr: string; es: string; zh: string; hi: string }> =
-  {
-    endpoint: {
-      en: "Endpoint URL",
-      tr: "Endpoint URL",
-      es: "URL de endpoint",
-      zh: "端点 URL",
-      hi: "एंडपॉइंट URL",
-    },
-    bucket: {
-      en: "Bucket / Container Name",
-      tr: "Bucket / Container Adı",
-      es: "Nombre de bucket / contenedor",
-      zh: "Bucket/Container adı",
-      hi: "बकेट / कंटेनर नाम",
-    },
-    region: {
-      en: "Region",
-      tr: "Bölge",
-      es: "Región",
-      zh: "地区",
-      hi: "क्षेत्र",
-    },
-    accessKey: {
-      en: "Access Key ID",
-      tr: "Erişim Anahtarı ID",
-      es: "Access Key ID",
-      zh: "访问密钥 ID",
-      hi: "एक्सेस की ID",
-    },
-    secretKey: {
-      en: "Secret Access Key",
-      tr: "Gizli Erişim Anahtarı",
-      es: "Secret Access Key",
-      zh: "密钥",
-      hi: "सीक्रेट एक्सेस की",
-    },
-    connectionString: {
-      en: "Connection String",
-      tr: "Bağlantı Dizesi",
-      es: "Cadena de conexión",
-      zh: "连接字符串",
-      hi: "कनेक्शन स्ट्रिंग",
-    },
-    container: {
-      en: "Container Name",
-      tr: "Container Adı",
-      es: "Nombre del contenedor",
-      zh: "容器名称",
-      hi: "कंटेनर नाम",
-    },
-    projectId: {
-      en: "Project ID",
-      tr: "Proje ID",
-      es: "ID del proyecto",
-      zh: "项目 ID",
-      hi: "प्रोजेक्ट ID",
-    },
-  };
+const FIELD_LABELS: Record<
+  string,
+  { en: string; tr: string; es: string; zh: string; hi: string; ru: string }
+> = {
+  endpoint: {
+    en: "Endpoint URL",
+    tr: "Endpoint URL",
+    es: "URL de endpoint",
+    zh: "端点 URL",
+    hi: "एंडपॉइंट URL",
+    ru: "URL endpoint’а",
+  },
+  bucket: {
+    en: "Bucket / Container Name",
+    tr: "Bucket / Container Adı",
+    es: "Nombre de bucket / contenedor",
+    zh: "Bucket/Container adı",
+    hi: "बकेट / कंटेनर नाम",
+    ru: "Имя bucket / container",
+  },
+  region: {
+    en: "Region",
+    tr: "Bölge",
+    es: "Región",
+    zh: "地区",
+    hi: "क्षेत्र",
+    ru: "Регион",
+  },
+  accessKey: {
+    en: "Access Key ID",
+    tr: "Erişim Anahtarı ID",
+    es: "Access Key ID",
+    zh: "访问密钥 ID",
+    hi: "एक्सेस की ID",
+    ru: "ID access key",
+  },
+  secretKey: {
+    en: "Secret Access Key",
+    tr: "Gizli Erişim Anahtarı",
+    es: "Secret Access Key",
+    zh: "密钥",
+    hi: "सीक्रेट एक्सेस की",
+    ru: "Secret access key",
+  },
+  connectionString: {
+    en: "Connection String",
+    tr: "Bağlantı Dizesi",
+    es: "Cadena de conexión",
+    zh: "连接字符串",
+    hi: "कनेक्शन स्ट्रिंग",
+    ru: "Строка подключения",
+  },
+  container: {
+    en: "Container Name",
+    tr: "Container Adı",
+    es: "Nombre del contenedor",
+    zh: "容器名称",
+    hi: "कंटेनर नाम",
+    ru: "Имя container",
+  },
+  projectId: {
+    en: "Project ID",
+    tr: "Proje ID",
+    es: "ID del proyecto",
+    zh: "项目 ID",
+    hi: "प्रोजेक्ट ID",
+    ru: "ID проекта",
+  },
+};
 
 function backendFields(backend: string): string[] {
   switch (backend) {
@@ -557,9 +567,95 @@ const COPY = {
     noBackups: "कोई बैकअप नहीं मिला",
     switched: (label: string) => `${label} पर बदल गया।`,
   },
+  ru: {
+    loading: "Загружаются элементы управления backup и storage...",
+    loadErrorDefault: "Не удалось загрузить элементы управления backup.",
+    loadErrorStorage: "Не удалось загрузить конфигурацию storage.",
+    configure: "Настроить",
+    cancel: "Отмена",
+    saveAndActivate: "Сохранить и активировать",
+    saving: "Сохранение...",
+    credentialsHelp:
+      "Credentials шифруются с помощью AES-256-GCM. Никогда не хранятся в открытом виде.",
+    fallbackTitle: "Активен fallback storage",
+    backends: "Storage backends",
+    resetToEnv: "Сбросить к env",
+    dbManaged: "Управляется БД",
+    envManaged: "Управляется ENV",
+    table: {
+      backend: "Backend",
+      status: "Статус",
+    },
+    status: {
+      alwaysReady: "Всегда готово",
+      ready: "Готово",
+      missing: "Отсутствует",
+      active: "Активно",
+      edit: "Изменить",
+      setup: "Настроить",
+    },
+    scheduledBackups: "Запланированные backup’ы",
+    periodicSnapshots: "Автоматические периодические snapshots",
+    enable: "Включить",
+    every: "Каждые",
+    hours: "часов",
+    saveSchedule: "Сохранить расписание",
+    scheduleHelp:
+      "Когда опция включена, backup должен запускаться каждые {hours} через вызов защищённого scheduler endpoint. Состояние расписания сохраняется между restart’ами, а метаданные последнего запуска отображаются ниже.",
+    runtime: {
+      lastSuccess: "Последний успешный запуск",
+      lastAttempt: "Последняя попытка",
+      lastResult: "Последний результат",
+      noSuccess: "Нет записей об успешном backup",
+      noAttempt: "Нет записей о попытках",
+      waiting: "Ожидание первого запуска",
+    },
+    operations: "Операции backup",
+    activeCount: (count: number) => ` (${count} активных)`,
+    create: "Создать backup",
+    creating: "Создание...",
+    showBackups: (count: number) => `Показать backup’ы (${count})`,
+    hideBackups: "Скрыть backup’ы",
+    createFailed: "Не удалось создать backup.",
+    deleteFailed: "Удаление не удалось.",
+    deleteMessage: "Удалено",
+    deletedMessage: "Удалено:",
+    restorePrompt: (key: string) => `Восстановить из "${key}"? Текущая БД будет перезаписана.`,
+    restoring: "...",
+    restoreFrom: (key: string) => `Восстановить из "${key}"? Текущая БД будет перезаписана.`,
+    restoreSuccess: "Восстановлено.",
+    restoreError: "Восстановление не удалось.",
+    restoreMessagePrefix: "Восстановить из",
+    deletePrompt: (key: string) => `Удалить "${key}"?`,
+    localFilesystem: "Локальная файловая система",
+    scheduleSaved: "Расписание сохранено.",
+    scheduleFailed: "Не удалось сохранить.",
+    removeConfigPrompt:
+      "Удалить сохранённую конфигурацию? Система вернётся к env vars или local storage.",
+    removeConfigMessage: "Конфигурация удалена.",
+    removeConfigFailed: "Не удалось удалить.",
+    saveFailed: "Не удалось сохранить.",
+    saveFailedMessage: "Не удалось сохранить конфигурацию.",
+    statusText: {
+      noSuccess: "Нет записей об успешном backup",
+      noAttempt: "Нет записей о попытках",
+      waiting: "Ожидание первого запуска",
+    },
+    loadingBackups: "Загрузка backup’ов...",
+    restore: "Восстановить",
+    delete: "Удалить",
+    restoreFailed: "Восстановление не удалось.",
+    errorLoadingBackups: "Не удалось загрузить backup’ы.",
+    restMessage: {
+      ok: "[OK]",
+      err: "[ERR]",
+    },
+    noBackups: "Backup’ы не найдены",
+    switched: (label: string) => `Переключено на ${label}.`,
+  },
 } as const;
 
-const copyForLocale = (locale: AppLocale) => COPY[locale];
+const copyForLocale = (locale: AppLocale) => COPY[locale as keyof typeof COPY] ?? COPY.en;
 
 export function BackupSection({ locale }: { locale: AppLocale }) {
   const copy = copyForLocale(locale);

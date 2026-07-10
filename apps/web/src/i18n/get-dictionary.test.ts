@@ -31,4 +31,10 @@ describe("getDictionary", () => {
 
     expect(dictionary.shared.localeSwitcher.label).toBe("भाषा");
   });
+
+  it("loads russian copy", async () => {
+    const dictionary = await getDictionary("ru");
+
+    expect(dictionary.shared.localeSwitcher.label).toBe("Язык");
+  });
 });

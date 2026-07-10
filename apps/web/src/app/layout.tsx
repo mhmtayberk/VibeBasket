@@ -40,6 +40,9 @@ export default async function RootLayout({
 
   return (
     <html lang={locale} suppressHydrationWarning data-scroll-behavior="smooth">
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+      </head>
       <body className="font-sans antialiased">
         <ThemeProvider
           attribute="class"

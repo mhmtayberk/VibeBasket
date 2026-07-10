@@ -57,6 +57,17 @@ const DELIMITER_COPY = {
     bodyEnd:
       "यह block model repeated apply को सुरक्षित बनाता है। यदि boundary पहले से मौजूद है, तो VibeBasket केवल managed block को replace करता है। यदि boundary नहीं है, तो वह block append करता है और delimiters के बाहर की सामग्री को जस का तस छोड़ देता है।",
   },
+  ru: {
+    title: "Блочные delimiters",
+    intro:
+      "Спецификация идемпотентного локального merge файлов с высокоточным разграничением на уровне блоков.",
+    section: "Идемпотентный безопасный merge",
+    bodyLead:
+      "Когда CLI записывает rulesets, инструкции или кастомные skill-профили в codebase, он предотвращает загрязнение файлов, оборачивая управляемые обновления в строгие delimiters",
+    terminalLabel: "формат rules",
+    bodyEnd:
+      "Такая блочная модель делает повторные apply безопасными. Если граница уже существует, VibeBasket заменяет только управляемый блок. Если её ещё нет, он добавляет блок и оставляет всё за пределами delimiters нетронутым.",
+  },
 } as const;
 
 const DOCS_HOME_LABEL = {
@@ -65,10 +76,13 @@ const DOCS_HOME_LABEL = {
   es: "Documentación",
   zh: "文档",
   hi: "दस्तावेज़",
+  ru: "Документация",
 } as const;
 
 export function DocsTabDelimiters({ locale }: { locale: AppLocale }) {
-  const copy = DELIMITER_COPY[locale];
+  const copy = DELIMITER_COPY[locale as keyof typeof DELIMITER_COPY] ?? DELIMITER_COPY.en;
+  const docsHomeLabel =
+    DOCS_HOME_LABEL[locale as keyof typeof DOCS_HOME_LABEL] ?? DOCS_HOME_LABEL.en;
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
       <div className="font-mono text-[10px] uppercase tracking-widest text-[#a0fdda] mb-12 flex items-center gap-2 select-none">
@@ -76,7 +90,7 @@ export function DocsTabDelimiters({ locale }: { locale: AppLocale }) {
           href={localizePath(locale, "/docs")}
           className="opacity-80 hover:text-[#a0fdda] transition-colors cursor-pointer"
         >
-          {DOCS_HOME_LABEL[locale]}
+          {docsHomeLabel}
         </Link>
         <span className="text-[#bdc9c2]/30">/</span>
         <span className="text-foreground">{copy.title}</span>

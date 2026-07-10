@@ -1,4 +1,4 @@
-export const SUPPORTED_LOCALES = ["en", "tr", "es", "zh", "hi"] as const;
+export const SUPPORTED_LOCALES = ["en", "tr", "es", "zh", "hi", "ru"] as const;
 
 export type AppLocale = (typeof SUPPORTED_LOCALES)[number];
 
