@@ -3,7 +3,6 @@ import { AuthMenu } from "@/components/auth/AuthMenu";
 import { SignInDialog } from "@/components/auth/SignInDialog";
 import { DocSearchBar } from "@/components/docs/DocSearchBar";
 import { MobileTabSelector } from "@/components/docs/MobileTabSelector";
-import { DesktopOnly } from "@/components/layout/DesktopOnly";
 import { LocaleSwitcher } from "@/components/layout/LocaleSwitcher";
 import { type AppLocale, SUPPORTED_LOCALES, isSupportedLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
@@ -195,6 +194,7 @@ export default async function LocalizedDocsPage({
     es: "ES",
     zh: "中文",
     hi: "हि",
+    ru: "RU",
   } satisfies Record<AppLocale, string>;
 
   const tabLabels = {
@@ -206,10 +206,20 @@ export default async function LocalizedDocsPage({
     security: docs.shell.tabs.security,
     "self-hosting": docs.shell.tabs.selfHosting,
   };
-  const isLinkActive = (tabName: keyof typeof tabLabels) => activeTab === tabName;
+
+  const docsResponsiveCss = `
+    .vb-docs-mobile-tabs { display: block; }
+    .vb-docs-desktop-sidebar { display: none; }
+
+    @media (min-width: 1024px) {
+      .vb-docs-mobile-tabs { display: none; }
+      .vb-docs-desktop-sidebar { display: block; }
+    }
+  `;
 
   return (
     <div className="min-h-screen overflow-x-clip bg-background text-foreground antialiased">
+      <style>{docsResponsiveCss}</style>
       <header className="sticky top-0 z-50 border-b border-border/80 bg-background/85 backdrop-blur-md">
         <div className="mx-auto flex max-w-[1440px] flex-wrap items-start justify-between gap-4 px-4 py-4 sm:px-6 md:items-center lg:px-8">
           <div className="flex min-w-0 flex-1 items-center gap-8">
@@ -307,34 +317,34 @@ export default async function LocalizedDocsPage({
         </div>
       </header>
 
-      <MobileTabSelector
-        activeTab={activeTab}
-        locale={locale}
-        tabLabels={tabLabels}
-        ariaLabel={docs.shell.mobileSectionLabel}
-      />
+      <div className="vb-docs-mobile-tabs">
+        <MobileTabSelector
+          activeTab={activeTab}
+          locale={locale}
+          tabLabels={tabLabels}
+          ariaLabel={docs.shell.mobileSectionLabel}
+        />
+      </div>
 
       <main className="mx-auto max-w-[1440px] overflow-x-clip px-4 py-10 sm:px-6 lg:px-8">
         <section className="mb-10 grid gap-8 lg:grid-cols-[280px_minmax(0,1fr)]">
-          <DesktopOnly>
-            <aside>
-              <div className="sticky top-28 space-y-3 border border-border/80 bg-card/60 p-4">
-                {ALLOWED_TABS.map((tabName) => (
-                  <Link
-                    key={tabName}
-                    href={`${localizePath(locale, "/docs")}?tab=${tabName}`}
-                    className={`block border px-3 py-2 font-mono text-[11px] uppercase tracking-[0.18em] transition-colors ${
-                      isLinkActive(tabName)
-                        ? "border-accent bg-accent/10 text-accent"
-                        : "border-border/70 text-muted-foreground hover:border-accent/40 hover:text-foreground"
-                    }`}
-                  >
-                    {tabLabels[tabName as keyof typeof tabLabels]}
-                  </Link>
-                ))}
-              </div>
-            </aside>
-          </DesktopOnly>
+          <aside className="vb-docs-desktop-sidebar">
+            <div className="sticky top-28 space-y-3 border border-border/80 bg-card/60 p-4">
+              {ALLOWED_TABS.map((tabName) => (
+                <Link
+                  key={tabName}
+                  href={`${localizePath(locale, "/docs")}?tab=${tabName}`}
+                  className={`block border px-3 py-2 font-mono text-[11px] uppercase tracking-[0.18em] transition-colors ${
+                    activeTab === tabName
+                      ? "border-accent bg-accent/10 text-accent"
+                      : "border-border/70 text-muted-foreground hover:border-accent/40 hover:text-foreground"
+                  }`}
+                >
+                  {tabLabels[tabName as keyof typeof tabLabels]}
+                </Link>
+              ))}
+            </div>
+          </aside>
 
           <div className="min-w-0 overflow-x-clip">
             {activeTab === "hub" ? (

@@ -30,14 +30,14 @@ interface DocsTabHubProps {
 export function DocsTabHub({ locale, searchQuery, guides, shell }: DocsTabHubProps) {
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
-      <div className="mb-12 flex flex-wrap items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-[#a0fdda] select-none">
+      <div className="mb-12 flex flex-wrap items-center gap-2 break-words font-mono text-[10px] uppercase tracking-widest text-[#a0fdda] select-none">
         <span className="opacity-80">{shell.docsHome}</span>
         <span className="text-[#bdc9c2]/30">/</span>
         <span className="text-foreground">{shell.architecturalHub}</span>
       </div>
 
       <div className="mb-24">
-        <span className="mb-8 inline-block max-w-full rounded-[2px] border border-[#a0fdda]/20 bg-[#a0fdda]/5 px-4 py-2 font-mono text-[10px] uppercase leading-relaxed tracking-[0.22em] text-[#a0fdda] select-none">
+        <span className="mb-8 inline-block max-w-full break-words whitespace-normal rounded-[2px] border border-[#a0fdda]/20 bg-[#a0fdda]/5 px-4 py-2 font-mono text-[10px] uppercase leading-relaxed tracking-[0.22em] text-[#a0fdda] select-none">
           {shell.technicalSpecs}
         </span>
         <h1 className="text-4xl sm:text-6xl font-bold tracking-tight text-foreground mb-8 leading-tight">
@@ -51,7 +51,7 @@ export function DocsTabHub({ locale, searchQuery, guides, shell }: DocsTabHubPro
             href="https://github.com/mhmtayberk/VibeBasket"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex min-h-11 max-w-full items-center gap-2 border border-[#3e4944] bg-[#181d1a] px-4 py-2 font-mono text-[11px] uppercase tracking-[0.18em] text-[#bdc9c2] transition-colors hover:border-[#a0fdda]/50 hover:text-[#f4fbf7]"
+            className="inline-flex min-h-11 max-w-full items-center gap-2 break-words whitespace-normal border border-[#3e4944] bg-[#181d1a] px-4 py-2 font-mono text-[11px] uppercase tracking-[0.18em] text-[#bdc9c2] transition-colors hover:border-[#a0fdda]/50 hover:text-[#f4fbf7]"
           >
             <ArrowUpRight className="h-3.5 w-3.5 text-[#a0fdda]" />
             {shell.githubRepository}
@@ -60,7 +60,7 @@ export function DocsTabHub({ locale, searchQuery, guides, shell }: DocsTabHubPro
             href="https://www.npmjs.com/package/vibebasket"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex min-h-11 max-w-full items-center gap-2 border border-[#3e4944] bg-[#181d1a] px-4 py-2 font-mono text-[11px] uppercase tracking-[0.18em] text-[#bdc9c2] transition-colors hover:border-[#a0fdda]/50 hover:text-[#f4fbf7]"
+            className="inline-flex min-h-11 max-w-full items-center gap-2 break-words whitespace-normal border border-[#3e4944] bg-[#181d1a] px-4 py-2 font-mono text-[11px] uppercase tracking-[0.18em] text-[#bdc9c2] transition-colors hover:border-[#a0fdda]/50 hover:text-[#f4fbf7]"
           >
             <Package2 className="h-3.5 w-3.5 text-[#a0fdda]" />
             {shell.npmPackage}

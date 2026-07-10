@@ -9,6 +9,7 @@ describe("i18n metadata", () => {
       es: "/es/docs",
       zh: "/zh/docs",
       hi: "/hi/docs",
+      ru: "/ru/docs",
     });
   });
 
@@ -27,6 +28,7 @@ describe("i18n metadata", () => {
       es: "/es/docs",
       zh: "/zh/docs",
       hi: "/hi/docs",
+      ru: "/ru/docs",
       "x-default": "/en/docs",
     });
     expect(metadata.openGraph?.locale).toBe("tr_TR");

@@ -178,6 +178,7 @@ export default async function LocalizedAdminDashboardPage({
       es: "Base activa",
       zh: "活跃基数",
       hi: "सक्रिय आधार",
+      ru: "Активная база",
     },
     registeredUsers: {
       en: "Registered users utilizing stacks",
@@ -185,6 +186,7 @@ export default async function LocalizedAdminDashboardPage({
       es: "Usuarios registrados que usan stacks",
       zh: "正在使用 Stack 的已注册用户",
       hi: "Stack का उपयोग करने वाले पंजीकृत उपयोगकर्ता",
+      ru: "Зарегистрированные пользователи, использующие stack’и",
     },
     savedEcosystems: {
       en: "Saved Ecosystems",
@@ -192,6 +194,7 @@ export default async function LocalizedAdminDashboardPage({
       es: "Ecosistemas guardados",
       zh: "已保存的生态配置",
       hi: "सहेजे गए इकोसिस्टम",
+      ru: "Сохранённые экосистемы",
     },
     namedBundles: {
       en: "Named bundles successfully configured",
@@ -199,6 +202,7 @@ export default async function LocalizedAdminDashboardPage({
       es: "Bundles con nombre configurados correctamente",
       zh: "已成功配置的命名 bundle",
       hi: "सफलतापूर्वक कॉन्फ़िगर किए गए नामित bundles",
+      ru: "Именованные bundle’ы, настроенные без ошибок",
     },
     registrySync: {
       en: "Registry Sync",
@@ -206,6 +210,7 @@ export default async function LocalizedAdminDashboardPage({
       es: "Sync del registry",
       zh: "注册表同步",
       hi: "रजिस्ट्री सिंक",
+      ru: "Синхронизация registry",
     },
     success: {
       en: "Success",
@@ -213,6 +218,7 @@ export default async function LocalizedAdminDashboardPage({
       es: "Correcto",
       zh: "成功",
       hi: "सफल",
+      ru: "Успешно",
     },
     failed: {
       en: "Failed",
@@ -220,6 +226,7 @@ export default async function LocalizedAdminDashboardPage({
       es: "Fallido",
       zh: "失败",
       hi: "विफल",
+      ru: "Ошибка",
     },
     lastSynced: {
       en: "Last Synced",
@@ -227,6 +234,7 @@ export default async function LocalizedAdminDashboardPage({
       es: "Último sync",
       zh: "上次同步",
       hi: "पिछला सिंक",
+      ru: "Последняя синхронизация",
     },
     never: {
       en: "Never",
@@ -234,6 +242,7 @@ export default async function LocalizedAdminDashboardPage({
       es: "Nunca",
       zh: "从未",
       hi: "कभी नहीं",
+      ru: "Никогда",
     },
     stable: {
       en: "Stable",
@@ -241,6 +250,7 @@ export default async function LocalizedAdminDashboardPage({
       es: "Estable",
       zh: "稳定",
       hi: "स्थिर",
+      ru: "Стабильно",
     },
     durationLabel: {
       en: "Duration",
@@ -248,6 +258,7 @@ export default async function LocalizedAdminDashboardPage({
       es: "Duración",
       zh: "持续时长",
       hi: "अवधि",
+      ru: "Длительность",
     },
     noDuration: {
       en: "0s",
@@ -255,6 +266,7 @@ export default async function LocalizedAdminDashboardPage({
       es: "0s",
       zh: "0 秒",
       hi: "0 सेकंड",
+      ru: "0 c",
     },
     ingestedMcps: {
       en: "Ingested MCPs",
@@ -262,6 +274,7 @@ export default async function LocalizedAdminDashboardPage({
       es: "MCP ingeridos",
       zh: "已摄入 MCP",
       hi: "इनजेस्ट किए गए MCP",
+      ru: "Загруженные MCP",
     },
     ingestedSkills: {
       en: "Ingested Skills",
@@ -269,6 +282,7 @@ export default async function LocalizedAdminDashboardPage({
       es: "Skills ingeridas",
       zh: "已摄入 Skill",
       hi: "इनजेस्ट किए गए Skills",
+      ru: "Загруженные Skills",
     },
     catalogFreshnessTitle: {
       en: "Catalog Freshness",
@@ -276,6 +290,7 @@ export default async function LocalizedAdminDashboardPage({
       es: "Actualización del catálogo",
       zh: "目录新鲜度",
       hi: "कैटलॉग ताजगी",
+      ru: "Актуальность каталога",
     },
     catalogFreshnessDescription: {
       en: "Age of the freshest synced catalog row.",
@@ -283,6 +298,7 @@ export default async function LocalizedAdminDashboardPage({
       es: "Tiempo desde la entrada más reciente sincronizada del catálogo.",
       zh: "最新同步目录条目的时间间隔。",
       hi: "नवीनतम सिंक किए गए कैटलॉग आइटम की उम्र।",
+      ru: "Возраст самой свежей синхронизированной записи каталога.",
     },
     syncResilienceTitle: {
       en: "Sync Resilience",
@@ -290,6 +306,7 @@ export default async function LocalizedAdminDashboardPage({
       es: "Resistencia de sincronización",
       zh: "同步韧性",
       hi: "सिंक्रोनाइज़ेशन स्थिरता",
+      ru: "Устойчивость синхронизации",
     },
     syncResilienceDescription: {
       en: "Consecutive failed sync runs from the latest attempt backward.",
@@ -297,6 +314,7 @@ export default async function LocalizedAdminDashboardPage({
       es: "Ejecuciones de sincronización fallidas consecutivas desde el último intento.",
       zh: "从最近一次尝试起向后追溯的连续失败同步次数。",
       hi: "नवीनतम प्रयास से पीछे क्रमिक विफल सिंक रन।",
+      ru: "Количество подряд неудачных sync-run’ов, начиная с последней попытки.",
     },
     sourceCoverageTitle: {
       en: "Source Coverage",
@@ -304,6 +322,7 @@ export default async function LocalizedAdminDashboardPage({
       es: "Cobertura de fuentes",
       zh: "来源覆盖",
       hi: "स्रोत कवरेज",
+      ru: "Покрытие источников",
     },
     sourceCoverageBadge: {
       en: "3 collectors",
@@ -311,6 +330,7 @@ export default async function LocalizedAdminDashboardPage({
       es: "3 recolectores",
       zh: "3 个采集器",
       hi: "3 संग्रहकर्ता",
+      ru: "3 коллектора",
     },
     sourceCoverageDescription: {
       en: "Rows currently attributed to built-in sync collectors.",
@@ -318,6 +338,7 @@ export default async function LocalizedAdminDashboardPage({
       es: "Filas actualmente asociadas a recolectores de sincronización integrados.",
       zh: "当前归属于内置同步采集器的记录。",
       hi: "वर्तमान में पंक्तियाँ अंतर्निहित सिंक कलेक्टरों को आवंटित हैं।",
+      ru: "Строки, которые сейчас привязаны к встроенным коллекторам синхронизации.",
     },
     popularIntegrations: {
       en: "Popular Integrations",
@@ -325,6 +346,7 @@ export default async function LocalizedAdminDashboardPage({
       es: "Integraciones populares",
       zh: "热门集成",
       hi: "लोकप्रिय एकीकरण",
+      ru: "Популярные интеграции",
     },
     topSelectionLabel: {
       en: "Top 5 selections",
@@ -332,6 +354,7 @@ export default async function LocalizedAdminDashboardPage({
       es: "Top 5 selecciones",
       zh: "前 5 个",
       hi: "शीर्ष 5 चयन",
+      ru: "Топ-5 выборов",
     },
     noStacksYet: {
       en: "No stack items saved yet. Popularity calculations will appear once users save bundles.",
@@ -339,6 +362,7 @@ export default async function LocalizedAdminDashboardPage({
       es: "Aún no hay elementos de stack guardados. Se mostrarán los cálculos al guardar bundles.",
       zh: "尚未保存堆栈项目。用户保存 bundle 后将显示热门度统计。",
       hi: "अभी तक कोई stack आइटम सेव नहीं। उपयोगकर्ता bundle सेव करें तो लोकप्रियता दिखेगी।",
+      ru: "Пока нет сохранённых элементов stack’ов. Популярность появится, когда пользователи начнут сохранять bundle’ы.",
     },
     tableIndex: {
       en: "#",
@@ -346,6 +370,7 @@ export default async function LocalizedAdminDashboardPage({
       es: "#",
       zh: "#",
       hi: "#",
+      ru: "#",
     },
     integrationLabel: {
       en: "Integration",
@@ -353,6 +378,7 @@ export default async function LocalizedAdminDashboardPage({
       es: "Integración",
       zh: "集成",
       hi: "इंटीग्रेशन",
+      ru: "Интеграция",
     },
     typeLabel: {
       en: "Type",
@@ -360,6 +386,7 @@ export default async function LocalizedAdminDashboardPage({
       es: "Tipo",
       zh: "类型",
       hi: "प्रकार",
+      ru: "Тип",
     },
     usageLabel: {
       en: "Usage",
@@ -367,6 +394,7 @@ export default async function LocalizedAdminDashboardPage({
       es: "Uso",
       zh: "使用量",
       hi: "उपयोग",
+      ru: "Использование",
     },
     aggregatedLabel: {
       en: "Aggregated across all user-owned active configurations.",
@@ -374,6 +402,7 @@ export default async function LocalizedAdminDashboardPage({
       es: "Agregado sobre todas las configuraciones activas de usuarios.",
       zh: "汇总至所有由用户拥有的活动配置。",
       hi: "सभी उपयोगकर्ता-नियंत्रित सक्रिय कॉन्फ़िगरेशन का कुल योग।",
+      ru: "Агрегировано по всем активным конфигурациям, принадлежащим пользователям.",
     },
     catalogCompositionTitle: {
       en: "Central Catalog Registry Composition",
@@ -381,6 +410,7 @@ export default async function LocalizedAdminDashboardPage({
       es: "Composición del registro central del catálogo",
       zh: "中央目录注册表构成",
       hi: "केंद्रीय कैटलॉग रजिस्ट्री संरचना",
+      ru: "Состав центрального каталога",
     },
     catalogCompositionTypeLabels: {
       mcp: {
@@ -389,6 +419,7 @@ export default async function LocalizedAdminDashboardPage({
         es: "Servidores MCP",
         zh: "MCP 服务器",
         hi: "MCP सर्वर",
+        ru: "MCP-серверы",
       },
       skills: {
         en: "Skills",
@@ -396,6 +427,7 @@ export default async function LocalizedAdminDashboardPage({
         es: "Skills",
         zh: "技能",
         hi: "Skills",
+        ru: "Skills",
       },
       rules: {
         en: "Rules",
@@ -403,6 +435,7 @@ export default async function LocalizedAdminDashboardPage({
         es: "Reglas",
         zh: "规则",
         hi: "नियम",
+        ru: "Правила",
       },
       workflows: {
         en: "Workflows",
@@ -410,6 +443,7 @@ export default async function LocalizedAdminDashboardPage({
         es: "Workflows",
         zh: "工作流",
         hi: "वर्कफ़्लो",
+        ru: "Workflow’ы",
       },
     },
     collectorHealthTitle: {
@@ -418,6 +452,7 @@ export default async function LocalizedAdminDashboardPage({
       es: "Estado de recolectores",
       zh: "采集器状态",
       hi: "कलेक्टर स्वास्थ्य",
+      ru: "Состояние коллекторов",
     },
     collectorHealthSubtitle: {
       en: "Lightweight source visibility",
@@ -425,6 +460,7 @@ export default async function LocalizedAdminDashboardPage({
       es: "Visibilidad ligera de fuente",
       zh: "轻量级来源可见性",
       hi: "हल्का स्रोत दृश्यमानता",
+      ru: "Лёгкая видимость источников",
     },
     rowsLabel: {
       en: "Rows",
@@ -432,6 +468,7 @@ export default async function LocalizedAdminDashboardPage({
       es: "Filas",
       zh: "行数",
       hi: "पंक्तियाँ",
+      ru: "Строки",
     },
     recentErrorsLabel: {
       en: "Recent Errors",
@@ -439,6 +476,7 @@ export default async function LocalizedAdminDashboardPage({
       es: "Errores recientes",
       zh: "最近错误",
       hi: "हालिया त्रुटियाँ",
+      ru: "Недавние ошибки",
     },
     recentSyncRunsTitle: {
       en: "Recent Sync Runs",
@@ -446,6 +484,7 @@ export default async function LocalizedAdminDashboardPage({
       es: "Ejecuciones de sync recientes",
       zh: "最近同步运行",
       hi: "हालिया सिंक रन",
+      ru: "Недавние sync-run’ы",
     },
     recentSyncRunsSubtitle: {
       en: "Last 6",
@@ -453,6 +492,7 @@ export default async function LocalizedAdminDashboardPage({
       es: "Últimos 6",
       zh: "最近 6 次",
       hi: "पिछले 6",
+      ru: "Последние 6",
     },
     runDurationLabel: {
       en: "Duration",
@@ -460,6 +500,7 @@ export default async function LocalizedAdminDashboardPage({
       es: "Duración",
       zh: "持续时间",
       hi: "अवधि",
+      ru: "Длительность",
     },
   } as const;
 

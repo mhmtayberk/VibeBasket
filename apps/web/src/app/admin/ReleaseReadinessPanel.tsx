@@ -107,10 +107,26 @@ const COPY = {
     currentRuntime: "मौजूदा रनटाइम",
     loadingBody: "Release readiness लोड हो रहा है...",
   },
+  ru: {
+    eyebrow: "Готовность к релизу",
+    title: "Prod-блокеры и предупреждения времени деплоя",
+    description:
+      "Это лёгкий preflight-взгляд на auth, backup, storage и catalog refresh configuration, чтобы проблемные deploy’и были заметны до launch day.",
+    loading: "загрузка",
+    loadError: "Не удалось загрузить статус готовности к релизу.",
+    blockers: "Блокеры",
+    warnings: "Предупреждения",
+    passingChecks: "Успешные проверки",
+    noBlockers: "В текущей runtime-конфигурации не обнаружено немедленных prod-блокеров.",
+    blocker: "Блокер",
+    warning: "Предупреждение",
+    currentRuntime: "Текущий runtime",
+    loadingBody: "Загрузка статуса готовности к релизу...",
+  },
 } as const;
 
 export function ReleaseReadinessPanel({ locale }: { locale: AppLocale }) {
-  const copy = COPY[locale];
+  const copy = COPY[locale as keyof typeof COPY] ?? COPY.en;
   const [report, setReport] = useState<ReleaseReadinessReport | null>(null);
   const [error, setError] = useState<string | null>(null);
 

@@ -14,7 +14,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useBasketStore } from "@/store/basketStore";
 import { CheckCircle2, ChevronsDown, ChevronsUp, Copy, Loader2, Trash2, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 interface BasketPanelProps {
@@ -52,6 +52,24 @@ export function BasketPanel({
   const [bundleCommand, setBundleCommand] = useState<string | null>(null);
   const [showAllItems, setShowAllItems] = useState(false);
   const [savedStacksVersion, setSavedStacksVersion] = useState(0);
+  const [showDesktopVariant, setShowDesktopVariant] = useState(variant !== "desktop");
+
+  useEffect(() => {
+    if (variant !== "desktop") {
+      setShowDesktopVariant(true);
+      return;
+    }
+
+    const mediaQuery = window.matchMedia("(min-width: 64rem)");
+    const sync = () => setShowDesktopVariant(mediaQuery.matches);
+
+    sync();
+    mediaQuery.addEventListener("change", sync);
+
+    return () => {
+      mediaQuery.removeEventListener("change", sync);
+    };
+  }, [variant]);
 
   const visibleItems = showAllItems ? items : items.slice(0, 6);
   const supportedTargets = TARGET_OPTIONS.filter((target) => target.status === "supported");
@@ -144,6 +162,10 @@ export function BasketPanel({
 
     toggleTargetId(targetId);
   };
+
+  if (variant === "desktop" && !showDesktopVariant) {
+    return null;
+  }
 
   return (
     <aside

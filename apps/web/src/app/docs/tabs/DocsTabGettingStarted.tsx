@@ -93,6 +93,24 @@ const GETTING_STARTED_COPY = {
     cliUsageBody:
       "npx command बिना global install के CLI चलाता है। Power users चाहें तो npm i -g vibebasket के साथ global install करके vibebasket को सीधे चला सकते हैं। यदि आप self-host कर रहे हैं, तो clean install में पहली catalog sync सबसे धीमा step हो सकती है।",
   },
+  ru: {
+    title: "Быстрый старт",
+    intro:
+      "Начните здесь, если хотите пройти самый короткий путь от нуля до первого рабочего bundle. Этот гайд объясняет, что делает VibeBasket, как безопасно применять bundle и чего ожидать при первом запуске в self-hosting.",
+    methodology: "Базовая методология",
+    lifecycle: "Жизненный цикл bundle",
+    installation: "Установка",
+    overviewBody:
+      "VibeBasket — это bundle-and-apply workflow для MCP servers, Skills и Rules в разных AI IDE. Вы выбираете элементы из каталога, генерируете bundle, а затем локально применяете его одной командой. Установщик пишет идемпотентно, создаёт backup перед изменением поддерживаемых конфигов и проверяет записанный результат, когда адаптер поддерживает readback.",
+    lifecycleBody:
+      "Анонимные bundle’ы, созданные без аккаунта, истекают через 48 часов. Bundle’ы зарегистрированных пользователей хранятся 365 дней. Просроченные bundle’ы автоматически очищаются периодической cleanup job платформы. Войдите через GitHub, Google, Apple или Microsoft Entra ID, чтобы хранить bundle’ы дольше.",
+    installLead:
+      "Когда у вас есть bundle URL, запустите сгенерированную команду именно на той машине или в том проекте, куда вы действительно хотите записать конфигурацию:",
+    terminalLabel: "терминал",
+    cliUsageTitle: "Глобальное использование CLI",
+    cliUsageBody:
+      "Команда npx запускает CLI без глобальной установки. Продвинутые пользователи могут установить его глобально через npm i -g vibebasket и вызывать vibebasket напрямую без npx. Если вы self-host’ите проект, ожидайте, что первый sync каталога будет самым медленным шагом чистой установки.",
+  },
 } as const;
 
 const DOCS_HOME_LABEL = {
@@ -101,10 +119,14 @@ const DOCS_HOME_LABEL = {
   es: "Documentación",
   zh: "文档",
   hi: "दस्तावेज़",
+  ru: "Документация",
 } as const;
 
 export function DocsTabGettingStarted({ locale }: { locale: AppLocale }) {
-  const copy = GETTING_STARTED_COPY[locale];
+  const copy =
+    GETTING_STARTED_COPY[locale as keyof typeof GETTING_STARTED_COPY] ?? GETTING_STARTED_COPY.en;
+  const docsHomeLabel =
+    DOCS_HOME_LABEL[locale as keyof typeof DOCS_HOME_LABEL] ?? DOCS_HOME_LABEL.en;
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
       <div className="font-mono text-[10px] uppercase tracking-widest text-[#a0fdda] mb-12 flex items-center gap-2 select-none">
@@ -112,7 +134,7 @@ export function DocsTabGettingStarted({ locale }: { locale: AppLocale }) {
           href={localizePath(locale, "/docs")}
           className="opacity-80 hover:text-[#a0fdda] transition-colors cursor-pointer"
         >
-          {DOCS_HOME_LABEL[locale]}
+          {docsHomeLabel}
         </Link>
         <span className="text-[#bdc9c2]/30">/</span>
         <span className="text-foreground">{copy.title}</span>

@@ -238,6 +238,53 @@ const SELF_HOSTING_COPY = {
     walBody:
       "VibeBasket startup पर SQLite WAL (Write-Ahead Logging) mode सक्षम करता है। इससे writes के दौरान concurrent reads संभव होती हैं और catalog sync प्रक्रिया के लिए यह आवश्यक है। Database file को network filesystem (NFS, CIFS) पर mount न करें, क्योंकि WAL locking local OS primitives पर निर्भर करती है। यदि आप multiple Node.js replicas चलाते हैं, तो load balancer का उपयोग करें जो सभी writes को एक ही instance तक route करे, या Turso जैसी remote database पर migrate करें।",
   },
+  ru: {
+    title: "Гайд по self-hosting",
+    intro:
+      "Запускайте VibeBasket в собственной инфраструктуре в той single-node deployment-схеме, под которую сейчас лучше всего оптимизирован продукт: один app process, одна SQLite database, optional OAuth и optional encrypted backup storage.",
+    docker: "Docker (рекомендуется)",
+    manualInstallation: "Ручная установка",
+    environmentVariables: "Переменные окружения",
+    bundleLifecycle: "Bundle TTL и cleanup",
+    adminDashboard: "Админ-панель",
+    helmDeployment: "Helm deployment",
+    sqliteWalMode: "SQLite WAL mode",
+    dockerLead:
+      "Это самый простой способ self-host’ить VibeBasket. Образ использует лёгкий multi-stage build на базе Node.js 22 Alpine. SQLite database file хранится в named Docker volume, поэтому данные переживают restart контейнера и upgrade.",
+    step1: "Шаг 1 — Клонируйте и настройте",
+    step2: "Шаг 2 — Запустите через Docker Compose",
+    step3: "Шаг 3 — Засейдите каталог",
+    upgrading: "Обновление",
+    helmLead:
+      "Полноценный Helm chart доступен в charts/vibebasket/. Chart разворачивает single-replica Deployment с ClusterIP Service, optional Ingress и PersistentVolumeClaim для SQLite database. Несекретные runtime values должны храниться в .Values.env, а такие секреты, как AUTH_SECRET и OAuth client secrets, — в .Values.secretEnv или в существующем Kubernetes Secret.",
+    manualLead:
+      "Требует Node.js >=20 и pnpm >=9. Подходит для VM, bare-metal серверов и платформ, где Docker не используется.",
+    oauthTitle: "OAuth callback URLs",
+    oauthBody:
+      "При включении OAuth-аутентификации настройте точный redirect callback URL в developer console каждого провайдера:",
+    localDevNote: "Для локальной разработки замените ${NEXTAUTH_URL} на http://localhost:3000.",
+    doNotCommit:
+      "Никогда не коммитьте файл .env. Он уже добавлен в .gitignore. В Docker deployment’ах передавайте secrets как environment variables или используйте Docker secrets.",
+    cloudflareNote:
+      "Если вы запускаете VibeBasket за Cloudflare, оставьте application security headers включёнными и выключите edge-функции, которые внедряют скрипты, если только вы специально не проектировали совместимость с ними. На практике это означает отключить Browser Insights, Rocket Loader и Speed Brain / speculative prefetch, так как они добавляют inline или third-party scripts и по дизайну вызывают CSP violations.",
+    variablesHeader: "Переменная",
+    requiredHeader: "Обязательна",
+    descriptionHeader: "Описание",
+    required: "Обязательна",
+    optional: "Необязательна",
+    lifecycleLead:
+      "Анонимные bundle’ы истекают через 48 часов. Bundle’ы зарегистрированных пользователей живут 365 дней. Платформа периодически очищает expired bundles и stale session tokens. Администраторы могут вручную запустить force cleanup из раздела System Health в админке.",
+    adminPanelLead:
+      "Админ-панель на /admin предоставляет control’ы для sync каталога, backup management, проверки здоровья FTS5 index, диагностики целостности базы, force cleanup utilities, user telemetry overview и конфигурации admin email. Доступ защищён через переменную окружения ADMIN_OAUTH_EMAILS.",
+    helmShortLead:
+      "Для Kubernetes deployment’ов доступен Helm chart в charts/vibebasket/. Он включает Deployment, Service, Ingress и PersistentVolumeClaim для SQLite storage.",
+    helmOpsLead:
+      "Deployment использует strategy: Recreate, чтобы избежать SQLite corruption во время обновлений. Pod securityContext работает от non-root user 1001 с удалёнными capabilities. Production secrets лучше передавать через existingSecret, а не встраивать в values.",
+    readinessNote:
+      "Перед публикацией публичного домена пройдите checklist production readiness из docs/PRODUCTION_READINESS_CHECKLIST.md.",
+    walBody:
+      "VibeBasket включает SQLite WAL (Write-Ahead Logging) mode при запуске. Это позволяет читать данные во время записи и необходимо для процесса sync каталога. Не размещайте database file на network filesystem (NFS, CIFS), потому что WAL locking опирается на локальные OS primitives. Если вы запускаете несколько реплик Node.js, используйте load balancer, который направляет все writes в один instance, или мигрируйте на удалённую базу вроде Turso.",
+  },
 } as const;
 
 const DOCS_HOME_LABEL = {
@@ -246,10 +293,13 @@ const DOCS_HOME_LABEL = {
   es: "Documentación",
   zh: "文档",
   hi: "दस्तावेज़",
+  ru: "Документация",
 } as const;
 
 export function DocsTabSelfHosting({ locale }: { locale: AppLocale }) {
-  const copy = SELF_HOSTING_COPY[locale];
+  const copy = SELF_HOSTING_COPY[locale as keyof typeof SELF_HOSTING_COPY] ?? SELF_HOSTING_COPY.en;
+  const docsHomeLabel =
+    DOCS_HOME_LABEL[locale as keyof typeof DOCS_HOME_LABEL] ?? DOCS_HOME_LABEL.en;
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
       <div className="font-mono text-[10px] uppercase tracking-widest text-[#a0fdda] mb-12 flex items-center gap-2 select-none">
@@ -257,7 +307,7 @@ export function DocsTabSelfHosting({ locale }: { locale: AppLocale }) {
           href={localizePath(locale, "/docs")}
           className="opacity-80 hover:text-[#a0fdda] transition-colors cursor-pointer"
         >
-          {DOCS_HOME_LABEL[locale]}
+          {docsHomeLabel}
         </Link>
         <span className="text-[#bdc9c2]/30">/</span>
         <span className="text-foreground">{copy.title}</span>

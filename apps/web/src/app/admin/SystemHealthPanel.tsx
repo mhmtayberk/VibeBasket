@@ -246,9 +246,52 @@ const COPY = {
       corrupted: "करप्ट",
     },
   },
+  ru: {
+    title: "Состояние системы",
+    loading: "Загружаются сигналы здоровья базы данных, поиска и пользователей...",
+    searchIndex: "Поисковый индекс",
+    database: "База данных",
+    statusNotChecked: "Не проверено",
+    statusHealthy: "Нормально",
+    statusMismatch: "Несовпадение",
+    ftsRows: "Строки FTS5 против строк каталога",
+    check: "Проверить",
+    checking: "Проверка...",
+    rebuild: "Перестроить",
+    forceCleanup: "Force Cleanup",
+    manual: "Вручную",
+    forceCleanupBody:
+      "Удаляет expired sessions, verification tokens, старые sync records и expired registered bundles, затем выполняет vacuum.",
+    runCleanup: "Запустить cleanup",
+    running: "Выполняется...",
+    userOverview: "Обзор пользователей",
+    totalUsers: "Всего пользователей",
+    newUsersLabel: (days: number) => `${days} новых за последние 7 дней`,
+    registeredAccounts: "Зарегистрированные аккаунты",
+    savedStacks: "Сохранённые стеки",
+    userBundles: "Пользовательские bundles",
+    refreshUserStats: "Обновить статистику пользователей",
+    refreshing: "Загрузка...",
+    querySummary: "Запрашивает пользователей, стеки и недавние регистрации",
+    dbOk: "Нормально",
+    dbCorrupt: "Повреждена",
+    rows: "Элементы каталога",
+    bundles: "Bundles",
+    users: "Пользователи",
+    savedStacksLabel: "Сохранённые стеки",
+    tone: {
+      healthy: "Нормально",
+      warning: "Предупреждение",
+      critical: "Критично",
+    },
+    statusDb: {
+      healthy: "Нормально",
+      corrupted: "Повреждена",
+    },
+  },
 } as const;
 
-const copyForLocale = (locale: AppLocale) => COPY[locale];
+const copyForLocale = (locale: AppLocale) => COPY[locale as keyof typeof COPY] ?? COPY.en;
 
 export function SystemHealthPanel({ locale }: { locale: AppLocale }) {
   const copy = copyForLocale(locale);

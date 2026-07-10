@@ -307,6 +307,71 @@ const SECURITY_COPY = {
     adminFooter:
       "सभी admin actions केवल server-side चलते हैं और verified administrator session की आवश्यकता होती है। /api/admin/stats endpoint पर rate limit 30 requests प्रति minute है।",
   },
+  ru: {
+    title: "Безопасность секретов",
+    intro:
+      "Строгие правила secure coding, zero-trust модель облачного хранения и механизмы защиты локальных секретов.",
+    policy: "Zero-Secret Policy",
+    cloud: "Zero-Trust Cloud Policy",
+    rateLimiting: "Rate limiting",
+    securityHeaders: "Security headers",
+    adminPanelSecurity: "Безопасность админ-панели",
+    policyLead:
+      "Безопасность — один из базовых принципов VibeBasket. Чувствительные ключи вроде OpenAI или GitHub API tokens, которые используют установленные MCP-серверы, никогда не проходят через базу bundle’ов и не кэшируются в ней.",
+    cloudBody:
+      "Bundle manifest’ы никогда не содержат runtime-секреты конечного пользователя. Hosted-приложение хранит выбранные метаданные каталога и, при необходимости, зашифрованные admin credentials для backup storage, но не API keys, которые MCP или agent tools используют во время работы.",
+    localPromptBody:
+      "Вместо этого при локальном apply bundle CLI анализирует credential keys цели и безопасно запрашивает их у оператора прямо в локальном терминале. Hosted-приложение никогда не видит эти runtime-значения.",
+    adapterSecretBody:
+      "Дальнейшая обработка secret’ов зависит от целевого адаптера. Большинству IDE нужны inline MCP env или header values в локальных конфиг-файлах, поэтому CLI разрешает эти secrets на машине оператора и записывает их только в локальный IDE config этой машины. Codex — частичное исключение для auth headers удалённых MCP: когда нативный config format поддерживает ссылку на environment-key, VibeBasket предпочитает её, а не сериализацию raw token в TOML.",
+    rateLimitingBody:
+      "Все публичные API endpoints защищены sliding-window rate limiter’ом с per-IP tracking и автоматической очисткой. Proxy-derived IP headers считаются доверенными только если self-hoster явно включает proxy trust.",
+    rateLimitsAria: "API endpoints с rate limiting",
+    rateLimitsCaption: "Лимиты API endpoints",
+    endpointHeader: "Endpoint",
+    limitHeader: "Лимит",
+    securityHeadersBody:
+      "Все ответы содержат усиленные security headers. В production HTML routes получают nonce-based Content-Security-Policy, чтобы Next.js мог безопасно гидратироваться без открытия двери для массового исполнения inline-скриптов, а HSTS применяется на всём deployment.",
+    headersAria: "HTTP security headers",
+    headersCaption: "Security response headers",
+    headerHeader: "Header",
+    valueHeader: "Value",
+    adminLead:
+      "Админ-панель на /admin защищена OAuth-authenticated sessions. Доступ ограничен адресами из переменной окружения ADMIN_OAUTH_EMAILS, и только подтверждённые email’ы из allowlist получают роль администратора.",
+    adminAria: "Функции безопасности админ-панели",
+    adminCaption: "Контроли безопасности админ-панели",
+    featureHeader: "Функция",
+    descriptionHeader: "Описание",
+    adminRows: [
+      ["Catalog Sync", "Вручную запускает синхронизацию registry из upstream-источников."],
+      [
+        "Backup Mgmt",
+        "Создаёт, показывает, скачивает и восстанавливает backup’ы базы данных в любом настроенном storage backend.",
+      ],
+      [
+        "FTS5 Index Health",
+        "Сверяет количество строк в индексе full-text search с таблицей каталога для проверки целостности.",
+      ],
+      [
+        "DB Health Check",
+        "Запускает проверки целостности базы данных и помогает рано обнаружить corruption.",
+      ],
+      [
+        "Force Cleanup",
+        "Удаляет просроченные bundle’ы, stale sessions, verification tokens и старые sync records, затем выполняет vacuum.",
+      ],
+      [
+        "User Overview",
+        "Показывает количество зарегистрированных пользователей, телеметрию saved stacks и рейтинг популярности.",
+      ],
+      [
+        "Admin Emails",
+        "Настраивает allowlist админских email’ов, сохранённый в site config в формате comma-separated.",
+      ],
+    ],
+    adminFooter:
+      "Все admin actions выполняются только на server-side и требуют подтверждённой admin session. Для endpoint’а /api/admin/stats действует лимит 30 запросов в минуту.",
+  },
 } as const;
 
 const DOCS_HOME_LABEL = {
@@ -315,10 +380,13 @@ const DOCS_HOME_LABEL = {
   es: "Documentación",
   zh: "文档",
   hi: "दस्तावेज़",
+  ru: "Документация",
 } as const;
 
 export function DocsTabSecurity({ locale }: { locale: AppLocale }) {
-  const copy = SECURITY_COPY[locale];
+  const copy = SECURITY_COPY[locale as keyof typeof SECURITY_COPY] ?? SECURITY_COPY.en;
+  const docsHomeLabel =
+    DOCS_HOME_LABEL[locale as keyof typeof DOCS_HOME_LABEL] ?? DOCS_HOME_LABEL.en;
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
       <div className="font-mono text-[10px] uppercase tracking-widest text-[#a0fdda] mb-12 flex items-center gap-2 select-none">
@@ -326,7 +394,7 @@ export function DocsTabSecurity({ locale }: { locale: AppLocale }) {
           href={localizePath(locale, "/docs")}
           className="opacity-80 hover:text-[#a0fdda] transition-colors cursor-pointer"
         >
-          {DOCS_HOME_LABEL[locale]}
+          {docsHomeLabel}
         </Link>
         <span className="text-[#bdc9c2]/30">/</span>
         <span className="text-foreground">{copy.title}</span>
