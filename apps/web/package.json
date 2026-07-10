@@ -17,7 +17,7 @@
     "@auth/drizzle-adapter": "^1.10.0",
     "@aws-sdk/client-s3": "^3.1054.0",
     "@azure/storage-blob": "^12.31.0",
-    "@base-ui/react": "^1.4.1",
+    "@base-ui/react": "^1.6.0",
     "@google-cloud/storage": "^7.21.0",
     "@vibebasket/core": "workspace:^",
     "@vibebasket/registry": "workspace:^",
