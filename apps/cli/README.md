@@ -25,7 +25,31 @@ npx vibebasket search postgresql
 npx vibebasket doctor
 npx vibebasket init
 npx vibebasket rollback
+npx vibebasket mcp serve
 ```
+
+## Local MCP Server
+
+Run VibeBasket as a local stdio MCP server for AI IDEs:
+
+```bash
+npx vibebasket mcp serve
+```
+
+What the MCP surface can do today:
+
+- search catalog items
+- fetch one item by id
+- inspect supported targets and target setup guidance
+- return target-native MCP config snippets so IDE agents do not have to guess each client's config shape
+- plan installs before writing
+- apply bundles through the normal adapter pipeline
+- list or restore backups
+- save and load local stacks on the same machine
+
+Current limitation:
+
+- cloud/profile-backed stack save is not linked in the local MCP yet, so use the VibeBasket website for that path
 
 ## How Secrets Work
 

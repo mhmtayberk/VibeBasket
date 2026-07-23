@@ -2,6 +2,8 @@
 
 VibeBasket is a bundle-and-apply platform for AI development environments. It gives users a single web catalog where they can browse trusted MCP servers, skills, and rules, collect them into a basket, and generate a shareable bundle URL plus a single CLI command to apply the setup locally.
 
+The same CLI now also exposes a local stdio MCP server so supported AI IDEs can search the catalog, inspect target guidance, plan installs, and apply bundles without leaving the IDE conversation.
+
 ## Table of Contents
 
 - [Product Goal](#product-goal)
@@ -54,7 +56,8 @@ Trust labels are intentionally narrower than source provenance:
 
 Recent work significantly changed the catalog behavior, deployment, and security baseline:
 
-- **Phase 1 localization:** public routes, metadata, docs shell, login surface, and key admin shell labels now support English, Turkish, and Spanish under `/en`, `/tr`, and `/es`.
+- **Localization baseline:** public routes, metadata, docs shell, login surface, and key admin shell labels now support English, Turkish, Spanish, Chinese, Hindi, and Russian under locale-prefixed routes.
+- **Local MCP phase 1:** `npx vibebasket mcp serve` now reuses the real CLI services for catalog search, item lookup, target guidance, target-native MCP snippet rendering, install planning, apply, rollback, backup listing, and local stack save/load.
 - **Localized SEO:** canonical and `hreflang` output now comes from shared locale helpers so translated routes stay indexable without drifting from the main URL model.
 - **Dockerization & Production Config:** Multi-stage production `Dockerfile` based on Node.js 22 Alpine utilizing lean Next.js standalone build outputs, root privilege isolation, and SQLite volume persistence. Added `docker-compose.yml` with automated container health probes and `.dockerignore` shielding.
 - **Kubernetes Helm Chart:** Chart at `charts/vibebasket/` with Recreate strategy, securityContext uid 1001, existingSecret support, PVC-backed SQLite persistence, and `/api/health`-based liveness/readiness probes.

@@ -1,8 +1,5 @@
 import chalk from "chalk";
-
-function getApiBaseUrl(): string {
-  return process.env.VIBEBASKET_API_URL || "https://vibebasket.dev";
-}
+import { getApiBaseUrl } from "./services/api-base-url.js";
 
 export async function runSearch(query: string) {
   const q = encodeURIComponent(query.trim());

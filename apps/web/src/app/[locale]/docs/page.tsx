@@ -19,6 +19,7 @@ import { DocsTabCli } from "../../docs/tabs/DocsTabCli";
 import { DocsTabDelimiters } from "../../docs/tabs/DocsTabDelimiters";
 import { DocsTabGettingStarted } from "../../docs/tabs/DocsTabGettingStarted";
 import { DocsTabHub } from "../../docs/tabs/DocsTabHub";
+import { DocsTabMcp } from "../../docs/tabs/DocsTabMcp";
 import { DocsTabSecurity } from "../../docs/tabs/DocsTabSecurity";
 import { DocsTabSelfHosting } from "../../docs/tabs/DocsTabSelfHosting";
 
@@ -50,6 +51,8 @@ export async function generateMetadata({
       ? docs.metadataGettingStarted
       : tab === "cli"
         ? docs.metadataCli
+        : tab === "mcp"
+          ? docs.metadataMcp
         : tab === "adapters"
           ? docs.metadataAdapters
           : tab === "delimiters"
@@ -113,6 +116,7 @@ export default async function LocalizedDocsPage({
     "hub",
     "getting-started",
     "cli",
+    "mcp",
     "adapters",
     "delimiters",
     "security",
@@ -144,6 +148,15 @@ export default async function LocalizedDocsPage({
       tabKey: "cli",
       keywords:
         "cli terminal command apply install dry-run force no-verify scope deploy reference documentation configuration",
+    },
+    {
+      title: docs.guideCards.mcp.title,
+      description: docs.guideCards.mcp.description,
+      icon: <TerminalSquare className="h-5 w-5 text-[#a0fdda]" />,
+      linkText: docs.guideCards.mcp.linkText,
+      tabKey: "mcp",
+      keywords:
+        "mcp model context protocol stdio local server ide integration target guide install planning apply rollback stack",
     },
     {
       title: docs.guideCards.adapters.title,
@@ -201,6 +214,7 @@ export default async function LocalizedDocsPage({
     hub: docs.shell.documentationHub,
     "getting-started": docs.shell.tabs.gettingStarted,
     cli: docs.shell.tabs.cli,
+    mcp: docs.shell.tabs.mcp,
     adapters: docs.shell.tabs.adapters,
     delimiters: docs.shell.tabs.delimiters,
     security: docs.shell.tabs.security,
@@ -357,6 +371,7 @@ export default async function LocalizedDocsPage({
             ) : null}
             {activeTab === "getting-started" ? <DocsTabGettingStarted locale={locale} /> : null}
             {activeTab === "cli" ? <DocsTabCli locale={locale} /> : null}
+            {activeTab === "mcp" ? <DocsTabMcp locale={locale} /> : null}
             {activeTab === "adapters" ? <DocsTabAdapters locale={locale} /> : null}
             {activeTab === "delimiters" ? <DocsTabDelimiters locale={locale} /> : null}
             {activeTab === "security" ? <DocsTabSecurity locale={locale} /> : null}

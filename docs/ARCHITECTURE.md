@@ -21,7 +21,7 @@ We use `pnpm workspaces` to manage the project.
 - `packages/adapters`: Contains 24 IDE adapters (Cursor, Windsurf, VS Code/Cline, Antigravity, Claude Code, DeepSeek-TUI, Zed, Codex CLI, Gemini CLI, Junie, Kiro, Cline CLI, Continue, Roo Code, Hermes, OpenClaw, GitHub Copilot, Void Editor, Aider, Cortex Code, Goose, IBM Bob, CodeBuddy, and OpenCode) that handle config generation, backups, and idempotency. 16 adapters extend BaseAdapter for shared readConfig/applyMcps/writeConfig/diff logic, while `CodexAdapter` and other custom adapters handle target-native TOML/YAML or instruction surfaces.
 - `packages/registry`: Automated catalog synchronization logic from trusted external sources and local curated data, including the semver deduplication engine for official upstream MCP servers.
 - `apps/web`: Next.js 16.2.9 App Router providing the catalog and selection UI, `/docs` documentation hub, `/stacks` saved-stack management, and the `/admin` stats dashboard.
-- `apps/cli`: Node.js CLI tool running the execution environment.
+- `apps/cli`: Node.js CLI tool running the execution environment, plus the local stdio MCP server surface exposed through `vibebasket mcp serve`.
 
 ## Data Flow
 1. Web App constructs a bundle (JSON).
@@ -29,6 +29,8 @@ We use `pnpm workspaces` to manage the project.
 3. CLI fetches the bundle, resolves secrets locally (never sent to the cloud).
 4. Adapters modify IDE configuration files incrementally and idempotently.
 5. The CLI re-reads the target configuration and verifies deterministic artifacts after writes when verification is enabled (default).
+
+For local MCP sessions, the same CLI service layer is reused instead of shelling out to child `vibebasket` processes. That keeps target guidance, native MCP snippet rendering, install planning, apply behavior, backup lookup, and rollback aligned with the normal CLI path.
 
 For filesystem-backed Skills, Rules, and Continue prompts, VibeBasket now tracks its own managed files with a local sidecar registry. Existing foreign files at the same path are skipped instead of overwritten, while previously managed VibeBasket files remain safely updatable and backed up before changes.
 
@@ -117,6 +119,27 @@ Response shape:
 }
 ```
 
+`GET /api/catalog/item/[id]`
+
+Returns a single catalog item by stable catalog id. The local MCP server uses this endpoint for precise item lookups and stack snapshot hydration.
+
+Response shape:
+
+```json
+{
+  "id": "skill-example",
+  "type": "skill",
+  "displayName": "Example Skill",
+  "description": "Optional description",
+  "sourceName": "skills.sh",
+  "sourceUrl": "https://www.skills.sh/...",
+  "verified": false,
+  "official": false,
+  "lastSyncedAt": "2026-07-23T00:00:00.000Z",
+  "data": {}
+}
+```
+
 `GET /api/catalog/status`
 
 Returns current catalog counts, freshness derived from the newest catalog row, and the latest recorded sync run summary from `catalog_sync_runs`.
@@ -154,6 +177,7 @@ The homepage (`/`) is `force-dynamic` and server-renders:
 - request-driven stale refresh is intentionally lightweight; deterministic production freshness still comes from an external scheduler invoking `pnpm catalog:sync`
 - expired bundle/session cleanup is also request-triggered today; quiet self-hosted instances should not assume idle-time cleanup without an external maintenance trigger
 - item-level freshness now lives on `catalog_items` itself, so future UI trust/freshness badges do not need a second storage model
+- local MCP catalog reads intentionally go through the web API rather than bypassing into the database, so hosted and self-hosted sessions share one catalog authority, one trust model, and one refresh guardrail surface
 - the web package now participates in workspace `test` and `typecheck` runs, so catalog discovery logic is covered by the same verification path as the packages
 - catalog selection state in the web app is driven directly from the basket store state
 - basket persistence falls back to an in-memory adapter outside the browser so tests and SSR contexts do not emit noisy missing-`localStorage` warnings

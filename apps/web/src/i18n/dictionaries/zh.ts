@@ -21,7 +21,7 @@ export const zhDictionary: AppDictionary = {
       returnHome: "返回首页",
       selfHostGuide: "自托管指南",
       startBuildingFree: "免费开始构建",
-      viewCatalog: "查看目录",
+      viewCatalog: "MCP Server",
     },
     auth: {
       signIn: "登录",
@@ -366,6 +366,11 @@ export const zhDictionary: AppDictionary = {
       description:
         "vibebasket apply、list、search、doctor、init 和 rollback 的完整参考。包含参数、作用域、dry-run、校验和环境变量。",
     },
+    metadataMcp: {
+      title: "本地 MCP — VibeBasket 文档",
+      description:
+        "本地 VibeBasket MCP 服务如何工作：stdio 传输、目标指导、目录搜索、安装规划、apply、rollback 以及当前 phase-1 边界。",
+    },
     metadataAdapters: {
       title: "IDE 适配器 — 24 个目标 — VibeBasket 文档",
       description:
@@ -398,6 +403,12 @@ export const zhDictionary: AppDictionary = {
         description:
           "vibebasket apply 命令的完整参考：bundle URL、--force、--scope 覆盖、--dry-run 预览模式和校验控制。",
         linkText: "查看 CLI 参考",
+      },
+      mcp: {
+        title: "本地 MCP",
+        description:
+          "在 AI IDE 中将 VibeBasket 作为本地 stdio MCP 服务接入，并在不离开对话的情况下使用目标指导、目录搜索、安装规划与 apply 工具。",
+        linkText: "打开 MCP 指南",
       },
       adapters: {
         title: "IDE 适配器",
@@ -434,6 +445,7 @@ export const zhDictionary: AppDictionary = {
         hub: "文档",
         gettingStarted: "快速开始",
         cli: "CLI",
+        mcp: "MCP",
         adapters: "适配器",
         delimiters: "分隔符",
         security: "安全",

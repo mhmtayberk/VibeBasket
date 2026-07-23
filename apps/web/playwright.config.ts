@@ -16,8 +16,8 @@ export default defineConfig({
     ? undefined
     : {
         command: process.env.PLAYWRIGHT_PREBUILT
-          ? `${playwrightEnvPrefix} HOSTNAME=127.0.0.1 PORT=${playwrightPort} ${nodeExecPath} .next/standalone/apps/web/server.js`
-          : `${playwrightEnvPrefix} ${nodeExecPath} ../../scripts/run-next.mjs build --webpack && ${playwrightEnvPrefix} HOSTNAME=127.0.0.1 PORT=${playwrightPort} ${nodeExecPath} .next/standalone/apps/web/server.js`,
+          ? `${playwrightEnvPrefix} HOSTNAME=127.0.0.1 PORT=${playwrightPort} ${nodeExecPath} ../../scripts/run-next.mjs start`
+          : `${playwrightEnvPrefix} ${nodeExecPath} ../../scripts/run-next.mjs build --webpack && ${playwrightEnvPrefix} HOSTNAME=127.0.0.1 PORT=${playwrightPort} ${nodeExecPath} ../../scripts/run-next.mjs start`,
         url: playwrightBaseUrl,
         reuseExistingServer: true,
         timeout: 120_000,

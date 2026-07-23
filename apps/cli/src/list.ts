@@ -1,30 +1,4 @@
 import fs from "node:fs";
-import {
-  AiderAdapter,
-  AntigravityAdapter,
-  ClaudeCodeAdapter,
-  ClineCliAdapter,
-  CodeBuddyAdapter,
-  CodexAdapter,
-  ContinueAdapter,
-  CortexCodeAdapter,
-  CursorAdapter,
-  DeepSeekTuiAdapter,
-  GeminiCliAdapter,
-  GitHubCopilotAdapter,
-  GooseAdapter,
-  HermesAdapter,
-  IBMBobAdapter,
-  JunieAdapter,
-  KiroAdapter,
-  OpenClawAdapter,
-  OpenCodeAdapter,
-  RooCodeAdapter,
-  VSCodeAdapter,
-  VoidAdapter,
-  WindsurfAdapter,
-  ZedAdapter,
-} from "@vibebasket/adapters";
 import type { IdeAdapter } from "@vibebasket/adapters";
 import chalk from "chalk";
 import type { IdeId } from "../../../packages/core/src/manifest.js";
@@ -33,33 +7,7 @@ import {
   resolveRuleInventoryTargets,
   resolveSkillInventoryTargets,
 } from "./config-inspection.js";
-
-const ADAPTERS: Record<string, IdeAdapter> = {
-  cursor: new CursorAdapter(),
-  antigravity: new AntigravityAdapter(),
-  windsurf: new WindsurfAdapter(),
-  vscode: new VSCodeAdapter(),
-  "claude-code": new ClaudeCodeAdapter(),
-  "deepseek-tui": new DeepSeekTuiAdapter(),
-  "gemini-cli": new GeminiCliAdapter(),
-  kiro: new KiroAdapter(),
-  junie: new JunieAdapter(),
-  "cline-cli": new ClineCliAdapter(),
-  zed: new ZedAdapter(),
-  codex: new CodexAdapter(),
-  continue: new ContinueAdapter(),
-  roocode: new RooCodeAdapter(),
-  hermes: new HermesAdapter(),
-  openclaw: new OpenClawAdapter(),
-  "github-copilot": new GitHubCopilotAdapter(),
-  void: new VoidAdapter(),
-  aider: new AiderAdapter(),
-  "cortex-code": new CortexCodeAdapter(),
-  goose: new GooseAdapter(),
-  "ibm-bob": new IBMBobAdapter(),
-  codebuddy: new CodeBuddyAdapter(),
-  opencode: new OpenCodeAdapter(),
-};
+import { getAllAdapters } from "./runtime/adapters.js";
 
 function fileExists(filePath: string): boolean {
   try {
@@ -114,7 +62,7 @@ export async function runList() {
   console.log(chalk.bold("\n📋 Installed IDE Configurations\n"));
   const projectRoot = process.cwd();
 
-  for (const [targetId, adapter] of Object.entries(ADAPTERS)) {
+  for (const [targetId, adapter] of getAllAdapters()) {
     let hasContent = false;
     const lines: string[] = [];
     lines.push(chalk.bold.cyan(`${adapter.displayName} (${targetId})`));

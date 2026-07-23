@@ -28,10 +28,12 @@
   "keywords": ["vibebasket", "mcp", "ai-ide", "cli"],
   "license": "MIT",
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "@inquirer/prompts": "^8.5.2",
     "chalk": "^5.6.2",
     "commander": "^15.0.0",
-    "dotenv": "^17.4.2"
+    "dotenv": "^17.4.2",
+    "zod": "^3.25.76"
   },
   "optionalDependencies": {
     "keytar": "^7.9.0"
