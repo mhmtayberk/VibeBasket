@@ -21,7 +21,7 @@ export const trDictionary: AppDictionary = {
       returnHome: "Ana sayfaya dön",
       selfHostGuide: "Kendi sunucunda çalıştırma rehberi",
       startBuildingFree: "Ücretsiz oluşturmaya başla",
-      viewCatalog: "Kataloğu görüntüle",
+      viewCatalog: "MCP Server",
     },
     auth: {
       signIn: "Giriş yap",
@@ -378,6 +378,11 @@ export const trDictionary: AppDictionary = {
       description:
         "vibebasket apply, list, search, doctor, init ve rollback komutları için tam referans. Flag’ler, scope’lar, dry-run, doğrulama ve environment değişkenleri.",
     },
+    metadataMcp: {
+      title: "Yerel MCP — VibeBasket Dokümanları",
+      description:
+        "Yerel VibeBasket MCP sunucusunun nasıl çalıştığı: stdio taşıması, hedef rehberliği, katalog arama, kurulum planlama, apply, rollback ve mevcut phase-1 sınırları.",
+    },
     metadataAdapters: {
       title: "IDE Adaptörleri — 24 Hedef — VibeBasket Dokümanları",
       description:
@@ -410,6 +415,12 @@ export const trDictionary: AppDictionary = {
         description:
           "vibebasket apply komutu için tam referans: bundle URL’leri, --force, --scope, --dry-run ve doğrulama kontrolleri.",
         linkText: "CLI referansını aç",
+      },
+      mcp: {
+        title: "Yerel MCP",
+        description:
+          "VibeBasket’i AI IDE’ler içinde yerel stdio MCP sunucusu olarak bağla; hedef rehberliği, katalog arama, kurulum planlama ve apply araçlarını konuşmadan çıkmadan kullan.",
+        linkText: "MCP rehberini aç",
       },
       adapters: {
         title: "IDE Adaptörleri",
@@ -446,6 +457,7 @@ export const trDictionary: AppDictionary = {
         hub: "Dokümanlar",
         gettingStarted: "Başlangıç",
         cli: "CLI",
+        mcp: "MCP",
         adapters: "Adaptörler",
         delimiters: "Delimiter’lar",
         security: "Güvenlik",

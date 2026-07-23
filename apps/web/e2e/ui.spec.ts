@@ -113,6 +113,26 @@ test.describe("UI — Responsive Breakpoints", () => {
     const desktopSidebar = page.locator("aside");
     await expect(desktopSidebar).toBeVisible({ timeout: 10000 });
   });
+
+  test("docs MCP snippet preview switches targets without overflow", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/en/docs?tab=mcp");
+
+    await expect(page.getByRole("heading", { name: "Native config snippets" })).toBeVisible({
+      timeout: 10000,
+    });
+
+    await page.getByRole("button", { name: "Codex CLI / TOML" }).click();
+    await expect(page.getByText("[mcp_servers.vibebasket]")).toBeVisible({ timeout: 5000 });
+
+    await page.getByRole("button", { name: "Continue / YAML" }).click();
+    await expect(page.getByText("mcpServers:")).toBeVisible({ timeout: 5000 });
+
+    const overflowX = await page.evaluate(
+      () => document.documentElement.scrollWidth > window.innerWidth + 1,
+    );
+    expect(overflowX).toBe(false);
+  });
 });
 
 test.describe("UI — Accessibility", () => {

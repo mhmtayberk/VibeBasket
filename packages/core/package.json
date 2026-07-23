@@ -9,6 +9,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./manifest": "./src/manifest.ts",
+    "./local-mcp-snippets": "./src/local-mcp-snippets.ts",
     "./db": "./src/db/index.ts"
   },
   "scripts": {

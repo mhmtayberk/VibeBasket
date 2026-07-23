@@ -90,4 +90,16 @@ program
     }),
   );
 
+program
+  .command("mcp")
+  .description("Run the local VibeBasket MCP server")
+  .command("serve")
+  .description("Serve VibeBasket tools over stdio for AI IDE integrations")
+  .action(() =>
+    runCommand(async () => {
+      const { serveMcp } = await import("./mcp/index.js");
+      return () => serveMcp();
+    }),
+  );
+
 program.parse();

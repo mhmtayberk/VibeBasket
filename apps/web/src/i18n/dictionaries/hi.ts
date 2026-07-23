@@ -21,7 +21,7 @@ export const hiDictionary: AppDictionary = {
       returnHome: "होम पर लौटें",
       selfHostGuide: "स्व-होस्ट गाइड",
       startBuildingFree: "मुफ़्त में बनाना शुरू करें",
-      viewCatalog: "कैटलॉग देखें",
+      viewCatalog: "MCP Server",
     },
     auth: {
       signIn: "साइन इन",
@@ -375,6 +375,11 @@ export const hiDictionary: AppDictionary = {
       description:
         "vibebasket apply, list, search, doctor, init और rollback commands के लिए पूरा संदर्भ। Flags, scopes, dry-run, verification और environment variables शामिल हैं।",
     },
+    metadataMcp: {
+      title: "लोकल MCP — VibeBasket Docs",
+      description:
+        "लोकल VibeBasket MCP server कैसे काम करता है: stdio transport, target guidance, catalog search, install planning, apply, rollback और current phase-1 limits.",
+    },
     metadataAdapters: {
       title: "IDE अडैप्टर्स — 24 लक्ष्य — VibeBasket दस्तावेज़",
       description:
@@ -407,6 +412,12 @@ export const hiDictionary: AppDictionary = {
         description:
           "vibebasket apply command के लिए पूरा संदर्भ: bundle URLs, --force flag, --scope overrides, --dry-run preview mode और verification controls।",
         linkText: "CLI संदर्भ देखें",
+      },
+      mcp: {
+        title: "लोकल MCP",
+        description:
+          "AI IDEs के भीतर VibeBasket को local stdio MCP server की तरह connect करें और target guidance, catalog search, install planning और apply tools को conversation छोड़े बिना इस्तेमाल करें.",
+        linkText: "MCP guide खोलें",
       },
       adapters: {
         title: "IDE अडैप्टर्स",
@@ -443,6 +454,7 @@ export const hiDictionary: AppDictionary = {
         hub: "दस्तावेज़",
         gettingStarted: "शुरुआत",
         cli: "CLI",
+        mcp: "MCP",
         adapters: "अडैप्टर्स",
         delimiters: "डिलिमिटर्स",
         security: "सुरक्षा",

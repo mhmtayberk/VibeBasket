@@ -1,61 +1,14 @@
 import fs from "node:fs";
 import path from "node:path";
-import {
-  AiderAdapter,
-  AntigravityAdapter,
-  ClaudeCodeAdapter,
-  ClineCliAdapter,
-  CodeBuddyAdapter,
-  CodexAdapter,
-  ContinueAdapter,
-  CortexCodeAdapter,
-  CursorAdapter,
-  DeepSeekTuiAdapter,
-  GeminiCliAdapter,
-  GitHubCopilotAdapter,
-  GooseAdapter,
-  HermesAdapter,
-  IBMBobAdapter,
-  JunieAdapter,
-  KiroAdapter,
-  OpenClawAdapter,
-  OpenCodeAdapter,
-  RooCodeAdapter,
-  VSCodeAdapter,
-  VoidAdapter,
-  WindsurfAdapter,
-  ZedAdapter,
-} from "@vibebasket/adapters";
 import type { IdeAdapter } from "@vibebasket/adapters";
 import chalk from "chalk";
 import { extractConfiguredMcpIds } from "./config-inspection.js";
+import { getAllAdapters } from "./runtime/adapters.js";
 
-const ADAPTERS: [string, IdeAdapter][] = [
-  ["Cursor", new CursorAdapter()],
-  ["Windsurf", new WindsurfAdapter()],
-  ["VS Code / Cline", new VSCodeAdapter()],
-  ["Antigravity", new AntigravityAdapter()],
-  ["Claude Code", new ClaudeCodeAdapter()],
-  ["DeepSeek-TUI", new DeepSeekTuiAdapter()],
-  ["Gemini CLI", new GeminiCliAdapter()],
-  ["Kiro", new KiroAdapter()],
-  ["JetBrains Junie", new JunieAdapter()],
-  ["Cline CLI", new ClineCliAdapter()],
-  ["Zed", new ZedAdapter()],
-  ["Codex CLI", new CodexAdapter()],
-  ["Continue", new ContinueAdapter()],
-  ["Roo Code", new RooCodeAdapter()],
-  ["Hermes", new HermesAdapter()],
-  ["OpenClaw", new OpenClawAdapter()],
-  ["GitHub Copilot", new GitHubCopilotAdapter()],
-  ["Void Editor", new VoidAdapter()],
-  ["Aider", new AiderAdapter()],
-  ["Cortex Code", new CortexCodeAdapter()],
-  ["Goose", new GooseAdapter()],
-  ["IBM Bob", new IBMBobAdapter()],
-  ["CodeBuddy", new CodeBuddyAdapter()],
-  ["OpenCode", new OpenCodeAdapter()],
-];
+const ADAPTERS: [string, IdeAdapter][] = getAllAdapters().map((entry) => [
+  entry[1].displayName,
+  entry[1],
+]);
 
 export async function runDoctor() {
   console.log(chalk.cyan("🧺 VibeBasket: Running diagnostics...\n"));

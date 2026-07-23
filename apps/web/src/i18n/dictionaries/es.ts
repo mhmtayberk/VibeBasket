@@ -21,7 +21,7 @@ export const esDictionary: AppDictionary = {
       returnHome: "Volver al inicio",
       selfHostGuide: "Guía de autoalojamiento",
       startBuildingFree: "Empieza gratis",
-      viewCatalog: "Ver catálogo",
+      viewCatalog: "MCP Server",
     },
     auth: {
       signIn: "Iniciar sesión",
@@ -221,6 +221,11 @@ export const esDictionary: AppDictionary = {
       description:
         "Referencia completa de vibebasket apply, list, search, doctor, init y rollback. Flags, scopes, dry-run, verificación y variables de entorno.",
     },
+    metadataMcp: {
+      title: "MCP local — Docs de VibeBasket",
+      description:
+        "Cómo funciona el servidor MCP local de VibeBasket: transporte stdio, guía por objetivo, búsqueda de catálogo, planificación de instalación, apply, rollback y límites actuales de fase 1.",
+    },
     metadataAdapters: {
       title: "Adaptadores IDE — 24 objetivos — Docs de VibeBasket",
       description:
@@ -253,6 +258,12 @@ export const esDictionary: AppDictionary = {
         description:
           "Referencia completa del comando vibebasket apply: URLs de bundle, flag --force, overrides --scope, modo --dry-run y controles de verificación.",
         linkText: "Ver referencia CLI",
+      },
+      mcp: {
+        title: "MCP local",
+        description:
+          "Conecta VibeBasket como servidor MCP local por stdio dentro de AI IDEs y usa guía por objetivo, búsqueda de catálogo, planificación de instalación y herramientas de apply sin salir de la conversación.",
+        linkText: "Abrir guía MCP",
       },
       adapters: {
         title: "Adaptadores IDE",
@@ -289,6 +300,7 @@ export const esDictionary: AppDictionary = {
         hub: "Docs",
         gettingStarted: "Primeros pasos",
         cli: "CLI",
+        mcp: "MCP",
         adapters: "Adaptadores",
         delimiters: "Delimitadores",
         security: "Seguridad",

@@ -23,7 +23,7 @@ export const ruDictionary: AppDictionary = {
       returnHome: "Вернуться на главную",
       selfHostGuide: "Гайд по self-hosting",
       startBuildingFree: "Начать бесплатно",
-      viewCatalog: "Открыть каталог",
+      viewCatalog: "MCP Server",
     },
     auth: {
       ...enDictionary.shared.auth,
@@ -386,6 +386,11 @@ export const ruDictionary: AppDictionary = {
       description:
         "Полный справочник по командам vibebasket apply, list, search, doctor, init и rollback. Флаги, scope, dry-run, verification и переменные окружения.",
     },
+    metadataMcp: {
+      title: "Локальный MCP — Документация VibeBasket",
+      description:
+        "Как работает локальный MCP-сервер VibeBasket: stdio transport, target guidance, поиск по каталогу, планирование установки, apply, rollback и текущие ограничения phase 1.",
+    },
     metadataAdapters: {
       title: "IDE Adapters — 24 Targets — VibeBasket Docs",
       description:
@@ -418,6 +423,12 @@ export const ruDictionary: AppDictionary = {
         description:
           "Полный справочник по команде vibebasket apply: bundle URL, флаг --force, overrides через --scope, режим preview через --dry-run и verification controls.",
         linkText: "Открыть CLI reference",
+      },
+      mcp: {
+        title: "Локальный MCP",
+        description:
+          "Подключите VibeBasket как локальный stdio MCP-сервер внутри AI IDE и используйте guidance по целям, поиск по каталогу, планирование установки и apply-инструменты, не выходя из диалога.",
+        linkText: "Открыть MCP guide",
       },
       adapters: {
         title: "IDE-адаптеры",
@@ -454,6 +465,7 @@ export const ruDictionary: AppDictionary = {
         hub: "Docs",
         gettingStarted: "Быстрый старт",
         cli: "CLI",
+        mcp: "MCP",
         adapters: "Адаптеры",
         delimiters: "Delimiters",
         security: "Security",

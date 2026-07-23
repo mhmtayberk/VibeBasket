@@ -19,7 +19,7 @@ export const enDictionary = {
       returnHome: "Return home",
       selfHostGuide: "Self-host guide",
       startBuildingFree: "Start building free",
-      viewCatalog: "View catalog",
+      viewCatalog: "MCP Server",
     },
     auth: {
       signIn: "Sign in",
@@ -374,6 +374,11 @@ export const enDictionary = {
       description:
         "Complete reference for vibebasket apply, list, search, doctor, init, and rollback commands. Flags, scopes, dry-run, verification, and environment variables.",
     },
+    metadataMcp: {
+      title: "Local MCP — VibeBasket Docs",
+      description:
+        "How the local VibeBasket MCP server works: stdio transport, target guidance, catalog search, install planning, apply, rollback, and current phase-1 limits.",
+    },
     metadataAdapters: {
       title: "IDE Adapters — 24 Targets — VibeBasket Docs",
       description:
@@ -406,6 +411,12 @@ export const enDictionary = {
         description:
           "Complete reference for the vibebasket apply command: bundle URLs, the --force flag, --scope overrides, --dry-run preview mode, and verification controls.",
         linkText: "View CLI reference",
+      },
+      mcp: {
+        title: "Local MCP",
+        description:
+          "Connect VibeBasket as a local stdio MCP server inside AI IDEs and use target guidance, catalog search, install planning, and apply tools without leaving the conversation.",
+        linkText: "Open MCP guide",
       },
       adapters: {
         title: "IDE Adapters",
@@ -442,6 +453,7 @@ export const enDictionary = {
         hub: "Docs",
         gettingStarted: "Getting Started",
         cli: "CLI",
+        mcp: "MCP",
         adapters: "Adapters",
         delimiters: "Delimiters",
         security: "Security",

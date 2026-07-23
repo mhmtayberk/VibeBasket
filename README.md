@@ -22,6 +22,7 @@ Bundle trusted MCP servers, agent skills, and project rules into one shareable i
 - [Core Capabilities](#core-capabilities)
 - [Quick Start](#quick-start)
 - [CLI Usage](#cli-usage)
+- [Local MCP](#local-mcp)
 - [Configuration](#configuration)
 - [Self-Hosting](#self-hosting)
 - [Architecture](#architecture)
@@ -117,6 +118,7 @@ Catalog scope:
 - `doctor` — Diagnose IDE configurations across all targets
 - `init` — Scaffold a VibeBasket project
 - `rollback` — Restore from timestamped backups (run from the target project root for project-scoped configs)
+- `mcp serve` — Expose a local stdio MCP server so AI IDEs can search catalog items, fetch target-native MCP config snippets, plan installs, apply bundles, inspect backups, and save local stacks without leaving the IDE
 
 ### Admin and operations
 - Manual catalog sync, backup management, storage config, and release-readiness checks
@@ -204,6 +206,9 @@ npx vibebasket init
 
 # Restore from backup
 npx vibebasket rollback
+
+# Run the local MCP server for AI IDE integrations
+npx vibebasket mcp serve
 ```
 
 Example local bundle file:
@@ -220,6 +225,31 @@ Example local bundle file:
   "workflowPacks": []
 }
 ```
+
+## Local MCP
+
+VibeBasket also exposes a local stdio MCP server through the published CLI:
+
+```bash
+npx vibebasket mcp serve
+```
+
+Current phase-1 MCP capabilities:
+
+- search the hosted or self-hosted catalog
+- fetch one catalog item by id
+- inspect supported targets and target setup guidance
+- return target-native MCP config snippets so IDE agents can wire VibeBasket MCP without guessing each client's config shape
+- dry-run install plans before writes
+- apply bundles through the real adapter pipeline
+- list backups and restore them
+- save and reload local stacks on the same machine
+
+The hosted docs hub mirrors this surface with target-selectable native snippet previews so users can inspect representative JSON, YAML, and TOML merge fragments before wiring the local server into an IDE.
+
+Current non-goal in this phase:
+
+- cloud/profile-backed stack save is not linked inside local MCP yet; use the website for that path
 
 When the target adapter detects that the generated MCP config is identical to the current on-disk config, `vibebasket apply` reports a no-op for that target and does not create a redundant backup snapshot.
 

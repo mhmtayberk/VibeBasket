@@ -32,8 +32,10 @@ async function loadKeytar(): Promise<KeytarModule | null> {
 export async function resolveSecrets(
   requiredSecrets: string[],
   projectRoot: string = process.cwd(),
+  options: { interactive?: boolean } = {},
 ): Promise<Record<string, string>> {
   const secrets: Record<string, string> = {};
+  const interactive = options.interactive !== false;
 
   // 1. Load from .vibebasket.env if exists
   const envPath = path.join(projectRoot, ".vibebasket.env");
@@ -64,6 +66,10 @@ export async function resolveSecrets(
         secrets[name] = keychainSecret;
         continue;
       }
+    }
+
+    if (!interactive) {
+      throw new Error(`Missing required secret: ${name}`);
     }
 
     // 5. Interactive Prompt

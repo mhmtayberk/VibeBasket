@@ -324,7 +324,7 @@ export default async function LocalizedHomePage({
                 {shared.navigation.startBuildingFree}
               </a>
               <a
-                href={`#${sectionIds.catalog}`}
+                href={localizePath(locale, "/docs?tab=mcp")}
                 className="inline-flex h-11 items-center justify-center gap-2 border border-border/80 bg-card/70 px-4 font-mono text-[10px] uppercase tracking-[0.16em] text-foreground transition-colors hover:border-accent/40 hover:text-accent sm:h-12 sm:px-5 sm:text-[11px] sm:tracking-[0.18em]"
               >
                 <TerminalSquare className="h-4 w-4" />

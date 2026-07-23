@@ -41,6 +41,8 @@ const CLI_COPY = {
       "Diagnoses the local environment: checks for .vibebasket project structure, inspects adapter config presence, reports MCP counts where readable, and prints a concise environment summary for the current machine.",
     rollbackDescription:
       "Opens an interactive restore flow, lets you choose from recent timestamped backups, and then restores the selected adapter config snapshot. For project-scoped backups, run it from the same project root you want to restore into.",
+    mcpServeDescription:
+      "Runs the local stdio VibeBasket MCP server. This is the IDE-facing surface for catalog search, target guidance, install planning, bundle apply, backup inspection, rollback, and local stack save/load. Cloud stack save is still intentionally routed through the website today.",
   },
   tr: {
     title: "CLI Referansı",
@@ -78,6 +80,8 @@ const CLI_COPY = {
       "Yerel ortamı teşhis eder: .vibebasket proje yapısını kontrol eder, adaptör config varlığını inceler, okunabildiğinde MCP sayılarını raporlar ve mevcut makine için kısa bir ortam özeti yazdırır.",
     rollbackDescription:
       "Etkileşimli bir geri yükleme akışı açar, son zaman damgalı yedeklerden seçim yapmanı sağlar ve ardından seçilen adaptör config anlık görüntüsünü geri yükler. Proje kapsamlı yedeklerde, geri yüklemek istediğin aynı proje kökünden çalıştır.",
+    mcpServeDescription:
+      "Yerel stdio VibeBasket MCP sunucusunu çalıştırır. Bu yüzey IDE tarafında katalog arama, hedef rehberliği, kurulum planlama, bundle apply, yedek inceleme, rollback ve yerel stack kaydetme/yükleme için kullanılır. Cloud stack save ise bugün kasıtlı olarak hâlâ web sitesi üzerinden yürür.",
   },
   es: {
     title: "Referencia CLI",
@@ -115,6 +119,8 @@ const CLI_COPY = {
       "Diagnostica el entorno local: comprueba la estructura del proyecto .vibebasket, inspecciona la presencia de configuración del adaptador, informa cantidades MCP cuando son legibles y muestra un resumen conciso del entorno de la máquina actual.",
     rollbackDescription:
       "Abre un flujo interactivo de restauración, te permite elegir entre backups recientes con marca temporal y luego restaura la instantánea de configuración del adaptador seleccionada. Para backups con alcance de proyecto, ejecútalo desde la misma raíz de proyecto que quieras restaurar.",
+    mcpServeDescription:
+      "Ejecuta el servidor MCP local de VibeBasket sobre stdio. Es la superficie orientada al IDE para búsqueda de catálogo, guía de objetivos, planificación de instalación, apply de bundles, inspección de backups, rollback y guardado/carga de stacks locales. El guardado cloud de stacks sigue pasando por el sitio web por diseño.",
   },
   zh: {
     title: "CLI 参考",
@@ -150,6 +156,8 @@ const CLI_COPY = {
       "诊断本地环境：检查 .vibebasket 项目结构，探测 adapter 配置是否存在，在可读取时报告 MCP 数量，并输出当前机器的简明环境摘要。",
     rollbackDescription:
       "打开交互式恢复流程，让你从最近带时间戳的备份中进行选择，然后恢复选定的 adapter 配置快照。对于 project 范围的备份，请从你想恢复的同一个项目根目录中运行它。",
+    mcpServeDescription:
+      "运行本地 stdio VibeBasket MCP 服务。这是面向 IDE 的入口，用于目录搜索、目标指导、安装规划、bundle apply、备份检查、rollback，以及本地 stack 的保存与加载。Cloud stack save 目前仍刻意保留在网站路径中。",
   },
   hi: {
     title: "CLI संदर्भ",
@@ -186,6 +194,8 @@ const CLI_COPY = {
       "Local environment का diagnostics करता है: .vibebasket project structure जाँचता है, adapter config presence देखता है, पढ़े जा सकने पर MCP counts रिपोर्ट करता है, और current machine के लिए concise environment summary प्रिंट करता है।",
     rollbackDescription:
       "Interactive restore flow खोलता है, हाल के timestamped backups में से चुनने देता है, और फिर चुना गया adapter config snapshot restore करता है। Project-scoped backups के लिए इसे उसी project root से चलाएँ जहाँ restore करना है।",
+    mcpServeDescription:
+      "Local stdio VibeBasket MCP server चलाता है। यही IDE-facing surface catalog search, target guidance, install planning, bundle apply, backup inspection, rollback और local stack save/load के लिए उपयोग होती है। Cloud stack save अभी भी जानबूझकर website path पर रखा गया है।",
   },
   ru: {
     title: "Справочник CLI",
@@ -223,6 +233,8 @@ const CLI_COPY = {
       "Диагностирует локальную среду: проверяет структуру проекта .vibebasket, наличие конфигов адаптеров, при возможности считает MCP и печатает краткую сводку окружения для текущей машины.",
     rollbackDescription:
       "Открывает интерактивный restore flow, позволяет выбрать один из недавних backup’ов с timestamp и затем восстанавливает выбранный snapshot конфигурации адаптера. Для project-scoped backup’ов запускайте команду из того же корня проекта, который хотите восстановить.",
+    mcpServeDescription:
+      "Запускает локальный stdio MCP-сервер VibeBasket. Это IDE-facing поверхность для поиска по каталогу, guidance по целям, планирования установки, apply bundle’ов, проверки backup’ов, rollback и локального сохранения/загрузки stack’ов. Cloud stack save по-прежнему намеренно оставлен за сайтом.",
   },
 } as const;
 
@@ -399,6 +411,14 @@ export function DocsTabCli({ locale }: { locale: AppLocale }) {
             </h3>
             <p className="text-sm text-[#bdc9c2] leading-relaxed max-w-3xl">
               {copy.rollbackDescription}
+            </p>
+          </div>
+          <div className="border border-[#3e4944] p-6">
+            <h3 className="font-mono text-[#a0fdda] text-xs font-semibold mb-3">
+              vibebasket mcp serve
+            </h3>
+            <p className="text-sm text-[#bdc9c2] leading-relaxed max-w-3xl">
+              {copy.mcpServeDescription}
             </p>
           </div>
         </div>
