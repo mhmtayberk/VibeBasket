@@ -1,7 +1,10 @@
 import { randomUUID } from "node:crypto";
-import { CatalogApiClient } from "../services/catalog-api.js";
-import { createBundleFromSelection, loadBundleFromInput } from "../services/bundle-service.js";
+import type { IdeId, Scope } from "../../../../packages/core/src/manifest.js";
+import { listBackups } from "../backup.js";
+import { getApiBaseUrl } from "../services/api-base-url.js";
 import { executeBundleApply } from "../services/apply-service.js";
+import { createBundleFromSelection, loadBundleFromInput } from "../services/bundle-service.js";
+import { CatalogApiClient } from "../services/catalog-api.js";
 import {
   createLocalStackId,
   getLocalStack,
@@ -9,16 +12,13 @@ import {
   listLocalStacks,
   saveLocalStack,
 } from "../services/local-stacks.js";
-import { getApiBaseUrl } from "../services/api-base-url.js";
-import { listBackups } from "../backup.js";
-import { getWritePolicyMode } from "./policy.js";
-import type { SelectionInput } from "./types.js";
 import {
   getTargetMcpSnippet,
   getTargetSetupGuide,
   listTargetGuides,
 } from "../services/target-guidance.js";
-import type { IdeId, Scope } from "../../../../packages/core/src/manifest.js";
+import { getWritePolicyMode } from "./policy.js";
+import type { SelectionInput } from "./types.js";
 
 export class VibebasketMcpServices {
   readonly sessionId = randomUUID();
@@ -80,21 +80,28 @@ export class VibebasketMcpServices {
   }
 
   async applyInstall(input: { bundleUrl?: string; selection?: SelectionInput; force?: boolean }) {
+    if (!input.bundleUrl && !input.selection) {
+      throw new Error("applyInstall requires either bundleUrl or selection.");
+    }
+
     const bundle =
       input.bundleUrl != null
         ? await loadBundleFromInput(input.bundleUrl)
-        : (await createBundleFromSelection({
-            itemIds: input.selection!.itemIds,
-            targetIds: input.selection!.targetIds,
-            scope: input.selection!.scope,
-          })).bundle;
+        : (
+            await createBundleFromSelection({
+              itemIds: input.selection.itemIds,
+              targetIds: input.selection.targetIds,
+              scope: input.selection.scope,
+            })
+          ).bundle;
 
     return executeBundleApply(bundle, {
       scope: input.selection?.scope ?? bundle.scope,
       force: input.force ?? false,
       dryRun: false,
       verify: true,
-      projectRoot: (input.selection?.scope ?? bundle.scope) === "project" ? process.cwd() : undefined,
+      projectRoot:
+        (input.selection?.scope ?? bundle.scope) === "project" ? process.cwd() : undefined,
       interactiveSecrets: false,
     });
   }

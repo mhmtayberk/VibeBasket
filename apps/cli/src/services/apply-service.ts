@@ -96,7 +96,7 @@ export async function executeBundleApply(
 ): Promise<ApplyServiceResult> {
   const logger = options.logger ?? noopLogger;
   const scope = options.scope ?? bundle.scope;
-  const projectRoot = scope === "project" ? options.projectRoot ?? process.cwd() : undefined;
+  const projectRoot = scope === "project" ? (options.projectRoot ?? process.cwd()) : undefined;
   const flattened = flattenBundleContent(bundle);
 
   const unsupportedTargets = bundle.targets.filter((targetId) => !getAdapter(targetId));
@@ -160,7 +160,9 @@ export async function executeBundleApply(
         "Workflow files were included, but file scaffolds only apply in project scope. Skipping workflow files.",
       );
     } else if (options.dryRun) {
-      logger.info(`Dry run: would apply ${flattened.files.length} workflow file(s) under ${projectRoot}.`);
+      logger.info(
+        `Dry run: would apply ${flattened.files.length} workflow file(s) under ${projectRoot}.`,
+      );
     } else {
       const workflowResult = await applyWorkflowFiles(flattened.files, projectRoot);
       workflowFilesApplied.push(...workflowResult.written);
@@ -302,11 +304,17 @@ async function applyToTarget(
   }
 
   if (options.verify) {
-    const verification = await verifyTargetInstall(targetId, adapter, options.scope, options.projectRoot, {
-      mcps: shouldApplyMcps ? mcpPlan.supported : [],
-      skills: shouldApplySkills ? flattened.skills : [],
-      rules: shouldApplyRules ? flattened.rules : [],
-    });
+    const verification = await verifyTargetInstall(
+      targetId,
+      adapter,
+      options.scope,
+      options.projectRoot,
+      {
+        mcps: shouldApplyMcps ? mcpPlan.supported : [],
+        skills: shouldApplySkills ? flattened.skills : [],
+        rules: shouldApplyRules ? flattened.rules : [],
+      },
+    );
 
     if (!verification.ok) {
       throw new Error(

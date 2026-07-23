@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import {
-  BundleSchema,
   type Bundle,
+  BundleSchema,
   type IdeId,
   type Scope,
 } from "../../../../packages/core/src/manifest.js";

@@ -1,8 +1,8 @@
 import { TARGET_CAPABILITIES } from "../../../../packages/adapters/src/target-capabilities.js";
 import {
+  VIBEBASKET_MCP_SERVER_ID,
   getBaseVibeBasketServerDefinition,
   getLocalVibeBasketMcpSnippet,
-  VIBEBASKET_MCP_SERVER_ID,
 } from "../../../../packages/core/src/local-mcp-snippets.js";
 import type { IdeId, Scope } from "../../../../packages/core/src/manifest.js";
 
@@ -29,7 +29,8 @@ const TARGET_GUIDES: Record<IdeId, TargetGuideMetadata> = {
       project: "<project-root>/.gemini/antigravity/mcp_config.json",
     },
     mcpFieldHint: "Add an mcpServers.vibebasket entry in the JSON config.",
-    postInstallHint: "Restart Antigravity or reload the conversation for MCP changes to take effect.",
+    postInstallHint:
+      "Restart Antigravity or reload the conversation for MCP changes to take effect.",
   },
   "claude-code": {
     label: "Claude Code",
@@ -194,7 +195,8 @@ const TARGET_GUIDES: Record<IdeId, TargetGuideMetadata> = {
       project: "~/.hermes/config.yaml",
     },
     mcpFieldHint: "Add a vibebasket block under Hermes mcp_servers in YAML form.",
-    postInstallHint: "Restart Hermes or reload the terminal for configuration changes to take effect.",
+    postInstallHint:
+      "Restart Hermes or reload the terminal for configuration changes to take effect.",
   },
   openclaw: {
     label: "OpenClaw",
@@ -257,7 +259,8 @@ const TARGET_GUIDES: Record<IdeId, TargetGuideMetadata> = {
       user: "~/.config/goose/config.yaml",
     },
     mcpFieldHint: "Add a vibebasket entry inside the Goose extensions config.",
-    postInstallHint: "Restart Goose or reload the terminal for configuration changes to take effect.",
+    postInstallHint:
+      "Restart Goose or reload the terminal for configuration changes to take effect.",
   },
   "ibm-bob": {
     label: "IBM Bob",
@@ -361,10 +364,15 @@ export function getTargetSetupGuide(targetId: IdeId, scope: Scope = "user") {
       capabilities.supportsMcp && scopeSupported
         ? {
             ...getBaseVibeBasketServerDefinition(),
-            postInstallHint: metadata.postInstallHint ?? "Restart the client after updating its MCP config.",
+            postInstallHint:
+              metadata.postInstallHint ?? "Restart the client after updating its MCP config.",
           }
         : null,
-    recommendedSteps: buildRecommendedSteps(targetId, scope, capabilities.supportsMcp && scopeSupported),
+    recommendedSteps: buildRecommendedSteps(
+      targetId,
+      scope,
+      capabilities.supportsMcp && scopeSupported,
+    ),
   };
 }
 

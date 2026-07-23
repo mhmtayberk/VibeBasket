@@ -53,15 +53,15 @@ export async function generateMetadata({
         ? docs.metadataCli
         : tab === "mcp"
           ? docs.metadataMcp
-        : tab === "adapters"
-          ? docs.metadataAdapters
-          : tab === "delimiters"
-            ? docs.metadataDelimiters
-            : tab === "security"
-              ? docs.metadataSecurity
-              : tab === "self-hosting"
-                ? docs.metadataSelfHosting
-                : docs.metadataHub;
+          : tab === "adapters"
+            ? docs.metadataAdapters
+            : tab === "delimiters"
+              ? docs.metadataDelimiters
+              : tab === "security"
+                ? docs.metadataSecurity
+                : tab === "self-hosting"
+                  ? docs.metadataSelfHosting
+                  : docs.metadataHub;
 
   const localizedDocsPath = tab ? `/docs?tab=${tab}` : "/docs";
   const languageAlternates = Object.fromEntries(

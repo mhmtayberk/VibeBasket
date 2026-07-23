@@ -1,6 +1,6 @@
+import type { RequestHandlerExtra } from "@modelcontextprotocol/sdk/shared/protocol.js";
 import type { ServerNotification, ServerRequest } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
-import type { RequestHandlerExtra } from "@modelcontextprotocol/sdk/shared/protocol.js";
 import type { WritePolicyMode } from "./types.js";
 
 export type ToolRiskLevel = "low" | "medium" | "high";
@@ -54,7 +54,9 @@ export async function enforceToolPolicy(
       },
     });
     const parsed = ConfirmationResponseSchema.safeParse(
-      result && typeof result === "object" && "content" in result ? (result as { content?: unknown }).content : result,
+      result && typeof result === "object" && "content" in result
+        ? (result as { content?: unknown }).content
+        : result,
     );
     if (parsed.success && parsed.data.approved) {
       return { allowed: true };

@@ -3,10 +3,10 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
 import { IdeIdSchema, ScopeSchema } from "../../../../packages/core/src/manifest.js";
+import { restoreBackupByPath } from "../services/rollback-service.js";
 import { enforceToolPolicy } from "./policy.js";
 import { VibebasketMcpServices } from "./services.js";
-import { SelectionInputSchema, type McpToolEnvelope } from "./types.js";
-import { restoreBackupByPath } from "../services/rollback-service.js";
+import { type McpToolEnvelope, SelectionInputSchema } from "./types.js";
 
 function toolText<T extends Record<string, unknown>>(payload: McpToolEnvelope<T>): CallToolResult {
   return {
@@ -64,7 +64,10 @@ const InstallApplyInputSchema = z
   });
 
 const LocalStackLoadSchema = z.object({
-  stackId: z.string().trim().regex(/^[a-z0-9-]+$/),
+  stackId: z
+    .string()
+    .trim()
+    .regex(/^[a-z0-9-]+$/),
 });
 
 const SaveLocalStackSchema = SelectionInputSchema.extend({
@@ -195,7 +198,8 @@ export async function createVibeBasketMcpServer() {
   server.registerTool(
     "catalog.refresh",
     {
-      description: "Refresh the MCP session's cached view of the VibeBasket catalog with cooldown protection.",
+      description:
+        "Refresh the MCP session's cached view of the VibeBasket catalog with cooldown protection.",
       inputSchema: z.object({}),
     },
     async (_args, extra) => {
@@ -244,13 +248,16 @@ export async function createVibeBasketMcpServer() {
   server.registerTool(
     "stack.save_local",
     {
-      description: "Save the current selection as a local reusable VibeBasket stack on this machine.",
+      description:
+        "Save the current selection as a local reusable VibeBasket stack on this machine.",
       inputSchema: SaveLocalStackSchema,
     },
     async (args, extra) => {
       const policy = await enforceToolPolicy("medium", extra, "save a local VibeBasket stack");
       if (!policy.allowed) {
-        return toolText(failure("policy_blocked", policy.reason ?? "Save blocked.", {}, policy.reason));
+        return toolText(
+          failure("policy_blocked", policy.reason ?? "Save blocked.", {}, policy.reason),
+        );
       }
 
       const stack = await services.saveLocalStack(args);
@@ -267,7 +274,8 @@ export async function createVibeBasketMcpServer() {
   server.registerTool(
     "stack.save_cloud",
     {
-      description: "Attempt to save a stack to the authenticated VibeBasket profile. Phase 1 reports availability and guidance only.",
+      description:
+        "Attempt to save a stack to the authenticated VibeBasket profile. Phase 1 reports availability and guidance only.",
       inputSchema: SaveLocalStackSchema,
     },
     async () =>
@@ -290,9 +298,7 @@ export async function createVibeBasketMcpServer() {
     async ({ stackId }) => {
       const stack = await services.loadLocalStack(stackId);
       if (!stack) {
-        return toolText(
-          failure("not_found", `Local stack ${stackId} was not found.`, { stackId }),
-        );
+        return toolText(failure("not_found", `Local stack ${stackId} was not found.`, { stackId }));
       }
       return toolText(
         success(
@@ -340,9 +346,15 @@ export async function createVibeBasketMcpServer() {
       inputSchema: InstallApplyInputSchema,
     },
     async (args, extra) => {
-      const policy = await enforceToolPolicy("high", extra, "apply configuration changes to local AI IDEs");
+      const policy = await enforceToolPolicy(
+        "high",
+        extra,
+        "apply configuration changes to local AI IDEs",
+      );
       if (!policy.allowed) {
-        return toolText(failure("policy_blocked", policy.reason ?? "Apply blocked.", {}, policy.reason));
+        return toolText(
+          failure("policy_blocked", policy.reason ?? "Apply blocked.", {}, policy.reason),
+        );
       }
 
       try {
@@ -390,13 +402,18 @@ export async function createVibeBasketMcpServer() {
   server.registerTool(
     "install.rollback",
     {
-      description: "Restore a previously created VibeBasket backup by backup filename path metadata.",
+      description:
+        "Restore a previously created VibeBasket backup by backup filename path metadata.",
       inputSchema: z.object({
         backupPath: z.string().trim().min(1),
       }),
     },
     async ({ backupPath }, extra) => {
-      const policy = await enforceToolPolicy("high", extra, "restore a previous configuration backup");
+      const policy = await enforceToolPolicy(
+        "high",
+        extra,
+        "restore a previous configuration backup",
+      );
       if (!policy.allowed) {
         return toolText(
           failure("policy_blocked", policy.reason ?? "Rollback blocked.", {}, policy.reason),
