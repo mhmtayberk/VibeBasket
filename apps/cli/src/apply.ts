@@ -12,9 +12,15 @@ export async function applyBundle(
   const projectRoot = scope === "project" ? process.cwd() : undefined;
 
   console.log(chalk.bold("\n📦 Bundle Summary:"));
-  console.log(`- MCP Servers: ${bundle.mcps.length + bundle.workflowPacks.flatMap((entry) => entry.mcps).length}`);
-  console.log(`- Skills: ${bundle.skills.length + bundle.workflowPacks.flatMap((entry) => entry.skills).length}`);
-  console.log(`- Rules: ${bundle.rules.length + bundle.workflowPacks.flatMap((entry) => entry.rules).length}`);
+  console.log(
+    `- MCP Servers: ${bundle.mcps.length + bundle.workflowPacks.flatMap((entry) => entry.mcps).length}`,
+  );
+  console.log(
+    `- Skills: ${bundle.skills.length + bundle.workflowPacks.flatMap((entry) => entry.skills).length}`,
+  );
+  console.log(
+    `- Rules: ${bundle.rules.length + bundle.workflowPacks.flatMap((entry) => entry.rules).length}`,
+  );
   console.log(`- Workflow Files: ${bundle.workflowPacks.flatMap((entry) => entry.files).length}`);
   console.log(`- Targets: ${bundle.targets.join(", ")}`);
   console.log(`- Scope: ${scope}\n`);

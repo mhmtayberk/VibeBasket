@@ -25,10 +25,18 @@ describe("CatalogApiClient refresh guardrails", () => {
           calls += 1;
           resolveFetch = () =>
             resolve(
-              new Response(JSON.stringify({ items: [], pagination: undefined, source: "network", cached: false }), {
-                status: 200,
-                headers: { "content-type": "application/json" },
-              }),
+              new Response(
+                JSON.stringify({
+                  items: [],
+                  pagination: undefined,
+                  source: "network",
+                  cached: false,
+                }),
+                {
+                  status: 200,
+                  headers: { "content-type": "application/json" },
+                },
+              ),
             );
         }),
     ) as typeof fetch;
@@ -49,7 +57,10 @@ describe("CatalogApiClient refresh guardrails", () => {
     global.fetch = vi.fn(async () => new Response("{}", { status: 200 })) as typeof fetch;
 
     const client = new CatalogApiClient("https://vibebasket.dev");
-    await expect(client.refresh()).resolves.toMatchObject({ refreshed: true, cooldownMsRemaining: 0 });
+    await expect(client.refresh()).resolves.toMatchObject({
+      refreshed: true,
+      cooldownMsRemaining: 0,
+    });
     await expect(client.refresh()).resolves.toMatchObject({
       refreshed: false,
       forced: false,

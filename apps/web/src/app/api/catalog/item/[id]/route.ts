@@ -41,7 +41,9 @@ export async function GET(request: NextRequest, context: RouteContext) {
       .limit(1);
 
     if (!rows[0]) {
-      return applySecurityHeaders(NextResponse.json({ error: "Catalog item not found." }, { status: 404 }));
+      return applySecurityHeaders(
+        NextResponse.json({ error: "Catalog item not found." }, { status: 404 }),
+      );
     }
 
     return applySecurityHeaders(NextResponse.json(rows[0]));

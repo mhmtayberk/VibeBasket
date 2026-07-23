@@ -1,6 +1,6 @@
+import { McpSnippetPreview } from "@/components/docs/McpSnippetPreview";
 import type { AppLocale } from "@/i18n/config";
 import { localizePath } from "@/i18n/locale-routing";
-import { McpSnippetPreview } from "@/components/docs/McpSnippetPreview";
 import { ShieldCheck, TerminalSquare, Wrench } from "lucide-react";
 import Link from "next/link";
 
@@ -146,7 +146,8 @@ const MCP_COPY = {
     statusBody:
       "这是一个扎实的 phase-1 MCP 面：目录搜索、单项查询、目标指导、安装规划、应用、备份列表、rollback，以及本地 stack 的保存与加载，都复用了真实的 CLI 服务层。",
     commandTitle: "启动命令",
-    commandBody: "使用 npx vibebasket mcp serve 在本地启动 MCP 服务。客户端应通过 stdio 连接，而不是 HTTP。",
+    commandBody:
+      "使用 npx vibebasket mcp serve 在本地启动 MCP 服务。客户端应通过 stdio 连接，而不是 HTTP。",
     snippetsTitle: "原生配置片段",
     snippetsBody:
       "通过 targets.get_mcp_snippet 请求目标原生片段。下面这些示例展示了几个代表性客户端的准确 merge 形状。",
@@ -358,7 +359,9 @@ export function DocsTabMcp({ locale }: { locale: AppLocale }) {
             <Wrench className="h-5 w-5 text-[#7dd3fc]" />
             <h2 className="text-xl font-semibold text-foreground">{copy.snippetsTitle}</h2>
           </div>
-          <p className="mb-6 max-w-3xl text-sm leading-relaxed text-[#bdc9c2]">{copy.snippetsBody}</p>
+          <p className="mb-6 max-w-3xl text-sm leading-relaxed text-[#bdc9c2]">
+            {copy.snippetsBody}
+          </p>
           <McpSnippetPreview
             targets={EXAMPLE_TARGETS.map(({ key, targetId }) => ({
               id: targetId,
