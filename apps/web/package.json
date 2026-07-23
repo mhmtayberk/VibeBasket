@@ -1,6 +1,6 @@
 {
   "name": "web",
-  "version": "0.9.5",
+  "version": "0.9.6",
   "private": true,
   "scripts": {
     "dev": "\"$npm_node_execpath\" ../../scripts/run-next.mjs dev --webpack",

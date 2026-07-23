@@ -16,6 +16,11 @@ The CLI is built for the last mile:
 npx vibebasket apply https://vibebasket.dev/api/bundle/<bundle-id>
 ```
 
+Use the hosted app to generate a bundle:
+
+- App: https://vibebasket.dev
+- Docs: https://github.com/mhmtayberk/VibeBasket#readme
+
 ## Commands
 
 ```bash
@@ -51,6 +56,13 @@ Current limitation:
 
 - cloud/profile-backed stack save is not linked in the local MCP yet, so use the VibeBasket website for that path
 
+Typical MCP flow:
+
+1. Ask your AI IDE to search the VibeBasket catalog
+2. Ask it to preview target-native MCP config snippets for Cursor, Codex CLI, Continue, or other supported targets
+3. Ask it to plan or apply the install
+4. Provide runtime credentials only on your own machine if a selected MCP server needs them
+
 ## How Secrets Work
 
 - Secrets required by MCP servers are resolved locally on your machine.
@@ -69,6 +81,23 @@ VIBEBASKET_API_URL=https://your-domain.com npx vibebasket search postgresql
 ```
 
 The same override works for bundle apply flows that use hosted URLs.
+
+## Local Bundle Files
+
+`apply` also accepts a local bundle JSON file.
+
+Minimal example:
+
+```json
+{
+  "schemaVersion": "0.1",
+  "scope": "user",
+  "targets": ["cursor"],
+  "items": []
+}
+```
+
+Use `scope: "project"` when a target supports project-scoped config and you want VibeBasket to write into the current repository context instead of user-level config.
 
 ## Notes
 

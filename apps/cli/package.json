@@ -1,6 +1,6 @@
 {
   "name": "vibebasket",
-  "version": "0.9.5",
+  "version": "0.9.6",
   "description": "Local installer and inspection CLI for VibeBasket bundles",
   "main": "./dist/index.js",
   "files": ["dist", "README.md"],
