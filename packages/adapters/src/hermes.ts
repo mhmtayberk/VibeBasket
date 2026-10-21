@@ -19,8 +19,8 @@ export interface HermesMcpConfig {
 
 type HermesMcpServerBlock = {
   command: string;
-  args: string[];
-  env: Record<string, string>;
+  args?: string[];
+  env?: Record<string, string>;
 };
 
 export class HermesAdapter implements IdeAdapter {
@@ -60,9 +60,22 @@ export class HermesAdapter implements IdeAdapter {
     // We will reuse mergeStandardMcpServers by converting key/value mappings
     const standardServers = current.mcp_servers || {};
     const merged = mergeStandardMcpServers(standardServers, mcps, secrets, opts);
+    const normalized = Object.fromEntries(
+      Object.entries(merged).map(([id, server]) => {
+        const { args, env, ...rest } = server;
+        return [
+          id,
+          {
+            ...rest,
+            ...(args?.length ? { args } : {}),
+            ...(env && Object.keys(env).length > 0 ? { env } : {}),
+          },
+        ];
+      }),
+    );
     return {
       ...current,
-      mcp_servers: merged,
+      mcp_servers: normalized,
     };
   }
 
@@ -163,7 +176,7 @@ export class HermesAdapter implements IdeAdapter {
       if (inMcpServers) {
         if (indent === 2 && trimmed.endsWith(":")) {
           currentServer = trimmed.slice(0, -1);
-          serverBlock = { command: "", args: [], env: {} };
+          serverBlock = { command: "" };
           if (!config.mcp_servers) config.mcp_servers = {};
           config.mcp_servers[currentServer] = serverBlock;
           inArgs = false;
@@ -181,9 +194,11 @@ export class HermesAdapter implements IdeAdapter {
             inArgs = false;
             inEnv = false;
           } else if (key === "args") {
+            serverBlock.args ||= [];
             inArgs = true;
             inEnv = false;
           } else if (key === "env") {
+            serverBlock.env ||= {};
             inEnv = true;
             inArgs = false;
           }
@@ -193,6 +208,7 @@ export class HermesAdapter implements IdeAdapter {
               .slice(1)
               .trim()
               .replace(/^["']|["']$/g, "");
+            serverBlock.args ||= [];
             serverBlock.args.push(argVal);
           } else if (inEnv) {
             const parts = trimmed.split(":");
@@ -204,6 +220,7 @@ export class HermesAdapter implements IdeAdapter {
               .join(":")
               .trim()
               .replace(/^["']|["']$/g, "");
+            serverBlock.env ||= {};
             serverBlock.env[key] = val;
           }
         }

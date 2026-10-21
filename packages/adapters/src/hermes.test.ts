@@ -12,6 +12,29 @@ type HermesInternals = {
 };
 
 describe("HermesAdapter", () => {
+  it("should preserve the canonical shape of servers without args or env", () => {
+    const adapter = new HermesAdapter();
+    const adapterWithInternals = adapter as unknown as HermesInternals;
+    const existingYaml = 'mcp_servers:\n  existing:\n    command: "node"\n';
+    const parsedConfig = adapterWithInternals.parseYaml(existingYaml);
+
+    const existingMcp: McpEntry = {
+      id: "existing",
+      displayName: "Existing MCP",
+      runtime: "node",
+      command: "node",
+      args: [],
+      env: {},
+      headers: {},
+      requiredSecrets: [],
+      verified: false,
+    };
+
+    expect(adapter.applyMcps(parsedConfig, [existingMcp], {}, { force: true })).toEqual(
+      parsedConfig,
+    );
+  });
+
   it("should merge new MCPs into YAML config preserving comments", () => {
     const adapter = new HermesAdapter();
     const existingYaml = `# System Hermes Configuration File\n\n# Existing Servers Block\nmcp_servers:\n  existing:\n    command: "node"\n    args:\n      - "index.js"\n`;
