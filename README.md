@@ -2,7 +2,7 @@
 
 ![VibeBasket hero banner](.github/assets/readme-hero.jpg)
 
-Bundle trusted MCP servers, agent skills, and project rules into one shareable install command. Apply across 24 AI IDEs and CLI tools with a single link.
+Bundle trusted MCP servers, agent skills, and project rules into one shareable install command. Apply across 30 AI IDEs and CLI tools with a single link.
 
 [![Version](https://img.shields.io/badge/version-0.9.6-blue)](package.json)
 [![npm](https://img.shields.io/npm/v/vibebasket)](https://www.npmjs.com/package/vibebasket)
@@ -18,7 +18,7 @@ Bundle trusted MCP servers, agent skills, and project rules into one shareable i
 - [What is VibeBasket?](#what-is-vibebasket)
 - [Who It's For](#who-its-for)
 - [What It Is Not](#what-it-is-not)
-- [Supported Targets](#supported-targets-24-ides--cli-tools)
+- [Supported Targets](#supported-targets-30-ides--cli-tools)
 - [Core Capabilities](#core-capabilities)
 - [Quick Start](#quick-start)
 - [CLI Usage](#cli-usage)

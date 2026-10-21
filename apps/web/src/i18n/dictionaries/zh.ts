@@ -79,7 +79,7 @@ export const zhDictionary: AppDictionary = {
       twitterDescription: "为所有 AI 编码工具共享一套可信 MCP、skills 与 rules 的统一安装流程。",
     },
     hero: {
-      badge: "开源 · 24 个 IDE 目标",
+      badge: "开源 · 30 个 IDE 目标",
       titleMobile: "把你的 AI 开发配置打成包。用一个链接分享出去。",
       titleDesktop: ["打包你的 AI", "开发配置。", "用一个链接", "分享出去。"],
       description:
@@ -372,9 +372,9 @@ export const zhDictionary: AppDictionary = {
         "本地 VibeBasket MCP 服务如何工作：stdio 传输、目标指导、目录搜索、安装规划、apply、rollback 以及当前 phase-1 边界。",
     },
     metadataAdapters: {
-      title: "IDE 适配器 — 24 个目标 — VibeBasket 文档",
+      title: "IDE 适配器 — 30 个目标 — VibeBasket 文档",
       description:
-        "覆盖 Cursor、Windsurf、VS Code、Claude Code、GitHub Copilot 等 24 个目标的多 IDE 适配器参考，包括配置路径以及每个目标对 MCP/skills/rules 的支持。",
+        "覆盖 Cursor、Windsurf、VS Code、Claude Code、GitHub Copilot 等 30 个目标的多 IDE 适配器参考，包括配置路径以及每个目标对 MCP/skills/rules 的支持。",
     },
     metadataDelimiters: {
       title: "块分隔符 — VibeBasket 文档",

@@ -21,7 +21,7 @@ For the hosted product and the documented self-host path, the intended operating
 
 ## Current Target Model
 
-The product currently exposes 24 adapter-backed IDE targets: Cursor, Windsurf, VS Code/Cline, Antigravity, Claude Code, DeepSeek-TUI, Zed, Codex CLI, Gemini CLI, Junie, Kiro, Cline CLI, Continue, Roo Code, Hermes, OpenClaw, GitHub Copilot, Void Editor, Aider, Cortex Code, Goose, IBM Bob, CodeBuddy, and OpenCode.
+The product currently exposes 30 adapter-backed IDE targets: Cursor, Windsurf, VS Code/Cline, Antigravity, Claude Code, DeepSeek-TUI, Zed, Codex CLI, Gemini CLI, Junie, Kiro, Cline CLI, Continue, Roo Code, Hermes, OpenClaw, GitHub Copilot, Void Editor, Aider, Cortex Code, Goose, IBM Bob, CodeBuddy, OpenCode, Ante, Trae, Qoder, OMP, Autohand Code, and Crush.
 
 For targets that support it (16 total: Claude Code, Continue, Cursor, Gemini CLI, Kiro, Windsurf, Zed, Roo Code, Hermes, OpenClaw, GitHub Copilot, Aider, Cortex Code, IBM Bob, CodeBuddy, and OpenCode), the CLI adapter also installs Skills and/or Rules using idempotent file writes or block delimiters to avoid corrupting existing developer configurations. File-backed installs now use a managed ownership registry so pre-existing user-authored skill and rule files are preserved instead of being silently overwritten.
 

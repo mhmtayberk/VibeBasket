@@ -384,9 +384,9 @@ export const trDictionary: AppDictionary = {
         "Yerel VibeBasket MCP sunucusunun nasıl çalıştığı: stdio taşıması, hedef rehberliği, katalog arama, kurulum planlama, apply, rollback ve mevcut phase-1 sınırları.",
     },
     metadataAdapters: {
-      title: "IDE Adaptörleri — 24 Hedef — VibeBasket Dokümanları",
+      title: "IDE Adaptörleri — 30 Hedef — VibeBasket Dokümanları",
       description:
-        "Cursor, Windsurf, VS Code, Claude Code, GitHub Copilot ve 19 fazlasını kapsayan çoklu IDE adaptör referansı. Config yolları ve MCP/skill/rule destek matrisi.",
+        "Cursor, Windsurf, VS Code, Claude Code, GitHub Copilot ve 25 fazlasını kapsayan çoklu IDE adaptör referansı. Config yolları ve MCP/skill/rule destek matrisi.",
     },
     metadataDelimiters: {
       title: "Blok Delimiter’ları — VibeBasket Dokümanları",

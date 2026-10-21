@@ -381,9 +381,9 @@ export const hiDictionary: AppDictionary = {
         "लोकल VibeBasket MCP server कैसे काम करता है: stdio transport, target guidance, catalog search, install planning, apply, rollback और current phase-1 limits.",
     },
     metadataAdapters: {
-      title: "IDE अडैप्टर्स — 24 लक्ष्य — VibeBasket दस्तावेज़",
+      title: "IDE अडैप्टर्स — 30 लक्ष्य — VibeBasket दस्तावेज़",
       description:
-        "Cursor, Windsurf, VS Code, Claude Code, GitHub Copilot और 19 अन्य लक्ष्यों को कवर करने वाला multi-IDE adapter reference। Config paths और target-specific MCP/skills/rules support शामिल है।",
+        "Cursor, Windsurf, VS Code, Claude Code, GitHub Copilot और 25 अन्य लक्ष्यों को कवर करने वाला multi-IDE adapter reference। Config paths और target-specific MCP/skills/rules support शामिल है।",
     },
     metadataDelimiters: {
       title: "ब्लॉक डिलिमिटर्स — VibeBasket दस्तावेज़",
