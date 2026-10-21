@@ -1,6 +1,7 @@
 import os from "node:os";
 import path from "node:path";
-import type { McpEntry } from "../../core/src/manifest.js";
+import type { McpEntry, Scope, SkillEntry } from "../../core/src/manifest.js";
+import { applyAgentSkills } from "./agent-content";
 import { BaseAdapter } from "./base-adapter";
 import { resolveSecretInterpolations } from "./mcp-utils";
 
@@ -9,12 +10,21 @@ interface AnteConfig {
   [key: string]: unknown;
 }
 
+export function resolveAnteHomeDir(): string {
+  return process.env.ANTE_HOME?.trim() || path.join(os.homedir(), ".ante");
+}
+
 export class AnteAdapter extends BaseAdapter {
   readonly id = "ante" as const;
   readonly displayName = "Ante";
 
-  configPath(): string {
-    return path.join(os.homedir(), ".ante", "settings.json");
+  private homeDir(): string {
+    return resolveAnteHomeDir();
+  }
+
+  configPath(scope: Scope = "user"): string {
+    if (scope !== "user") throw new Error("Ante MCP only supports user scope auto-apply.");
+    return path.join(this.homeDir(), "settings.json");
   }
 
   override async readConfig(): Promise<unknown> {
@@ -24,6 +34,14 @@ export class AnteAdapter extends BaseAdapter {
       mcp_servers:
         (current.mcp_servers as Record<string, Record<string, unknown>> | undefined) ?? {},
     } satisfies AnteConfig;
+  }
+
+  async applySkills(skills: SkillEntry[], scope: Scope, projectRoot?: string) {
+    const baseDir =
+      scope === "project"
+        ? path.join(requireProjectRoot(projectRoot), ".ante", "skills")
+        : path.join(this.homeDir(), "skills");
+    return applyAgentSkills(skills, baseDir);
   }
 
   override applyMcps(
@@ -59,4 +77,9 @@ export class AnteAdapter extends BaseAdapter {
   postInstallHint(): string {
     return "Restart Ante or start a new session so MCP tools are discovered.";
   }
+}
+
+function requireProjectRoot(projectRoot?: string): string {
+  if (!projectRoot) throw new Error("projectRoot required for project scope");
+  return projectRoot;
 }

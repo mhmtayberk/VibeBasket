@@ -11,7 +11,42 @@ export interface IdeAdapterCapabilities {
   readonly supportsMcp: boolean;
   readonly supportsSkills: boolean;
   readonly supportsRules: boolean;
+  /** Scopes accepted by at least one supported feature. */
   readonly supportedScopes: readonly Scope[];
+  /** Feature-specific scopes; defaults to supportedScopes when omitted. */
+  readonly mcpScopes?: readonly Scope[];
+  readonly skillScopes?: readonly Scope[];
+  readonly ruleScopes?: readonly Scope[];
+  readonly featureScopes?: (feature: AdapterFeature) => readonly Scope[];
+}
+
+export type AdapterFeature = "mcp" | "skills" | "rules";
+
+export function getFeatureScopes(
+  capabilities: IdeAdapterCapabilities,
+  feature: AdapterFeature,
+): readonly Scope[] {
+  const resolved = capabilities.featureScopes?.(feature);
+  if (resolved) return resolved;
+  if (feature === "mcp") {
+    return capabilities.supportsMcp ? (capabilities.mcpScopes ?? capabilities.supportedScopes) : [];
+  }
+  if (feature === "skills") {
+    return capabilities.supportsSkills
+      ? (capabilities.skillScopes ?? capabilities.supportedScopes)
+      : [];
+  }
+  return capabilities.supportsRules
+    ? (capabilities.ruleScopes ?? capabilities.supportedScopes)
+    : [];
+}
+
+export function supportsFeatureScope(
+  capabilities: IdeAdapterCapabilities,
+  feature: AdapterFeature,
+  scope: Scope,
+): boolean {
+  return getFeatureScopes(capabilities, feature).includes(scope);
 }
 
 export interface ManagedContentSkip {

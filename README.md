@@ -87,14 +87,14 @@ Start here:
 | IBM Bob | ✅ | ✅ | — |
 | CodeBuddy | ✅ | ✅ | — |
 | OpenCode | ✅ | ✅ | ✅ |
-| Ante | ✅ | — | — |
-| Trae | ✅ | — | — |
-| Qoder | ✅ | — | — |
-| OMP (Oh My Pi) | ✅ | — | — |
-| Autohand Code | ✅ | — | — |
-| Crush | ✅ | — | — |
+| Ante | ✅ | ✅ | — |
+| Trae | ✅ | ✅ | ✅ |
+| Qoder | ✅ | ✅ | ✅ |
+| OMP (Oh My Pi) | ✅ | ✅ | ✅ |
+| Autohand Code | ✅ | ✅ | — |
+| Crush | ✅ | ✅ | — |
 
-16 supported targets auto-install Skills. 6 supported targets auto-install Rules. All MCP-capable targets auto-install MCP servers.
+22 supported targets auto-install Skills. 9 supported targets auto-install Rules. All MCP-capable targets auto-install MCP servers.
 
 ## Core Capabilities
 

@@ -1,6 +1,7 @@
 import path from "node:path";
 import { SUPPORTED_TARGET_IDS, TARGET_CAPABILITIES } from "@vibebasket/adapters";
 import { describe, expect, it } from "vitest";
+import { getFeatureScopes } from "../../../../packages/adapters/src/types.js";
 import { ADAPTERS } from "./adapters";
 
 describe("adapter registry contracts", () => {
@@ -20,6 +21,17 @@ describe("adapter registry contracts", () => {
       expect(adapter.supportsSkills).toBe(capabilities.supportsSkills);
       expect(adapter.supportsRules).toBe(capabilities.supportsRules);
       expect(adapter.supportedScopes).toEqual(capabilities.supportedScopes);
+      expect(getFeatureScopes(adapter, "mcp")).toEqual(
+        capabilities.supportsMcp ? (capabilities.mcpScopes ?? capabilities.supportedScopes) : [],
+      );
+      expect(getFeatureScopes(adapter, "skills")).toEqual(
+        capabilities.supportsSkills
+          ? (capabilities.skillScopes ?? capabilities.supportedScopes)
+          : [],
+      );
+      expect(getFeatureScopes(adapter, "rules")).toEqual(
+        capabilities.supportsRules ? (capabilities.ruleScopes ?? capabilities.supportedScopes) : [],
+      );
       if (capabilities.supportsSkills) {
         expect(adapter.applySkills, `${targetId} must implement skill installation`).toBeTypeOf(
           "function",
@@ -31,7 +43,7 @@ describe("adapter registry contracts", () => {
         );
       }
 
-      for (const scope of capabilities.supportedScopes) {
+      for (const scope of capabilities.mcpScopes ?? capabilities.supportedScopes) {
         expect(path.isAbsolute(adapter.configPath(scope, projectRoot))).toBe(true);
       }
     }

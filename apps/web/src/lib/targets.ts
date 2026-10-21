@@ -1,6 +1,7 @@
 import {
   SUPPORTED_TARGET_IDS as ADAPTER_SUPPORTED_TARGET_IDS,
   TARGET_CAPABILITIES,
+  targetSupportsFeatureScope,
 } from "@vibebasket/adapters/target-capabilities";
 import type { IdeAdapterCapabilities } from "@vibebasket/adapters/types";
 import type { IdeId, Scope } from "@vibebasket/core";
@@ -224,7 +225,7 @@ const UNSORTED_TARGET_OPTIONS: TargetOptionSeed[] = [
     label: "Ante",
     status: "supported",
     kind: "terminal",
-    note: "Backed by Ante's user settings and native MCP server map.",
+    note: "Backed by Ante's user MCP settings and native user/project Agent Skills directories.",
     vendor: "Antigma Labs",
   },
   {
@@ -232,7 +233,7 @@ const UNSORTED_TARGET_OPTIONS: TargetOptionSeed[] = [
     label: "Trae",
     status: "supported",
     kind: "editor",
-    note: "Backed by Trae's project-level .trae/mcp.json configuration.",
+    note: "Backed by Trae's project MCP/rules paths and native user/project Agent Skills directories.",
     vendor: "ByteDance",
   },
   {
@@ -240,7 +241,7 @@ const UNSORTED_TARGET_OPTIONS: TargetOptionSeed[] = [
     label: "Qoder",
     status: "supported",
     kind: "terminal",
-    note: "Backed by Qoder CLI user and portable project MCP configuration.",
+    note: "Backed by Qoder's user/project MCP and Skills paths plus project rules.",
     vendor: "Qoder",
   },
   {
@@ -248,7 +249,7 @@ const UNSORTED_TARGET_OPTIONS: TargetOptionSeed[] = [
     label: "OMP (Oh My Pi)",
     status: "supported",
     kind: "terminal",
-    note: "Backed by OMP-native profile-aware user and project MCP files.",
+    note: "Backed by OMP-native profile-aware MCP, Skills, and Rules paths.",
     vendor: "Oh My Pi",
   },
   {
@@ -256,7 +257,7 @@ const UNSORTED_TARGET_OPTIONS: TargetOptionSeed[] = [
     label: "Autohand Code",
     status: "supported",
     kind: "terminal",
-    note: "Backed by Autohand's canonical JSON user/project config and MCP server list.",
+    note: "Backed by Autohand's canonical JSON MCP config and native user/project Skills paths.",
     vendor: "Autohand AI",
   },
   {
@@ -264,7 +265,7 @@ const UNSORTED_TARGET_OPTIONS: TargetOptionSeed[] = [
     label: "Crush",
     status: "supported",
     kind: "terminal",
-    note: "Backed by managed blocks in Crush's current crushrc configuration.",
+    note: "Backed by managed crushrc MCP blocks and native user/project Agent Skills directories.",
     vendor: "Charm",
   },
 ];
@@ -300,22 +301,40 @@ export const DEFAULT_TARGET_IDS = ["claude-code"] as const;
 const supportedTargetIdSet = new Set<IdeId>(SUPPORTED_TARGET_IDS);
 const KNOWN_SCOPES: Scope[] = ["user", "project"];
 
+export interface RequiredTargetFeatures {
+  mcp?: boolean;
+  skills?: boolean;
+  rules?: boolean;
+}
+
 export function isSupportedTargetId(targetId: string): targetId is IdeId {
   return supportedTargetIdSet.has(targetId as IdeId);
 }
 
-export function getSharedTargetScopes(targetIds: IdeId[]): Scope[] {
+export function getSharedTargetScopes(
+  targetIds: IdeId[],
+  required: RequiredTargetFeatures = {},
+): Scope[] {
   if (targetIds.length === 0) {
     return [];
   }
 
   return KNOWN_SCOPES.filter((scope) =>
-    targetIds.every((targetId) => TARGET_CAPABILITIES[targetId].supportedScopes.includes(scope)),
+    targetIds.every((targetId) => {
+      if (!TARGET_CAPABILITIES[targetId].supportedScopes.includes(scope)) return false;
+      if (required.mcp && !targetSupportsFeatureScope(targetId, "mcp", scope)) return false;
+      if (required.skills && !targetSupportsFeatureScope(targetId, "skills", scope)) return false;
+      if (required.rules && !targetSupportsFeatureScope(targetId, "rules", scope)) return false;
+      return true;
+    }),
   );
 }
 
-export function resolvePreferredBundleScope(targetIds: IdeId[]): Scope | null {
-  const sharedScopes = getSharedTargetScopes(targetIds);
+export function resolvePreferredBundleScope(
+  targetIds: IdeId[],
+  required: RequiredTargetFeatures = {},
+): Scope | null {
+  const sharedScopes = getSharedTargetScopes(targetIds, required);
 
   if (sharedScopes.includes("user")) {
     return "user";

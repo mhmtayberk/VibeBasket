@@ -1,10 +1,11 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import type { McpEntry, Scope } from "../../core/src/manifest.js";
+import type { McpEntry, Scope, SkillEntry } from "../../core/src/manifest.js";
+import { applyAgentSkills } from "./agent-content";
 import { hasErrorCode, resolveSecretInterpolations } from "./mcp-utils";
 import { getTargetCapabilities } from "./target-capabilities";
-import type { IdeAdapter } from "./types";
+import { type IdeAdapter, getFeatureScopes } from "./types";
 
 const START = (id: string) => `# >>> VIBEBASKET MCP START: ${id} <<<`;
 const END = (id: string) => `# >>> VIBEBASKET MCP END: ${id} <<<`;
@@ -33,6 +34,11 @@ function renderServer(mcp: McpEntry, secrets: Record<string, string>): string {
   return `${START(mcp.id)}\n${parts.join(" ")}\n${END(mcp.id)}`;
 }
 
+export function resolveCrushSkillDir(): string {
+  const configHome = process.env.XDG_CONFIG_HOME?.trim() || path.join(os.homedir(), ".config");
+  return process.env.CRUSH_SKILLS_DIR?.trim() || path.join(configHome, "crush", "skills");
+}
+
 export class CrushAdapter implements IdeAdapter {
   private static readonly capabilities = getTargetCapabilities("crush");
   readonly id = "crush" as const;
@@ -41,6 +47,9 @@ export class CrushAdapter implements IdeAdapter {
   readonly supportsSkills = CrushAdapter.capabilities.supportsSkills;
   readonly supportsRules = CrushAdapter.capabilities.supportsRules;
   readonly supportedScopes = CrushAdapter.capabilities.supportedScopes;
+  featureScopes(feature: "mcp" | "skills" | "rules") {
+    return getFeatureScopes(CrushAdapter.capabilities, feature);
+  }
 
   configPath(scope: Scope, projectRoot?: string): string {
     if (scope === "project") {
@@ -83,6 +92,14 @@ export class CrushAdapter implements IdeAdapter {
     return content;
   }
 
+  async applySkills(skills: SkillEntry[], scope: Scope, projectRoot?: string) {
+    const baseDir =
+      scope === "project"
+        ? path.join(requireProjectRoot(projectRoot), ".crush", "skills")
+        : resolveCrushSkillDir();
+    return applyAgentSkills(skills, baseDir);
+  }
+
   async writeConfig(scope: Scope, config: unknown, projectRoot?: string): Promise<void> {
     const file = this.configPath(scope, projectRoot);
     await fs.mkdir(path.dirname(file), { recursive: true });
@@ -102,4 +119,9 @@ export class CrushAdapter implements IdeAdapter {
   postInstallHint(): string {
     return "Restart Crush; review crushrc first because it is trusted executable configuration.";
   }
+}
+
+function requireProjectRoot(projectRoot?: string): string {
+  if (!projectRoot) throw new Error("projectRoot required for project scope");
+  return projectRoot;
 }

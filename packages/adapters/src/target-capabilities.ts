@@ -1,5 +1,5 @@
 import type { IdeId, Scope } from "../../core/src/manifest.js";
-import type { IdeAdapterCapabilities } from "./types";
+import { type IdeAdapterCapabilities, getFeatureScopes } from "./types";
 
 export interface TargetCapabilityDescriptor extends IdeAdapterCapabilities {
   readonly autoApply: boolean;
@@ -182,42 +182,48 @@ export const TARGET_CAPABILITIES = defineCapabilities({
   },
   ante: {
     supportsMcp: true,
-    supportsSkills: false,
+    supportsSkills: true,
     supportsRules: false,
-    supportedScopes: ["user"],
+    supportedScopes: ["user", "project"],
+    mcpScopes: ["user"],
+    skillScopes: ["user", "project"],
     autoApply: true,
   },
   trae: {
     supportsMcp: true,
-    supportsSkills: false,
-    supportsRules: false,
-    supportedScopes: ["project"],
+    supportsSkills: true,
+    supportsRules: true,
+    supportedScopes: ["user", "project"],
+    mcpScopes: ["project"],
+    skillScopes: ["user", "project"],
+    ruleScopes: ["project"],
     autoApply: true,
   },
   qoder: {
     supportsMcp: true,
-    supportsSkills: false,
-    supportsRules: false,
+    supportsSkills: true,
+    supportsRules: true,
     supportedScopes: ["user", "project"],
+    ruleScopes: ["project"],
     autoApply: true,
   },
   omp: {
     supportsMcp: true,
-    supportsSkills: false,
-    supportsRules: false,
+    supportsSkills: true,
+    supportsRules: true,
     supportedScopes: ["user", "project"],
     autoApply: true,
   },
   autohand: {
     supportsMcp: true,
-    supportsSkills: false,
+    supportsSkills: true,
     supportsRules: false,
     supportedScopes: ["user", "project"],
     autoApply: true,
   },
   crush: {
     supportsMcp: true,
-    supportsSkills: false,
+    supportsSkills: true,
     supportsRules: false,
     supportedScopes: ["user", "project"],
     autoApply: true,
@@ -234,4 +240,12 @@ export function getTargetCapabilities(id: IdeId): TargetCapabilityDescriptor {
 
 export function targetSupportsScope(id: IdeId, scope: Scope): boolean {
   return TARGET_CAPABILITIES[id].supportedScopes.includes(scope);
+}
+
+export function targetSupportsFeatureScope(
+  id: IdeId,
+  feature: "mcp" | "skills" | "rules",
+  scope: Scope,
+): boolean {
+  return getFeatureScopes(TARGET_CAPABILITIES[id], feature).includes(scope);
 }

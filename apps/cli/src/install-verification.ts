@@ -25,7 +25,8 @@ export interface InstallVerificationResult {
   ok: boolean;
   targetId: IdeId;
   displayName: string;
-  configPath: string;
+  configPath: string | null;
+  configChecked: boolean;
   mcpChecked: boolean;
   missingMcpIds: string[];
   configReadable: boolean;
@@ -85,21 +86,23 @@ export async function verifyTargetInstall(
     rules: RuleEntry[];
   },
 ): Promise<InstallVerificationResult> {
-  const configPath = adapter.configPath(scope, projectRoot);
+  const mcpChecked = expected.mcps.length > 0;
+  const configPath = mcpChecked ? adapter.configPath(scope, projectRoot) : null;
 
   let readBackConfig: unknown = null;
-  let configReadable = false;
-  try {
-    readBackConfig = await adapter.readConfig(scope, projectRoot);
-    configReadable = true;
-  } catch {
-    configReadable = false;
+  let configReadable = !mcpChecked;
+  if (mcpChecked) {
+    try {
+      readBackConfig = await adapter.readConfig(scope, projectRoot);
+      configReadable = true;
+    } catch {
+      configReadable = false;
+    }
   }
 
   const configuredMcpIds = configReadable
     ? new Set(extractConfiguredMcpIds(readBackConfig))
     : new Set<string>();
-  const mcpChecked = expected.mcps.length > 0;
   const missingMcpIds = expected.mcps
     .map((item) => item.id)
     .filter((id) => !configuredMcpIds.has(id));
@@ -116,6 +119,7 @@ export async function verifyTargetInstall(
     targetId,
     displayName: adapter.displayName,
     configPath,
+    configChecked: mcpChecked,
     mcpChecked,
     missingMcpIds,
     configReadable,
@@ -126,15 +130,16 @@ export async function verifyTargetInstall(
 
 export function formatVerificationSummary(result: InstallVerificationResult): string {
   if (result.ok) {
-    const checks: string[] = ["config readback ok"];
+    const checks: string[] = [];
+    if (result.configChecked) checks.push("config readback ok");
     if (result.mcpChecked) checks.push("MCP entries confirmed");
     if (result.skills.checked) checks.push("skills confirmed");
     if (result.rules.checked) checks.push("rules confirmed");
-    return checks.join(", ");
+    return checks.join(", ") || "installation confirmed";
   }
 
   const issues: string[] = [];
-  if (!result.configReadable) {
+  if (result.configChecked && !result.configReadable) {
     issues.push("config readback failed");
   }
   if (result.missingMcpIds.length > 0) {

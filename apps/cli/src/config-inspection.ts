@@ -1,5 +1,10 @@
 import os from "node:os";
 import path from "node:path";
+import { resolveAnteHomeDir } from "../../../packages/adapters/src/ante.js";
+import { resolveAutohandHomeDir } from "../../../packages/adapters/src/autohand.js";
+import { resolveCrushSkillDir } from "../../../packages/adapters/src/crush.js";
+import { resolveOmpAgentDir } from "../../../packages/adapters/src/omp.js";
+import { resolveQoderConfigDir } from "../../../packages/adapters/src/qoder.js";
 import type { IdeId, RuleEntry, Scope, SkillEntry } from "../../../packages/core/src/manifest.js";
 
 function getWindowsRoamingDir() {
@@ -245,6 +250,66 @@ export function resolveSkillVerificationTargets(
         kind: "file",
       }));
     }
+    case "ante": {
+      const baseDir =
+        scope === "project" && projectRoot
+          ? path.join(projectRoot, ".ante", "skills")
+          : path.join(resolveAnteHomeDir(), "skills");
+      return skills.map((skill) => ({
+        path: path.join(baseDir, skill.id, "SKILL.md"),
+        kind: "file",
+      }));
+    }
+    case "trae": {
+      const baseDir =
+        scope === "project" && projectRoot
+          ? path.join(projectRoot, ".trae", "skills")
+          : path.join(home, ".trae", "skills");
+      return skills.map((skill) => ({
+        path: path.join(baseDir, skill.id, "SKILL.md"),
+        kind: "file",
+      }));
+    }
+    case "qoder": {
+      const baseDir =
+        scope === "project" && projectRoot
+          ? path.join(projectRoot, ".qoder", "skills")
+          : path.join(resolveQoderConfigDir(), "skills");
+      return skills.map((skill) => ({
+        path: path.join(baseDir, skill.id, "SKILL.md"),
+        kind: "file",
+      }));
+    }
+    case "omp": {
+      const baseDir =
+        scope === "project" && projectRoot
+          ? path.join(projectRoot, ".omp", "skills")
+          : path.join(resolveOmpAgentDir(), "skills");
+      return skills.map((skill) => ({
+        path: path.join(baseDir, skill.id, "SKILL.md"),
+        kind: "file",
+      }));
+    }
+    case "autohand": {
+      const baseDir =
+        scope === "project" && projectRoot
+          ? path.join(projectRoot, ".autohand", "skills")
+          : path.join(resolveAutohandHomeDir(), "skills");
+      return skills.map((skill) => ({
+        path: path.join(baseDir, skill.id, "SKILL.md"),
+        kind: "file",
+      }));
+    }
+    case "crush": {
+      const baseDir =
+        scope === "project" && projectRoot
+          ? path.join(projectRoot, ".crush", "skills")
+          : resolveCrushSkillDir();
+      return skills.map((skill) => ({
+        path: path.join(baseDir, skill.id, "SKILL.md"),
+        kind: "file",
+      }));
+    }
     case "hermes":
       return projectRoot
         ? [
@@ -356,6 +421,30 @@ export function resolveRuleVerificationTargets(
           markerIds: rules.map((rule) => rule.id),
         },
       ];
+    case "trae":
+      return scope === "project" && projectRoot
+        ? rules.map((rule) => ({
+            path: path.join(projectRoot, ".trae", "rules", `${rule.id}.md`),
+            kind: "file",
+          }))
+        : [];
+    case "qoder":
+      return scope === "project" && projectRoot
+        ? rules.map((rule) => ({
+            path: path.join(projectRoot, ".qoder", "rules", `${rule.id}.md`),
+            kind: "file",
+          }))
+        : [];
+    case "omp": {
+      const baseDir =
+        scope === "project" && projectRoot
+          ? path.join(projectRoot, ".omp", "rules")
+          : path.join(resolveOmpAgentDir(), "rules");
+      return rules.map((rule) => ({
+        path: path.join(baseDir, `${rule.id}.md`),
+        kind: "file",
+      }));
+    }
     case "hermes":
       return projectRoot
         ? [
@@ -548,6 +637,66 @@ export function resolveSkillInventoryTargets(
           kind: "directory",
         },
       ];
+    case "ante":
+      return [
+        {
+          path:
+            scope === "project" && projectRoot
+              ? path.join(projectRoot, ".ante", "skills")
+              : path.join(resolveAnteHomeDir(), "skills"),
+          kind: "directory",
+        },
+      ];
+    case "trae":
+      return [
+        {
+          path:
+            scope === "project" && projectRoot
+              ? path.join(projectRoot, ".trae", "skills")
+              : path.join(home, ".trae", "skills"),
+          kind: "directory",
+        },
+      ];
+    case "qoder":
+      return [
+        {
+          path:
+            scope === "project" && projectRoot
+              ? path.join(projectRoot, ".qoder", "skills")
+              : path.join(resolveQoderConfigDir(), "skills"),
+          kind: "directory",
+        },
+      ];
+    case "omp":
+      return [
+        {
+          path:
+            scope === "project" && projectRoot
+              ? path.join(projectRoot, ".omp", "skills")
+              : path.join(resolveOmpAgentDir(), "skills"),
+          kind: "directory",
+        },
+      ];
+    case "autohand":
+      return [
+        {
+          path:
+            scope === "project" && projectRoot
+              ? path.join(projectRoot, ".autohand", "skills")
+              : path.join(resolveAutohandHomeDir(), "skills"),
+          kind: "directory",
+        },
+      ];
+    case "crush":
+      return [
+        {
+          path:
+            scope === "project" && projectRoot
+              ? path.join(projectRoot, ".crush", "skills")
+              : resolveCrushSkillDir(),
+          kind: "directory",
+        },
+      ];
     case "hermes":
       return projectRoot
         ? [{ path: path.join(projectRoot, ".hermesrules"), kind: "marker-file" }]
@@ -634,6 +783,37 @@ export function resolveRuleInventoryTargets(
               ? path.join(projectRoot, "AGENTS.md")
               : path.join(getXdgConfigHome(), "opencode", "AGENTS.md"),
           kind: "marker-file",
+        },
+      ];
+    case "trae":
+      return scope === "project" && projectRoot
+        ? [
+            {
+              path: path.join(projectRoot, ".trae", "rules"),
+              kind: "directory",
+              fileExtension: ".md",
+            },
+          ]
+        : [];
+    case "qoder":
+      return scope === "project" && projectRoot
+        ? [
+            {
+              path: path.join(projectRoot, ".qoder", "rules"),
+              kind: "directory",
+              fileExtension: ".md",
+            },
+          ]
+        : [];
+    case "omp":
+      return [
+        {
+          path:
+            scope === "project" && projectRoot
+              ? path.join(projectRoot, ".omp", "rules")
+              : path.join(resolveOmpAgentDir(), "rules"),
+          kind: "directory",
+          fileExtension: ".md",
         },
       ];
     case "hermes":

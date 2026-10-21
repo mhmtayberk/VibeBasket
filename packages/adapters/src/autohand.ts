@@ -1,7 +1,8 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import type { McpEntry, Scope } from "../../core/src/manifest.js";
+import type { McpEntry, Scope, SkillEntry } from "../../core/src/manifest.js";
+import { applyAgentSkills } from "./agent-content";
 import { BaseAdapter } from "./base-adapter";
 import { hasErrorCode, resolveSecretInterpolations } from "./mcp-utils";
 
@@ -22,9 +23,17 @@ interface AutohandConfig {
   [key: string]: unknown;
 }
 
+export function resolveAutohandHomeDir(): string {
+  return process.env.AUTOHAND_HOME?.trim() || path.join(os.homedir(), ".autohand");
+}
+
 export class AutohandAdapter extends BaseAdapter {
   readonly id = "autohand" as const;
   readonly displayName = "Autohand Code";
+
+  private homeDir(): string {
+    return resolveAutohandHomeDir();
+  }
 
   configPath(scope: Scope, projectRoot?: string): string {
     if (scope === "project") {
@@ -42,15 +51,12 @@ export class AutohandAdapter extends BaseAdapter {
       return configuredPath;
     }
 
-    return path.join(
-      process.env.AUTOHAND_HOME?.trim() || path.join(os.homedir(), ".autohand"),
-      "config.json",
-    );
+    return path.join(this.homeDir(), "config.json");
   }
 
   override async readConfig(scope: Scope, projectRoot?: string): Promise<unknown> {
     if (scope === "user" && !process.env.AUTOHAND_CONFIG?.trim()) {
-      const home = process.env.AUTOHAND_HOME?.trim() || path.join(os.homedir(), ".autohand");
+      const home = this.homeDir();
       for (const extension of ["toml", "yaml", "yml"]) {
         try {
           await fs.access(path.join(home, `config.${extension}`));
@@ -72,6 +78,14 @@ export class AutohandAdapter extends BaseAdapter {
         servers: current.mcp?.servers || [],
       },
     } satisfies AutohandConfig;
+  }
+
+  async applySkills(skills: SkillEntry[], scope: Scope, projectRoot?: string) {
+    const baseDir =
+      scope === "project"
+        ? path.join(requireProjectRoot(projectRoot), ".autohand", "skills")
+        : path.join(this.homeDir(), "skills");
+    return applyAgentSkills(skills, baseDir);
   }
 
   override applyMcps(
@@ -118,4 +132,9 @@ export class AutohandAdapter extends BaseAdapter {
   postInstallHint(): string {
     return "Run autohand mcp list to verify the connection, or restart Autohand Code.";
   }
+}
+
+function requireProjectRoot(projectRoot?: string): string {
+  if (!projectRoot) throw new Error("projectRoot required for project scope");
+  return projectRoot;
 }
