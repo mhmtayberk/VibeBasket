@@ -15,6 +15,31 @@ updates:
         update-types:
           - "minor"
           - "patch"
+    ignore:
+      - dependency-name: "@biomejs/biome"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@google-cloud/storage"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@libsql/client"
+        update-types: ["version-update:semver-minor"]
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "chalk"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "dotenv"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "fast-check"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "nanoid"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "tsup"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "vitest"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "zod"
+        update-types: ["version-update:semver-major"]
     open-pull-requests-limit: 10
     labels:
       - "dependencies"
@@ -31,4 +56,4 @@ updates:
     groups:
       codeql-action:
         patterns:
-          - "github/codeql-action"
+          - "github/codeql-action/*"
