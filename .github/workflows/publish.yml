@@ -55,6 +55,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build shared packages
+        run: pnpm build:packages
+
       - name: Validate tag matches CLI version
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
