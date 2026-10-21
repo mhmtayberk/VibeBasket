@@ -2,8 +2,11 @@ version: 2
 updates:
   - package-ecosystem: "npm"
     directory: "/"
+    target-branch: "main"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
+      time: "05:17"
+      timezone: "Europe/Istanbul"
     groups:
       production-minor-and-patch:
         dependency-type: "production"
@@ -40,16 +43,19 @@ updates:
         update-types: ["version-update:semver-major"]
       - dependency-name: "zod"
         update-types: ["version-update:semver-major"]
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 2
     labels:
       - "dependencies"
       - "automated"
 
   - package-ecosystem: "github-actions"
     directory: "/"
+    target-branch: "main"
     schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 5
+      interval: "monthly"
+      time: "05:37"
+      timezone: "Europe/Istanbul"
+    open-pull-requests-limit: 1
     labels:
       - "dependencies"
       - "github-actions"
