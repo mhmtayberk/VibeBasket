@@ -392,9 +392,9 @@ export const ruDictionary: AppDictionary = {
         "Как работает локальный MCP-сервер VibeBasket: stdio transport, target guidance, поиск по каталогу, планирование установки, apply, rollback и текущие ограничения phase 1.",
     },
     metadataAdapters: {
-      title: "IDE Adapters — 24 Targets — VibeBasket Docs",
+      title: "IDE Adapters — 30 Targets — VibeBasket Docs",
       description:
-        "Справочник multi-IDE адаптеров для Cursor, Windsurf, VS Code, Claude Code, GitHub Copilot и ещё 19 целей. Конфиг-пути и поддержка MCP/skills/rules.",
+        "Справочник multi-IDE адаптеров для Cursor, Windsurf, VS Code, Claude Code, GitHub Copilot и ещё 25 целей. Конфиг-пути и поддержка MCP/skills/rules.",
     },
     metadataDelimiters: {
       title: "Block Delimiters — VibeBasket Docs",

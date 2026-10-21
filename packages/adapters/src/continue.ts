@@ -129,6 +129,7 @@ export class ContinueAdapter extends BaseAdapter {
 
     const config = (await this.readConfig(scope, projectRoot)) as ContinueConfig;
     const existingPromptRefs = new Set((config.prompts || []).map((prompt) => prompt.uses));
+    let configChanged = false;
 
     for (const skill of skills) {
       let promptContent = "";
@@ -158,10 +159,13 @@ export class ContinueAdapter extends BaseAdapter {
       if (!existingPromptRefs.has(uses)) {
         existingPromptRefs.add(uses);
         config.prompts = [...(config.prompts || []), { uses }];
+        configChanged = true;
       }
     }
 
-    await this.writeConfig(scope, config, projectRoot);
+    if (configChanged) {
+      await this.writeConfig(scope, config, projectRoot);
+    }
     return result;
   }
 

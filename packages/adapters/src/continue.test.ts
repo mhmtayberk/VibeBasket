@@ -87,6 +87,12 @@ describe("ContinueAdapter", () => {
       expect(configContent).toContain("prompts:");
       expect(configContent).toContain(`file://${inlineFile}`);
       expect(configContent).toContain(`file://${githubFile}`);
+
+      await adapter.applySkills(skills, "project", projectRoot);
+      const filesAfterSecondApply = await fs.readdir(path.dirname(configFile));
+      expect(filesAfterSecondApply.filter((file) => file.startsWith("config.yaml.bak."))).toEqual(
+        [],
+      );
     } finally {
       await fs.rm(projectRoot, { recursive: true, force: true });
     }

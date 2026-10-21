@@ -21,9 +21,9 @@ const { mockSyncAll } = vi.hoisted(() => {
 });
 
 vi.mock("@vibebasket/registry", () => ({
-  RegistrySyncService: vi.fn().mockImplementation(() => ({
-    syncAll: mockSyncAll,
-  })),
+  RegistrySyncService: vi.fn().mockImplementation(function RegistrySyncServiceMock() {
+    return { syncAll: mockSyncAll };
+  }),
 }));
 
 const { requireAdminRole, ForbiddenError } = await import("@/lib/admin-session");

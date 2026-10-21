@@ -14,7 +14,14 @@ function resolveVitestEntry() {
   for (const packageJsonPath of packageCandidates) {
     try {
       const scopedRequire = createRequire(packageJsonPath);
-      return scopedRequire.resolve("vitest/vitest.mjs");
+      const vitestPackagePath = scopedRequire.resolve("vitest/package.json");
+      const vitestPackage = scopedRequire(vitestPackagePath);
+      const vitestBin =
+        typeof vitestPackage.bin === "string" ? vitestPackage.bin : vitestPackage.bin?.vitest;
+
+      if (typeof vitestBin === "string") {
+        return path.resolve(path.dirname(vitestPackagePath), vitestBin);
+      }
     } catch {}
   }
 

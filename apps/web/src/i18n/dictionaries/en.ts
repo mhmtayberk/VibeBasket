@@ -380,9 +380,9 @@ export const enDictionary = {
         "How the local VibeBasket MCP server works: stdio transport, target guidance, catalog search, install planning, apply, rollback, and current phase-1 limits.",
     },
     metadataAdapters: {
-      title: "IDE Adapters — 24 Targets — VibeBasket Docs",
+      title: "IDE Adapters — 30 Targets — VibeBasket Docs",
       description:
-        "Multi-IDE adapter reference covering Cursor, Windsurf, VS Code, Claude Code, GitHub Copilot, and 19 more. Config paths, MCP/skills/rules support per target.",
+        "Multi-IDE adapter reference covering Cursor, Windsurf, VS Code, Claude Code, GitHub Copilot, and 25 more. Config paths, MCP/skills/rules support per target.",
     },
     metadataDelimiters: {
       title: "Block Delimiters — VibeBasket Docs",

@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { SUPPORTED_TARGET_COUNT } from "../lib/targets";
+import { SUPPORTED_LOCALES } from "./config";
 import { getDictionary } from "./get-dictionary";
 
 describe("getDictionary", () => {
@@ -36,5 +38,16 @@ describe("getDictionary", () => {
     const dictionary = await getDictionary("ru");
 
     expect(dictionary.shared.localeSwitcher.label).toBe("Язык");
+  });
+
+  it("keeps target counts current in every locale", async () => {
+    for (const locale of SUPPORTED_LOCALES) {
+      const dictionary = await getDictionary(locale);
+      expect(dictionary.home.hero.badge).toContain(String(SUPPORTED_TARGET_COUNT));
+      expect(dictionary.docs.metadataAdapters.title).toContain(String(SUPPORTED_TARGET_COUNT));
+      expect(dictionary.docs.metadataAdapters.description).toMatch(
+        new RegExp(`${SUPPORTED_TARGET_COUNT}|${SUPPORTED_TARGET_COUNT - 5}`),
+      );
+    }
   });
 });

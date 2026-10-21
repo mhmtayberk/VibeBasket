@@ -97,7 +97,10 @@ export function extractConfiguredMcpIds(config: unknown): string[] {
   ].filter(Boolean) as Array<Record<string, unknown>>;
 
   for (const candidate of candidates) {
-    return Object.keys(candidate);
+    const ids = Object.keys(candidate);
+    if (ids.length > 0) {
+      return ids;
+    }
   }
 
   return [];
@@ -324,7 +327,7 @@ export function resolveRuleVerificationTargets(
     case "windsurf":
       return scope === "project" && projectRoot
         ? rules.map((rule) => ({
-            path: path.join(projectRoot, ".windsurf", "rules", `${rule.id}.md`),
+            path: path.join(projectRoot, ".devin", "rules", `${rule.id}.md`),
             kind: "file",
           }))
         : [

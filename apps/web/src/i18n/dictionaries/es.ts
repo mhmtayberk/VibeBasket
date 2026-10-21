@@ -82,7 +82,7 @@ export const esDictionary: AppDictionary = {
         "Comparte un único flujo de instalación para MCPs, skills y rules de confianza en todas tus herramientas de AI coding.",
     },
     hero: {
-      badge: "Código abierto · 24 objetivos IDE",
+      badge: "Código abierto · 30 objetivos IDE",
       titleMobile: "Agrupa tu configuración de desarrollo AI. Compártela con un solo enlace.",
       titleDesktop: ["Agrupa tu", "configuración AI.", "Compártela con", "un solo enlace."],
       description:
@@ -227,9 +227,9 @@ export const esDictionary: AppDictionary = {
         "Cómo funciona el servidor MCP local de VibeBasket: transporte stdio, guía por objetivo, búsqueda de catálogo, planificación de instalación, apply, rollback y límites actuales de fase 1.",
     },
     metadataAdapters: {
-      title: "Adaptadores IDE — 24 objetivos — Docs de VibeBasket",
+      title: "Adaptadores IDE — 30 objetivos — Docs de VibeBasket",
       description:
-        "Referencia multi-IDE que cubre Cursor, Windsurf, VS Code, Claude Code, GitHub Copilot y 19 más. Rutas de configuración y soporte de MCP/skills/rules por objetivo.",
+        "Referencia multi-IDE que cubre Cursor, Windsurf, VS Code, Claude Code, GitHub Copilot y 25 más. Rutas de configuración y soporte de MCP/skills/rules por objetivo.",
     },
     metadataDelimiters: {
       title: "Delimitadores de bloque — Docs de VibeBasket",

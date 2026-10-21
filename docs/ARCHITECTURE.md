@@ -18,9 +18,9 @@
 We use `pnpm workspaces` to manage the project.
 
 - `packages/core`: Holds Zod schemas defining the data shape (bundles, MCPs, skills, etc.).
-- `packages/adapters`: Contains 24 IDE adapters (Cursor, Windsurf, VS Code/Cline, Antigravity, Claude Code, DeepSeek-TUI, Zed, Codex CLI, Gemini CLI, Junie, Kiro, Cline CLI, Continue, Roo Code, Hermes, OpenClaw, GitHub Copilot, Void Editor, Aider, Cortex Code, Goose, IBM Bob, CodeBuddy, and OpenCode) that handle config generation, backups, and idempotency. 16 adapters extend BaseAdapter for shared readConfig/applyMcps/writeConfig/diff logic, while `CodexAdapter` and other custom adapters handle target-native TOML/YAML or instruction surfaces.
+- `packages/adapters`: Contains 30 IDE adapters defined by the shared target-capability registry. They handle config generation, backups, readback verification, and idempotency; common JSON adapters extend `BaseAdapter`, while `CodexAdapter` and other custom adapters handle target-native TOML/YAML or instruction surfaces.
 - `packages/registry`: Automated catalog synchronization logic from trusted external sources and local curated data, including the semver deduplication engine for official upstream MCP servers.
-- `apps/web`: Next.js 16.2.9 App Router providing the catalog and selection UI, `/docs` documentation hub, `/stacks` saved-stack management, and the `/admin` stats dashboard.
+- `apps/web`: Next.js 16.4.2 App Router providing the catalog and selection UI, `/docs` documentation hub, `/stacks` saved-stack management, and the `/admin` stats dashboard.
 - `apps/cli`: Node.js CLI tool running the execution environment, plus the local stdio MCP server surface exposed through `vibebasket mcp serve`.
 
 ## Data Flow
@@ -163,7 +163,7 @@ The `charts/vibebasket/` chart provides a production Kubernetes deployment:
 ## Homepage Structure
 
 The homepage (`/`) is `force-dynamic` and server-renders:
-1. **Hero**: Tagline with marquee strip of 24 IDE icons (`targets/` SVGs).
+1. **Hero**: Tagline with marquee strip of 30 IDE icons (`targets/` SVGs).
 2. **"Who is this for"**: Three-card section targeting AI developers, vibe coders, and teams.
 3. **"How it works"**: Three-step flow — Browse, Bundle, Apply — with code snippets.
 4. **Catalog Preview**: First MCP page server-rendered from SQLite.

@@ -36,6 +36,24 @@ describe("config inspection", () => {
     ]);
     expect(
       extractConfiguredMcpIds({
+        mcpServers: {},
+        servers: { vscode: { type: "stdio" } },
+      }),
+    ).toEqual(["vscode"]);
+    expect(
+      extractConfiguredMcpIds({
+        mcpServers: {},
+        context_servers: { zed: { command: "node" } },
+      }),
+    ).toEqual(["zed"]);
+    expect(
+      extractConfiguredMcpIds({
+        mcpServers: {},
+        mcp_servers: { ante: { transport: "stdio" } },
+      }),
+    ).toEqual(["ante"]);
+    expect(
+      extractConfiguredMcpIds({
         mcp: { enabled: true, servers: [{ name: "autohand", transport: "stdio" }] },
       }),
     ).toEqual(["autohand"]);
@@ -70,7 +88,7 @@ describe("config inspection", () => {
     const windsurfRuleTarget = resolveRuleVerificationTargets("windsurf", "project", "/tmp/demo", [
       { id: "workspace", displayName: "Workspace", content: "x", verified: true },
     ])[0];
-    expect(windsurfRuleTarget?.path).toBe("/tmp/demo/.windsurf/rules/workspace.md");
+    expect(windsurfRuleTarget?.path).toBe("/tmp/demo/.devin/rules/workspace.md");
   });
 
   it("respects XDG_CONFIG_HOME for OpenCode global verification paths", () => {
