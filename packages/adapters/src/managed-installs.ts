@@ -84,6 +84,19 @@ export async function upsertManagedTextFile(
   const registryPath = path.join(registryDir, MANAGED_REGISTRY_FILE);
   const registry = await readManagedRegistry(registryPath);
 
+  const symlinkPath = await findSymbolicLink(registryDir, targetFile);
+  if (symlinkPath) {
+    return {
+      ...EMPTY_RESULT,
+      skipped: [
+        {
+          path: targetFile,
+          reason: `managed target traverses symbolic link: ${symlinkPath}`,
+        },
+      ],
+    };
+  }
+
   const currentContent = await readFileIfExists(targetFile);
   const managedEntry = registry.entries[relativeTargetPath];
 
@@ -180,6 +193,16 @@ async function writeManagedRegistry(
   registry: ManagedRegistry,
 ): Promise<void> {
   await fs.mkdir(path.dirname(registryPath), { recursive: true });
+  try {
+    const stat = await fs.lstat(registryPath);
+    if (stat.isSymbolicLink()) {
+      throw new Error(
+        `Refusing to write a managed registry through a symbolic link: ${registryPath}`,
+      );
+    }
+  } catch (error: unknown) {
+    if (!hasErrorCode(error, "ENOENT")) throw error;
+  }
   await fs.writeFile(registryPath, JSON.stringify(registry, null, 2), "utf8");
 }
 
@@ -196,4 +219,23 @@ async function readFileIfExists(file: string): Promise<string | null> {
 
 function normalizeManagedPath(file: string): string {
   return file.split(path.sep).join("/");
+}
+
+async function findSymbolicLink(registryDir: string, targetFile: string): Promise<string | null> {
+  const relativePath = path.relative(registryDir, targetFile);
+  if (relativePath.startsWith(`..${path.sep}`) || path.isAbsolute(relativePath)) {
+    throw new Error(`Managed target escapes its registry directory: ${targetFile}`);
+  }
+
+  let current = registryDir;
+  for (const segment of relativePath.split(path.sep)) {
+    current = path.join(current, segment);
+    try {
+      if ((await fs.lstat(current)).isSymbolicLink()) return current;
+    } catch (error: unknown) {
+      if (hasErrorCode(error, "ENOENT")) return null;
+      throw error;
+    }
+  }
+  return null;
 }

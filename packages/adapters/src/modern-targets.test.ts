@@ -1,7 +1,8 @@
+import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { McpEntry } from "../../core/src/manifest.js";
+import type { McpEntry, RuleEntry, SkillEntry } from "../../core/src/manifest.js";
 import { AnteAdapter } from "./ante.js";
 import { AutohandAdapter } from "./autohand.js";
 import { CrushAdapter } from "./crush.js";
@@ -19,6 +20,20 @@ const localMcp: McpEntry = {
   env: { TOKEN: "${secret:TOKEN}" },
   headers: {},
   requiredSecrets: ["TOKEN"],
+  verified: true,
+};
+
+const localSkill: SkillEntry = {
+  id: "review-safely",
+  displayName: "Review Safely",
+  source: { type: "inline", content: "Review changes without modifying unrelated files." },
+  verified: true,
+};
+
+const localRule: RuleEntry = {
+  id: "keep-tests-green",
+  displayName: "Keep Tests Green",
+  content: "Run the relevant tests before finishing.",
   verified: true,
 };
 
@@ -72,6 +87,16 @@ describe("2026 target adapters", () => {
     expect(new OmpAdapter().configPath("user")).toBe("/tmp/pi-agent/mcp.json");
     expect(new AutohandAdapter().configPath("user")).toBe("/tmp/autohand/config.json");
     expect(OMP_MCP_SCHEMA_URL).toContain("mcp-schema.json");
+  });
+
+  it("resolves named OMP profiles and rejects path-like profile names", () => {
+    vi.stubEnv("PI_CODING_AGENT_DIR", "/tmp/default-agent");
+    vi.stubEnv("PI_CONFIG_DIR", "/tmp/omp-root");
+    vi.stubEnv("OMP_PROFILE", "work");
+    expect(new OmpAdapter().configPath("user")).toBe("/tmp/omp-root/profiles/work/agent/mcp.json");
+
+    vi.stubEnv("OMP_PROFILE", "../escape");
+    expect(() => new OmpAdapter().configPath("user")).toThrow(/simple profile name/);
   });
 
   it("honors Qoder, Autohand, and Crush explicit config paths", () => {
@@ -138,5 +163,60 @@ describe("2026 target adapters", () => {
     const forced = adapter.applyMcps(first, [localMcp], { TOKEN: "replacement" }, { force: true });
     expect(String(forced)).toContain("replacement");
     expect(String(forced)).not.toContain(`'a'\"'\"'b'`);
+  });
+
+  it("installs new-target skills into each native project directory idempotently", async () => {
+    const projectRoot = await fs.mkdtemp(path.join(os.tmpdir(), "vibebasket-modern-skills-"));
+    const targets = [
+      { adapter: new AnteAdapter(), relative: ".ante/skills" },
+      { adapter: new TraeAdapter(), relative: ".trae/skills" },
+      { adapter: new QoderAdapter(), relative: ".qoder/skills" },
+      { adapter: new OmpAdapter(), relative: ".omp/skills" },
+      { adapter: new AutohandAdapter(), relative: ".autohand/skills" },
+      { adapter: new CrushAdapter(), relative: ".crush/skills" },
+    ] as const;
+
+    for (const target of targets) {
+      const first = await target.adapter.applySkills?.([localSkill], "project", projectRoot);
+      const second = await target.adapter.applySkills?.([localSkill], "project", projectRoot);
+      const skillFile = path.join(projectRoot, target.relative, localSkill.id, "SKILL.md");
+      expect(await fs.readFile(skillFile, "utf8")).toContain("name: review-safely");
+      expect(first?.written).toContain(skillFile);
+      expect(second?.unchanged).toContain(skillFile);
+      expect(
+        (await fs.readdir(path.dirname(skillFile))).filter((name) => name.includes(".bak.")),
+      ).toEqual([]);
+    }
+  });
+
+  it("installs documented Trae, Qoder, and OMP rule files", async () => {
+    const projectRoot = await fs.mkdtemp(path.join(os.tmpdir(), "vibebasket-modern-rules-"));
+    const targets = [
+      { adapter: new TraeAdapter(), relative: ".trae/rules" },
+      { adapter: new QoderAdapter(), relative: ".qoder/rules" },
+      { adapter: new OmpAdapter(), relative: ".omp/rules" },
+    ] as const;
+
+    for (const target of targets) {
+      await target.adapter.applyRules?.([localRule], "project", projectRoot);
+      const ruleFile = path.join(projectRoot, target.relative, `${localRule.id}.md`);
+      expect(await fs.readFile(ruleFile, "utf8")).toBe(
+        "---\nalwaysApply: true\n---\n\n# Keep Tests Green\n\nRun the relevant tests before finishing.\n",
+      );
+    }
+  });
+
+  it("does not follow a pre-existing skill-directory symlink", async () => {
+    const projectRoot = await fs.mkdtemp(path.join(os.tmpdir(), "vibebasket-symlink-skill-"));
+    const outsideDir = await fs.mkdtemp(path.join(os.tmpdir(), "vibebasket-symlink-outside-"));
+    const skillsDir = path.join(projectRoot, ".qoder", "skills");
+    await fs.mkdir(skillsDir, { recursive: true });
+    await fs.symlink(outsideDir, path.join(skillsDir, localSkill.id));
+
+    const result = await new QoderAdapter().applySkills([localSkill], "project", projectRoot);
+
+    expect(result.skipped).toHaveLength(1);
+    expect(result.skipped[0]?.reason).toContain("symbolic link");
+    await expect(fs.access(path.join(outsideDir, "SKILL.md"))).rejects.toThrow();
   });
 });

@@ -3,7 +3,15 @@ import {
   TARGET_CAPABILITIES,
 } from "@vibebasket/adapters";
 import { describe, expect, it } from "vitest";
-import { DEFAULT_TARGET_IDS, SUPPORTED_TARGET_IDS, TARGET_OPTIONS } from "./targets";
+import {
+  DEFAULT_TARGET_IDS,
+  RULES_SUPPORTED_TARGET_COUNT,
+  SKILLS_SUPPORTED_TARGET_COUNT,
+  SUPPORTED_TARGET_IDS,
+  TARGET_OPTIONS,
+  getSharedTargetScopes,
+  resolvePreferredBundleScope,
+} from "./targets";
 
 describe("TARGET_OPTIONS", () => {
   it("keeps target ids unique", () => {
@@ -49,5 +57,30 @@ describe("TARGET_OPTIONS", () => {
     );
     expect(TARGET_OPTIONS.some((target) => target.label === "DeepCode")).toBe(false);
     expect(TARGET_OPTIONS.some((target) => target.label === "Cherry Studio")).toBe(false);
+  });
+});
+
+describe("target feature scopes", () => {
+  it("counts only adapters that really implement skills and rules", () => {
+    expect(SKILLS_SUPPORTED_TARGET_COUNT).toBe(22);
+    expect(RULES_SUPPORTED_TARGET_COUNT).toBe(9);
+  });
+
+  it("keeps Ante MCP user-only while allowing skills at both scopes", () => {
+    expect(getSharedTargetScopes(["ante"], { mcp: true })).toEqual(["user"]);
+    expect(getSharedTargetScopes(["ante"], { skills: true })).toEqual(["user", "project"]);
+    expect(getSharedTargetScopes(["ante"], { mcp: true, skills: true })).toEqual(["user"]);
+  });
+
+  it("keeps Trae MCP and rules project-only while allowing skills at both scopes", () => {
+    expect(getSharedTargetScopes(["trae"], { mcp: true })).toEqual(["project"]);
+    expect(getSharedTargetScopes(["trae"], { rules: true })).toEqual(["project"]);
+    expect(getSharedTargetScopes(["trae"], { skills: true })).toEqual(["user", "project"]);
+    expect(resolvePreferredBundleScope(["trae"], { mcp: true, skills: true })).toBe("project");
+  });
+
+  it("rejects a mixed scope that cannot satisfy every selected target and feature", () => {
+    expect(getSharedTargetScopes(["ante", "trae"], { mcp: true, skills: true })).toEqual([]);
+    expect(resolvePreferredBundleScope(["ante", "trae"], { mcp: true, skills: true })).toBeNull();
   });
 });

@@ -1,5 +1,6 @@
 import type { IdeAdapter } from "@vibebasket/adapters";
-import type { Bundle, IdeId, McpEntry } from "../../../packages/core/src/manifest.js";
+import { supportsFeatureScope } from "../../../packages/adapters/src/types.js";
+import type { Bundle, IdeId, McpEntry, Scope } from "../../../packages/core/src/manifest.js";
 
 export interface FlattenedBundleContent {
   mcps: Bundle["mcps"];
@@ -11,6 +12,12 @@ export interface FlattenedBundleContent {
 export interface AdapterLike {
   displayName: string;
   supportsMcp?: boolean;
+  supportsSkills?: boolean;
+  supportsRules?: boolean;
+  supportedScopes?: readonly Scope[];
+  mcpScopes?: readonly Scope[];
+  skillScopes?: readonly Scope[];
+  ruleScopes?: readonly Scope[];
   applySkills?: unknown;
   applyRules?: unknown;
   applyFiles?: unknown;
@@ -69,16 +76,29 @@ export function flattenBundleContent(bundle: Bundle): FlattenedBundleContent {
 export function getUnsupportedTargetContent(
   adapter: AdapterLike,
   flattened: FlattenedBundleContent,
+  scope?: Scope,
 ): string[] {
   const unsupported: string[] = [];
 
-  if (flattened.mcps.length > 0 && adapter.supportsMcp === false) {
+  if (
+    flattened.mcps.length > 0 &&
+    (adapter.supportsMcp === false ||
+      (scope !== undefined && !supportsFeatureScope(adapter as IdeAdapter, "mcp", scope)))
+  ) {
     unsupported.push("MCPs");
   }
-  if (flattened.skills.length > 0 && !adapter.applySkills) {
+  if (
+    flattened.skills.length > 0 &&
+    (!adapter.applySkills ||
+      (scope !== undefined && !supportsFeatureScope(adapter as IdeAdapter, "skills", scope)))
+  ) {
     unsupported.push("skills");
   }
-  if (flattened.rules.length > 0 && !adapter.applyRules) {
+  if (
+    flattened.rules.length > 0 &&
+    (!adapter.applyRules ||
+      (scope !== undefined && !supportsFeatureScope(adapter as IdeAdapter, "rules", scope)))
+  ) {
     unsupported.push("rules");
   }
 
@@ -126,14 +146,21 @@ export function buildTargetMcpApplyPlan(
   targetId: IdeId,
   adapter: IdeAdapter,
   mcps: McpEntry[],
+  scope?: Scope,
 ): TargetMcpApplyPlan {
-  if (!adapter.supportsMcp) {
+  if (
+    !adapter.supportsMcp ||
+    (scope !== undefined && !supportsFeatureScope(adapter, "mcp", scope))
+  ) {
+    const reason = !adapter.supportsMcp
+      ? "target does not support MCP configuration"
+      : `target does not support MCP configuration at ${scope} scope`;
     return {
       supported: [],
       skipped: mcps.map((mcp) => ({
         id: mcp.id,
         displayName: mcp.displayName,
-        reason: "target does not support MCP configuration",
+        reason,
       })),
       requiredSecrets: [],
       credentialNotice: null,

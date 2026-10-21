@@ -120,10 +120,10 @@ export async function POST(req: Request) {
     }
 
     const supportedTargets = targets.filter(isSupportedTargetId);
-    const sharedScopes = getSharedTargetScopes(supportedTargets);
-    if (!sharedScopes.includes(scope)) {
+    const targetScopes = getSharedTargetScopes(supportedTargets);
+    if (!targetScopes.includes(scope)) {
       const scopeSummary =
-        sharedScopes.length > 0 ? sharedScopes.join(", ") : "none shared across selected targets";
+        targetScopes.length > 0 ? targetScopes.join(", ") : "none shared across selected targets";
       return applySecurityHeaders(
         NextResponse.json(
           {
@@ -152,6 +152,24 @@ export async function POST(req: Request) {
     }
 
     const { mcps, skills, rules, workflowPacks } = partitionBundleItems(selectedItems);
+    const sharedScopes = getSharedTargetScopes(supportedTargets, {
+      mcp: mcps.length > 0 || workflowPacks.some((pack) => pack.mcps.length > 0),
+      skills: skills.length > 0 || workflowPacks.some((pack) => pack.skills.length > 0),
+      rules: rules.length > 0 || workflowPacks.some((pack) => pack.rules.length > 0),
+    });
+    if (!sharedScopes.includes(scope)) {
+      const scopeSummary =
+        sharedScopes.length > 0 ? sharedScopes.join(", ") : "none shared across selected targets";
+      return applySecurityHeaders(
+        NextResponse.json(
+          {
+            error: `Requested scope "${scope}" is incompatible with the selected targets and content (shared scopes: ${scopeSummary})`,
+          },
+          { status: 400 },
+        ),
+      );
+    }
+
     const manifest: Bundle = {
       schemaVersion: SCHEMA_VERSION,
       scope,

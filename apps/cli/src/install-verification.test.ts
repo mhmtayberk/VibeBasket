@@ -8,7 +8,8 @@ describe("formatVerificationSummary", () => {
         ok: true,
         targetId: "github-copilot",
         displayName: "GitHub Copilot",
-        configPath: "/tmp/demo/.github/copilot-instructions.md",
+        configPath: null,
+        configChecked: false,
         mcpChecked: false,
         missingMcpIds: [],
         configReadable: true,
@@ -25,7 +26,7 @@ describe("formatVerificationSummary", () => {
           missingMarkerIds: [],
         },
       }),
-    ).toBe("config readback ok, skills confirmed, rules confirmed");
+    ).toBe("skills confirmed, rules confirmed");
   });
 
   it("keeps MCP confirmation when MCP entries were actually checked", () => {
@@ -35,6 +36,7 @@ describe("formatVerificationSummary", () => {
         targetId: "cursor",
         displayName: "Cursor",
         configPath: "/tmp/demo/.cursor/mcp.json",
+        configChecked: true,
         mcpChecked: true,
         missingMcpIds: [],
         configReadable: true,

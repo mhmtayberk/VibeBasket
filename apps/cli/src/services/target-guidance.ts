@@ -1,4 +1,8 @@
-import { TARGET_CAPABILITIES } from "../../../../packages/adapters/src/target-capabilities.js";
+import {
+  TARGET_CAPABILITIES,
+  targetSupportsFeatureScope,
+} from "../../../../packages/adapters/src/target-capabilities.js";
+import { getFeatureScopes } from "../../../../packages/adapters/src/types.js";
 import {
   VIBEBASKET_MCP_SERVER_ID,
   getBaseVibeBasketServerDefinition,
@@ -304,7 +308,7 @@ const TARGET_GUIDES: Record<IdeId, TargetGuideMetadata> = {
     label: "Ante",
     vendor: "Antigma Labs",
     kind: "terminal",
-    note: "Backed by Ante's user-level MCP server settings.",
+    note: "Backed by Ante's user MCP settings and native user/project Agent Skills paths.",
     configPathHints: { user: "~/.ante/settings.json" },
     mcpFieldHint: "Add the server under the mcp_servers map.",
     postInstallHint: "Restart Ante or start a new session.",
@@ -313,7 +317,7 @@ const TARGET_GUIDES: Record<IdeId, TargetGuideMetadata> = {
     label: "Trae",
     vendor: "ByteDance",
     kind: "editor",
-    note: "Backed by Trae's project-level MCP configuration.",
+    note: "Backed by Trae's project MCP/rules paths and native user/project Skills paths.",
     configPathHints: { project: "<project-root>/.trae/mcp.json" },
     mcpFieldHint: "Add an mcpServers.vibebasket entry after enabling project MCP.",
     postInstallHint: "Reload the Trae workspace after enabling project MCP.",
@@ -322,7 +326,7 @@ const TARGET_GUIDES: Record<IdeId, TargetGuideMetadata> = {
     label: "Qoder",
     vendor: "Qoder",
     kind: "terminal",
-    note: "Backed by Qoder CLI user and project MCP configuration.",
+    note: "Backed by Qoder's native user/project MCP and Skills paths plus project rules.",
     configPathHints: { user: "~/.qoder/settings.json", project: "<project-root>/.mcp.json" },
     mcpFieldHint: "Add an mcpServers.vibebasket entry.",
     postInstallHint: "Run /mcp reload or start a new Qoder session.",
@@ -331,7 +335,7 @@ const TARGET_GUIDES: Record<IdeId, TargetGuideMetadata> = {
     label: "OMP (Oh My Pi)",
     vendor: "Oh My Pi",
     kind: "terminal",
-    note: "Backed by OMP-native profile-aware MCP files.",
+    note: "Backed by OMP-native profile-aware MCP, Skills, and Rules paths.",
     configPathHints: {
       user: "~/.omp/agent/mcp.json",
       project: "<project-root>/.omp/mcp.json",
@@ -343,7 +347,7 @@ const TARGET_GUIDES: Record<IdeId, TargetGuideMetadata> = {
     label: "Autohand Code",
     vendor: "Autohand AI",
     kind: "terminal",
-    note: "Backed by Autohand's canonical JSON user and project configuration.",
+    note: "Backed by Autohand's canonical JSON MCP config and native user/project Skills paths.",
     configPathHints: {
       user: "~/.autohand/config.json",
       project: "<project-root>/.autohand/config.json",
@@ -355,7 +359,7 @@ const TARGET_GUIDES: Record<IdeId, TargetGuideMetadata> = {
     label: "Crush",
     vendor: "Charm",
     kind: "terminal",
-    note: "Backed by safely delimited mcp add commands in crushrc.",
+    note: "Backed by safely delimited crushrc MCP commands and native user/project Skills paths.",
     configPathHints: {
       user: "~/.config/crush/crushrc",
       project: "<project-root>/.crushrc",
@@ -395,6 +399,9 @@ export function listTargetGuides() {
         supportsSkills: capabilities.supportsSkills,
         supportsRules: capabilities.supportsRules,
         supportedScopes: [...capabilities.supportedScopes],
+        mcpScopes: [...getFeatureScopes(capabilities, "mcp")],
+        skillScopes: [...getFeatureScopes(capabilities, "skills")],
+        ruleScopes: [...getFeatureScopes(capabilities, "rules")],
       };
     })
     .sort((left, right) => left.label.localeCompare(right.label));
@@ -408,7 +415,7 @@ export function getTargetSetupGuide(targetId: IdeId, scope: Scope = "user") {
     throw new Error(`Unsupported target: ${targetId}`);
   }
 
-  const scopeSupported = capabilities.supportedScopes.includes(scope);
+  const scopeSupported = targetSupportsFeatureScope(targetId, "mcp", scope);
   const configPathHint = metadata.configPathHints[scope] ?? null;
 
   return {
@@ -419,7 +426,12 @@ export function getTargetSetupGuide(targetId: IdeId, scope: Scope = "user") {
     note: metadata.note,
     scopeRequested: scope,
     scopeSupported,
-    supportedScopes: [...capabilities.supportedScopes],
+    supportedScopes: [...getFeatureScopes(capabilities, "mcp")],
+    featureScopes: {
+      mcp: [...getFeatureScopes(capabilities, "mcp")],
+      skills: [...getFeatureScopes(capabilities, "skills")],
+      rules: [...getFeatureScopes(capabilities, "rules")],
+    },
     supportsMcp: capabilities.supportsMcp,
     supportsSkills: capabilities.supportsSkills,
     supportsRules: capabilities.supportsRules,
@@ -449,7 +461,7 @@ export function getTargetMcpSnippet(targetId: IdeId, scope: Scope = "user") {
     throw new Error(`Unsupported target: ${targetId}`);
   }
 
-  const scopeSupported = capabilities.supportedScopes.includes(scope);
+  const scopeSupported = targetSupportsFeatureScope(targetId, "mcp", scope);
   const configPathHint = metadata.configPathHints[scope] ?? null;
   const renderer =
     capabilities.supportsMcp && scopeSupported ? getLocalVibeBasketMcpSnippet(targetId) : null;
@@ -460,7 +472,7 @@ export function getTargetMcpSnippet(targetId: IdeId, scope: Scope = "user") {
     vendor: metadata.vendor,
     scopeRequested: scope,
     scopeSupported,
-    supportedScopes: [...capabilities.supportedScopes],
+    supportedScopes: [...getFeatureScopes(capabilities, "mcp")],
     supportsMcp: capabilities.supportsMcp,
     configPathHint,
     snippetLanguage: renderer?.format ?? null,

@@ -85,14 +85,12 @@ export function BasketPanel({
   const hasSkills = Boolean(itemCounts.skill);
   const hasRules = Boolean(itemCounts.rule);
   const supportedSelectedTargets = targets.filter(isSupportedTargetId);
-  const sharedScopes = getSharedTargetScopes(supportedSelectedTargets);
-  const resolvedScope = resolvePreferredBundleScope(supportedSelectedTargets);
+  const requiredFeatures = { mcp: hasMcps, skills: hasSkills, rules: hasRules };
+  const sharedScopes = getSharedTargetScopes(supportedSelectedTargets, requiredFeatures);
+  const resolvedScope = resolvePreferredBundleScope(supportedSelectedTargets, requiredFeatures);
   const hasScopeConflict = supportedSelectedTargets.length > 0 && resolvedScope === null;
   const incompatibleTargets = supportedTargets.filter((t) => {
-    if (hasMcps && !t.capabilities.supportsMcp) return true;
-    if (hasSkills && !t.capabilities.supportsSkills) return true;
-    if (hasRules && !t.capabilities.supportsRules) return true;
-    return false;
+    return getSharedTargetScopes([t.id], requiredFeatures).length === 0;
   });
 
   const breakdown = (["mcp", "skill", "rule"] as const)

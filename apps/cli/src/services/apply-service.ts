@@ -1,5 +1,6 @@
 import type { IdeAdapter } from "@vibebasket/adapters";
 import type { ManagedContentApplyOutcome } from "@vibebasket/adapters";
+import { supportsFeatureScope } from "../../../../packages/adapters/src/types.js";
 import type { Bundle, IdeId, Scope } from "../../../packages/core/src/manifest.js";
 import {
   buildTargetMcpApplyPlan,
@@ -123,10 +124,10 @@ export async function executeBundleApply(
     const adapter = getAdapter(targetId);
     if (!adapter) continue;
 
-    const mcpPlan = buildTargetMcpApplyPlan(targetId, adapter, flattened.mcps);
+    const mcpPlan = buildTargetMcpApplyPlan(targetId, adapter, flattened.mcps, scope);
     mcpPlans.set(targetId, mcpPlan);
 
-    const unsupportedFeatures = getUnsupportedTargetContent(adapter, flattened);
+    const unsupportedFeatures = getUnsupportedTargetContent(adapter, flattened, scope);
     if (unsupportedFeatures.length > 0) {
       unsupportedFeatureMessages.push(`${adapter.displayName}: ${unsupportedFeatures.join(", ")}`);
     }
@@ -233,11 +234,16 @@ async function applyToTarget(
     logger: ApplyLogger;
   },
 ): Promise<TargetApplyResult> {
-  const shouldApplyMcps = adapter.supportsMcp && mcpPlan.supported.length > 0;
+  const shouldApplyMcps =
+    supportsFeatureScope(adapter, "mcp", options.scope) && mcpPlan.supported.length > 0;
   const shouldApplyRules =
-    adapter.supportsRules && Boolean(adapter.applyRules) && flattened.rules.length > 0;
+    supportsFeatureScope(adapter, "rules", options.scope) &&
+    Boolean(adapter.applyRules) &&
+    flattened.rules.length > 0;
   const shouldApplySkills =
-    adapter.supportsSkills && Boolean(adapter.applySkills) && flattened.skills.length > 0;
+    supportsFeatureScope(adapter, "skills", options.scope) &&
+    Boolean(adapter.applySkills) &&
+    flattened.skills.length > 0;
 
   if (!shouldApplyMcps && !shouldApplyRules && !shouldApplySkills) {
     const skippedReason =

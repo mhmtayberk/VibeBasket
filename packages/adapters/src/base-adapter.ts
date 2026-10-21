@@ -5,7 +5,7 @@ import {
   writeJsonFileWithBackup,
 } from "./mcp-utils";
 import { getTargetCapabilities } from "./target-capabilities";
-import type { IdeAdapter, IdeAdapterCapabilities } from "./types";
+import { type IdeAdapter, type IdeAdapterCapabilities, getFeatureScopes } from "./types";
 
 export interface McpConfigShape {
   mcpServers?: Record<string, unknown>;
@@ -35,6 +35,9 @@ export abstract class BaseAdapter implements IdeAdapter {
   }
   get supportedScopes(): readonly Scope[] {
     return this.capabilities.supportedScopes;
+  }
+  featureScopes(feature: "mcp" | "skills" | "rules"): readonly Scope[] {
+    return getFeatureScopes(this.capabilities, feature);
   }
 
   abstract configPath(scope: Scope, projectRoot?: string): string;
