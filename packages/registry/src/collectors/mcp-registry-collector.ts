@@ -32,7 +32,7 @@ export class OfficialMcpRegistryCollector implements SourceCollector {
     let cursor: string | undefined;
 
     do {
-      const params = new URLSearchParams({ limit: "100" });
+      const params = new URLSearchParams({ limit: "100", version: "latest" });
       if (cursor) {
         params.set("cursor", cursor);
       }

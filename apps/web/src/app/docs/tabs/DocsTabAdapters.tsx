@@ -292,44 +292,48 @@ export function DocsTabAdapters({ locale }: { locale: AppLocale }) {
                 {
                   name: "Ante",
                   color: "#A0FDDA",
-                  config: "~/.ante/settings.json (mcp_servers)",
-                  capabilityLabel: "MCP",
-                  note: "Ante user settings use the native mcp_servers map with stdio or streamable HTTP transports.",
+                  config: "~/.ante/settings.json (mcp_servers) + ~/.ante/skills/ or .ante/skills/",
+                  capabilityLabel: "MCP + Skills",
+                  note: "Ante keeps MCP at user scope and discovers Agent Skills from native user or project directories.",
                 },
                 {
                   name: "Trae",
                   color: "#4B7BFF",
-                  config: ".trae/mcp.json",
-                  capabilityLabel: "MCP",
-                  note: "Trae project MCP is written only at workspace scope and must be enabled in Trae settings.",
+                  config: ".trae/mcp.json + ~/.trae/skills/ or .trae/skills/ + .trae/rules/",
+                  capabilityLabel: "MCP + Skills + Rules",
+                  note: "Trae MCP and rules are project-scoped, while Agent Skills support user or project scope. Enable project MCP, then reload the workspace.",
                 },
                 {
                   name: "Qoder",
                   color: "#9B7CFF",
-                  config: "~/.qoder/settings.json or .mcp.json",
-                  capabilityLabel: "MCP",
-                  note: "Qoder supports user and portable project MCP configuration; use /mcp reload after applying.",
+                  config:
+                    "~/.qoder/settings.json or .mcp.json + ~/.qoder/skills/ or .qoder/skills/ + .qoder/rules/",
+                  capabilityLabel: "MCP + Skills + Rules",
+                  note: "Qoder supports user/project MCP and Agent Skills; rules are project-scoped. Run /mcp reload after applying.",
                 },
                 {
                   name: "OMP (Oh My Pi)",
                   color: "#FFB74D",
-                  config: "~/.omp/agent/mcp.json or .omp/mcp.json",
-                  capabilityLabel: "MCP",
-                  note: "OMP uses schema-backed MCP files and honors PI_CODING_AGENT_DIR for profile-aware user configuration.",
+                  config:
+                    "~/.omp/agent/{mcp.json,skills/,rules/} or .omp/{mcp.json,skills/,rules/}",
+                  capabilityLabel: "MCP + Skills + Rules",
+                  note: "OMP uses schema-backed, profile-aware user paths and matching project paths. PI_CONFIG_DIR, PI_CODING_AGENT_DIR, and OMP_PROFILE overrides are honored.",
                 },
                 {
                   name: "Autohand Code",
                   color: "#26C6DA",
-                  config: "~/.autohand/config.json or .autohand/config.json (mcp.servers)",
-                  capabilityLabel: "MCP",
-                  note: "Autohand uses a named server array under mcp.servers and honors AUTOHAND_CONFIG/AUTOHAND_HOME. VibeBasket refuses to overwrite TOML or YAML configurations.",
+                  config:
+                    "~/.autohand/config.json or .autohand/config.json (mcp.servers) + ~/.autohand/skills/ or .autohand/skills/",
+                  capabilityLabel: "MCP + Skills",
+                  note: "Autohand uses a named server array under mcp.servers and native user/project Skill paths. AUTOHAND_CONFIG/AUTOHAND_HOME are honored; TOML or YAML configs are never overwritten.",
                 },
                 {
                   name: "Crush",
                   color: "#FF4081",
-                  config: "~/.config/crush/crushrc or .crushrc",
-                  capabilityLabel: "MCP",
-                  note: "Crush's current executable crushrc format is updated with shell-quoted, idempotent managed blocks and should be reviewed before launch.",
+                  config:
+                    "~/.config/crush/crushrc or .crushrc + ~/.config/crush/skills/ or .crush/skills/",
+                  capabilityLabel: "MCP + Skills",
+                  note: "Crush MCP uses shell-quoted, idempotent managed blocks; Agent Skills use native user/project directories. Review executable crushrc changes before launch.",
                 },
               ] as {
                 name: string;

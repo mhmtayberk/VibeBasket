@@ -85,7 +85,9 @@ workflowPacks: []
 
     const fetchImpl: typeof fetch = async (input) => {
       const url = typeof input === "string" ? input : input.toString();
-      if (url === "https://registry.modelcontextprotocol.io/v0.1/servers?limit=100") {
+      if (
+        url === "https://registry.modelcontextprotocol.io/v0.1/servers?limit=100&version=latest"
+      ) {
         return new Response(
           JSON.stringify({
             servers: [
@@ -182,7 +184,9 @@ workflowPacks: []
     const fetchImpl: typeof fetch = async (input) => {
       const url = typeof input === "string" ? input : input.toString();
 
-      if (url === "https://registry.modelcontextprotocol.io/v0.1/servers?limit=100") {
+      if (
+        url === "https://registry.modelcontextprotocol.io/v0.1/servers?limit=100&version=latest"
+      ) {
         const payload = JSON.stringify({
           servers: [
             {
@@ -263,7 +267,7 @@ workflowPacks:
 
     const responses = new Map<string, unknown>([
       [
-        "https://registry.modelcontextprotocol.io/v0.1/servers?limit=100",
+        "https://registry.modelcontextprotocol.io/v0.1/servers?limit=100&version=latest",
         {
           servers: [
             {
@@ -379,7 +383,9 @@ workflowPacks: []
 
     const fetchImpl: typeof fetch = async (input) => {
       const url = typeof input === "string" ? input : input.toString();
-      if (url === "https://registry.modelcontextprotocol.io/v0.1/servers?limit=100") {
+      if (
+        url === "https://registry.modelcontextprotocol.io/v0.1/servers?limit=100&version=latest"
+      ) {
         return new Response(JSON.stringify({ servers: [], metadata: {} }), { status: 200 });
       }
       if (url === "https://www.skills.sh/official") {
@@ -433,7 +439,9 @@ workflowPacks: []
 
     const fetchImpl: typeof fetch = async (input) => {
       const url = typeof input === "string" ? input : input.toString();
-      if (url === "https://registry.modelcontextprotocol.io/v0.1/servers?limit=100") {
+      if (
+        url === "https://registry.modelcontextprotocol.io/v0.1/servers?limit=100&version=latest"
+      ) {
         return new Response(
           JSON.stringify({
             servers: [
@@ -497,7 +505,9 @@ workflowPacks: []
 
     const fetchImpl: typeof fetch = async (input) => {
       const url = typeof input === "string" ? input : input.toString();
-      if (url === "https://registry.modelcontextprotocol.io/v0.1/servers?limit=100") {
+      if (
+        url === "https://registry.modelcontextprotocol.io/v0.1/servers?limit=100&version=latest"
+      ) {
         return new Response(
           JSON.stringify({
             servers: [
@@ -579,7 +589,9 @@ workflowPacks: []
     const fetchImpl: typeof fetch = async (input, init) => {
       const url = typeof input === "string" ? input : input.toString();
 
-      if (url === "https://registry.modelcontextprotocol.io/v0.1/servers?limit=100") {
+      if (
+        url === "https://registry.modelcontextprotocol.io/v0.1/servers?limit=100&version=latest"
+      ) {
         return await new Promise<Response>((_, reject) => {
           init?.signal?.addEventListener("abort", () => {
             const abortError = new Error("aborted");
@@ -685,7 +697,9 @@ workflowPacks: []
 
     const fetchImpl: typeof fetch = async (input) => {
       const url = typeof input === "string" ? input : input.toString();
-      if (url === "https://registry.modelcontextprotocol.io/v0.1/servers?limit=100") {
+      if (
+        url === "https://registry.modelcontextprotocol.io/v0.1/servers?limit=100&version=latest"
+      ) {
         return new Response(JSON.stringify({ servers: [], metadata: {} }), { status: 200 });
       }
       if (url === "https://www.skills.sh/official") {
@@ -776,7 +790,9 @@ workflowPacks: []
 
     const fetchImpl: typeof fetch = async (input) => {
       const url = typeof input === "string" ? input : input.toString();
-      if (url === "https://registry.modelcontextprotocol.io/v0.1/servers?limit=100") {
+      if (
+        url === "https://registry.modelcontextprotocol.io/v0.1/servers?limit=100&version=latest"
+      ) {
         return new Response(JSON.stringify({ servers: [], metadata: {} }), { status: 200 });
       }
       if (url === "https://www.skills.sh/official") {
@@ -817,7 +833,9 @@ workflowPacks: []
 
     const fetchImpl: typeof fetch = async (input) => {
       const url = typeof input === "string" ? input : input.toString();
-      if (url === "https://registry.modelcontextprotocol.io/v0.1/servers?limit=100") {
+      if (
+        url === "https://registry.modelcontextprotocol.io/v0.1/servers?limit=100&version=latest"
+      ) {
         return new Response(JSON.stringify({ servers: [], metadata: {} }), { status: 200 });
       }
       if (url === "https://www.skills.sh/official") {
@@ -897,7 +915,9 @@ workflowPacks: []
 
     const fetchImpl: typeof fetch = async (input) => {
       const url = typeof input === "string" ? input : input.toString();
-      if (url === "https://registry.modelcontextprotocol.io/v0.1/servers?limit=100") {
+      if (
+        url === "https://registry.modelcontextprotocol.io/v0.1/servers?limit=100&version=latest"
+      ) {
         return new Response(JSON.stringify({ servers: [], metadata: {} }), { status: 200 });
       }
       if (url === "https://www.skills.sh/official") {
@@ -970,7 +990,9 @@ workflowPacks: []
 
     const fetchImpl: typeof fetch = async (input) => {
       const url = typeof input === "string" ? input : input.toString();
-      if (url === "https://registry.modelcontextprotocol.io/v0.1/servers?limit=100") {
+      if (
+        url === "https://registry.modelcontextprotocol.io/v0.1/servers?limit=100&version=latest"
+      ) {
         return new Response(
           JSON.stringify({
             servers: [
@@ -1050,7 +1072,9 @@ workflowPacks: []
 
     const fetchImpl: typeof fetch = async (input) => {
       const url = typeof input === "string" ? input : input.toString();
-      if (url === "https://registry.modelcontextprotocol.io/v0.1/servers?limit=100") {
+      if (
+        url === "https://registry.modelcontextprotocol.io/v0.1/servers?limit=100&version=latest"
+      ) {
         return new Response(JSON.stringify({ servers: [], metadata: {} }), { status: 200 });
       }
       if (url === "https://www.skills.sh/official") {
@@ -1144,7 +1168,9 @@ workflowPacks: []
 
     const fetchImpl: typeof fetch = async (input) => {
       const url = typeof input === "string" ? input : input.toString();
-      if (url === "https://registry.modelcontextprotocol.io/v0.1/servers?limit=100") {
+      if (
+        url === "https://registry.modelcontextprotocol.io/v0.1/servers?limit=100&version=latest"
+      ) {
         return new Response(JSON.stringify({ servers: [], metadata: {} }), { status: 200 });
       }
       if (url === "https://www.skills.sh/official") {
@@ -1213,7 +1239,9 @@ workflowPacks: []
 
     const fetchImpl: typeof fetch = async (input) => {
       const url = typeof input === "string" ? input : input.toString();
-      if (url === "https://registry.modelcontextprotocol.io/v0.1/servers?limit=100") {
+      if (
+        url === "https://registry.modelcontextprotocol.io/v0.1/servers?limit=100&version=latest"
+      ) {
         return new Response(JSON.stringify({ servers: [], metadata: {} }), { status: 200 });
       }
       if (url === "https://www.skills.sh/official") {
@@ -1315,7 +1343,9 @@ workflowPacks: []
 
     const fetchImpl: typeof fetch = async (input) => {
       const url = typeof input === "string" ? input : input.toString();
-      if (url === "https://registry.modelcontextprotocol.io/v0.1/servers?limit=100") {
+      if (
+        url === "https://registry.modelcontextprotocol.io/v0.1/servers?limit=100&version=latest"
+      ) {
         return new Response(JSON.stringify({ servers: [], metadata: {} }), { status: 200 });
       }
       if (url === "https://www.skills.sh/official") {

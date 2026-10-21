@@ -69,6 +69,7 @@ Important note:
 - Tailwind for styling. No CSS modules.
 - Server Components by default. `"use client"` only when interactivity is required.
 - Drizzle ORM for database access.
+- Use a GitHub-provided `users.noreply.github.com` address for both author and committer metadata.
 - Run `pnpm verify:ci` before pushing.
 
 ## Pull Requests
