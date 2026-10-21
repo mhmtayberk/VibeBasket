@@ -7,6 +7,7 @@ minimumReleaseAgeStrict: true
 blockExoticSubdeps: true
 strictDepBuilds: true
 overrides:
+  '@babel/core': 7.29.6
   '@hono/node-server': 1.19.15
   baseline-browser-mapping: 2.11.30
   body-parser: 2.3.0
