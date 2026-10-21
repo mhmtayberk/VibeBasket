@@ -4,6 +4,17 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    groups:
+      production-minor-and-patch:
+        dependency-type: "production"
+        update-types:
+          - "minor"
+          - "patch"
+      development-minor-and-patch:
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
     open-pull-requests-limit: 10
     labels:
       - "dependencies"
@@ -17,3 +28,7 @@ updates:
     labels:
       - "dependencies"
       - "github-actions"
+    groups:
+      codeql-action:
+        patterns:
+          - "github/codeql-action"

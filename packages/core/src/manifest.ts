@@ -37,6 +37,12 @@ export const IdeIdSchema = z.enum([
   "ibm-bob",
   "codebuddy",
   "opencode",
+  "ante",
+  "trae",
+  "qoder",
+  "omp",
+  "autohand",
+  "crush",
 ]);
 export type IdeId = z.infer<typeof IdeIdSchema>;
 

@@ -59,15 +59,15 @@ Start here:
 - A multi-node control plane with shared cache/state infrastructure by default
 - A universal package manager for arbitrary IDE extensions outside MCPs, Skills, and Rules
 
-## Supported Targets (24 IDEs & CLI tools)
+## Supported Targets (30 IDEs & CLI tools)
 
 | IDE | MCP | Skills | Rules |
 |-----|:---:|:------:|:-----:|
 | Cursor | ✅ | ✅ | ✅ |
 | Windsurf | ✅ | ✅ | ✅ |
-| VS Code / Cline | ✅ | — | — |
+| Visual Studio Code | ✅ | — | — |
 | Claude Code | ✅ | ✅ | — |
-| GitHub Copilot | — | ✅ | ✅ |
+| GitHub Copilot | ✅ | ✅ | ✅ |
 | Continue | ✅ | ✅ | — |
 | Roo Code | ✅ | ✅ | ✅ |
 | Codex CLI | ✅ | — | — |
@@ -87,6 +87,12 @@ Start here:
 | IBM Bob | ✅ | ✅ | — |
 | CodeBuddy | ✅ | ✅ | — |
 | OpenCode | ✅ | ✅ | ✅ |
+| Ante | ✅ | — | — |
+| Trae | ✅ | — | — |
+| Qoder | ✅ | — | — |
+| OMP (Oh My Pi) | ✅ | — | — |
+| Autohand Code | ✅ | — | — |
+| Crush | ✅ | — | — |
 
 16 supported targets auto-install Skills. 6 supported targets auto-install Rules. All MCP-capable targets auto-install MCP servers.
 
@@ -105,7 +111,7 @@ Catalog scope:
 - If a popular MCP is not published in the official registry, it will not appear automatically until it is curated or the upstream registry adds it
 
 ### Install engine
-- One bundle can be applied across 24 supported targets
+- One bundle can be applied across 30 supported targets
 - Writes are idempotent and backup-aware
 - If a target's MCP config is already in the requested state, the CLI skips both backup creation and the config write for that target
 - Target capability checks prevent pretending every IDE supports the same surface
@@ -113,7 +119,7 @@ Catalog scope:
 
 ### CLI
 - `apply` — Install bundles from URLs or local files (`--force`, `--scope`, `--dry-run`, `--no-verify`)
-- `list` — Scan all 24 IDEs for installed MCPs, skills, and rules
+- `list` — Scan all 30 IDEs for installed MCPs, skills, and rules
 - `search` — Search the catalog from terminal
 - `doctor` — Diagnose IDE configurations across all targets
 - `init` — Scaffold a VibeBasket project
@@ -300,7 +306,7 @@ Main parts of the repo:
 - `packages/core`
   Shared schemas, SQLite bootstrap, and database access
 - `packages/adapters`
-  24 IDE and CLI adapters with target-specific install logic
+  30 IDE and CLI adapters with target-specific install logic
 - `packages/registry`
   Catalog sync from the official MCP Registry, `skills.sh`, and curated verified data
 - `apps/web`

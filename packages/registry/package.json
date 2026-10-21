@@ -7,14 +7,14 @@
   "types": "src/index.ts",
   "type": "module",
   "scripts": {
-    "build": "\"$npm_node_execpath\" ../../scripts/run-tsup.mjs",
-    "test": "\"$npm_node_execpath\" ../../scripts/run-vitest.mjs run",
-    "typecheck": "\"$npm_node_execpath\" ../../node_modules/typescript/bin/tsc --noEmit -p tsconfig.typecheck.json"
+    "build": "node ../../scripts/run-tsup.mjs",
+    "test": "node ../../scripts/run-vitest.mjs run",
+    "typecheck": "node ../../node_modules/typescript/bin/tsc --noEmit -p tsconfig.typecheck.json"
   },
   "dependencies": {
     "@vibebasket/core": "workspace:*",
-    "drizzle-orm": "^0.45.2",
-    "js-yaml": "^5.2.1",
+    "drizzle-orm": "^0.45.4",
+    "js-yaml": "^5.5.0",
     "zod": "^3.24.2"
   },
   "devDependencies": {

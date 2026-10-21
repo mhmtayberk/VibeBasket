@@ -74,7 +74,7 @@ export default function OpenGraphImage() {
         }}
       >
         <div style={{ display: "flex" }}>vibebasket.dev</div>
-        <div style={{ display: "flex", color: "#c2d0c9" }}>24 supported targets</div>
+        <div style={{ display: "flex", color: "#c2d0c9" }}>30 supported targets</div>
       </div>
     </div>,
     size,

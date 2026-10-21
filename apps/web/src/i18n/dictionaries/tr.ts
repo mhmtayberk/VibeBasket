@@ -82,7 +82,7 @@ export const trDictionary: AppDictionary = {
         "Güvenilir MCP’ler, skill’ler ve rule’lar için tek bir kurulum akışını tüm AI kodlama araçlarında paylaş.",
     },
     hero: {
-      badge: "Açık kaynak · 24 IDE hedefi",
+      badge: "Açık kaynak · 30 IDE hedefi",
       titleMobile: "AI geliştirme kurulumunu paketle. Tek bir bağlantıyla paylaş.",
       titleDesktop: ["AI geliştirme", "kurulumunu paketle.", "Tek bir", "bağlantıyla paylaş."],
       description:

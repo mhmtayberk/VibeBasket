@@ -67,9 +67,10 @@ test.describe("Security — Injection Attacks", () => {
 });
 
 test.describe("Security — Auth & Session", () => {
-  test("unauthenticated admin access redirects", async ({ page }) => {
-    await page.goto("/admin");
-    await page.waitForURL(/\/$/);
+  test("unauthenticated admin access renders the forbidden page", async ({ page }) => {
+    const response = await page.goto("/admin");
+    expect(response?.status()).toBe(403);
+    await expect(page).toHaveURL(/\/admin$/);
     await expect(page).toHaveTitle(/VibeBasket/);
   });
 
@@ -141,11 +142,13 @@ test.describe("Security — CSP & Headers", () => {
 });
 
 test.describe("Security — Rate Limiting Attack", () => {
-  test("catalog burst within window should not 429 on first 60 requests", async ({ page }) => {
+  test("catalog burst within window should not 429 on first 60 requests", async ({ request }) => {
     let rateLimited = false;
     for (let i = 0; i < 60; i++) {
-      const res = await page.goto("/api/catalog?limit=1");
-      if (res?.status() === 429) {
+      const res = await request.get("/api/catalog?limit=1", {
+        headers: { "x-forwarded-for": "198.51.100.200" },
+      });
+      if (res.status() === 429) {
         rateLimited = true;
         break;
       }
@@ -163,7 +166,11 @@ test.describe("Security — Rate Limiting Attack", () => {
 
   test("rate limit concurrency stays graceful", async ({ request }) => {
     const responses = await Promise.all(
-      Array.from({ length: 50 }, () => request.get("/api/catalog?limit=1")),
+      Array.from({ length: 50 }, () =>
+        request.get("/api/catalog?limit=1", {
+          headers: { "x-forwarded-for": "198.51.100.201" },
+        }),
+      ),
     );
     const statuses = responses.map((response) => response.status());
 

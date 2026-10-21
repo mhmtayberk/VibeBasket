@@ -38,3 +38,17 @@ export function getVsCodeGlobalStorageDir(extensionId: string) {
 
   return path.join(getXdgConfigHome(), "Code", "User", "globalStorage", extensionId, "settings");
 }
+
+export function getVsCodeUserDir() {
+  const platform = os.platform();
+
+  if (platform === "darwin") {
+    return path.join(os.homedir(), "Library", "Application Support", "Code", "User");
+  }
+
+  if (platform === "win32") {
+    return path.join(getWindowsRoamingDir(), "Code", "User");
+  }
+
+  return path.join(getXdgConfigHome(), "Code", "User");
+}

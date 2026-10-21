@@ -13,19 +13,19 @@
     "./db": "./src/db/index.ts"
   },
   "scripts": {
-    "build": "\"$npm_node_execpath\" ../../scripts/run-tsup.mjs",
-    "test": "\"$npm_node_execpath\" ../../scripts/run-vitest.mjs run",
-    "typecheck": "\"$npm_node_execpath\" ../../node_modules/typescript/bin/tsc -b"
+    "build": "node ../../scripts/run-tsup.mjs",
+    "test": "node ../../scripts/run-vitest.mjs run",
+    "typecheck": "node ../../node_modules/typescript/bin/tsc -b"
   },
   "dependencies": {
     "@libsql/client": "^0.17.4",
-    "drizzle-orm": "^0.45.2",
+    "drizzle-orm": "^0.45.4",
     "nanoid": "^5.1.16",
     "zod": "^3.24.2"
   },
   "devDependencies": {
     "@types/node": "^20.19.40",
-    "drizzle-kit": "^0.31.10",
+    "drizzle-kit": "^0.31.11",
     "tsup": "^8.5.1",
     "typescript": "^5.7.3",
     "vitest": "^3.0.5"

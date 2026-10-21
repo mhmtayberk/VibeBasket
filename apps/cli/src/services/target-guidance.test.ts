@@ -4,7 +4,7 @@ import { getTargetMcpSnippet, getTargetSetupGuide, listTargetGuides } from "./ta
 describe("target guidance", () => {
   it("lists supported targets in alphabetical order", () => {
     const targets = listTargetGuides();
-    expect(targets).toHaveLength(24);
+    expect(targets).toHaveLength(30);
     expect(targets[0]?.label).toBe("Aider");
     expect(targets.at(-1)?.label).toBe("Zed");
   });
@@ -23,7 +23,7 @@ describe("target guidance", () => {
   });
 
   it("returns a non-MCP guide for capability-limited targets", () => {
-    const guide = getTargetSetupGuide("github-copilot", "project");
+    const guide = getTargetSetupGuide("aider", "project");
 
     expect(guide.supportsMcp).toBe(false);
     expect(guide.vibebasketServer).toBeNull();
@@ -60,7 +60,7 @@ describe("target guidance", () => {
   });
 
   it("reports unsupported MCP snippet requests honestly", () => {
-    const snippet = getTargetMcpSnippet("github-copilot", "project");
+    const snippet = getTargetMcpSnippet("aider", "project");
 
     expect(snippet.supportsMcp).toBe(false);
     expect(snippet.snippet).toBeNull();

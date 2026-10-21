@@ -29,6 +29,21 @@ describe("config inspection", () => {
         extensions: { github: { type: "stdio" } },
       }),
     ).toEqual(["github"]);
+
+    expect(extractConfiguredMcpIds({ servers: { vscode: { type: "stdio" } } })).toEqual(["vscode"]);
+    expect(extractConfiguredMcpIds({ mcp_servers: { ante: { transport: "stdio" } } })).toEqual([
+      "ante",
+    ]);
+    expect(
+      extractConfiguredMcpIds({
+        mcp: { enabled: true, servers: [{ name: "autohand", transport: "stdio" }] },
+      }),
+    ).toEqual(["autohand"]);
+    expect(
+      extractConfiguredMcpIds(
+        "# >>> VIBEBASKET MCP START: crush-server <<<\nmcp add crush-server\n# >>> VIBEBASKET MCP END: crush-server <<<\n",
+      ),
+    ).toEqual(["crush-server"]);
   });
 
   it("uses the verified Roo Code and OpenCode skill/rule paths", () => {
@@ -51,6 +66,11 @@ describe("config inspection", () => {
       { id: "workspace", displayName: "Workspace", content: "x", verified: true },
     ])[0];
     expect(openCodeRuleTarget?.path).toBe("/tmp/demo/AGENTS.md");
+
+    const windsurfRuleTarget = resolveRuleVerificationTargets("windsurf", "project", "/tmp/demo", [
+      { id: "workspace", displayName: "Workspace", content: "x", verified: true },
+    ])[0];
+    expect(windsurfRuleTarget?.path).toBe("/tmp/demo/.windsurf/rules/workspace.md");
   });
 
   it("respects XDG_CONFIG_HOME for OpenCode global verification paths", () => {

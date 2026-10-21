@@ -20,11 +20,11 @@ describe("simple adapter coverage", () => {
     await fs.rm(tempDir, { recursive: true, force: true });
   });
 
-  it("keeps VS Code, Junie, Cline CLI, and DeepSeek-TUI config paths stable", () => {
+  it("uses native VS Code paths and keeps other simple adapter paths stable", () => {
     const projectRoot = "/tmp/demo-project";
 
     expect(new VSCodeAdapter().configPath("project", projectRoot)).toBe(
-      "/tmp/demo-project/.vscode/cline_mcp_settings.json",
+      "/tmp/demo-project/.vscode/mcp.json",
     );
     expect(new JunieAdapter().configPath("project", projectRoot)).toBe(
       "/tmp/demo-project/.junie/mcp/mcp.json",

@@ -3,7 +3,7 @@ import { z } from "zod";
 import { isSupportedTargetId } from "./targets";
 
 const MAX_STACK_ITEMS = 100;
-const MAX_STACK_TARGETS = 20;
+const MAX_STACK_TARGETS = 40;
 
 export const createStackSchema = z.object({
   name: z.string().trim().min(1).max(80),

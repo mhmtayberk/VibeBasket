@@ -44,6 +44,12 @@ vi.mock("@vibebasket/adapters", () => {
     "IBMBobAdapter",
     "CodeBuddyAdapter",
     "OpenCodeAdapter",
+    "AnteAdapter",
+    "TraeAdapter",
+    "QoderAdapter",
+    "OmpAdapter",
+    "AutohandAdapter",
+    "CrushAdapter",
   ];
 
   const result: Record<string, unknown> = {};
@@ -92,12 +98,12 @@ describe("runDoctor", () => {
     expect(consoleOutput.some((line) => line.includes(".vibebasket.env"))).toBe(true);
   });
 
-  it("checks all 24 IDE configurations", async () => {
+  it("checks all 30 IDE configurations", async () => {
     const { runDoctor } = await import("./doctor.js");
     await runDoctor();
 
     expect(consoleOutput.some((line) => line.includes("Summary:"))).toBe(true);
-    expect(consoleOutput.some((line) => line.includes("/24"))).toBe(true);
+    expect(consoleOutput.some((line) => line.includes("/30"))).toBe(true);
   });
 
   it("counts MCP servers per IDE when config is readable", async () => {
