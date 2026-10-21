@@ -26,3 +26,9 @@ export * from "./codebuddy";
 
 export * from "./base-adapter";
 export * from "./opencode";
+export * from "./ante";
+export * from "./trae";
+export * from "./qoder";
+export * from "./omp";
+export * from "./autohand";
+export * from "./crush";

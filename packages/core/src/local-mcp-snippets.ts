@@ -1,6 +1,6 @@
 import type { IdeId } from "./manifest";
 
-export type LocalMcpSnippetFormat = "json" | "yaml" | "toml";
+export type LocalMcpSnippetFormat = "json" | "yaml" | "toml" | "shell";
 
 export const VIBEBASKET_MCP_SERVER_ID = "vibebasket" as const;
 export const VIBEBASKET_LOCAL_MCP_COMMAND = "npx" as const;
@@ -116,6 +116,40 @@ function renderOpenCodeJsonSnippet() {
   );
 }
 
+function renderAutohandJsonSnippet() {
+  return JSON.stringify(
+    {
+      mcp: {
+        enabled: true,
+        servers: [
+          {
+            name: VIBEBASKET_MCP_SERVER_ID,
+            transport: "stdio",
+            command: VIBEBASKET_LOCAL_MCP_COMMAND,
+            args: [...VIBEBASKET_LOCAL_MCP_ARGS],
+            env: { ...VIBEBASKET_LOCAL_MCP_ENV },
+            autoConnect: true,
+          },
+        ],
+      },
+    },
+    null,
+    2,
+  );
+}
+
+function renderCrushSnippet() {
+  return [
+    `mcp add ${VIBEBASKET_MCP_SERVER_ID} \\`,
+    `  --type stdio --command ${VIBEBASKET_LOCAL_MCP_COMMAND} \\`,
+    ...VIBEBASKET_LOCAL_MCP_ARGS.map((arg) => `  --args ${JSON.stringify(arg)} \\`),
+    ...Object.entries(VIBEBASKET_LOCAL_MCP_ENV).map(
+      ([key, value], index, entries) =>
+        `  --env ${key} ${JSON.stringify(value)}${index === entries.length - 1 ? "" : ` ${String.fromCharCode(92)}`}`,
+    ),
+  ].join("\n");
+}
+
 export function getLocalVibeBasketMcpSnippet(targetId: IdeId): LocalMcpSnippet {
   switch (targetId) {
     case "codex":
@@ -165,6 +199,38 @@ export function getLocalVibeBasketMcpSnippet(targetId: IdeId): LocalMcpSnippet {
         snippet: renderOpenCodeJsonSnippet(),
         mergeStrategyNote:
           "Merge this fragment into the top-level mcp object. Keep existing OpenCode config keys untouched.",
+      };
+    case "vscode":
+      return {
+        format: "json",
+        rootField: "servers",
+        snippet: renderJsonSnippet("servers"),
+        mergeStrategyNote:
+          "Merge this fragment into VS Code's servers object and preserve inputs, sandbox, and unrelated servers.",
+      };
+    case "ante":
+      return {
+        format: "json",
+        rootField: "mcp_servers",
+        snippet: renderJsonSnippet("mcp_servers"),
+        mergeStrategyNote:
+          "Merge this fragment into Ante's mcp_servers map and preserve unrelated settings.",
+      };
+    case "autohand":
+      return {
+        format: "json",
+        rootField: "mcp.servers",
+        snippet: renderAutohandJsonSnippet(),
+        mergeStrategyNote:
+          "Append this uniquely named entry to Autohand's mcp.servers list and preserve unrelated settings.",
+      };
+    case "crush":
+      return {
+        format: "shell",
+        rootField: "mcp add",
+        snippet: renderCrushSnippet(),
+        mergeStrategyNote:
+          "Add this command to crushrc after reviewing it. crushrc is trusted executable configuration.",
       };
     default:
       return {

@@ -20,7 +20,7 @@ const LocalStackDocumentSchema = z.object({
   name: z.string().trim().min(1).max(80),
   description: z.string().trim().max(280).optional(),
   scope: ScopeSchema,
-  targetIds: z.array(IdeIdSchema).min(1).max(20),
+  targetIds: z.array(IdeIdSchema).min(1).max(40),
   itemIds: z.array(z.string().trim().min(1)).min(1).max(100),
   snapshots: z.array(LocalStackItemSnapshotSchema).default([]),
   savedAt: z.string().datetime(),

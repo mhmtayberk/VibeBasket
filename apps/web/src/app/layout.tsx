@@ -37,6 +37,7 @@ export default async function RootLayout({
 }>) {
   const requestHeaders = await headers();
   const locale = resolveLocale(requestHeaders.get("x-locale"));
+  const nonce = requestHeaders.get("x-nonce") ?? undefined;
 
   return (
     <html lang={locale} suppressHydrationWarning data-scroll-behavior="smooth">
@@ -49,6 +50,7 @@ export default async function RootLayout({
           defaultTheme="dark"
           enableSystem={true}
           disableTransitionOnChange
+          nonce={nonce}
         >
           {children}
           <Toaster />

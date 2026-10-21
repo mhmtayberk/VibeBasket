@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 test.describe("Chaos — Concurrent Mutations", () => {
-  test("concurrent catalog requests with different filters", async ({ page }) => {
+  test("concurrent catalog requests with different filters", async ({ request }) => {
     const urls = [
       "/api/catalog?type=mcp&limit=5",
       "/api/catalog?type=skill&limit=5",
@@ -17,9 +17,9 @@ test.describe("Chaos — Concurrent Mutations", () => {
 
     const results = await Promise.all(
       urls.map((url) =>
-        page.goto(url).then(async (r) => ({
-          status: r?.status(),
-          body: await r?.json(),
+        request.get(url).then(async (response) => ({
+          status: response.status(),
+          body: await response.json(),
         })),
       ),
     );
@@ -40,30 +40,29 @@ test.describe("Chaos — Concurrent Mutations", () => {
     }
   });
 
-  test("rapid page changes do not duplicate results", async ({ page }) => {
+  test("rapid page changes return unique and stable pages", async ({ request }) => {
     const pages = [1, 3, 2, 5, 1, 4, 2];
-    const seen = new Set<string>();
+    const pageSnapshots = new Map<number, string[]>();
 
     for (const p of pages) {
-      const res = await page.goto(`/api/catalog?page=${p}&limit=5`);
-      expect(res?.status()).toBe(200);
-      const body = await res?.json();
-      for (const item of body.items) {
-        const key = `${p}:${item.id}`;
-        expect(seen.has(key)).toBe(false);
-        seen.add(key);
-      }
+      const response = await request.get(`/api/catalog?page=${p}&limit=5`);
+      expect(response.status()).toBe(200);
+      const body = await response.json();
+      const ids = body.items.map((item: { id: string }) => item.id);
+      expect(new Set(ids).size).toBe(ids.length);
+      if (pageSnapshots.has(p)) expect(ids).toEqual(pageSnapshots.get(p));
+      else pageSnapshots.set(p, ids);
     }
   });
 
-  test("mid-sync catalog request still returns data", async ({ page }) => {
+  test("mid-sync catalog request still returns data", async ({ request }) => {
     // Two parallel requests to /api/catalog — at least one should succeed
     const [a, b] = await Promise.all([
-      page.goto("/api/catalog?limit=5").then((r) => r?.status()),
-      page.goto("/api/catalog?limit=5").then((r) => r?.status()),
+      request.get("/api/catalog?limit=5").then((response) => response.status()),
+      request.get("/api/catalog?limit=5").then((response) => response.status()),
     ]);
-    expect(a ?? 500).toBeLessThan(500);
-    expect(b ?? 500).toBeLessThan(500);
+    expect(a).toBeLessThan(500);
+    expect(b).toBeLessThan(500);
   });
 });
 
@@ -152,13 +151,13 @@ test.describe("Chaos — State Corruption", () => {
     await expect(page).toHaveURL(/tab=getting-started/);
 
     await page.goBack();
-    await expect(page).toHaveURL(/\/$/);
+    await expect(page).toHaveURL(/\/en$/);
 
     await page.goForward();
     await expect(page).toHaveURL(/tab=getting-started/);
   });
 
-  test("server stays healthy after 50 mixed requests", async ({ page }) => {
+  test("server stays healthy after 50 mixed requests", async ({ request }) => {
     const urls = [
       "/",
       "/docs",
@@ -173,9 +172,9 @@ test.describe("Chaos — State Corruption", () => {
     ];
 
     const results = await Promise.all(
-      urls.map((url) =>
-        page.goto(url, { timeout: 15000 }).then(
-          (r) => ({ ok: (r?.status() ?? 500) < 500 }),
+      Array.from({ length: 50 }, (_, index) => urls[index % urls.length]).map((url) =>
+        request.get(url, { timeout: 15000, headers: { "x-forwarded-for": "198.51.100.202" } }).then(
+          (response) => ({ ok: response.status() < 500 }),
           () => ({ ok: false }),
         ),
       ),

@@ -131,7 +131,7 @@ describe("Bundle Lifecycle E2E", () => {
       (t) => hasMcps && !t.capabilities.supportsMcp,
     );
 
-    expect(incompatibleTargets.some((t: { id: string }) => t.id === "github-copilot")).toBe(true);
+    expect(incompatibleTargets.some((t: { id: string }) => t.id === "github-copilot")).toBe(false);
     expect(incompatibleTargets.some((t: { id: string }) => t.id === "aider")).toBe(true);
   });
 });

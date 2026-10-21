@@ -64,7 +64,7 @@ class UserOnlyAdapter extends FakeAdapter {
 }
 
 class McpUnsupportedAdapter extends SkillsAndRulesAdapter {
-  override displayName = "GitHub Copilot";
+  override displayName = "Aider";
   override supportsMcp = false;
 }
 
@@ -102,7 +102,7 @@ vi.mock("@vibebasket/adapters", () => ({
   RooCodeAdapter: FakeAdapter,
   HermesAdapter: FakeAdapter,
   OpenClawAdapter: FakeAdapter,
-  GitHubCopilotAdapter: McpUnsupportedAdapter,
+  GitHubCopilotAdapter: FakeAdapter,
   VoidAdapter: FakeAdapter,
   AiderAdapter: McpUnsupportedAdapter,
   CortexCodeAdapter: FakeAdapter,
@@ -110,6 +110,12 @@ vi.mock("@vibebasket/adapters", () => ({
   IBMBobAdapter: FakeAdapter,
   CodeBuddyAdapter: FakeAdapter,
   OpenCodeAdapter: FakeAdapter,
+  AnteAdapter: FakeAdapter,
+  TraeAdapter: FakeAdapter,
+  QoderAdapter: FakeAdapter,
+  OmpAdapter: FakeAdapter,
+  AutohandAdapter: FakeAdapter,
+  CrushAdapter: FakeAdapter,
 }));
 
 describe("applyBundle", () => {
@@ -510,7 +516,7 @@ describe("applyBundle", () => {
       JSON.stringify({
         schemaVersion: "0.1",
         scope: "project",
-        targets: ["github-copilot"],
+        targets: ["aider"],
         mcps: [
           {
             id: "github",
@@ -543,7 +549,7 @@ describe("applyBundle", () => {
       JSON.stringify({
         schemaVersion: "0.1",
         scope: "project",
-        targets: ["github-copilot"],
+        targets: ["aider"],
         mcps: [
           {
             id: "remote-secure",

@@ -11,6 +11,7 @@ RUN corepack enable && corepack prepare pnpm@${PNPM_VERSION} --activate
 
 # Copy workspace manifests only (maximise cache hit rate)
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+COPY apps/cli/package.json                         apps/cli/package.json
 COPY apps/web/package.json                         apps/web/package.json
 COPY packages/core/package.json                    packages/core/package.json
 COPY packages/registry/package.json               packages/registry/package.json

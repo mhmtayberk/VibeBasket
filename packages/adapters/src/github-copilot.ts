@@ -1,7 +1,12 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import type { IdeId, McpEntry, RuleEntry, Scope, SkillEntry } from "../../core/src/manifest.js";
-import { hasErrorCode } from "./mcp-utils";
+import {
+  hasErrorCode,
+  mergeStandardMcpServers,
+  readJsonFileOrDefault,
+  writeJsonFileWithBackup,
+} from "./mcp-utils";
 import { getTargetCapabilities } from "./target-capabilities";
 import type { IdeAdapter } from "./types";
 
@@ -21,34 +26,38 @@ export class GitHubCopilotAdapter implements IdeAdapter {
     if (!projectRoot) {
       throw new Error("projectRoot required for project scope");
     }
+    return path.join(projectRoot, ".mcp.json");
+  }
+
+  private instructionsPath(projectRoot: string): string {
     return path.join(projectRoot, ".github", "copilot-instructions.md");
   }
 
   async readConfig(scope: Scope, projectRoot?: string): Promise<unknown> {
-    const file = this.configPath(scope, projectRoot);
-    try {
-      return await fs.readFile(file, "utf8");
-    } catch (error: unknown) {
-      if (hasErrorCode(error, "ENOENT")) {
-        return "";
-      }
-      throw error;
-    }
+    return readJsonFileOrDefault(this.configPath(scope, projectRoot), { mcpServers: {} });
   }
 
   applyMcps(
     config: unknown,
-    _mcps: McpEntry[],
-    _secrets: Record<string, string>,
-    _opts: { force: boolean },
+    mcps: McpEntry[],
+    secrets: Record<string, string>,
+    opts: { force: boolean },
   ): unknown {
-    // GitHub Copilot does not support MCP configuration
-    return config;
+    const current = (config as { mcpServers?: Record<string, unknown> }) || { mcpServers: {} };
+    return {
+      ...current,
+      mcpServers: mergeStandardMcpServers(
+        current.mcpServers as Parameters<typeof mergeStandardMcpServers>[0],
+        mcps,
+        secrets,
+        opts,
+      ),
+    };
   }
 
   async applySkills(skills: SkillEntry[], scope: Scope, projectRoot?: string): Promise<void> {
     if (scope === "project" && projectRoot) {
-      const instructionsFile = this.configPath(scope, projectRoot);
+      const instructionsFile = this.instructionsPath(projectRoot);
       let content = "";
       try {
         content = await fs.readFile(instructionsFile, "utf8");
@@ -88,7 +97,7 @@ export class GitHubCopilotAdapter implements IdeAdapter {
 
   async applyRules(rules: RuleEntry[], scope: Scope, projectRoot?: string): Promise<void> {
     if (scope === "project" && projectRoot) {
-      const instructionsFile = this.configPath(scope, projectRoot);
+      const instructionsFile = this.instructionsPath(projectRoot);
       let content = "";
       try {
         content = await fs.readFile(instructionsFile, "utf8");
@@ -118,29 +127,14 @@ export class GitHubCopilotAdapter implements IdeAdapter {
   }
 
   async writeConfig(scope: Scope, config: unknown, projectRoot?: string): Promise<void> {
-    const file = this.configPath(scope, projectRoot);
-    const dir = path.dirname(file);
-    await fs.mkdir(dir, { recursive: true });
-
-    // Backup
-    try {
-      const content = await fs.readFile(file, "utf8");
-      await fs.writeFile(`${file}.bak.${Date.now()}`, content, "utf8");
-    } catch (error: unknown) {
-      if (!hasErrorCode(error, "ENOENT")) throw error;
-    }
-
-    const contentToWrite = typeof config === "string" ? config : JSON.stringify(config, null, 2);
-    await fs.writeFile(file, contentToWrite, "utf8");
+    await writeJsonFileWithBackup(this.configPath(scope, projectRoot), config);
   }
 
   async diff(scope: Scope, pending: unknown, projectRoot?: string): Promise<string> {
-    const current = (await this.readConfig(scope, projectRoot)) as string;
-    const pendingStr = typeof pending === "string" ? pending : JSON.stringify(pending, null, 2);
-    return `--- Current\n+++ Pending\n${current}\n${pendingStr}`;
+    return JSON.stringify(pending, null, 2);
   }
 
   postInstallHint(): string {
-    return "GitHub Copilot instructions will be read automatically by your Copilot extensions in this project.";
+    return "Restart the Copilot harness or reload VS Code so .mcp.json and project instructions are re-read.";
   }
 }

@@ -60,6 +60,12 @@ function getObjectKeyRecord(
 }
 
 export function extractConfiguredMcpIds(config: unknown): string[] {
+  if (typeof config === "string") {
+    return Array.from(config.matchAll(/^# >>> VIBEBASKET MCP START: (.+?) <<<$/gm), (match) =>
+      match[1]?.trim(),
+    ).filter((id): id is string => Boolean(id));
+  }
+
   const record = asRecord(config);
   if (!record) return [];
 
@@ -73,9 +79,17 @@ export function extractConfiguredMcpIds(config: unknown): string[] {
       });
   }
 
+  const mcp = getObjectKeyRecord(record, "mcp");
+  if (Array.isArray(mcp?.servers)) {
+    return mcp.servers
+      .map((entry) => asRecord(entry)?.name)
+      .filter((name): name is string => typeof name === "string" && Boolean(name.trim()));
+  }
+
   const candidates = [
     getObjectKeyRecord(record, "mcpServers"),
-    getObjectKeyRecord(record, "mcp"),
+    getObjectKeyRecord(record, "servers"),
+    mcp,
     getObjectKeyRecord(record, "mcp_servers"),
     getObjectKeyRecord(record, "mcp.servers"),
     getObjectKeyRecord(record, "context_servers"),
@@ -310,7 +324,7 @@ export function resolveRuleVerificationTargets(
     case "windsurf":
       return scope === "project" && projectRoot
         ? rules.map((rule) => ({
-            path: path.join(projectRoot, ".devin", "rules", `${rule.id}.md`),
+            path: path.join(projectRoot, ".windsurf", "rules", `${rule.id}.md`),
             kind: "file",
           }))
         : [
@@ -587,7 +601,7 @@ export function resolveRuleInventoryTargets(
       return scope === "project" && projectRoot
         ? [
             {
-              path: path.join(projectRoot, ".devin", "rules"),
+              path: path.join(projectRoot, ".windsurf", "rules"),
               kind: "directory",
               fileExtension: ".md",
             },

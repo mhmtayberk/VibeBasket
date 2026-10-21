@@ -51,6 +51,12 @@ for (const name of [
   "IBMBobAdapter",
   "CodeBuddyAdapter",
   "OpenCodeAdapter",
+  "AnteAdapter",
+  "TraeAdapter",
+  "QoderAdapter",
+  "OmpAdapter",
+  "AutohandAdapter",
+  "CrushAdapter",
 ]) {
   allRollbackAdapters[name] = RollbackAdapter;
 }

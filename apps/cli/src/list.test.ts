@@ -53,6 +53,12 @@ vi.mock("@vibebasket/adapters", () => {
     "IBMBobAdapter",
     "CodeBuddyAdapter",
     "OpenCodeAdapter",
+    "AnteAdapter",
+    "TraeAdapter",
+    "QoderAdapter",
+    "OmpAdapter",
+    "AutohandAdapter",
+    "CrushAdapter",
   ];
 
   const result: Record<string, unknown> = {};

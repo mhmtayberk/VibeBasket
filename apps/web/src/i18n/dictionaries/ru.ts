@@ -88,7 +88,7 @@ export const ruDictionary: AppDictionary = {
     },
     hero: {
       ...enDictionary.home.hero,
-      badge: "Open source · 24 IDE-цели",
+      badge: "Open source · 30 IDE-целей",
       titleMobile: "Соберите свой AI dev setup. Делитесь им одной ссылкой.",
       titleDesktop: ["Соберите свой", "AI dev setup.", "Делитесь им", "одной ссылкой."],
       description:

@@ -81,7 +81,7 @@ export const hiDictionary: AppDictionary = {
         "हर AI coding tool में विश्वसनीय MCPs, skills और rules के लिए एक ही install flow साझा करें।",
     },
     hero: {
-      badge: "ओपन सोर्स · 24 IDE targets",
+      badge: "ओपन सोर्स · 30 IDE targets",
       titleMobile: "अपने AI dev setup को bundle करें। एक लिंक से साझा करें।",
       titleDesktop: ["अपने AI dev", "setup को bundle करें।", "एक लिंक से", "साझा करें।"],
       description:

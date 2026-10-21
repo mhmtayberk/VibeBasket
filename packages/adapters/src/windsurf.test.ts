@@ -43,7 +43,7 @@ describe("WindsurfAdapter", () => {
     );
   });
 
-  it("writes project-scoped rules into .devin/rules", async () => {
+  it("writes project-scoped rules into the preferred .devin/rules path", async () => {
     const adapter = new WindsurfAdapter();
     const mkdirSpy = vi.spyOn(fs, "mkdir").mockResolvedValue(undefined);
     const writeSpy = vi.spyOn(fs, "writeFile").mockResolvedValue(undefined);

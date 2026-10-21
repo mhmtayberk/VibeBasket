@@ -28,4 +28,23 @@ describe("local MCP snippets", () => {
     expect(snippet.snippet).toContain("[mcp_servers.vibebasket]");
     expect(snippet.snippet).toContain('command = "npx"');
   });
+
+  it("renders native VS Code, Ante, Autohand, and Crush shapes", () => {
+    expect(getLocalVibeBasketMcpSnippet("vscode")).toMatchObject({
+      format: "json",
+      rootField: "servers",
+    });
+    expect(getLocalVibeBasketMcpSnippet("ante")).toMatchObject({
+      format: "json",
+      rootField: "mcp_servers",
+    });
+
+    const autohand = getLocalVibeBasketMcpSnippet("autohand");
+    expect(autohand.rootField).toBe("mcp.servers");
+    expect(autohand.snippet).toContain('"servers": [');
+
+    const crush = getLocalVibeBasketMcpSnippet("crush");
+    expect(crush.format).toBe("shell");
+    expect(crush.snippet).toContain("mcp add vibebasket");
+  });
 });

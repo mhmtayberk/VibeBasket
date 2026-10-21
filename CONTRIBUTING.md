@@ -23,7 +23,7 @@ apps/
   cli/          Node.js CLI — apply, list, search, doctor, init, rollback
 packages/
   core/         Shared DB schema, bundle manifest types, SQLite client
-  adapters/     24 IDE adapters (16 on BaseAdapter, 8 custom)
+  adapters/     30 IDE adapters with shared and target-native config logic
   registry/     Catalog sync engine — merges verified + upstream sources
 ```
 

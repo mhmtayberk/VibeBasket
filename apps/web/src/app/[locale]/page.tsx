@@ -272,7 +272,7 @@ export default async function LocalizedHomePage({
           <div className="min-w-0">
             <div className="inline-flex items-center gap-2 border border-accent/30 bg-accent/10 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-accent">
               <span className="h-2 w-2 rounded-full bg-accent" />
-              {home.hero.badge.replace("24 IDE targets", `${SUPPORTED_TARGET_COUNT} IDE targets`)}
+              {home.hero.badge.replace(/24/, String(SUPPORTED_TARGET_COUNT))}
             </div>
 
             <div className="mt-6 flex flex-wrap gap-2">

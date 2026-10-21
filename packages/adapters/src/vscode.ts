@@ -1,41 +1,61 @@
-import os from "node:os";
 import path from "node:path";
-import type { Scope } from "../../core/src/manifest.js";
+import type { McpEntry, Scope } from "../../core/src/manifest.js";
 import { BaseAdapter } from "./base-adapter";
-import { getVsCodeGlobalStorageDir } from "./platform-paths";
+import { mergeStandardMcpServers } from "./mcp-utils";
+import { getVsCodeUserDir } from "./platform-paths";
+
+interface VsCodeConfig {
+  servers?: Record<string, unknown>;
+  [key: string]: unknown;
+}
 
 export class VSCodeAdapter extends BaseAdapter {
   readonly id = "vscode" as const;
-  readonly displayName = "VS Code / Cline";
+  readonly displayName = "Visual Studio Code";
 
   configPath(scope: Scope, projectRoot?: string): string {
     if (scope === "project") {
       if (!projectRoot) {
         throw new Error("projectRoot required for project scope");
       }
-      return path.join(projectRoot, ".vscode", "cline_mcp_settings.json");
+      return path.join(projectRoot, ".vscode", "mcp.json");
     }
+    return path.join(getVsCodeUserDir(), "mcp.json");
+  }
 
-    const platform = os.platform();
-    if (platform === "darwin") {
-      return path.join(
-        getVsCodeGlobalStorageDir("saoudrizwan.claude-dev"),
-        "cline_mcp_settings.json",
-      );
-    }
-    if (platform === "win32") {
-      return path.join(
-        getVsCodeGlobalStorageDir("saoudrizwan.claude-dev"),
-        "cline_mcp_settings.json",
-      );
-    }
-    return path.join(
-      getVsCodeGlobalStorageDir("saoudrizwan.claude-dev"),
-      "cline_mcp_settings.json",
+  override async readConfig(scope: Scope, projectRoot?: string): Promise<unknown> {
+    const current = (await super.readConfig(scope, projectRoot)) as Record<string, unknown>;
+    return {
+      ...current,
+      servers: (current.servers as Record<string, unknown> | undefined) || {},
+    } satisfies VsCodeConfig;
+  }
+
+  override applyMcps(
+    config: unknown,
+    mcps: McpEntry[],
+    secrets: Record<string, string>,
+    opts: { force: boolean },
+  ): unknown {
+    const current = (config as VsCodeConfig) || { servers: {} };
+    const merged = mergeStandardMcpServers(
+      current.servers as Parameters<typeof mergeStandardMcpServers>[0],
+      mcps,
+      secrets,
+      opts,
     );
+    return {
+      ...current,
+      servers: Object.fromEntries(
+        Object.entries(merged).map(([id, server]) => [
+          id,
+          server.url ? server : { type: "stdio", ...server },
+        ]),
+      ),
+    } satisfies VsCodeConfig;
   }
 
   postInstallHint(): string {
-    return "Restart VS Code or reload the window for Cline MCP changes to take effect.";
+    return "Run MCP: List Servers in VS Code and verify the server is active.";
   }
 }

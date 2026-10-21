@@ -14,7 +14,7 @@ export type McpToolEnvelope<T extends Record<string, unknown> = Record<string, u
 
 export const SelectionInputSchema = z.object({
   itemIds: z.array(z.string().trim().min(1)).min(1).max(100),
-  targetIds: z.array(IdeIdSchema).min(1).max(20),
+  targetIds: z.array(IdeIdSchema).min(1).max(40),
   scope: ScopeSchema.default("user"),
   name: z.string().trim().min(1).max(80).optional(),
   description: z.string().trim().max(280).optional(),

@@ -13,7 +13,7 @@ const ADAPTERS_COPY = {
     title: "IDE Adapters",
     representative: "Representative Targets",
     intro:
-      "24 supported targets, each with its own adapter that reads the target's config format, merges entries idempotently, and backs up the original file before writing. MCP configuration is supported on every MCP-capable adapter. Skills are auto-applied on {SKILLS} targets and rules on {RULES}. The CLI now performs post-install verification so adapter writes are checked again after persistence.",
+      "{TOTAL} supported targets, each with its own adapter that reads the target's config format, merges entries idempotently, and backs up the original file before writing. MCP configuration is supported on every MCP-capable adapter. Skills are auto-applied on {SKILLS} targets and rules on {RULES}. The CLI now performs post-install verification so adapter writes are checked again after persistence.",
     representativeLead:
       "Each adapter is a standalone module in packages/adapters. It resolves the target config path, merges the new MCP entries (and optionally skills/rules), creates a timestamped backup before writing, and is expected to pass a post-install verification step in the CLI.",
   },
@@ -130,15 +130,14 @@ export function DocsTabAdapters({ locale }: { locale: AppLocale }) {
                   config:
                     "~/.codeium/windsurf/mcp_config.json + ~/.codeium/windsurf/skills/ or .windsurf/skills/ + global_rules.md or .devin/rules/",
                   capabilityLabel: "MCP + Skills + Rules",
-                  note: "Windsurf documents MCP in mcp_config.json, SKILL.md folders under .windsurf/skills or ~/.codeium/windsurf/skills, and rules under .devin/rules/ with global rules in ~/.codeium/windsurf/memories/global_rules.md.",
+                  note: "Current Devin/Windsurf documentation prefers workspace rules under .devin/rules/, retains .windsurf/rules/ as a fallback, and keeps global rules in ~/.codeium/windsurf/memories/global_rules.md.",
                 },
                 {
-                  name: "VS Code / Cline",
+                  name: "Visual Studio Code",
                   color: "#007ACC",
-                  config:
-                    "<VS Code globalStorage>/saoudrizwan.claude-dev/settings/cline_mcp_settings.json",
+                  config: "<VS Code User>/mcp.json or .vscode/mcp.json",
                   capabilityLabel: "MCP",
-                  note: "Targets the Cline extension's global MCP settings file.",
+                  note: "Uses VS Code's native servers object in user or workspace mcp.json configuration.",
                 },
                 {
                   name: "Claude Code",
@@ -236,9 +235,9 @@ export function DocsTabAdapters({ locale }: { locale: AppLocale }) {
                 {
                   name: "GitHub Copilot",
                   color: "#FF1744",
-                  config: ".github/copilot-instructions.md",
-                  capabilityLabel: "Skills + Rules",
-                  note: "Rules and skills are written as Markdown custom instructions inside .github/copilot-instructions.md.",
+                  config: ".mcp.json + .github/copilot-instructions.md",
+                  capabilityLabel: "MCP + Skills + Rules",
+                  note: "Portable MCP entries are written to .mcp.json; rules and skills remain in Copilot's project instructions file.",
                 },
                 {
                   name: "Void Editor",
@@ -289,6 +288,48 @@ export function DocsTabAdapters({ locale }: { locale: AppLocale }) {
                     "~/.config/opencode/opencode.json or opencode.json + .opencode/skills/ + AGENTS.md",
                   capabilityLabel: "MCP + Skills + Rules",
                   note: "OpenCode uses the mcp object in opencode.json, plus .opencode/skills and AGENTS.md for reusable behavior. Reload the TUI after applying.",
+                },
+                {
+                  name: "Ante",
+                  color: "#A0FDDA",
+                  config: "~/.ante/settings.json (mcp_servers)",
+                  capabilityLabel: "MCP",
+                  note: "Ante user settings use the native mcp_servers map with stdio or streamable HTTP transports.",
+                },
+                {
+                  name: "Trae",
+                  color: "#4B7BFF",
+                  config: ".trae/mcp.json",
+                  capabilityLabel: "MCP",
+                  note: "Trae project MCP is written only at workspace scope and must be enabled in Trae settings.",
+                },
+                {
+                  name: "Qoder",
+                  color: "#9B7CFF",
+                  config: "~/.qoder/settings.json or .mcp.json",
+                  capabilityLabel: "MCP",
+                  note: "Qoder supports user and portable project MCP configuration; use /mcp reload after applying.",
+                },
+                {
+                  name: "OMP (Oh My Pi)",
+                  color: "#FFB74D",
+                  config: "~/.omp/agent/mcp.json or .omp/mcp.json",
+                  capabilityLabel: "MCP",
+                  note: "OMP uses schema-backed MCP files and honors PI_CODING_AGENT_DIR for profile-aware user configuration.",
+                },
+                {
+                  name: "Autohand Code",
+                  color: "#26C6DA",
+                  config: "~/.autohand/config.json or .autohand/config.json (mcp.servers)",
+                  capabilityLabel: "MCP",
+                  note: "Autohand uses a named server array under mcp.servers and honors AUTOHAND_CONFIG/AUTOHAND_HOME. VibeBasket refuses to overwrite TOML or YAML configurations.",
+                },
+                {
+                  name: "Crush",
+                  color: "#FF4081",
+                  config: "~/.config/crush/crushrc or .crushrc",
+                  capabilityLabel: "MCP",
+                  note: "Crush's current executable crushrc format is updated with shell-quoted, idempotent managed blocks and should be reviewed before launch.",
                 },
               ] as {
                 name: string;

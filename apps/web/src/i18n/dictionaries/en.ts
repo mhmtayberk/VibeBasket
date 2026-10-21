@@ -80,7 +80,7 @@ export const enDictionary = {
         "Share one install flow for trusted MCPs, skills, and rules across every AI coding tool.",
     },
     hero: {
-      badge: "Open source · 24 IDE targets",
+      badge: "Open source · 30 IDE targets",
       titleMobile: "Bundle your AI dev setup. Share it with one link.",
       titleDesktop: ["Bundle your AI", "dev setup.", "Share it with", "one link."],
       description:

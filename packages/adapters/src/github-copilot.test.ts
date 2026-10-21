@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import type { RuleEntry, SkillEntry } from "../../core/src/manifest.js";
+import type { McpEntry, RuleEntry, SkillEntry } from "../../core/src/manifest.js";
 import { GitHubCopilotAdapter } from "./github-copilot.js";
 
 describe("GitHubCopilotAdapter", () => {
@@ -19,7 +19,33 @@ describe("GitHubCopilotAdapter", () => {
   it("should enforce project-only scope", () => {
     const adapter = new GitHubCopilotAdapter();
     expect(() => adapter.configPath("user")).toThrow(/only supports 'project'/);
-    expect(adapter.configPath("project", tempDir)).toContain(".github/copilot-instructions.md");
+    expect(adapter.configPath("project", tempDir)).toBe(path.join(tempDir, ".mcp.json"));
+  });
+
+  it("merges MCP servers into the portable project config", () => {
+    const adapter = new GitHubCopilotAdapter();
+    const mcp: McpEntry = {
+      id: "ctx7",
+      displayName: "Context7",
+      runtime: "node",
+      command: "npx",
+      args: ["-y", "@upstash/context7-mcp"],
+      env: {},
+      headers: {},
+      requiredSecrets: [],
+      verified: true,
+    };
+
+    const next = adapter.applyMcps(
+      { mcpServers: { existing: { command: "existing" } }, unrelated: true },
+      [mcp],
+      {},
+      { force: false },
+    ) as { mcpServers: Record<string, unknown>; unrelated: boolean };
+
+    expect(next.mcpServers.existing).toBeDefined();
+    expect(next.mcpServers.ctx7).toMatchObject({ command: "npx" });
+    expect(next.unrelated).toBe(true);
   });
 
   it("should apply skills inside .github/copilot-instructions.md with correct delimiters", async () => {
@@ -38,7 +64,7 @@ describe("GitHubCopilotAdapter", () => {
 
     await adapter.applySkills(skills, "project", tempDir);
 
-    const file = adapter.configPath("project", tempDir);
+    const file = path.join(tempDir, ".github", "copilot-instructions.md");
     const content = await fs.readFile(file, "utf8");
 
     expect(content).toContain("# >>> VIBEBASKET START: copilot-skill <<<");
@@ -72,7 +98,7 @@ describe("GitHubCopilotAdapter", () => {
     firstSkill.source = { type: "inline", content: "Always write perfect code." };
     await adapter.applySkills(skills, "project", tempDir);
 
-    const file = adapter.configPath("project", tempDir);
+    const file = path.join(tempDir, ".github", "copilot-instructions.md");
     const content = await fs.readFile(file, "utf8");
 
     // Check that we have exactly one block of the skill
@@ -95,7 +121,7 @@ describe("GitHubCopilotAdapter", () => {
 
     await adapter.applyRules(rules, "project", tempDir);
 
-    const file = adapter.configPath("project", tempDir);
+    const file = path.join(tempDir, ".github", "copilot-instructions.md");
     const content = await fs.readFile(file, "utf8");
 
     expect(content).toContain("# >>> VIBEBASKET START: copilot-rule <<<");

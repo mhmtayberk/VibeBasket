@@ -130,4 +130,3 @@ No destructive GitHub cleanup occurs before this final gate and remote CI succee
 - Adapter writes retain timestamped backups and are validated through the existing rollback service.
 - Database schema changes are out of scope unless a verified dependency migration requires them; any such change needs an explicit migration and restore rehearsal.
 - A failed deployment rolls back to the previous image and persistent database volume; no cleanup step may remove the last known-good artifact.
-
