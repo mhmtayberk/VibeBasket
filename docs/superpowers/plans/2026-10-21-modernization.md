@@ -73,9 +73,9 @@
 
 ## Task 8: Reconcile GitHub and publish the result
 
-- [ ] Push the modernization branch and open a pull request against the verified integration base.
-- [ ] Wait for every required remote check and repair failures.
-- [ ] Merge only after local and remote gates agree.
-- [ ] Close superseded Dependabot PRs with traceable explanations.
-- [ ] Remove only merged/superseded remote branches.
+- [x] Push the modernization branch and open a pull request against the verified integration base.
+- [x] Wait for every required remote check and repair failures.
+- [x] Merge only after local and remote gates agree.
+- [x] Close superseded Dependabot PRs with traceable explanations.
+- [x] Remove only merged/superseded remote branches.
 - [x] Recheck the live site and npm package; keep publication behind the tagged release workflow.

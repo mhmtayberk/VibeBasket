@@ -37,7 +37,7 @@ Autohand also supports TOML and YAML, but VibeBasket currently serializes its na
 
 Compatible patch/minor updates were accepted together and validated as one lockfile. Major upgrades were intentionally deferred when they require their own migration proof: Biome 2, Chalk 6, Google Cloud Storage 8, Node type definitions 26, dotenv 18, fast-check 4, nanoid 6, tsup 9, TypeScript 7, Vitest 5, and Zod 4. The pre-1.0 libSQL client upgrade is also isolated because minor releases may contain breaking changes.
 
-Dependabot now groups npm patch/minor updates and all CodeQL action steps so coupled actions cannot drift to different releases.
+Dependabot now groups npm patch/minor updates and all CodeQL action steps so coupled actions cannot drift to different releases. Deferred major migrations and the pre-1.0 libSQL minor line are explicitly ignored until their dedicated migration proof exists. A post-merge Dependabot run exposed that CodeQL sub-actions require the wildcard pattern `github/codeql-action/*`; the rule was corrected and both workflow steps were advanced atomically to 4.39.0.
 
 The production audit was reduced from 49 findings (including one critical and 13 high) to one low-severity `@babel/core` advisory. npm reports `>=7.29.1` as patched, but that 7.x release is not published; forcing Babel 8 through Next.js would be an unverified major override. The remaining finding is therefore recorded rather than hidden or force-resolved.
 
