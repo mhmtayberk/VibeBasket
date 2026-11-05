@@ -3,6 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import type { IdeId, McpEntry, Scope, SkillEntry } from "../../core/src/manifest.js";
 import { hasErrorCode, mergeStandardMcpServers } from "./mcp-utils";
+import { assertPathWithoutSymbolicLinks } from "./safe-path";
 import { getTargetCapabilities } from "./target-capabilities";
 import type { IdeAdapter } from "./types";
 
@@ -25,6 +26,8 @@ export class OpenClawAdapter implements IdeAdapter {
   readonly supportsSkills = OpenClawAdapter.capabilities.supportsSkills;
   readonly supportsRules = OpenClawAdapter.capabilities.supportsRules;
   readonly supportedScopes: readonly Scope[] = OpenClawAdapter.capabilities.supportedScopes;
+  readonly mcpScopes: readonly Scope[] = OpenClawAdapter.capabilities.mcpScopes ?? [];
+  readonly skillScopes: readonly Scope[] = OpenClawAdapter.capabilities.skillScopes ?? [];
 
   configPath(scope: Scope, projectRoot?: string): string {
     // OpenClaw user configuration is typically ~/.openclaw/openclaw.json
@@ -62,6 +65,7 @@ export class OpenClawAdapter implements IdeAdapter {
   async applySkills(skills: SkillEntry[], scope: Scope, projectRoot?: string): Promise<void> {
     if (scope === "project" && projectRoot) {
       const rulesFile = path.join(projectRoot, ".openclawrules");
+      await assertPathWithoutSymbolicLinks(projectRoot, rulesFile);
       let content = "";
       try {
         content = await fs.readFile(rulesFile, "utf8");

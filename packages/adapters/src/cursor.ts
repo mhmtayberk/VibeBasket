@@ -28,8 +28,6 @@ export class CursorAdapter extends BaseAdapter {
         ? path.join(projectRoot, ".cursor", "skills")
         : path.join(os.homedir(), ".cursor", "skills");
 
-    await fs.mkdir(baseDir, { recursive: true });
-
     const result = createManagedContentResult();
 
     for (const skill of skills) {
@@ -45,6 +43,7 @@ export class CursorAdapter extends BaseAdapter {
       const content = `---\nname: ${skill.id}\ndescription: ${skill.displayName}\n---\n\n${body}\n`;
       const targetFile = path.join(skillDir, "SKILL.md");
       const writeResult = await upsertManagedTextFile({
+        ...(scope === "project" && projectRoot ? { trustedRoot: projectRoot } : {}),
         registryDir: baseDir,
         targetFile,
         kind: "skill",
@@ -64,11 +63,11 @@ export class CursorAdapter extends BaseAdapter {
       scope === "project" && projectRoot
         ? path.join(projectRoot, ".cursor", "rules")
         : path.join(os.homedir(), ".cursor", "rules");
-    await fs.mkdir(baseDir, { recursive: true });
     const result = createManagedContentResult();
     for (const rule of rules) {
       const content = `# ${rule.displayName}\n\n${rule.content}`;
       const writeResult = await upsertManagedTextFile({
+        ...(scope === "project" && projectRoot ? { trustedRoot: projectRoot } : {}),
         registryDir: baseDir,
         targetFile: path.join(baseDir, `${rule.id}.md`),
         kind: "rule",

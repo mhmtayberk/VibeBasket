@@ -471,6 +471,13 @@
           "notNull": false,
           "autoincrement": false
         },
+        "email_verification_provider": {
+          "name": "email_verification_provider",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
         "image": {
           "name": "image",
           "type": "text",

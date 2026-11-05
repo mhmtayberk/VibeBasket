@@ -144,6 +144,7 @@ describe("auth and stack schema", () => {
     expect(userColumnNames).toEqual([
       "created_at",
       "email",
+      "email_verification_provider",
       "email_verified",
       "id",
       "image",

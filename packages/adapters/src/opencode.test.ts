@@ -75,4 +75,29 @@ describe("OpenCodeAdapter", () => {
     expect(agentsContent).toContain("VIBEBASKET START: team-style");
     expect(agentsContent).toContain("Keep responses concise");
   });
+
+  it("does not follow a project skill-directory symbolic link", async () => {
+    const adapter = new OpenCodeAdapter();
+    const outsideDir = path.join(tempDir, "outside");
+    await fs.mkdir(outsideDir, { recursive: true });
+    await fs.symlink(outsideDir, path.join(tempDir, ".opencode"), "dir");
+
+    const result = await adapter.applySkills(
+      [
+        {
+          id: "release-flow",
+          displayName: "Release Flow",
+          source: { type: "inline", content: "Do not write outside the project." },
+          verified: true,
+        },
+      ],
+      "project",
+      tempDir,
+    );
+
+    expect(result.skipped).toHaveLength(1);
+    await expect(
+      fs.access(path.join(outsideDir, "skills", "release-flow", "SKILL.md")),
+    ).rejects.toThrow();
+  });
 });

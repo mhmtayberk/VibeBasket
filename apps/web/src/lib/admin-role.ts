@@ -1,7 +1,10 @@
+import { isTrustedOAuthProvider } from "./auth-email-verification";
+
 export interface AdminRoleEvaluationInput {
   adminEmails: string[];
   email?: string | null;
   emailVerified?: Date | null;
+  emailVerificationProvider?: string | null;
   nodeEnv?: string;
 }
 
@@ -9,6 +12,7 @@ export function shouldGrantAdminRole({
   adminEmails,
   email,
   emailVerified,
+  emailVerificationProvider,
   nodeEnv,
 }: AdminRoleEvaluationInput): boolean {
   const normalizedEmail = email?.trim().toLowerCase();
@@ -22,7 +26,7 @@ export function shouldGrantAdminRole({
     return true;
   }
 
-  if (!(emailVerified instanceof Date)) {
+  if (!(emailVerified instanceof Date) || !isTrustedOAuthProvider(emailVerificationProvider)) {
     return false;
   }
 

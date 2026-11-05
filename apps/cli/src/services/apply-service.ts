@@ -1,5 +1,6 @@
 import type { IdeAdapter } from "@vibebasket/adapters";
 import type { ManagedContentApplyOutcome } from "@vibebasket/adapters";
+import { assertPathWithoutSymbolicLinks } from "../../../../packages/adapters/src/safe-path.js";
 import { supportsFeatureScope } from "../../../../packages/adapters/src/types.js";
 import type { Bundle, IdeId, Scope } from "../../../packages/core/src/manifest.js";
 import {
@@ -270,6 +271,12 @@ async function applyToTarget(
 
   if (options.dryRun) {
     if (shouldApplyMcps) {
+      if (options.scope === "project" && options.projectRoot) {
+        await assertPathWithoutSymbolicLinks(
+          options.projectRoot,
+          adapter.configPath(options.scope, options.projectRoot),
+        );
+      }
       const currentConfig = await adapter.readConfig(options.scope, options.projectRoot);
       const pendingConfig = adapter.applyMcps(currentConfig, mcpPlan.supported, secrets, {
         force: options.force,
@@ -288,6 +295,12 @@ async function applyToTarget(
   }
 
   if (shouldApplyMcps) {
+    if (options.scope === "project" && options.projectRoot) {
+      await assertPathWithoutSymbolicLinks(
+        options.projectRoot,
+        adapter.configPath(options.scope, options.projectRoot),
+      );
+    }
     const currentConfig = await adapter.readConfig(options.scope, options.projectRoot);
     const pendingConfig = adapter.applyMcps(currentConfig, mcpPlan.supported, secrets, {
       force: options.force,
@@ -295,6 +308,12 @@ async function applyToTarget(
 
     if (stableStringify(currentConfig) !== stableStringify(pendingConfig)) {
       backupPath = await createBackup(targetId, options.scope, currentConfig);
+      if (options.scope === "project" && options.projectRoot) {
+        await assertPathWithoutSymbolicLinks(
+          options.projectRoot,
+          adapter.configPath(options.scope, options.projectRoot),
+        );
+      }
       await adapter.writeConfig(options.scope, pendingConfig, options.projectRoot);
     }
   }

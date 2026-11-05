@@ -26,6 +26,11 @@ class FakeAdapter {
   supportsMcp = true;
   supportsSkills = false;
   supportsRules = false;
+  configPath(scope: string, projectRoot?: string) {
+    return scope === "project"
+      ? path.join(projectRoot ?? process.cwd(), ".mcp.json")
+      : path.join(os.homedir(), ".fake-ide", "mcp.json");
+  }
   readConfig = readConfigMock;
   applyMcps(config: unknown, mcps: Array<{ id: string; command?: string; args?: string[] }>) {
     const current =

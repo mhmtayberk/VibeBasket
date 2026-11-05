@@ -2,10 +2,12 @@ import { createHash } from "node:crypto";
 
 type BucketEntry = {
   timestamps: number[];
+  expiresAt: number;
 };
 
 const CLEANUP_INTERVAL = 50; // every N checks
-const CLEANUP_WINDOW_MS = 60_000; // 1 minute
+export const MAX_RATE_LIMIT_BUCKETS = 10_000;
+const UNTRUSTED_GLOBAL_LIMIT_MULTIPLIER = 20;
 
 const buckets = new Map<string, BucketEntry>();
 let cleanupCounter = 0;
@@ -16,8 +18,7 @@ function cleanupExpiredBuckets(now: number) {
   cleanupCounter = 0;
 
   for (const [key, entry] of buckets.entries()) {
-    entry.timestamps = entry.timestamps.filter((ts) => ts > now - CLEANUP_WINDOW_MS);
-    if (entry.timestamps.length === 0) {
+    if (entry.expiresAt <= now) {
       buckets.delete(key);
     }
   }
@@ -29,17 +30,57 @@ function firstHeaderValue(value: string | null): string | null {
 }
 
 function buildFallbackFingerprint(request: Request) {
-  const fingerprintSource = [
+  const source = [
     request.headers.get("user-agent") ?? "",
     request.headers.get("sec-ch-ua") ?? "",
     request.headers.get("accept-language") ?? "",
   ].join("|");
+  const normalized = source.replace(/\|/g, "").trim() ? source : "unknown-client";
+  return `fp:${createHash("sha256").update(normalized).digest("hex").slice(0, 16)}`;
+}
 
-  if (!fingerprintSource.replace(/\|/g, "").trim()) {
-    return "unknown-client";
+function trustedProxyAddress(request: Request) {
+  switch (process.env.TRUST_PROXY_HEADER) {
+    case "cf-connecting-ip":
+      return request.headers.get("cf-connecting-ip")?.trim() || null;
+    case "x-real-ip":
+      return request.headers.get("x-real-ip")?.trim() || null;
+    case undefined:
+    case "":
+    case "x-forwarded-for":
+      return firstHeaderValue(request.headers.get("x-forwarded-for"));
+    default:
+      return null;
+  }
+}
+
+function overflowBucketKey(key: string) {
+  const separatorIndex = key.indexOf(":");
+  const namespace = separatorIndex > 0 ? key.slice(0, separatorIndex) : "global";
+  return `overflow:${namespace}`;
+}
+
+function boundedBucketKey(key: string) {
+  if (buckets.has(key) || buckets.size < MAX_RATE_LIMIT_BUCKETS) {
+    return key;
   }
 
-  return `fp:${createHash("sha256").update(fingerprintSource).digest("hex").slice(0, 16)}`;
+  const overflowKey = overflowBucketKey(key);
+  if (!buckets.has(overflowKey)) {
+    let earliestExpiryKey: string | undefined;
+    let earliestExpiry = Number.POSITIVE_INFINITY;
+    for (const [candidateKey, entry] of buckets) {
+      if (entry.expiresAt < earliestExpiry) {
+        earliestExpiry = entry.expiresAt;
+        earliestExpiryKey = candidateKey;
+      }
+    }
+    if (earliestExpiryKey !== undefined) {
+      buckets.delete(earliestExpiryKey);
+    }
+  }
+
+  return overflowKey;
 }
 
 export function getClientAddress(request: Request) {
@@ -47,35 +88,7 @@ export function getClientAddress(request: Request) {
   const isTrustProxyEnabled = trustProxyEnv === "true" || trustProxyEnv === "1";
 
   if (isTrustProxyEnabled) {
-    const cfIp = request.headers.get("cf-connecting-ip")?.trim();
-    if (cfIp) {
-      return cfIp;
-    }
-
-    const forwardedFor = firstHeaderValue(request.headers.get("x-forwarded-for"));
-    if (forwardedFor) {
-      return forwardedFor;
-    }
-
-    const realIp = request.headers.get("x-real-ip")?.trim();
-    if (realIp) {
-      return realIp;
-    }
-  }
-
-  const bestEffortCfIp = request.headers.get("cf-connecting-ip")?.trim();
-  if (bestEffortCfIp) {
-    return `best-effort:${bestEffortCfIp}`;
-  }
-
-  const bestEffortForwardedIp = firstHeaderValue(request.headers.get("x-forwarded-for"));
-  if (bestEffortForwardedIp) {
-    return `best-effort:${bestEffortForwardedIp}`;
-  }
-
-  const bestEffortRealIp = request.headers.get("x-real-ip")?.trim();
-  if (bestEffortRealIp) {
-    return `best-effort:${bestEffortRealIp}`;
+    return trustedProxyAddress(request) ?? buildFallbackFingerprint(request);
   }
 
   return buildFallbackFingerprint(request);
@@ -88,17 +101,29 @@ export interface RateLimitResult {
   retryAfterSeconds: number;
 }
 
-export function checkRateLimit(key: string, limit: number, windowMs: number): RateLimitResult {
-  const now = Date.now();
+function consumeRateLimit(
+  key: string,
+  limit: number,
+  windowMs: number,
+  now: number,
+): RateLimitResult {
+  if (limit <= 0) {
+    const resetAt = now + Math.max(0, windowMs);
+    return {
+      allowed: false,
+      remaining: 0,
+      resetAt,
+      retryAfterSeconds: Math.max(1, Math.ceil((resetAt - now) / 1000)),
+    };
+  }
   const windowStart = now - windowMs;
 
-  cleanupExpiredBuckets(now);
-
-  let entry = buckets.get(key);
+  const bucketKey = boundedBucketKey(key);
+  let entry = buckets.get(bucketKey);
 
   if (!entry) {
-    entry = { timestamps: [] };
-    buckets.set(key, entry);
+    entry = { timestamps: [], expiresAt: now + windowMs };
+    buckets.set(bucketKey, entry);
   }
 
   entry.timestamps = entry.timestamps.filter((ts) => ts > windowStart);
@@ -107,6 +132,7 @@ export function checkRateLimit(key: string, limit: number, windowMs: number): Ra
   if (currentCount >= limit) {
     const oldestInWindow = entry.timestamps[0];
     const resetAt = oldestInWindow + windowMs;
+    entry.expiresAt = entry.timestamps[entry.timestamps.length - 1] + windowMs;
     const retryAfterSeconds = Math.ceil((resetAt - now) / 1000);
     return {
       allowed: false,
@@ -117,6 +143,7 @@ export function checkRateLimit(key: string, limit: number, windowMs: number): Ra
   }
 
   entry.timestamps.push(now);
+  entry.expiresAt = now + windowMs;
   const nextCount = entry.timestamps.length;
   const resetAt = entry.timestamps[0] + windowMs;
 
@@ -126,6 +153,27 @@ export function checkRateLimit(key: string, limit: number, windowMs: number): Ra
     resetAt,
     retryAfterSeconds: 0,
   };
+}
+
+export function checkRateLimit(key: string, limit: number, windowMs: number): RateLimitResult {
+  const now = Date.now();
+  cleanupExpiredBuckets(now);
+
+  if (key.includes(":fp:")) {
+    const separatorIndex = key.indexOf(":");
+    const namespace = separatorIndex > 0 ? key.slice(0, separatorIndex) : "global";
+    const aggregate = consumeRateLimit(
+      `aggregate:${namespace}`,
+      Math.max(1, limit) * UNTRUSTED_GLOBAL_LIMIT_MULTIPLIER,
+      windowMs,
+      now,
+    );
+    if (!aggregate.allowed) {
+      return aggregate;
+    }
+  }
+
+  return consumeRateLimit(key, limit, windowMs, now);
 }
 
 export function resetRateLimitBuckets() {

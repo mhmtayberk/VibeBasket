@@ -88,6 +88,26 @@ describe("managed installs", () => {
     expect(registry.entries["postgres/SKILL.md"]?.id).toBe("postgres");
   });
 
+  it("rejects a managed directory that traverses a symbolic link", async () => {
+    const outsideDir = path.join(tempDir, "outside");
+    const linkedDir = path.join(tempDir, "skills");
+    await fs.mkdir(outsideDir, { recursive: true });
+    await fs.symlink(outsideDir, linkedDir, "dir");
+
+    const targetFile = path.join(linkedDir, "postgres", "SKILL.md");
+    const result = await upsertManagedTextFile({
+      trustedRoot: tempDir,
+      registryDir: linkedDir,
+      targetFile,
+      kind: "skill",
+      id: "postgres",
+      content: "# PostgreSQL\n",
+    });
+
+    expect(result.skipped).toHaveLength(1);
+    await expect(fs.access(path.join(outsideDir, "postgres", "SKILL.md"))).rejects.toThrow();
+  });
+
   it("can merge result buckets in caller-owned accumulators", () => {
     const result = createManagedContentResult();
     result.written.push("/tmp/a");

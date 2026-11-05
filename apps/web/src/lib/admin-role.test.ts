@@ -8,6 +8,7 @@ describe("shouldGrantAdminRole", () => {
         adminEmails: ["owner@example.com"],
         email: "owner@example.com",
         emailVerified: null,
+        emailVerificationProvider: null,
         nodeEnv: "production",
       }),
     ).toBe(false);
@@ -19,9 +20,34 @@ describe("shouldGrantAdminRole", () => {
         adminEmails: ["owner@example.com"],
         email: "Owner@example.com",
         emailVerified: new Date(),
+        emailVerificationProvider: "google",
         nodeEnv: "production",
       }),
     ).toBe(true);
+  });
+
+  it("rejects legacy verified timestamps without provider evidence", () => {
+    expect(
+      shouldGrantAdminRole({
+        adminEmails: ["owner@example.com"],
+        email: "owner@example.com",
+        emailVerified: new Date(),
+        emailVerificationProvider: null,
+        nodeEnv: "production",
+      }),
+    ).toBe(false);
+  });
+
+  it("rejects verification provenance from an untrusted provider", () => {
+    expect(
+      shouldGrantAdminRole({
+        adminEmails: ["owner@example.com"],
+        email: "owner@example.com",
+        emailVerified: new Date(),
+        emailVerificationProvider: "github",
+        nodeEnv: "production",
+      }),
+    ).toBe(false);
   });
 
   it("keeps the local dev admin escape hatch outside production", () => {

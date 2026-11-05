@@ -25,6 +25,31 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
     verificationTokensTable: verificationTokens,
   }),
   callbacks: {
+    async signIn({ user, account, profile }) {
+      if (!user.id || !account || account.type !== "oauth") {
+        return true;
+      }
+
+      if (!isTrustedOAuthProvider(account.provider)) {
+        return true;
+      }
+
+      const emailVerified = isTrustedOAuthEmailVerified(account.provider, profile, user.email);
+      try {
+        await db
+          .update(users)
+          .set({
+            emailVerified: emailVerified ? new Date() : null,
+            emailVerificationProvider: emailVerified ? account.provider : null,
+          })
+          .where(eq(users.id, user.id));
+      } catch (error) {
+        console.error("Failed to persist verified OAuth email state:", error);
+        return false;
+      }
+
+      return true;
+    },
     async session({ session, user }) {
       if (session.user) {
         const id = user?.id || session.user.id;
@@ -34,40 +59,27 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
 
         let email: string | null | undefined = user?.email || session.user.email;
         let emailVerified = (user as { emailVerified?: Date | null } | undefined)?.emailVerified;
+        let emailVerificationProvider = (
+          user as { emailVerificationProvider?: string | null } | undefined
+        )?.emailVerificationProvider;
 
         // Safe fallback: Query database if values are missing for some reason
-        if (id && shouldRefreshSessionUser(email, emailVerified)) {
+        if (id && shouldRefreshSessionUser(email, emailVerified, emailVerificationProvider)) {
           try {
-            const [dbUser, linkedAccounts] = await Promise.all([
-              db
-                .select({
-                  email: users.email,
-                  emailVerified: users.emailVerified,
-                })
-                .from(users)
-                .where(eq(users.id, id))
-                .limit(1),
-              db
-                .select({
-                  provider: accounts.provider,
-                })
-                .from(accounts)
-                .where(eq(accounts.userId, id))
-                .limit(8),
-            ]);
+            const dbUser = await db
+              .select({
+                email: users.email,
+                emailVerified: users.emailVerified,
+                emailVerificationProvider: users.emailVerificationProvider,
+              })
+              .from(users)
+              .where(eq(users.id, id))
+              .limit(1);
 
             if (dbUser[0]) {
               email = dbUser[0].email;
               emailVerified = dbUser[0].emailVerified;
-            }
-
-            if (
-              email &&
-              !(emailVerified instanceof Date) &&
-              linkedAccounts.some((account) => isTrustedOAuthProvider(account.provider))
-            ) {
-              emailVerified = new Date();
-              await db.update(users).set({ emailVerified }).where(eq(users.id, id));
+              emailVerificationProvider = dbUser[0].emailVerificationProvider;
             }
           } catch (err) {
             console.error("Failed to query user for session role:", err);
@@ -81,6 +93,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
             adminEmails,
             email,
             emailVerified,
+            emailVerificationProvider,
             nodeEnv: process.env.NODE_ENV,
           })
         ) {
@@ -94,19 +107,28 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
     },
   },
   events: {
-    async signIn({ user, account, profile }) {
-      if (!user.id || !account || account.type !== "oauth") {
+    async signIn({ user, account, profile, isNewUser }) {
+      if (!isNewUser || !user.id || !account || account.type !== "oauth") {
         return;
       }
 
-      if (!isTrustedOAuthEmailVerified(account.provider, profile)) {
+      if (!isTrustedOAuthProvider(account.provider)) {
         return;
       }
 
+      const emailVerified = isTrustedOAuthEmailVerified(account.provider, profile, user.email);
       try {
-        await db.update(users).set({ emailVerified: new Date() }).where(eq(users.id, user.id));
+        await db
+          .update(users)
+          .set({
+            emailVerified: emailVerified ? new Date() : null,
+            emailVerificationProvider: emailVerified ? account.provider : null,
+          })
+          .where(eq(users.id, user.id));
       } catch (error) {
-        console.error("Failed to persist verified OAuth email state:", error);
+        // New users have no stale verification state to preserve. Leaving the
+        // provenance empty keeps admin-role evaluation fail-closed.
+        console.error("Failed to persist new OAuth email verification state:", error);
       }
     },
   },

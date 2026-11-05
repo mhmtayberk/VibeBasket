@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { hasErrorCode } from "./mcp-utils";
+import { assertPathWithoutSymbolicLinks } from "./safe-path";
 import type { ManagedContentApplyOutcome, ManagedContentApplyResult } from "./types";
 
 const MANAGED_REGISTRY_FILE = ".vibebasket-managed.json";
@@ -17,6 +18,7 @@ interface ManagedRegistry {
 }
 
 interface UpsertManagedTextFileOptions {
+  trustedRoot?: string;
   registryDir: string;
   targetFile: string;
   kind: ManagedRegistryEntry["kind"];
@@ -82,6 +84,25 @@ export async function upsertManagedTextFile(
   const targetFile = options.targetFile;
   const relativeTargetPath = normalizeManagedPath(path.relative(registryDir, targetFile));
   const registryPath = path.join(registryDir, MANAGED_REGISTRY_FILE);
+
+  if (options.trustedRoot) {
+    try {
+      await assertPathWithoutSymbolicLinks(options.trustedRoot, registryDir);
+      await assertPathWithoutSymbolicLinks(options.trustedRoot, targetFile);
+      await assertPathWithoutSymbolicLinks(options.trustedRoot, registryPath);
+    } catch (error: unknown) {
+      return {
+        ...EMPTY_RESULT,
+        skipped: [
+          {
+            path: targetFile,
+            reason: error instanceof Error ? error.message : "unsafe managed target path",
+          },
+        ],
+      };
+    }
+  }
+
   const registry = await readManagedRegistry(registryPath);
 
   const symlinkPath = await findSymbolicLink(registryDir, targetFile);
@@ -151,7 +172,11 @@ export async function upsertManagedTextFile(
   }
 
   await fs.mkdir(path.dirname(targetFile), { recursive: true });
-  await fs.writeFile(`${targetFile}.bak.${Date.now()}`, currentContent, "utf8");
+  const backupPath = `${targetFile}.bak.${Date.now()}`;
+  if (options.trustedRoot) {
+    await assertPathWithoutSymbolicLinks(options.trustedRoot, backupPath);
+  }
+  await fs.writeFile(backupPath, currentContent, "utf8");
   await fs.writeFile(targetFile, options.content, "utf8");
   await writeManagedRegistry(registryPath, registry);
   return {

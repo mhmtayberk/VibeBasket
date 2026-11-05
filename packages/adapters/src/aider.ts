@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import type { IdeId, McpEntry, RuleEntry, Scope, SkillEntry } from "../../core/src/manifest.js";
 import { hasErrorCode } from "./mcp-utils";
+import { assertPathWithoutSymbolicLinks } from "./safe-path";
 import { getTargetCapabilities } from "./target-capabilities";
 import type { IdeAdapter } from "./types";
 
@@ -86,6 +87,8 @@ export class AiderAdapter implements IdeAdapter {
   async applySkills(skills: SkillEntry[], scope: Scope, projectRoot?: string): Promise<void> {
     if (scope === "project" && projectRoot) {
       const instructionsFile = path.join(projectRoot, ".aiderinstructions.md");
+      await assertPathWithoutSymbolicLinks(projectRoot, instructionsFile);
+      await assertPathWithoutSymbolicLinks(projectRoot, this.configPath(scope, projectRoot));
       let content = "";
       try {
         content = await fs.readFile(instructionsFile, "utf8");
@@ -138,6 +141,8 @@ export class AiderAdapter implements IdeAdapter {
   async applyRules(rules: RuleEntry[], scope: Scope, projectRoot?: string): Promise<void> {
     if (scope === "project" && projectRoot) {
       const instructionsFile = path.join(projectRoot, ".aiderinstructions.md");
+      await assertPathWithoutSymbolicLinks(projectRoot, instructionsFile);
+      await assertPathWithoutSymbolicLinks(projectRoot, this.configPath(scope, projectRoot));
       let content = "";
       try {
         content = await fs.readFile(instructionsFile, "utf8");

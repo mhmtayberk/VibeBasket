@@ -196,7 +196,7 @@ const TARGET_GUIDES: Record<IdeId, TargetGuideMetadata> = {
     kind: "terminal",
     note: "Backed by ~/.hermes/config.yaml MCP configuration and project-level .hermesrules.",
     configPathHints: {
-      project: "~/.hermes/config.yaml",
+      user: "~/.hermes/config.yaml",
     },
     mcpFieldHint: "Add a vibebasket block under Hermes mcp_servers in YAML form.",
     postInstallHint:
@@ -208,7 +208,7 @@ const TARGET_GUIDES: Record<IdeId, TargetGuideMetadata> = {
     kind: "terminal",
     note: "Backed by ~/.openclaw/openclaw.json MCP configuration and project-level .openclawrules.",
     configPathHints: {
-      project: "~/.openclaw/openclaw.json",
+      user: "~/.openclaw/openclaw.json",
     },
     mcpFieldHint: "Add an mcpServers.vibebasket entry in the JSON config.",
     postInstallHint: "Restart OpenClaw after updating the MCP config.",

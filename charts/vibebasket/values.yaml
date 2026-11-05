@@ -74,11 +74,13 @@ env:
   AUTH_APPLE_ID: ""
   AUTH_MICROSOFT_ENTRA_ID_ENABLED: "false"
   AUTH_MICROSOFT_ENTRA_ID_ID: ""
-  # Trust proxy for reverse proxy setups
-  TRUST_PROXY: "true"
+  # Enable only when the ingress/proxy overwrites the selected client IP header
+  TRUST_PROXY: "false"
+  TRUST_PROXY_HEADER: "x-forwarded-for"
   AUTH_TRUST_HOST: "true"
   # Backup storage (defaults to local)
   BACKUP_STORAGE_BACKEND: "local"
+  BACKUP_LOCAL_DIR: "/data/backups"
   # Registry sync tuning
   CATALOG_FETCH_RETRIES: "2"
   CATALOG_MCP_REGISTRY_TIMEOUT_MS: "60000"

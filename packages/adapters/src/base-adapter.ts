@@ -43,7 +43,11 @@ export abstract class BaseAdapter implements IdeAdapter {
   abstract configPath(scope: Scope, projectRoot?: string): string;
 
   async readConfig(scope: Scope, projectRoot?: string): Promise<unknown> {
-    return readJsonFileOrDefault(this.configPath(scope, projectRoot), { mcpServers: {} });
+    return readJsonFileOrDefault(
+      this.configPath(scope, projectRoot),
+      { mcpServers: {} },
+      scope === "project" ? projectRoot : undefined,
+    );
   }
 
   applyMcps(
@@ -68,7 +72,11 @@ export abstract class BaseAdapter implements IdeAdapter {
   }
 
   async writeConfig(scope: Scope, config: unknown, projectRoot?: string): Promise<void> {
-    await writeJsonFileWithBackup(this.configPath(scope, projectRoot), config);
+    await writeJsonFileWithBackup(
+      this.configPath(scope, projectRoot),
+      config,
+      scope === "project" ? projectRoot : undefined,
+    );
   }
 
   async diff(scope: Scope, pending: unknown, _projectRoot?: string): Promise<string> {

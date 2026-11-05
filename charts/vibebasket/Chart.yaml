@@ -2,8 +2,8 @@ apiVersion: v2
 name: vibebasket
 description: VibeBasket — Bundle MCP servers, skills, and rules into one shareable install flow for AI coding tools.
 type: application
-version: 0.9.4
-appVersion: "0.9.4"
+version: 0.9.8
+appVersion: "0.9.8"
 keywords:
   - mcp
   - ai

@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import type { McpEntry } from "../../core/src/manifest.js";
+import { assertPathWithoutSymbolicLinks } from "./safe-path.js";
 
 export interface BasicMcpServerConfig {
   command?: string;
@@ -84,7 +85,14 @@ export function mergeStandardMcpServers(
   return nextServers;
 }
 
-export async function readJsonFileOrDefault<T>(file: string, fallback: T): Promise<T> {
+export async function readJsonFileOrDefault<T>(
+  file: string,
+  fallback: T,
+  trustedRoot?: string,
+): Promise<T> {
+  if (trustedRoot) {
+    await assertPathWithoutSymbolicLinks(trustedRoot, file);
+  }
   try {
     const content = await fs.readFile(file, "utf8");
     return JSON.parse(content) as T;
@@ -96,18 +104,35 @@ export async function readJsonFileOrDefault<T>(file: string, fallback: T): Promi
   }
 }
 
-export async function writeJsonFileWithBackup(file: string, config: unknown): Promise<void> {
+export async function writeJsonFileWithBackup(
+  file: string,
+  config: unknown,
+  trustedRoot?: string,
+): Promise<void> {
+  if (trustedRoot) {
+    await assertPathWithoutSymbolicLinks(trustedRoot, file);
+  }
   const dir = path.dirname(file);
   await fs.mkdir(dir, { recursive: true });
+  if (trustedRoot) {
+    await assertPathWithoutSymbolicLinks(trustedRoot, file);
+  }
 
   try {
     const content = await fs.readFile(file, "utf8");
-    await fs.writeFile(`${file}.bak.${Date.now()}`, content, "utf8");
+    const backupFile = `${file}.bak.${Date.now()}`;
+    if (trustedRoot) {
+      await assertPathWithoutSymbolicLinks(trustedRoot, backupFile);
+    }
+    await fs.writeFile(backupFile, content, "utf8");
   } catch (error: unknown) {
     if (!hasErrorCode(error, "ENOENT")) {
       throw error;
     }
   }
 
+  if (trustedRoot) {
+    await assertPathWithoutSymbolicLinks(trustedRoot, file);
+  }
   await fs.writeFile(file, JSON.stringify(config, null, 2), "utf8");
 }

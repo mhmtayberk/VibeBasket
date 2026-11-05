@@ -17,9 +17,18 @@ export function isTrustedOAuthProvider(provider: string | null | undefined) {
 export function isTrustedOAuthEmailVerified(
   provider: string | null | undefined,
   profile: ProviderProfile,
+  expectedEmail?: string | null,
 ) {
   if (!isTrustedOAuthProvider(provider) || !profile) {
     return false;
+  }
+
+  if (expectedEmail) {
+    const profileEmail =
+      typeof profile.email === "string" ? profile.email.trim().toLowerCase() : "";
+    if (!profileEmail || profileEmail !== expectedEmail.trim().toLowerCase()) {
+      return false;
+    }
   }
 
   switch (provider) {

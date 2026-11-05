@@ -7,6 +7,7 @@ import {
   readJsonFileOrDefault,
   writeJsonFileWithBackup,
 } from "./mcp-utils";
+import { assertPathWithoutSymbolicLinks } from "./safe-path";
 import { getTargetCapabilities } from "./target-capabilities";
 import type { IdeAdapter } from "./types";
 
@@ -34,7 +35,11 @@ export class GitHubCopilotAdapter implements IdeAdapter {
   }
 
   async readConfig(scope: Scope, projectRoot?: string): Promise<unknown> {
-    return readJsonFileOrDefault(this.configPath(scope, projectRoot), { mcpServers: {} });
+    return readJsonFileOrDefault(
+      this.configPath(scope, projectRoot),
+      { mcpServers: {} },
+      projectRoot,
+    );
   }
 
   applyMcps(
@@ -58,6 +63,7 @@ export class GitHubCopilotAdapter implements IdeAdapter {
   async applySkills(skills: SkillEntry[], scope: Scope, projectRoot?: string): Promise<void> {
     if (scope === "project" && projectRoot) {
       const instructionsFile = this.instructionsPath(projectRoot);
+      await assertPathWithoutSymbolicLinks(projectRoot, instructionsFile);
       let content = "";
       try {
         content = await fs.readFile(instructionsFile, "utf8");
@@ -98,6 +104,7 @@ export class GitHubCopilotAdapter implements IdeAdapter {
   async applyRules(rules: RuleEntry[], scope: Scope, projectRoot?: string): Promise<void> {
     if (scope === "project" && projectRoot) {
       const instructionsFile = this.instructionsPath(projectRoot);
+      await assertPathWithoutSymbolicLinks(projectRoot, instructionsFile);
       let content = "";
       try {
         content = await fs.readFile(instructionsFile, "utf8");
@@ -127,7 +134,7 @@ export class GitHubCopilotAdapter implements IdeAdapter {
   }
 
   async writeConfig(scope: Scope, config: unknown, projectRoot?: string): Promise<void> {
-    await writeJsonFileWithBackup(this.configPath(scope, projectRoot), config);
+    await writeJsonFileWithBackup(this.configPath(scope, projectRoot), config, projectRoot);
   }
 
   async diff(scope: Scope, pending: unknown, projectRoot?: string): Promise<string> {

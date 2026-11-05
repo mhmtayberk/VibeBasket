@@ -19,12 +19,16 @@ export class TraeAdapter extends BaseAdapter {
       scope === "project"
         ? path.join(requireProjectRoot(projectRoot), ".trae", "skills")
         : path.join(os.homedir(), ".trae", "skills");
-    return applyAgentSkills(skills, baseDir);
+    return applyAgentSkills(skills, baseDir, scope === "project" ? projectRoot : undefined);
   }
 
   async applyRules(rules: RuleEntry[], scope: Scope, projectRoot?: string) {
     if (scope !== "project") throw new Error("Trae rules only support project scope auto-apply.");
-    return applyAlwaysRules(rules, path.join(requireProjectRoot(projectRoot), ".trae", "rules"));
+    return applyAlwaysRules(
+      rules,
+      path.join(requireProjectRoot(projectRoot), ".trae", "rules"),
+      projectRoot,
+    );
   }
 
   postInstallHint(): string {

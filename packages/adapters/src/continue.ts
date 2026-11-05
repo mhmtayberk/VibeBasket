@@ -124,7 +124,6 @@ export class ContinueAdapter extends BaseAdapter {
   async applySkills(skills: SkillEntry[], scope: Scope, projectRoot?: string) {
     const configFile = this.configPath(scope, projectRoot);
     const promptsDir = path.join(path.dirname(configFile), "prompts");
-    await fs.mkdir(promptsDir, { recursive: true });
     const result = createManagedContentResult();
 
     const config = (await this.readConfig(scope, projectRoot)) as ContinueConfig;
@@ -145,6 +144,7 @@ export class ContinueAdapter extends BaseAdapter {
       appendManagedContentResult(
         result,
         await upsertManagedTextFile({
+          ...(scope === "project" && projectRoot ? { trustedRoot: projectRoot } : {}),
           registryDir: promptsDir,
           targetFile: promptPath,
           kind: "prompt",

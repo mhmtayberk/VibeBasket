@@ -41,7 +41,7 @@ export class AnteAdapter extends BaseAdapter {
       scope === "project"
         ? path.join(requireProjectRoot(projectRoot), ".ante", "skills")
         : path.join(this.homeDir(), "skills");
-    return applyAgentSkills(skills, baseDir);
+    return applyAgentSkills(skills, baseDir, scope === "project" ? projectRoot : undefined);
   }
 
   override applyMcps(

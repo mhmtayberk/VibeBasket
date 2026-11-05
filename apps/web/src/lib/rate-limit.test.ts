@@ -1,5 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { checkRateLimit, getClientAddress, resetRateLimitBuckets } from "./rate-limit";
+import {
+  MAX_RATE_LIMIT_BUCKETS,
+  checkRateLimit,
+  getClientAddress,
+  resetRateLimitBuckets,
+} from "./rate-limit";
 
 describe("rate-limit utilities", () => {
   beforeEach(() => {
@@ -8,7 +13,7 @@ describe("rate-limit utilities", () => {
   });
 
   describe("getClientAddress resolution", () => {
-    it("should treat cf-connecting-ip as best-effort when TRUST_PROXY is disabled", () => {
+    it("should ignore forwarding headers when TRUST_PROXY is disabled", () => {
       const req = new Request("https://vibebasket.dev/", {
         headers: {
           "cf-connecting-ip": "203.0.113.195",
@@ -18,10 +23,10 @@ describe("rate-limit utilities", () => {
       });
 
       const ip = getClientAddress(req);
-      expect(ip).toBe("best-effort:203.0.113.195");
+      expect(ip).toMatch(/^fp:/);
     });
 
-    it("should prioritize cf-connecting-ip when TRUST_PROXY is enabled", () => {
+    it("should use only x-forwarded-for by default when TRUST_PROXY is enabled", () => {
       vi.stubEnv("TRUST_PROXY", "true");
 
       const req = new Request("https://vibebasket.dev/", {
@@ -33,10 +38,24 @@ describe("rate-limit utilities", () => {
       });
 
       const ip = getClientAddress(req);
-      expect(ip).toBe("203.0.113.195");
+      expect(ip).toBe("198.51.100.42");
     });
 
-    it("should fall back to a best-effort x-forwarded-for bucket when TRUST_PROXY is disabled", () => {
+    it("should use cf-connecting-ip only when explicitly configured", () => {
+      vi.stubEnv("TRUST_PROXY", "true");
+      vi.stubEnv("TRUST_PROXY_HEADER", "cf-connecting-ip");
+
+      const req = new Request("https://vibebasket.dev/", {
+        headers: {
+          "cf-connecting-ip": "203.0.113.195",
+          "x-forwarded-for": "198.51.100.42",
+        },
+      });
+
+      expect(getClientAddress(req)).toBe("203.0.113.195");
+    });
+
+    it("should ignore x-forwarded-for when TRUST_PROXY is disabled", () => {
       const req = new Request("https://vibebasket.dev/", {
         headers: {
           "x-forwarded-for": "198.51.100.42",
@@ -45,10 +64,10 @@ describe("rate-limit utilities", () => {
       });
 
       const ip = getClientAddress(req);
-      expect(ip).toBe("best-effort:198.51.100.42");
+      expect(ip).toMatch(/^fp:/);
     });
 
-    it("should fall back to a best-effort x-real-ip bucket when TRUST_PROXY is disabled", () => {
+    it("should ignore x-real-ip when TRUST_PROXY is disabled", () => {
       const req = new Request("https://vibebasket.dev/", {
         headers: {
           "x-real-ip": "198.51.100.1",
@@ -56,7 +75,7 @@ describe("rate-limit utilities", () => {
       });
 
       const ip = getClientAddress(req);
-      expect(ip).toBe("best-effort:198.51.100.1");
+      expect(ip).toMatch(/^fp:/);
     });
 
     it("should trust x-forwarded-for when TRUST_PROXY env is enabled", () => {
@@ -74,7 +93,7 @@ describe("rate-limit utilities", () => {
       expect(ip).toBe("198.51.100.42");
     });
 
-    it("should fallback to a coarse fingerprint when no IP headers match", () => {
+    it("should use coarse fingerprints when proxy trust is disabled", () => {
       const req = new Request("https://vibebasket.dev/", {
         headers: {
           "user-agent": "Vitest Browser",
@@ -83,6 +102,32 @@ describe("rate-limit utilities", () => {
       });
       const ip = getClientAddress(req);
       expect(ip).toMatch(/^fp:/);
+    });
+
+    it("should not let rotated headers select fresh identities", () => {
+      const first = getClientAddress(
+        new Request("https://vibebasket.dev/", {
+          headers: { "x-forwarded-for": "198.51.100.1", "user-agent": "same-client" },
+        }),
+      );
+      const second = getClientAddress(
+        new Request("https://vibebasket.dev/", {
+          headers: { "x-forwarded-for": "203.0.113.2", "user-agent": "same-client" },
+        }),
+      );
+
+      expect(second).toBe(first);
+    });
+
+    it("should keep coarse identities separate for ordinary distinct clients", () => {
+      const first = getClientAddress(
+        new Request("https://vibebasket.dev/", { headers: { "user-agent": "client-a" } }),
+      );
+      const second = getClientAddress(
+        new Request("https://vibebasket.dev/", { headers: { "user-agent": "client-b" } }),
+      );
+
+      expect(first).not.toBe(second);
     });
   });
 
@@ -147,6 +192,42 @@ describe("rate-limit utilities", () => {
       expect(checkRateLimit("client-b", limit, windowMs).allowed).toBe(true);
       expect(checkRateLimit("client-b", limit, windowMs).allowed).toBe(true);
       expect(checkRateLimit("client-b", limit, windowMs).allowed).toBe(false);
+    });
+
+    it("should bound distinct buckets and share overflow per endpoint", () => {
+      for (let i = 0; i < MAX_RATE_LIMIT_BUCKETS; i++) {
+        expect(checkRateLimit(`seed-${i}`, 1, 60_000).allowed).toBe(true);
+      }
+
+      expect(checkRateLimit("catalog:new-client-a", 1, 60_000).allowed).toBe(true);
+      expect(checkRateLimit("catalog:new-client-b", 1, 60_000).allowed).toBe(false);
+      expect(checkRateLimit("health:new-client", 1, 60_000).allowed).toBe(true);
+    });
+
+    it("should cap aggregate traffic from rotating untrusted fingerprints", () => {
+      for (let i = 0; i < 20; i++) {
+        expect(checkRateLimit(`auth:fp:client-${i}`, 1, 60_000).allowed).toBe(true);
+      }
+
+      expect(checkRateLimit("auth:fp:client-20", 1, 60_000).allowed).toBe(false);
+    });
+
+    it("should preserve a long-window bucket during cleanup", () => {
+      const originalNow = Date.now;
+      const start = originalNow();
+      Date.now = () => start;
+      try {
+        expect(checkRateLimit("long-window", 2, 3_600_000).allowed).toBe(true);
+        Date.now = () => start + 61_000;
+        for (let i = 0; i < 50; i++) {
+          checkRateLimit(`cleanup-${i}`, 1, 1);
+        }
+        const second = checkRateLimit("long-window", 2, 3_600_000);
+        expect(second.allowed).toBe(true);
+        expect(second.remaining).toBe(0);
+      } finally {
+        Date.now = originalNow;
+      }
     });
 
     it("should return correct retryAfterSeconds when blocked", () => {

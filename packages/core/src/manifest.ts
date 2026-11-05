@@ -66,8 +66,8 @@ export const McpEntrySchema = z.object({
       message: "Remote MCP URLs must use http or https.",
     })
     .optional(), // for runtime=remote
-  env: z.record(z.string()).default({}), // values may contain ${secret:NAME}
-  headers: z.record(z.string()).default({}), // remote MCP header values may contain ${secret:NAME}
+  env: z.record(z.string(), z.string()).default({}), // values may contain ${secret:NAME}
+  headers: z.record(z.string(), z.string()).default({}), // remote MCP header values may contain ${secret:NAME}
   requiredSecrets: z.array(z.string()).default([]),
   verified: z.boolean().default(false),
 });

@@ -48,11 +48,13 @@ services:
       # Set to "true" when behind Cloudflare, Nginx, Caddy, etc.
       # This lets the rate limiter read the real client IP from X-Forwarded-For
       TRUST_PROXY: "${TRUST_PROXY:-false}"
+      TRUST_PROXY_HEADER: "${TRUST_PROXY_HEADER:-x-forwarded-for}"
       CATALOG_REFRESH_TOKEN: "${CATALOG_REFRESH_TOKEN:-}"
       CATALOG_FETCH_RETRIES: "${CATALOG_FETCH_RETRIES:-2}"
       CATALOG_MCP_REGISTRY_TIMEOUT_MS: "${CATALOG_MCP_REGISTRY_TIMEOUT_MS:-60000}"
       CATALOG_SKILLS_TIMEOUT_MS: "${CATALOG_SKILLS_TIMEOUT_MS:-20000}"
       BACKUP_STORAGE_BACKEND: "${BACKUP_STORAGE_BACKEND:-local}"
+      BACKUP_LOCAL_DIR: "${BACKUP_LOCAL_DIR:-/data/backups}"
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
       interval: 30s

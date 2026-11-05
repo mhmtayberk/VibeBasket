@@ -29,8 +29,6 @@ export class GeminiCliAdapter extends BaseAdapter {
         ? path.join(projectRoot, ".gemini", "skills")
         : path.join(os.homedir(), ".gemini", "skills");
 
-    await fs.mkdir(baseDir, { recursive: true });
-
     const result = createManagedContentResult();
 
     for (const skill of skills) {
@@ -47,6 +45,7 @@ export class GeminiCliAdapter extends BaseAdapter {
       appendManagedContentResult(
         result,
         await upsertManagedTextFile({
+          ...(scope === "project" && projectRoot ? { trustedRoot: projectRoot } : {}),
           registryDir: baseDir,
           targetFile: path.join(skillDir, "SKILL.md"),
           kind: "skill",

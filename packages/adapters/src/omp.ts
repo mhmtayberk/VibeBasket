@@ -48,7 +48,7 @@ export class OmpAdapter extends BaseAdapter {
       scope === "project"
         ? path.join(requireProjectRoot(projectRoot), ".omp", "skills")
         : path.join(resolveOmpAgentDir(), "skills");
-    return applyAgentSkills(skills, baseDir);
+    return applyAgentSkills(skills, baseDir, scope === "project" ? projectRoot : undefined);
   }
 
   async applyRules(rules: RuleEntry[], scope: Scope, projectRoot?: string) {
@@ -56,7 +56,7 @@ export class OmpAdapter extends BaseAdapter {
       scope === "project"
         ? path.join(requireProjectRoot(projectRoot), ".omp", "rules")
         : path.join(resolveOmpAgentDir(), "rules");
-    return applyAlwaysRules(rules, baseDir);
+    return applyAlwaysRules(rules, baseDir, scope === "project" ? projectRoot : undefined);
   }
 
   override async readConfig(scope: Scope, projectRoot?: string): Promise<unknown> {

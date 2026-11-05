@@ -49,6 +49,7 @@ export class ClaudeCodeAdapter implements IdeAdapter {
     return readJsonFileOrDefault(
       file,
       scope === "project" ? { mcpServers: {} } : { mcpServers: {}, projects: {} },
+      scope === "project" ? projectRoot : undefined,
     );
   }
 
@@ -79,7 +80,6 @@ export class ClaudeCodeAdapter implements IdeAdapter {
       scope === "project" && projectRoot
         ? path.join(projectRoot, ".claude", "skills")
         : path.join(os.homedir(), ".claude", "skills");
-    await fs.mkdir(baseDir, { recursive: true });
     const result = createManagedContentResult();
 
     for (const skill of skills) {
@@ -94,6 +94,7 @@ export class ClaudeCodeAdapter implements IdeAdapter {
       appendManagedContentResult(
         result,
         await upsertManagedTextFile({
+          ...(scope === "project" && projectRoot ? { trustedRoot: projectRoot } : {}),
           registryDir: baseDir,
           targetFile: path.join(skillDir, "SKILL.md"),
           kind: "skill",
@@ -110,7 +111,7 @@ export class ClaudeCodeAdapter implements IdeAdapter {
 
   async writeConfig(scope: Scope, config: unknown, projectRoot?: string): Promise<void> {
     const file = this.configPath(scope, projectRoot);
-    await writeJsonFileWithBackup(file, config);
+    await writeJsonFileWithBackup(file, config, scope === "project" ? projectRoot : undefined);
   }
 
   async diff(scope: Scope, pending: unknown): Promise<string> {

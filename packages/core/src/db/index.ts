@@ -61,12 +61,22 @@ const AUTH_AND_STACK_TABLE_REBUILDS: readonly TableRebuildSpec[] = [
         name TEXT,
         email TEXT,
         email_verified INTEGER,
+        email_verification_provider TEXT,
         image TEXT,
         created_at INTEGER,
         updated_at INTEGER
       )
     `,
-    expectedColumns: ["id", "name", "email", "email_verified", "image", "created_at", "updated_at"],
+    expectedColumns: [
+      "id",
+      "name",
+      "email",
+      "email_verified",
+      "email_verification_provider",
+      "image",
+      "created_at",
+      "updated_at",
+    ],
     requiredColumns: ["id"],
     uniqueChecks: [
       {

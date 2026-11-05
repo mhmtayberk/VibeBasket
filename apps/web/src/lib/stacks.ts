@@ -13,7 +13,10 @@ export const createStackSchema = z.object({
     .max(280)
     .optional()
     .transform((value) => value || undefined),
-  itemIds: z.array(z.string().trim().min(1)).min(1).max(MAX_STACK_ITEMS),
+  itemIds: z
+    .array(z.string().trim().min(1))
+    .min(1, { error: "Array must contain at least 1 element(s)" })
+    .max(MAX_STACK_ITEMS),
   targetIds: z.array(z.string().trim().min(1)).min(1).max(MAX_STACK_TARGETS),
 });
 

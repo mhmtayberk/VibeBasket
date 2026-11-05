@@ -3,6 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import type { IdeId, McpEntry, RuleEntry, Scope, SkillEntry } from "../../core/src/manifest.js";
 import { hasErrorCode, mergeStandardMcpServers } from "./mcp-utils";
+import { assertPathWithoutSymbolicLinks } from "./safe-path";
 import { getTargetCapabilities } from "./target-capabilities";
 import type { IdeAdapter } from "./types";
 
@@ -128,6 +129,8 @@ export class VoidAdapter implements IdeAdapter {
       // Write to both .voidrules and .clinerules to fully cover Void and VS Code extensions
       const voidRulesFile = path.join(projectRoot, ".voidrules");
       const clineRulesFile = path.join(projectRoot, ".clinerules");
+      await assertPathWithoutSymbolicLinks(projectRoot, voidRulesFile);
+      await assertPathWithoutSymbolicLinks(projectRoot, clineRulesFile);
       await this.writeInstructions(voidRulesFile, skills, []);
       await this.writeInstructions(clineRulesFile, skills, []);
     }
@@ -137,6 +140,8 @@ export class VoidAdapter implements IdeAdapter {
     if (scope === "project" && projectRoot) {
       const voidRulesFile = path.join(projectRoot, ".voidrules");
       const clineRulesFile = path.join(projectRoot, ".clinerules");
+      await assertPathWithoutSymbolicLinks(projectRoot, voidRulesFile);
+      await assertPathWithoutSymbolicLinks(projectRoot, clineRulesFile);
       await this.writeInstructions(voidRulesFile, [], rules);
       await this.writeInstructions(clineRulesFile, [], rules);
     }

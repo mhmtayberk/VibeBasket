@@ -14,6 +14,7 @@ export const users = sqliteTable(
     name: text("name"),
     email: text("email"),
     emailVerified: integer("email_verified", { mode: "timestamp" }),
+    emailVerificationProvider: text("email_verification_provider"),
     image: text("image"),
     createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
     updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()),

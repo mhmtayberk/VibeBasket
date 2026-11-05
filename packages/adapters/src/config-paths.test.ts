@@ -56,16 +56,16 @@ describe("adapter config paths", () => {
   it("verifies user/project scopes for roocode, hermes, and openclaw", () => {
     const projectRoot = "/tmp/demo-project";
     expect(new RooCodeAdapter().supportedScopes).toEqual(["user", "project"]);
-    expect(new HermesAdapter().supportedScopes).toEqual(["project"]);
-    expect(new OpenClawAdapter().supportedScopes).toEqual(["project"]);
+    expect(new HermesAdapter().supportedScopes).toEqual(["user", "project"]);
+    expect(new OpenClawAdapter().supportedScopes).toEqual(["user", "project"]);
 
     expect(new RooCodeAdapter().configPath("project", projectRoot)).toBe(
       "/tmp/demo-project/.roo/mcp.json",
     );
-    expect(new HermesAdapter().configPath("project", projectRoot)).toBe(
+    expect(new HermesAdapter().configPath("user", projectRoot)).toBe(
       `${os.homedir()}/.hermes/config.yaml`,
     );
-    expect(new OpenClawAdapter().configPath("project", projectRoot)).toBe(
+    expect(new OpenClawAdapter().configPath("user", projectRoot)).toBe(
       `${os.homedir()}/.openclaw/openclaw.json`,
     );
   });

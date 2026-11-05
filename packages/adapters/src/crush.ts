@@ -97,7 +97,7 @@ export class CrushAdapter implements IdeAdapter {
       scope === "project"
         ? path.join(requireProjectRoot(projectRoot), ".crush", "skills")
         : resolveCrushSkillDir();
-    return applyAgentSkills(skills, baseDir);
+    return applyAgentSkills(skills, baseDir, scope === "project" ? projectRoot : undefined);
   }
 
   async writeConfig(scope: Scope, config: unknown, projectRoot?: string): Promise<void> {

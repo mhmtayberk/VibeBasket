@@ -1,7 +1,9 @@
+ARG NODE_IMAGE=node:24.22.2-alpine3.24
+
 # ──────────────────────────────────────────────
 # Stage 1: dependency install (cached layer)
 # ──────────────────────────────────────────────
-FROM node:22-alpine AS deps
+FROM ${NODE_IMAGE} AS deps
 WORKDIR /app
 
 ARG PNPM_VERSION=11.7.0
@@ -21,10 +23,17 @@ COPY packages/adapters/package.json               packages/adapters/package.json
 RUN pnpm install --frozen-lockfile
 
 
+# Preserve the platform-specific libSQL package directory name. A wildcarded
+# Docker COPY flattens its contents, which prevents Node.js from resolving it.
+FROM deps AS runtime-deps
+RUN mkdir -p /runtime/node_modules/@libsql \
+ && cp -R /app/node_modules/@libsql/linux-*-musl /runtime/node_modules/@libsql/
+
+
 # ──────────────────────────────────────────────
 # Stage 2: build
 # ──────────────────────────────────────────────
-FROM node:22-alpine AS builder
+FROM ${NODE_IMAGE} AS builder
 WORKDIR /app
 ARG PNPM_VERSION=11.7.0
 RUN corepack enable && corepack prepare pnpm@${PNPM_VERSION} --activate
@@ -46,8 +55,21 @@ RUN pnpm --filter @vibebasket/core build \
 # ──────────────────────────────────────────────
 # Stage 3: production runtime (lean image)
 # ──────────────────────────────────────────────
-FROM node:22-alpine AS runner
+FROM ${NODE_IMAGE} AS runner
 WORKDIR /app
+
+# Keep the runtime OS patched and remove package managers that are not used in
+# production. Builds and dependency installation stay in the earlier stages.
+RUN apk add --upgrade --no-cache musl \
+ && rm -rf /usr/local/lib/node_modules/npm \
+           /usr/local/lib/node_modules/corepack \
+           /usr/local/bin/npm \
+           /usr/local/bin/npx \
+           /usr/local/bin/corepack \
+           /usr/local/bin/pnpm \
+           /usr/local/bin/pnpx \
+           /usr/local/bin/yarn \
+           /usr/local/bin/yarnpkg
 
 # Security: run as non-root user
 RUN addgroup --system --gid 1001 nodejs \
@@ -57,20 +79,25 @@ RUN addgroup --system --gid 1001 nodejs \
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static     ./apps/web/.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/public           ./apps/web/public
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules              ./node_modules
+
+# The standalone output already contains the web runtime dependency graph.
+# Catalog sync additionally imports these externalized packages directly.
+COPY --from=deps --chown=nextjs:nodejs /app/node_modules/argparse    ./node_modules/argparse
+COPY --from=runtime-deps --chown=nextjs:nodejs /runtime/node_modules/@libsql ./node_modules/@libsql
+COPY --from=deps --chown=nextjs:nodejs /app/node_modules/drizzle-orm ./node_modules/drizzle-orm
+COPY --from=deps --chown=nextjs:nodejs /app/node_modules/js-yaml     ./node_modules/js-yaml
+COPY --from=deps --chown=nextjs:nodejs /app/node_modules/zod         ./node_modules/zod
 
 # Copy catalog-sync script (needed for first-run seeding)
 COPY --from=builder --chown=nextjs:nodejs /app/scripts ./scripts
+COPY --from=builder --chown=nextjs:nodejs /app/packages/core/package.json ./packages/core/package.json
 COPY --from=builder --chown=nextjs:nodejs /app/packages/core/dist     ./packages/core/dist
+COPY --from=builder --chown=nextjs:nodejs /app/packages/registry/package.json ./packages/registry/package.json
 COPY --from=builder --chown=nextjs:nodejs /app/packages/registry/dist ./packages/registry/dist
 COPY --from=builder --chown=nextjs:nodejs /app/packages/registry/data ./packages/registry/data
 
 # Data directory for the SQLite database (mounted as a Docker volume)
 RUN mkdir -p /data && chown nextjs:nodejs /data
-
-# Next standalone runtime still needs these externalized packages present at runtime.
-# The deps stage already installed Linux-native copies, so we only need to preserve ownership here.
-RUN chown -R nextjs:nodejs /app/node_modules
 
 USER nextjs
 

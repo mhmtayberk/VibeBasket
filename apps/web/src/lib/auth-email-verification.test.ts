@@ -17,10 +17,34 @@ describe("isTrustedOAuthProvider", () => {
 describe("isTrustedOAuthEmailVerified", () => {
   it("accepts verified Google profiles", () => {
     expect(
-      isTrustedOAuthEmailVerified("google", {
-        email: "owner@example.com",
-        email_verified: true,
-      }),
+      isTrustedOAuthEmailVerified(
+        "google",
+        {
+          email: "owner@example.com",
+          email_verified: true,
+        },
+        "owner@example.com",
+      ),
+    ).toBe(true);
+  });
+
+  it("rejects a verified provider profile for a different user email", () => {
+    expect(
+      isTrustedOAuthEmailVerified(
+        "google",
+        { email: "different@example.com", email_verified: true },
+        "owner@example.com",
+      ),
+    ).toBe(false);
+  });
+
+  it("matches provider email case-insensitively", () => {
+    expect(
+      isTrustedOAuthEmailVerified(
+        "google",
+        { email: "Owner@Example.com", email_verified: true },
+        "owner@example.com",
+      ),
     ).toBe(true);
   });
 

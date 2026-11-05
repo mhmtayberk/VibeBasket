@@ -6,6 +6,20 @@ This changelog stays intentionally high-signal: it tracks meaningful product and
 
 ## [Unreleased]
 
+## [0.9.8] — 2026-11-05
+
+### Target Accuracy & Install Safety
+
+- Expanded and verified the adapter matrix at 30 IDE and CLI targets, including target-native MCP, Skill, and Rule paths for the newly supported agentic tools.
+- Separated feature-specific scopes for tools whose MCP configuration is user-level while skills remain project-level.
+- Hardened project-scoped config and managed-content writes against path escapes and symbolic-link traversal, including rollback backup inputs.
+
+### Runtime & Deployment Hardening
+
+- Updated the supported Node.js and package baseline, tightened OAuth verification persistence and proxy-aware rate limiting, and refreshed security-sensitive dependencies.
+- Reduced the production container footprint with a dedicated runtime stage, non-root execution, and a minimal Alpine package set.
+- Kept Docker Compose and Helm local backups on the persistent `/data` volume and aligned chart metadata with the application release.
+
 ## [0.9.5] — 2026-07-02
 
 ### CLI No-op Safety & Public Surface Cleanup

@@ -4,7 +4,7 @@
 
 Bundle trusted MCP servers, agent skills, and project rules into one shareable install command. Apply across 30 AI IDEs and CLI tools with a single link.
 
-[![Version](https://img.shields.io/badge/version-0.9.7-blue)](apps/cli/package.json)
+[![Version](https://img.shields.io/badge/version-0.9.8-blue)](apps/cli/package.json)
 [![npm](https://img.shields.io/npm/v/vibebasket)](https://www.npmjs.com/package/vibebasket)
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue)](tsconfig.base.json)
 [![CI](https://img.shields.io/badge/ci-github_actions-green)](https://github.com/mhmtayberk/VibeBasket/actions/workflows/ci.yml)
@@ -275,6 +275,7 @@ Most deployments only need a small subset to get started:
 | `ADMIN_OAUTH_EMAILS` | No | Comma-separated verified emails allowed into `/admin` |
 | `AUTH_TRUST_HOST` | No | Set to `true` behind a trusted proxy or CDN |
 | `TRUST_PROXY` | No | Set to `true` only when forwarded client IP headers are trustworthy |
+| `TRUST_PROXY_HEADER` | No | Trusted client IP header: `x-forwarded-for` (default), `x-real-ip`, or `cf-connecting-ip` |
 | `CATALOG_REFRESH_TOKEN` | No | Needed only for authenticated production refresh calls |
 | `BACKUP_JOB_TOKEN` | No | Token for external schedulers that call `POST /api/internal/backup` |
 

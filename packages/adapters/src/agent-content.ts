@@ -7,6 +7,7 @@ import {
   matchesManagedContent,
   upsertManagedTextFile,
 } from "./managed-installs";
+import { assertPathWithoutSymbolicLinks } from "./safe-path";
 
 function renderSkillBody(skill: SkillEntry): string {
   if (skill.source.type === "inline") return skill.source.content;
@@ -18,7 +19,22 @@ function renderSkillBody(skill: SkillEntry): string {
   return `Source: npm - ${skill.source.package}@${skill.source.version}`;
 }
 
-export async function applyAgentSkills(skills: SkillEntry[], baseDir: string) {
+export async function applyAgentSkills(
+  skills: SkillEntry[],
+  baseDir: string,
+  trustedRoot?: string,
+) {
+  if (trustedRoot) {
+    try {
+      await assertPathWithoutSymbolicLinks(trustedRoot, baseDir);
+    } catch (error: unknown) {
+      const reason = error instanceof Error ? error.message : "unsafe managed skills path";
+      return {
+        ...createManagedContentResult(),
+        skipped: skills.map((skill) => ({ path: path.join(baseDir, skill.id), reason })),
+      };
+    }
+  }
   await fs.mkdir(baseDir, { recursive: true });
   const result = createManagedContentResult();
 
@@ -27,6 +43,7 @@ export async function applyAgentSkills(skills: SkillEntry[], baseDir: string) {
     appendManagedContentResult(
       result,
       await upsertManagedTextFile({
+        ...(trustedRoot ? { trustedRoot } : {}),
         registryDir: baseDir,
         targetFile: path.join(baseDir, skill.id, "SKILL.md"),
         kind: "skill",
@@ -44,7 +61,18 @@ export async function applyAgentSkills(skills: SkillEntry[], baseDir: string) {
   return result;
 }
 
-export async function applyAlwaysRules(rules: RuleEntry[], baseDir: string) {
+export async function applyAlwaysRules(rules: RuleEntry[], baseDir: string, trustedRoot?: string) {
+  if (trustedRoot) {
+    try {
+      await assertPathWithoutSymbolicLinks(trustedRoot, baseDir);
+    } catch (error: unknown) {
+      const reason = error instanceof Error ? error.message : "unsafe managed rules path";
+      return {
+        ...createManagedContentResult(),
+        skipped: rules.map((rule) => ({ path: path.join(baseDir, `${rule.id}.md`), reason })),
+      };
+    }
+  }
   await fs.mkdir(baseDir, { recursive: true });
   const result = createManagedContentResult();
 
@@ -53,6 +81,7 @@ export async function applyAlwaysRules(rules: RuleEntry[], baseDir: string) {
     appendManagedContentResult(
       result,
       await upsertManagedTextFile({
+        ...(trustedRoot ? { trustedRoot } : {}),
         registryDir: baseDir,
         targetFile: path.join(baseDir, `${rule.id}.md`),
         kind: "rule",

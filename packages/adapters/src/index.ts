@@ -1,5 +1,6 @@
 export * from "./types";
 export * from "./target-capabilities";
+export * from "./safe-path";
 export * from "./cursor";
 export * from "./vscode";
 export * from "./windsurf";

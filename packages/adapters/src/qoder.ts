@@ -29,12 +29,16 @@ export class QoderAdapter extends BaseAdapter {
       scope === "project"
         ? path.join(requireProjectRoot(projectRoot), ".qoder", "skills")
         : path.join(this.configDir(), "skills");
-    return applyAgentSkills(skills, baseDir);
+    return applyAgentSkills(skills, baseDir, scope === "project" ? projectRoot : undefined);
   }
 
   async applyRules(rules: RuleEntry[], scope: Scope, projectRoot?: string) {
     if (scope !== "project") throw new Error("Qoder rules only support project scope auto-apply.");
-    return applyAlwaysRules(rules, path.join(requireProjectRoot(projectRoot), ".qoder", "rules"));
+    return applyAlwaysRules(
+      rules,
+      path.join(requireProjectRoot(projectRoot), ".qoder", "rules"),
+      projectRoot,
+    );
   }
 
   postInstallHint(): string {

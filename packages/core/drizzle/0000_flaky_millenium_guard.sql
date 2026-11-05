@@ -74,6 +74,7 @@ CREATE TABLE `users` (
 	`name` text,
 	`email` text,
 	`email_verified` integer,
+	`email_verification_provider` text,
 	`image` text,
 	`created_at` integer,
 	`updated_at` integer

@@ -9,6 +9,7 @@ import {
   upsertManagedTextFile,
 } from "./managed-installs";
 import { hasErrorCode, resolveSecretInterpolations } from "./mcp-utils";
+import { assertPathWithoutSymbolicLinks } from "./safe-path";
 import { getTargetCapabilities } from "./target-capabilities";
 import type { IdeAdapter } from "./types";
 
@@ -119,7 +120,6 @@ export class OpenCodeAdapter implements IdeAdapter {
 
   async applySkills(skills: SkillEntry[], scope: Scope, projectRoot?: string) {
     const baseDir = getOpenCodeSkillBaseDir(scope, projectRoot);
-    await fs.mkdir(baseDir, { recursive: true });
     const result = createManagedContentResult();
 
     for (const skill of skills) {
@@ -136,6 +136,7 @@ export class OpenCodeAdapter implements IdeAdapter {
       appendManagedContentResult(
         result,
         await upsertManagedTextFile({
+          ...(scope === "project" && projectRoot ? { trustedRoot: projectRoot } : {}),
           registryDir: baseDir,
           targetFile: path.join(skillDir, "SKILL.md"),
           kind: "skill",
@@ -155,6 +156,9 @@ export class OpenCodeAdapter implements IdeAdapter {
 
   async applyRules(rules: RuleEntry[], scope: Scope, projectRoot?: string): Promise<void> {
     const file = getOpenCodeRulesPath(scope, projectRoot);
+    if (scope === "project" && projectRoot) {
+      await assertPathWithoutSymbolicLinks(projectRoot, file);
+    }
     await fs.mkdir(path.dirname(file), { recursive: true });
 
     let content = "";

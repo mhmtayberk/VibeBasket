@@ -127,4 +127,30 @@ describe("GitHubCopilotAdapter", () => {
     expect(content).toContain("# >>> VIBEBASKET START: copilot-rule <<<");
     expect(content).toContain("Rule context details.");
   });
+
+  it("should refuse project instructions that traverse a symbolic link", async () => {
+    const adapter = new GitHubCopilotAdapter();
+    const outsideDir = await fs.mkdtemp(path.join(os.tmpdir(), "vibebasket-copilot-outside-"));
+    await fs.symlink(outsideDir, path.join(tempDir, ".github"));
+
+    try {
+      await expect(
+        adapter.applySkills(
+          [
+            {
+              id: "copilot-skill",
+              displayName: "Copilot Test Skill",
+              source: { type: "inline", content: "Do not escape the project." },
+              verified: true,
+            },
+          ],
+          "project",
+          tempDir,
+        ),
+      ).rejects.toThrow(/symbolic link/i);
+      await expect(fs.readdir(outsideDir)).resolves.toEqual([]);
+    } finally {
+      await fs.rm(outsideDir, { recursive: true, force: true });
+    }
+  });
 });

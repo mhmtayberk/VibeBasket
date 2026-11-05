@@ -82,8 +82,6 @@ export class RooCodeAdapter implements IdeAdapter {
         ? path.join(projectRoot, ".roo", "skills")
         : path.join(getRooCodeGlobalBaseDir(), "skills");
 
-    await fs.mkdir(baseDir, { recursive: true });
-
     const result = createManagedContentResult();
 
     for (const skill of skills) {
@@ -100,6 +98,7 @@ export class RooCodeAdapter implements IdeAdapter {
       appendManagedContentResult(
         result,
         await upsertManagedTextFile({
+          ...(scope === "project" && projectRoot ? { trustedRoot: projectRoot } : {}),
           registryDir: baseDir,
           targetFile: path.join(skillDir, "SKILL.md"),
           kind: "skill",
@@ -123,8 +122,6 @@ export class RooCodeAdapter implements IdeAdapter {
         ? path.join(projectRoot, ".roo", "rules")
         : path.join(getRooCodeGlobalBaseDir(), "rules");
 
-    await fs.mkdir(baseDir, { recursive: true });
-
     const result = createManagedContentResult();
 
     for (const rule of rules) {
@@ -132,6 +129,7 @@ export class RooCodeAdapter implements IdeAdapter {
       appendManagedContentResult(
         result,
         await upsertManagedTextFile({
+          ...(scope === "project" && projectRoot ? { trustedRoot: projectRoot } : {}),
           registryDir: baseDir,
           targetFile: path.join(baseDir, `${rule.id}.md`),
           kind: "rule",

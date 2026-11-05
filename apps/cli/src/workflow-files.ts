@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { assertPathWithoutSymbolicLinks } from "../../../packages/adapters/src/safe-path.js";
 import type { FileEntry } from "../../../packages/core/src/manifest.js";
 
 export interface WorkflowFileApplyResult {
@@ -18,16 +19,20 @@ function resolveSafeDestination(projectRoot: string, relativePath: string) {
   return destination;
 }
 
-async function writeWithOptionalBackup(destination: string, content: string) {
+async function writeWithOptionalBackup(destination: string, content: string, projectRoot: string) {
+  await assertPathWithoutSymbolicLinks(projectRoot, destination);
   try {
     const existing = await fs.readFile(destination, "utf8");
-    await fs.writeFile(`${destination}.bak.${Date.now()}`, existing, "utf8");
+    const backupDestination = `${destination}.bak.${Date.now()}`;
+    await assertPathWithoutSymbolicLinks(projectRoot, backupDestination);
+    await fs.writeFile(backupDestination, existing, "utf8");
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
       throw error;
     }
   }
 
+  await assertPathWithoutSymbolicLinks(projectRoot, destination);
   await fs.writeFile(destination, content, "utf8");
 }
 
@@ -40,7 +45,9 @@ export async function applyWorkflowFiles(
 
   for (const file of files) {
     const destination = resolveSafeDestination(projectRoot, file.path);
+    await assertPathWithoutSymbolicLinks(projectRoot, destination);
     await fs.mkdir(path.dirname(destination), { recursive: true });
+    await assertPathWithoutSymbolicLinks(projectRoot, destination);
 
     try {
       const existing = await fs.readFile(destination, "utf8");
@@ -62,6 +69,7 @@ export async function applyWorkflowFiles(
         await writeWithOptionalBackup(
           destination,
           existing.trimEnd() ? `${existing.trimEnd()}\n\n${file.content}\n` : `${file.content}\n`,
+          projectRoot,
         );
         written.push(file.path);
         continue;
@@ -72,7 +80,8 @@ export async function applyWorkflowFiles(
       }
     }
 
-    await writeWithOptionalBackup(destination, file.content);
+    await assertPathWithoutSymbolicLinks(projectRoot, destination);
+    await writeWithOptionalBackup(destination, file.content, projectRoot);
     written.push(file.path);
   }
 

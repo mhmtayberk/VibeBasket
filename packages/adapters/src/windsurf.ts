@@ -31,8 +31,6 @@ export class WindsurfAdapter extends BaseAdapter {
         ? path.join(projectRoot, ".windsurf", "skills")
         : path.join(os.homedir(), ".codeium", "windsurf", "skills");
 
-    await fs.mkdir(baseDir, { recursive: true });
-
     const result = createManagedContentResult();
 
     for (const skill of skills) {
@@ -49,6 +47,7 @@ export class WindsurfAdapter extends BaseAdapter {
       appendManagedContentResult(
         result,
         await upsertManagedTextFile({
+          ...(scope === "project" && projectRoot ? { trustedRoot: projectRoot } : {}),
           registryDir: baseDir,
           targetFile: path.join(skillDir, "SKILL.md"),
           kind: "skill",
@@ -66,7 +65,6 @@ export class WindsurfAdapter extends BaseAdapter {
   async applyRules(rules: RuleEntry[], scope: Scope, projectRoot?: string) {
     if (scope === "project" && projectRoot) {
       const rulesDir = path.join(projectRoot, ".devin", "rules");
-      await fs.mkdir(rulesDir, { recursive: true });
       const result = createManagedContentResult();
 
       for (const rule of rules) {
@@ -74,6 +72,7 @@ export class WindsurfAdapter extends BaseAdapter {
         appendManagedContentResult(
           result,
           await upsertManagedTextFile({
+            trustedRoot: projectRoot,
             registryDir: rulesDir,
             targetFile: path.join(rulesDir, `${rule.id}.md`),
             kind: "rule",

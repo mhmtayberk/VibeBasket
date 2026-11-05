@@ -26,8 +26,6 @@ export class KiroAdapter extends BaseAdapter {
         ? path.join(projectRoot, ".kiro", "skills")
         : path.join(os.homedir(), ".kiro", "skills");
 
-    await fs.mkdir(baseDir, { recursive: true });
-
     const result = createManagedContentResult();
 
     for (const skill of skills) {
@@ -44,6 +42,7 @@ export class KiroAdapter extends BaseAdapter {
       appendManagedContentResult(
         result,
         await upsertManagedTextFile({
+          ...(scope === "project" && projectRoot ? { trustedRoot: projectRoot } : {}),
           registryDir: baseDir,
           targetFile: path.join(skillDir, "SKILL.md"),
           kind: "skill",

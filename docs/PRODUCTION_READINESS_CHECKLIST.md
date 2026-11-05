@@ -32,7 +32,7 @@ Notes:
 - [ ] `NEXTAUTH_URL` matches the final public domain exactly
 - [ ] Any new `NEXT_PUBLIC_*` environment variable has been consciously reviewed as safe for client-side exposure
 - [ ] `AUTH_TRUST_HOST=true` when deployed behind a reverse proxy
-- [ ] `TRUST_PROXY=true` only when deployed behind a trusted reverse proxy that overwrites client IP headers
+- [ ] `TRUST_PROXY=true` only when deployed behind a trusted reverse proxy that overwrites the header selected by `TRUST_PROXY_HEADER`
 - [ ] Browser-originated saved-stack mutations (`POST`, `PATCH`, `DELETE`) are exercised once against the real public origin to confirm same-origin CSRF protection is not breaking normal usage
 - [ ] `CATALOG_REFRESH_TOKEN` is set in production if remote refresh is used
 - [ ] Only the OAuth providers you really need are enabled

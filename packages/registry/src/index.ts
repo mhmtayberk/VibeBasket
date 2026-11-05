@@ -31,6 +31,9 @@ const MODULE_DIR = path.dirname(fileURLToPath(import.meta.url));
 const CORE_SOURCE_ENTRY_URL = pathToFileURL(
   path.resolve(MODULE_DIR, "../../core/src/index.ts"),
 ).href;
+const CORE_DIST_ENTRY_URL = pathToFileURL(
+  path.resolve(MODULE_DIR, "../../core/dist/index.js"),
+).href;
 const DEFAULT_VERIFIED_PATH_CANDIDATES = [
   path.resolve(MODULE_DIR, "../data/verified.yaml"),
   path.resolve(process.cwd(), "packages/registry/data/verified.yaml"),
@@ -105,7 +108,7 @@ async function loadCoreModule<T>() {
     return (await import("@vibebasket/core")) as T;
   } catch (error) {
     if (process.env.NODE_ENV === "production") {
-      throw error;
+      return (await import(/* webpackIgnore: true */ CORE_DIST_ENTRY_URL)) as T;
     }
 
     return (await import(/* webpackIgnore: true */ CORE_SOURCE_ENTRY_URL)) as T;

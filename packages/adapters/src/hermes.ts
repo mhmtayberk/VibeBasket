@@ -3,6 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import type { IdeId, McpEntry, Scope, SkillEntry } from "../../core/src/manifest.js";
 import { type BasicMcpServerConfig, hasErrorCode, mergeStandardMcpServers } from "./mcp-utils";
+import { assertPathWithoutSymbolicLinks } from "./safe-path";
 import { getTargetCapabilities } from "./target-capabilities";
 import type { IdeAdapter } from "./types";
 
@@ -31,6 +32,8 @@ export class HermesAdapter implements IdeAdapter {
   readonly supportsSkills = HermesAdapter.capabilities.supportsSkills;
   readonly supportsRules = HermesAdapter.capabilities.supportsRules;
   readonly supportedScopes: readonly Scope[] = HermesAdapter.capabilities.supportedScopes;
+  readonly mcpScopes: readonly Scope[] = HermesAdapter.capabilities.mcpScopes ?? [];
+  readonly skillScopes: readonly Scope[] = HermesAdapter.capabilities.skillScopes ?? [];
 
   configPath(scope: Scope, projectRoot?: string): string {
     // Hermes user config path is ~/.hermes/config.yaml
@@ -82,6 +85,7 @@ export class HermesAdapter implements IdeAdapter {
   async applySkills(skills: SkillEntry[], scope: Scope, projectRoot?: string): Promise<void> {
     if (scope === "project" && projectRoot) {
       const rulesFile = path.join(projectRoot, ".hermesrules");
+      await assertPathWithoutSymbolicLinks(projectRoot, rulesFile);
       let content = "";
       try {
         content = await fs.readFile(rulesFile, "utf8");

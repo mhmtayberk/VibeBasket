@@ -28,8 +28,8 @@ export const McpEntrySchema = z.object({
       message: "Remote MCP URLs must use http or https.",
     })
     .optional(),
-  env: z.record(z.string()).default({}),
-  headers: z.record(z.string()).default({}),
+  env: z.record(z.string(), z.string()).default({}),
+  headers: z.record(z.string(), z.string()).default({}),
   requiredSecrets: z.array(z.string()).default([]),
   verified: z.boolean().default(false),
 });
@@ -188,6 +188,7 @@ export const mcpRegistryResponseSchema = z.object({
           server: mcpRegistryServerSchema,
           _meta: z
             .record(
+              z.string(),
               z
                 .object({
                   status: z.string().optional(),

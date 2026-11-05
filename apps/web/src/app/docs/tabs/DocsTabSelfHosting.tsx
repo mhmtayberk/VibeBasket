@@ -559,7 +559,12 @@ pnpm --filter web start        # production server on :3000`}</pre>
                   {
                     name: "TRUST_PROXY",
                     req: false,
-                    desc: "Set to true when running behind Cloudflare, Nginx, or another trusted reverse proxy. Proxy IP headers are ignored otherwise.",
+                    desc: "Set to true only when a trusted reverse proxy overwrites the selected client IP header. Proxy IP headers are ignored otherwise.",
+                  },
+                  {
+                    name: "TRUST_PROXY_HEADER",
+                    req: false,
+                    desc: "Trusted client IP header: x-forwarded-for (default), x-real-ip, or cf-connecting-ip.",
                   },
                   {
                     name: "CATALOG_REFRESH_TOKEN",

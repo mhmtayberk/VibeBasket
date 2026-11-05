@@ -22,7 +22,6 @@ export class CortexCodeAdapter extends BaseAdapter {
       scope === "project" && projectRoot
         ? path.join(projectRoot, ".cortex", "skills")
         : path.join(os.homedir(), ".snowflake", "cortex", "skills");
-    await fs.mkdir(skillsDir, { recursive: true });
     const result = createManagedContentResult();
     for (const skill of skills) {
       const content =
@@ -33,6 +32,7 @@ export class CortexCodeAdapter extends BaseAdapter {
       appendManagedContentResult(
         result,
         await upsertManagedTextFile({
+          ...(scope === "project" && projectRoot ? { trustedRoot: projectRoot } : {}),
           registryDir: skillsDir,
           targetFile: path.join(skillsDir, `${skill.id}.md`),
           kind: "skill",

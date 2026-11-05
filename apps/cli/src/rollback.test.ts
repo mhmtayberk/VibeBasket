@@ -20,6 +20,8 @@ const readConfigMock = vi.fn(async () => ({}));
 
 class RollbackAdapter {
   displayName = "Test IDE";
+  configPath = (_scope: string, projectRoot?: string) =>
+    path.join(projectRoot ?? os.homedir(), ".test-ide", "mcp.json");
   writeConfig = writeConfigMock;
   readConfig = readConfigMock;
   supportedScopes: readonly string[] = ["user"];
@@ -206,6 +208,32 @@ describe("runRollback", () => {
 
     const { runRollback } = await import("./rollback.js");
     await expect(runRollback()).rejects.toThrow();
+  });
+
+  it("rejects a backup file symbolic link", async () => {
+    const outsideFile = path.join(tempDir, "outside.json");
+    fs.writeFileSync(outsideFile, JSON.stringify({ mcpServers: {} }));
+    const backupFile = path.join(originalBackupDir, "cursor-user-2025-01-01T10-00-00-000Z.json");
+    fs.symlinkSync(outsideFile, backupFile);
+
+    const { runRollback } = await import("./rollback.js");
+    await expect(runRollback()).rejects.toThrow("symbolic link");
+    expect(writeConfigMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects a symbolic-linked backup directory", async () => {
+    const outsideDir = path.join(tempDir, "outside-backups");
+    fs.mkdirSync(outsideDir);
+    fs.writeFileSync(
+      path.join(outsideDir, "cursor-user-2025-01-01T10-00-00-000Z.json"),
+      JSON.stringify({ mcpServers: {} }),
+    );
+    fs.rmSync(originalBackupDir, { recursive: true });
+    fs.symlinkSync(outsideDir, originalBackupDir, "dir");
+
+    const { runRollback } = await import("./rollback.js");
+    await expect(runRollback()).rejects.toThrow("symbolic link");
+    expect(writeConfigMock).not.toHaveBeenCalled();
   });
 
   it("throws when adapter not found for target", async () => {

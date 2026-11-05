@@ -85,7 +85,7 @@ export class AutohandAdapter extends BaseAdapter {
       scope === "project"
         ? path.join(requireProjectRoot(projectRoot), ".autohand", "skills")
         : path.join(this.homeDir(), "skills");
-    return applyAgentSkills(skills, baseDir);
+    return applyAgentSkills(skills, baseDir, scope === "project" ? projectRoot : undefined);
   }
 
   override applyMcps(

@@ -126,7 +126,7 @@ AUTH_MICROSOFT_ENTRA_ID_SECRET=...
 - Anonymous catalog browsing still works when all auth providers are disabled.
 - In local development, the app falls back to a dev-only auth secret if `AUTH_SECRET` is missing so Auth.js does not spam the console; production still requires a real `AUTH_SECRET`.
 - In production behind a reverse proxy or CDN, set `AUTH_TRUST_HOST=true` so OAuth callback URL handling trusts the forwarded host correctly.
-- Only set `TRUST_PROXY=true` when the app is actually behind a trusted proxy or CDN that overwrites incoming client IP headers.
+- Only set `TRUST_PROXY=true` when the app is actually behind a trusted proxy or CDN that overwrites the header selected by `TRUST_PROXY_HEADER` (`x-forwarded-for` by default; `x-real-ip` and `cf-connecting-ip` are also supported).
 - `ADMIN_OAUTH_EMAILS` only grants admin access when the signed-in provider account also reports the email as verified.
 - Cookie-authenticated saved-stack mutations enforce same-origin `Origin` checks, so `NEXTAUTH_URL` should reflect the real public app origin. Read-only stack fetches do not require that mutation header.
 
@@ -215,7 +215,7 @@ After that, publishing is intentionally version-tag driven instead of PR-driven:
 
 1. bump `apps/cli/package.json`
 2. merge the change normally
-3. push a semver tag such as `v0.9.6`
+3. push a semver tag such as `v0.9.8`
 
 That tag triggers the OIDC-backed `npm publish --access public --provenance` workflow. The workflow also keeps a manual `workflow_dispatch` path for maintainers who intentionally need a manual publish run. No long-lived npm token is required in the repository for either path.
 
